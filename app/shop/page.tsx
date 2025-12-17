@@ -215,6 +215,12 @@ export default function ShopHome() {
     return price - price * (promo.discount_value / 100);
   };
 
+  const cleanName = (name?: string) =>
+    (name || '')
+      .replace(/\(pos import\)/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
   const segmentAnchorMap = useMemo(() => {
     const map: Record<string, string> = {};
     segments.forEach((seg) => {
@@ -445,17 +451,39 @@ export default function ShopHome() {
                         <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">
                           {prodItem.global_products.category || 'Assorted'}
                         </div>
-                        <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em]">{prodItem.global_products.name}</h4>
-                        <div className="flex items-center gap-2 mt-2 mb-4">
+                      <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em]">{cleanName(prodItem.global_products.name)}</h4>
+                      <div className="flex items-center justify-between mt-2 mb-4">
+                        <div className="flex items-center gap-2">
                           <span className="text-lg font-black text-green-700">${finalPrice.toFixed(2)}</span>
                           {hasPromo && <span className="text-xs text-gray-400 line-through">${prodItem.price.toFixed(2)}</span>}
                         </div>
-                        <button
-                          onClick={() => updateQty(prodItem.id, 1)}
-                          className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                        >
-                          Add to cart
-                        </button>
+                        {promo && (
+                          <span className="text-[10px] text-red-600 font-bold">
+                            {promo.discount_type === 'fixed_price' ? 'Deal' : `${promo.discount_value}% off`}
+                          </span>
+                        )}
+                      </div>
+                      {(() => {
+                        const qty = cart[prodItem.id] || 0;
+                        return qty === 0 ? (
+                          <button
+                            onClick={() => updateQty(prodItem.id, 1)}
+                            className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                          >
+                            Add to cart
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
+                            <button onClick={() => updateQty(prodItem.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
+                              <Minus size={12} />
+                            </button>
+                            <span className="text-xs font-bold w-5 text-center">{qty}</span>
+                            <button onClick={() => updateQty(prodItem.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                        );
+                      })()}
                       </div>
                     );
                   })}
@@ -594,7 +622,7 @@ export default function ShopHome() {
                     {prodItem.global_products.category || 'Grocery'}
                   </div>
                   <h3 className="font-bold text-gray-900 text-sm leading-snug mb-1 line-clamp-2 min-h-[2.5em]">
-                    {prodItem.global_products.name}
+                    {cleanName(prodItem.global_products.name)}
                   </h3>
                   
                   {/* Rating Mock */}
