@@ -30,6 +30,7 @@ type InventoryItem = {
 export default function PosMappingPage() {
   const { tenant } = useTenant();
   const FALLBACK_TENANT_ID = process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || 'b719cc04-38d2-4af8-ae52-1001791aff6f';
+  const activeTenantId = useMemo(() => tenant?.id || FALLBACK_TENANT_ID, [tenant]);
   const [mappings, setMappings] = useState<PosMap[]>([]);
   const [inventoryList, setInventoryList] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,14 +41,13 @@ export default function PosMappingPage() {
 
   // Fetch Mappings & Inventory
   useEffect(() => {
-    const activeTenantId = tenant?.id || FALLBACK_TENANT_ID;
     if (!activeTenantId) {
       setFetchError('No tenant found. Please log in or configure a default tenant id.');
       setLoading(false);
       return;
     }
     loadData(activeTenantId);
-  }, [tenant]);
+  }, [activeTenantId]);
 
   const loadData = async (tenantId: string) => {
     setLoading(true);
@@ -128,7 +128,7 @@ export default function PosMappingPage() {
     // This part is complex, for MVP we just switch the pointer for FUTURE sales.
     
     setEditingId(null);
-    loadData(); // Refresh
+    loadData(activeTenantId); // Refresh
   };
 
   const verifyMap = async (id: string) => {
