@@ -2,24 +2,19 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // Basic gate: require Supabase auth cookie for privileged areas.
 // Adjust the protected paths as needed for your tenants (admin/super-admin/supplier/vendor consoles).
-const PROTECTED_PREFIXES = [
-  '/admin',
-  '/super-admin',
-  '/supplier',
-  '/vendors',
-  '/pos-mapping',
-  '/test-parser',
-];
+const PROTECTED_PREFIXES = ['/admin', '/super-admin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isProtected =
+    PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
   if (!isProtected) return NextResponse.next();
 
   // Supabase sets access tokens in cookies; presence is a minimal auth check.
   const hasSupabaseSession =
     req.cookies.get('sb-access-token') ||
+    req.cookies.get('sb-refresh-token') ||
     req.cookies.get('sb:token') ||
     req.cookies.get('supabase-auth-token');
 
