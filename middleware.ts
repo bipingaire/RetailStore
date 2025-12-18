@@ -16,7 +16,8 @@ export function middleware(req: NextRequest) {
     req.cookies.get('sb-access-token') ||
     req.cookies.get('sb-refresh-token') ||
     req.cookies.get('sb:token') ||
-    req.cookies.get('supabase-auth-token');
+    req.cookies.get('supabase-auth-token') ||
+    req.cookies.getAll().some((c) => c.name.startsWith('sb-'));
 
   if (!hasSupabaseSession) {
     const url = req.nextUrl.clone();
