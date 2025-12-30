@@ -1,11 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-// Basic gate: require Supabase auth cookie for privileged areas.
-// Adjust the protected paths as needed for your tenants (admin/super-admin/supplier/vendor consoles).
+// Basic gate for privileged areas. Currently disabled for testing.
 const PROTECTED_PREFIXES = ['/admin', '/super-admin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // TEMP: auth bypass for end-to-end testing. Remove to re-enable gating.
+  return NextResponse.next();
 
   const isProtected =
     PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
