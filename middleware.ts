@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
 // Basic gate: require Supabase auth cookie for privileged areas.
 // Adjust the protected paths as needed for your tenants (admin/super-admin/supplier/vendor consoles).
 const PROTECTED_PREFIXES = ['/admin', '/super-admin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isProtected =
@@ -12,18 +13,13 @@ export function middleware(req: NextRequest) {
   if (!isProtected) return NextResponse.next();
 
   // Supabase sets access tokens in cookies; presence is a minimal auth check.
-  const hasSupabaseSession =
-    req.cookies.get('sb-access-token') ||
-    req.cookies.get('sb-refresh-token') ||
-    req.cookies.get('sb:token') ||
-    req.cookies.get('supabase-auth-token') ||
-    req.cookies.getAll().some((c) => c.name.startsWith('sb-'));
+  const supabase = createMiddlewareClient({ req, res: NextResponse.next() });
+  const { data: { session } } = await supabase.auth.getSession();
+  const hasSupabaseSession = !!session;
 
   if (!hasSupabaseSession) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(new URL(`/login?redirect=${encodeURIComponent(pathname)}`, req.url));
+    return res;
   }
 
   return NextResponse.next();
