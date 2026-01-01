@@ -34,6 +34,7 @@ export default function SocialPage() {
     imageApiKey: '',
     siteUrl: 'https://yourshop.com',
   });
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadCampaigns() {
@@ -81,6 +82,18 @@ export default function SocialPage() {
     setStatus(
       `Posting "${c.title}" to ${['instagram','facebook','tiktok'].filter((k)=> (accounts as any)[k]).join(', ') || 'no accounts'}. (stub — add API integration)`
     );
+  };
+
+  const handleProductPost = (campaign: Campaign, product: any) => {
+    const prodName = product?.global_products?.name || 'Product';
+    setStatus(
+      `Posting "${prodName}" from ${campaign.title} to ${['instagram','facebook','tiktok'].filter((k)=> (accounts as any)[k]).join(', ') || 'no accounts'} (stub — add API integration)`
+    );
+  };
+
+  const handleProductImage = (campaign: Campaign, product: any) => {
+    const prodName = product?.global_products?.name || 'Product';
+    setStatus(`Queued image generation for "${prodName}" in ${campaign.title} (stub). Wire to Canva/LLM APIs.`);
   };
 
   const sanitizedCampaigns = useMemo(
@@ -183,6 +196,7 @@ export default function SocialPage() {
               {sanitizedCampaigns.map((c) => {
                 const primary = (c as any).primary;
                 const link = buildLink(c);
+                const isExpanded = expanded === c.id;
                 return (
                   <div key={c.id} className="border border-gray-200 rounded-xl p-4 shadow-sm bg-gray-50 space-y-3">
                     <div className="flex items-center gap-2">
@@ -226,7 +240,55 @@ export default function SocialPage() {
                       >
                         <Link2 size={14} /> Copy link
                       </button>
+                      <button
+                        onClick={() => setExpanded(isExpanded ? null : c.id)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-white border hover:border-gray-200"
+                      >
+                        {isExpanded ? 'Hide products' : 'View products'}
+                      </button>
                     </div>
+                    {isExpanded && (
+                      <div className="space-y-2 pt-2 border-t border-gray-200">
+                        {(c.segment_products || [])
+                          .filter((sp) => sp.store_inventory)
+                          .map((sp, idx) => {
+                            const prod = sp.store_inventory;
+                            return (
+                              <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-100">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-50 border flex items-center justify-center">
+                                    {prod?.global_products?.image_url ? (
+                                      <img src={prod.global_products.image_url} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <ImageIcon className="text-gray-300" />
+                                    )}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-semibold text-gray-900">
+                                      {prod?.global_products?.name || 'Product'}
+                                    </span>
+                                    <span className="text-xs text-gray-500">${prod?.price?.toFixed(2) || '0.00'}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleProductImage(c, prod)}
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-3 py-1.5 rounded bg-white border hover:border-purple-200 hover:text-purple-700"
+                                  >
+                                    <ImageIcon size={12} /> Generate
+                                  </button>
+                                  <button
+                                    onClick={() => handleProductPost(c, prod)}
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700"
+                                  >
+                                    <Share2 size={12} /> Post
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
