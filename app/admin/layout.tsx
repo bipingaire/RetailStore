@@ -18,6 +18,7 @@ import {
   Users,
   LinkIcon,
   Sparkles,
+  Megaphone,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -68,6 +69,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       href: '/admin/inventory', 
       icon: LayoutDashboard,
       desc: 'Stock & Expiry'
+    },
+    { 
+      name: 'Master Inventory', 
+      href: '/admin/inventory/master', 
+      icon: LayoutDashboard,
+      desc: 'Vendors / Costs / Prices'
+    },
+    { 
+      name: 'Social Media', 
+      href: '/admin/social', 
+      icon: Megaphone,
+      desc: 'Push campaigns to socials'
     },
     { 
       name: 'Restock', 

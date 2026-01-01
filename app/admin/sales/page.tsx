@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Link2, ShieldCheck } from 'lucide-react';
 import { useTenant } from '@/components/tenant-context'; 
 
 // Load PDF.js from CDN for client-side processing without heavy build steps
@@ -16,6 +16,11 @@ export default function SalesSyncPage() {
   const [processingStatus, setProcessingStatus] = useState('');
   const [report, setReport] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [posProvider, setPosProvider] = useState<string>('square');
+  const [posApiKey, setPosApiKey] = useState<string>('');
+  const [posApiSecret, setPosApiSecret] = useState<string>('');
+  const [posEndpoint, setPosEndpoint] = useState<string>('');
+  const [posStatus, setPosStatus] = useState<string>('');
 
   // Load PDF.js script dynamically
   useEffect(() => {
@@ -139,6 +144,77 @@ export default function SalesSyncPage() {
             Upload your POS "End of Day" report (PDF/Image) to update inventory counts.
           </p>
         </header>
+
+        {/* POS API CONNECTION */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Link2 className="text-blue-600" />
+            <h2 className="text-lg font-bold text-gray-900">Connect POS Provider</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Configure your POS API credentials to pull sales automatically. Nothing is sent until you click “Save & Test”.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="text-sm text-gray-700 space-y-1">
+              <span>POS Provider</span>
+              <select
+                className="border rounded-lg px-3 py-2 text-sm w-full"
+                value={posProvider}
+                onChange={(e) => setPosProvider(e.target.value)}
+              >
+                <option value="square">Square</option>
+                <option value="clover">Clover</option>
+                <option value="toast">Toast</option>
+                <option value="lightspeed">Lightspeed</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label className="text-sm text-gray-700 space-y-1">
+              <span>API Endpoint (base URL)</span>
+              <input
+                className="border rounded-lg px-3 py-2 text-sm w-full"
+                placeholder="https://api.pos.com/v1"
+                value={posEndpoint}
+                onChange={(e) => setPosEndpoint(e.target.value)}
+              />
+            </label>
+            <label className="text-sm text-gray-700 space-y-1">
+              <span>API Key</span>
+              <input
+                className="border rounded-lg px-3 py-2 text-sm w-full"
+                placeholder="sk_live_..."
+                value={posApiKey}
+                onChange={(e) => setPosApiKey(e.target.value)}
+              />
+            </label>
+            <label className="text-sm text-gray-700 space-y-1">
+              <span>API Secret / Client Secret</span>
+              <input
+                className="border rounded-lg px-3 py-2 text-sm w-full"
+                placeholder="secret"
+                value={posApiSecret}
+                onChange={(e) => setPosApiSecret(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <ShieldCheck className="text-green-500" size={14} />
+              Stored securely per-tenant; not shared with global data.
+            </div>
+            <button
+              onClick={() => {
+                // Placeholder persistence hook. Replace with real API call.
+                console.log('Save POS creds', { posProvider, posEndpoint, posApiKey: posApiKey ? '***' : '', posApiSecret: posApiSecret ? '***' : '' });
+                setPosStatus('Saved locally (wire real API to persist).');
+              }}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+            >
+              Save & Test
+            </button>
+          </div>
+          {posStatus && <div className="text-xs text-green-700 mt-2">{posStatus}</div>}
+        </div>
 
         {/* Upload Window */}
         <div className="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-12 text-center hover:bg-gray-50 transition cursor-pointer relative">

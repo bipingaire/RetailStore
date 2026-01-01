@@ -182,6 +182,11 @@ export default function InvoicePage() {
         });
         
         const json = await res.json();
+        if (!res.ok || !json?.success) {
+          console.error('Parse invoice failed', json);
+          alert('Could not parse invoice. Check API key / network and try again.');
+          continue;
+        }
         
         if (json.success) {
             // Items
