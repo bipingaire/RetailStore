@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { Tag, X, Percent, DollarSign } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Tag, X, Percent, DollarSign, Share2, Image as ImageIcon } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -8,11 +8,25 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+type Campaign = { id: string; title: string; slug?: string };
+
 export default function PromotionModal({ product, batch, onClose }: any) {
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<'percentage' | 'fixed_price'>('percentage');
   const [value, setValue] = useState(30); // Default 30% off
   const [days, setDays] = useState(3); // Default 3 day sale
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignId, setCampaignId] = useState<string>('');
+  const [status, setStatus] = useState<string>('');
+
+  useEffect(() => {
+    supabase
+      .from('product_segments')
+      .select('id, title, slug')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => setCampaigns((data as any[]) || []));
+  }, []);
 
   const handleSave = async () => {
     setLoading(true);
@@ -21,7 +35,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
 
-    const { error } = await supabase
+    const { data: promoData, error } = await supabase
       .from('promotions')
       .insert({
         tenant_id: 'PASTE_YOUR_COPIED_UUID_HERE', // <--- REMEMBER TO USE YOUR REAL ID
@@ -31,16 +45,36 @@ export default function PromotionModal({ product, batch, onClose }: any) {
         discount_type: type,
         discount_value: value,
         end_date: endDate.toISOString()
-      });
+      })
+      .select()
+      .single();
 
     setLoading(false);
     if (error) {
       alert("Error creating promotion");
       console.error(error);
     } else {
-      alert("✅ Promotion Live on Website!");
+      // Optionally attach to campaign
+      if (campaignId) {
+        await supabase
+          .from('segment_products')
+          .upsert({
+            segment_id: campaignId,
+            store_inventory_id: product.id,
+            highlight_label: batch ? 'Clearance' : 'Promo',
+          });
+      }
+      setStatus('✅ Promotion Live on Website' + (campaignId ? ' & Campaign' : ''));
       onClose();
     }
+  };
+
+  const handleGenerateImage = () => {
+    setStatus('Queued image generation (stub). Connect Canva/LLM to render creatives.');
+  };
+
+  const handlePostSocial = () => {
+    setStatus('Posting to social (stub). Wire to your social API.');
   };
 
   return (
@@ -64,6 +98,23 @@ export default function PromotionModal({ product, batch, onClose }: any) {
         {/* Body */}
         <div className="p-6 space-y-6">
           
+          {/* Campaign attach */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Add to existing campaign (optional)</label>
+            <select
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value)}
+            >
+              <option value="">Do not attach</option>
+              {campaigns.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Toggle Type */}
           <div className="flex bg-gray-100 p-1 rounded-lg">
             <button 
@@ -121,6 +172,24 @@ export default function PromotionModal({ product, batch, onClose }: any) {
           {/* POS Reminder */}
           <div className="bg-yellow-50 border border-yellow-100 rounded p-3 text-xs text-yellow-800">
             <strong>Note:</strong> Remember to update the POS price or keep a coupon code at the register.
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleGenerateImage}
+              type="button"
+              className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 hover:border-purple-200 hover:text-purple-700"
+            >
+              <ImageIcon size={14} /> Generate post image
+            </button>
+            <button
+              onClick={handlePostSocial}
+              type="button"
+              className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <Share2 size={14} /> Post to social
+            </button>
+            {status && <span className="text-[11px] text-green-700">{status}</span>}
           </div>
 
         </div>
