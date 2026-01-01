@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Sparkles, Megaphone, Link2, Image as ImageIcon, Share2, Check, AlertCircle } from 'lucide-react';
+import { Sparkles, Megaphone, Link2, Image as ImageIcon, Share2, Check, AlertCircle, ShieldCheck } from 'lucide-react';
 
 type Campaign = {
   id: string;
