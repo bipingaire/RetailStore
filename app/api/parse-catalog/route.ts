@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(req: Request) {
   try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
     const { textData, fileType } = await req.json();
 
     if (!textData) {
@@ -45,9 +45,9 @@ export async function POST(req: Request) {
     const content = response.choices[0].message.content;
     const parsedData = JSON.parse(content || '{"products": []}');
 
-    return NextResponse.json({ 
-      success: true, 
-      data: parsedData.products 
+    return NextResponse.json({
+      success: true,
+      data: parsedData.products
     });
 
   } catch (error: any) {

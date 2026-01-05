@@ -63,39 +63,94 @@ export async function POST(req: Request) {
       }
     `;
 
-    const contentPayload = fileType === 'pdf_text' 
-        ? [{ type: "text", text: fileData.substring(0, 15000) }]
-        : [
-            { type: "text", text: "Extract detailed vendor and product data." },
-            { type: "image_url", image_url: { url: fileData } }
-          ];
+    const contentPayload = fileType === 'pdf_text'
+      ? [{ type: "text", text: fileData.substring(0, 15000) }]
+      : [
+        { type: "text", text: "Extract detailed vendor and product data." },
+        { type: "image_url", image_url: { url: fileData } }
+      ];
 
     if (!openai) {
-      // Fallback mock for local/testing when no API key is configured
+      // --- DEMO MODE: SMART RANDOM MOCK ---
+      // This ensures the features are testable even without an API key.
+
+      const MOCK_VENDORS = [
+        { name: "Global Foods Distributors", type: "food" },
+        { name: "TechParts Solutions", type: "tech" },
+        { name: "FreshFarm Supply", type: "food" },
+        { name: "Office Basics Inc.", type: "office" }
+      ];
+
+      const MOCK_ITEMS = {
+        food: [
+          { name: "Organic Bananas", sku: "BAN-ORG-001", cost: 0.85 },
+          { name: "Almond Milk", sku: "ALM-US-32", cost: 2.10 },
+          { name: "Whole Wheat Bread", sku: "BRD-WW-05", cost: 1.50 },
+          { name: "Avocados (Case)", sku: "AVO-MX-20", cost: 45.00 },
+        ],
+        tech: [
+          { name: "USB-C Cable 6ft", sku: "CB-USC-6", cost: 3.50 },
+          { name: "Wireless Mouse", sku: "MS-WL-01", cost: 12.00 },
+          { name: "Monitor Stand", sku: "ST-MN-02", cost: 25.00 },
+        ],
+        office: [
+          { name: "Printer Paper (Box)", sku: "PPR-A4-500", cost: 32.00 },
+          { name: "Ballpoint Pens (Blue)", sku: "PN-BL-12", cost: 4.50 },
+        ]
+      } as const; // Add 'as const' to fix indexing error
+
+      const vendor = MOCK_VENDORS[Math.floor(Math.random() * MOCK_VENDORS.length)];
+      // Force type assertion or use a type guard if needed, but for mock simple indexing is fine with 'any' fallback
+      const availableItems = (MOCK_ITEMS as any)[vendor.type] || MOCK_ITEMS.food;
+
+      const numItems = Math.floor(Math.random() * 3) + 2; // 2-4 items
+      const selectedItems = [];
+      let total = 0;
+
+      for (let i = 0; i < numItems; i++) {
+        const item = availableItems[Math.floor(Math.random() * availableItems.length)];
+        const qty = Math.floor(Math.random() * 20) + 5;
+        const lineTotal = qty * item.cost;
+        total += lineTotal;
+        selectedItems.push({
+          product_name: item.name,
+          vendor_code: item.sku,
+          upc: "000" + Math.floor(Math.random() * 9999),
+          qty: qty,
+          unit_cost: item.cost,
+          notes: i === 0 ? "Demo: Extracted from image" : ""
+        });
+      }
+
+      const tax = parseFloat((total * 0.08).toFixed(2));
+      const shipping = 15.00;
+      const grandTotal = parseFloat((total + tax + shipping).toFixed(2));
+
+      // Simulate network delay for realism
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       return NextResponse.json({
         success: true,
         data: {
           vendor: {
-            name: 'Sample Vendor',
-            ein: null,
-            website: null,
-            email: null,
-            phone: null,
-            fax: null,
-            address: null,
+            name: vendor.name,
+            ein: "12-3456789",
+            website: `www.${vendor.name.replace(/\s+/g, '').toLowerCase()}.com`,
+            email: `support@${vendor.name.replace(/\s+/g, '').toLowerCase()}.com`,
+            phone: "(555) 123-4567",
+            fax: "(555) 123-4568",
+            address: "123 Business Park Dr, Commerce City, CA 90210",
             warehouse_address: null,
-            poc_name: null,
+            poc_name: "Demo Agent",
           },
           metadata: {
-            invoice_number: 'TEST-123',
+            invoice_number: `INV-${Math.floor(Math.random() * 10000)}`,
             invoice_date: new Date().toISOString().split('T')[0],
-            total_tax: 0,
-            total_transport: 0,
-            total_amount: 100,
+            total_tax: tax,
+            total_transport: shipping,
+            total_amount: grandTotal,
           },
-          items: [
-            { product_name: 'Sample Item', vendor_code: 'SKU-1', upc: '0000', qty: 1, unit_cost: 100, notes: '' },
-          ],
+          items: selectedItems,
         },
       });
     }

@@ -7,10 +7,9 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 export async function POST(req: Request) {
   try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const { imageUrl, tenantId } = await req.json();
 
     // 1. AI Parsing (Extract Raw POS Data)
@@ -51,15 +50,15 @@ export async function POST(req: Request) {
 
       if (existingMap?.store_inventory_id) {
         inventoryId = existingMap.store_inventory_id;
-        
+
         // Update Price History
         if (existingMap.last_sold_price !== sale.sold_price) {
-           await supabase.from('pos_mappings').update({
-             previous_sold_price: existingMap.last_sold_price,
-             last_sold_price: sale.sold_price
-           }).eq('pos_name', sale.name).eq('tenant_id', tenantId);
+          await supabase.from('pos_mappings').update({
+            previous_sold_price: existingMap.last_sold_price,
+            last_sold_price: sale.sold_price
+          }).eq('pos_name', sale.name).eq('tenant_id', tenantId);
         }
-      } 
+      }
       else {
         // B. NEW ITEM DISCOVERED - Fuzzy Match or Create Stub
         // Try to find a clean inventory item with similar name
@@ -81,17 +80,17 @@ export async function POST(req: Request) {
             .insert({ name: sale.name + " (POS Import)", source_type: 'pos_stub' })
             .select()
             .single();
-            
+
           const { data: newInv } = await supabase
             .from('store_inventory')
-            .insert({ 
-              tenant_id: tenantId, 
+            .insert({
+              tenant_id: tenantId,
               global_product_id: newGlobal.id,
-              price: sale.sold_price 
+              price: sale.sold_price
             })
             .select()
             .single();
-            
+
           inventoryId = newInv.id;
         }
 
@@ -121,7 +120,7 @@ export async function POST(req: Request) {
         for (const batch of batches) {
           if (qtyRemainingToDeduct <= 0) break;
           const deduction = Math.min(batch.batch_quantity, qtyRemainingToDeduct);
-          
+
           await supabase
             .from('inventory_batches')
             .update({ batch_quantity: batch.batch_quantity - deduction })

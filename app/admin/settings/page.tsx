@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { 
-  Building, MapPin, Phone, Save, Users, Truck, 
-  Plus, Trash2, Globe, CreditCard, Loader2, Mail, 
-  LayoutTemplate, Link as LinkIcon, Palette, Image as ImageIcon, 
+import {
+  Building, MapPin, Phone, Save, Users, Truck,
+  Plus, Trash2, Globe, CreditCard, Loader2, Mail,
+  LayoutTemplate, Link as LinkIcon, Palette, Image as ImageIcon,
   Upload, Search, Check, X, ExternalLink, ShoppingBag, Receipt, ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
@@ -14,56 +14,16 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// ⚠️ REPLACE THIS WITH YOUR REAL TENANT ID FROM SUPABASE
-const TENANT_ID = 'PASTE_YOUR_REAL_TENANT_UUID_HERE'; 
-
-type Vendor = {
-  id: string;
-  name: string;
-  contact_phone: string;
-  whatsapp_number: string;
-  email: string;
-  transport_rate_per_pallet: number;
-};
-
-type StoreProfile = {
-  name: string;
-  address: string;
-  city_state_zip: string;
-  phone: string;
-  email: string;
-  tax_id: string;
-  default_safety_stock: number;
-  subdomain: string;
-  custom_domain: string;
-  logo_url: string;
-  hero_banner_url: string;
-  primary_color: string;
-};
-
-type Plan = {
-  id: string;
-  name: string;
-  price: number;
-  features: string[];
-  recommended?: boolean;
-};
-
-type Invoice = {
-  id: string;
-  date: string;
-  amount: number;
-  status: 'paid' | 'pending' | 'failed';
-};
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'branding' | 'billing'>('profile');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+  const [tenantId, setTenantId] = useState<string | null>(null);
+
   // Profile State
   const [profile, setProfile] = useState<StoreProfile>({
-    name: '', address: '', city_state_zip: '', phone: '', email: '', tax_id: '', 
+    name: '', address: '', city_state_zip: '', phone: '', email: '', tax_id: '',
     default_safety_stock: 10,
     subdomain: 'demo-store',
     custom_domain: '',
@@ -87,30 +47,78 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function loadSettings() {
-      // 1. Load Profile (Mocked for MVP)
-      setProfile({
-        name: "Demo Supermarket",
-        address: "123 Main St",
-        city_state_zip: "New York, NY 10001",
-        phone: "555-0199",
-        email: "manager@demosupermarket.com",
-        tax_id: "US-99-876543",
-        default_safety_stock: 15,
-        subdomain: "demo-supermarket",
-        custom_domain: "",
-        logo_url: "https://via.placeholder.com/150",
-        hero_banner_url: "https://via.placeholder.com/1200x400",
-        primary_color: "#2563eb"
-      });
+      setLoading(true);
+
+      // 1. Resolve Tenant (Get first or Create)
+      let currentTenantId = null;
+
+      const { data: existingTenants, error: fetchError } = await supabase
+        .from('retail-store-tenant')
+        .select('*')
+        .limit(1);
+
+      if (existingTenants && existingTenants.length > 0) {
+        // Use existing
+        const t = existingTenants[0];
+        currentTenantId = t['tenant-id'];
+        setProfile({
+          name: t['store-name'],
+          address: t['store-address'] || '',
+          city_state_zip: `${t['store-city'] || ''}, ${t['store-state'] || ''} ${t['store-zip-code'] || ''}`,
+          phone: t['phone-number'] || '',
+          email: t['email-address'] || '',
+          tax_id: 'US-XX-XXXX', // Field missing in DB, using stub
+          default_safety_stock: 10, // Field missing in DB, using stub
+          subdomain: 'my-store',
+          custom_domain: '',
+          logo_url: '',
+          hero_banner_url: '',
+          primary_color: '#2563eb'
+        });
+      } else {
+        // Create Default Tenant
+        const { data: newTenant, error: createError } = await supabase
+          .from('retail-store-tenant')
+          .insert({
+            'store-name': 'New Retail Store',
+            'store-address': '123 Market St',
+            'store-city': 'Retail City',
+            'store-state': 'NY',
+            'store-zip-code': '10001',
+            'phone-number': '555-0123',
+            'email-address': 'admin@retail.com'
+          })
+          .select()
+          .single();
+
+        if (newTenant) {
+          currentTenantId = newTenant['tenant-id'];
+          setProfile({
+            name: newTenant['store-name'],
+            address: newTenant['store-address'],
+            city_state_zip: `${newTenant['store-city']}, ${newTenant['store-state']} ${newTenant['store-zip-code']}`,
+            phone: newTenant['phone-number'],
+            email: newTenant['email-address'],
+            tax_id: '',
+            default_safety_stock: 10,
+            subdomain: 'new-store',
+            custom_domain: '',
+            logo_url: '',
+            hero_banner_url: '',
+            primary_color: '#2563eb'
+          });
+        }
+      }
+
+      setTenantId(currentTenantId);
 
       // 2. Load Vendors
-      const { data, error } = await supabase
+      const { data: vendorData } = await supabase
         .from('vendors')
         .select('*')
         .order('name');
-      
-      if (error) console.error("Error loading vendors:", error);
-      if (data) setVendors(data as any);
+
+      if (vendorData) setVendors(vendorData as any);
 
       // 3. Load Invoices (Mock)
       setInvoices([
@@ -118,14 +126,42 @@ export default function SettingsPage() {
         { id: 'INV-2023-002', date: '2023-09-01', amount: 49.00, status: 'paid' },
         { id: 'INV-2023-001', date: '2023-08-01', amount: 49.00, status: 'paid' },
       ]);
+
+      setLoading(false);
     }
     loadSettings();
   }, []);
 
   const handleSaveProfile = async () => {
+    if (!tenantId) return;
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000)); 
-    alert("Store Settings & Branding Updated!");
+
+    // Parse City/State/Zip loose logic
+    const parts = profile.city_state_zip.split(',');
+    const city = parts[0]?.trim() || '';
+    const stateZip = parts[1]?.trim() || '';
+    const state = stateZip.split(' ')[0] || '';
+    const zip = stateZip.split(' ')[1] || '';
+
+    const { error } = await supabase
+      .from('retail-store-tenant')
+      .update({
+        'store-name': profile.name,
+        'store-address': profile.address,
+        'store-city': city,
+        'store-state': state,
+        'store-zip-code': zip,
+        'phone-number': profile.phone,
+        'email-address': profile.email
+      })
+      .eq('tenant-id', tenantId);
+
+    if (error) {
+      alert("Error saving: " + error.message);
+    } else {
+      alert("Store Settings Updated!");
+    }
+
     setLoading(false);
   };
 
@@ -136,7 +172,8 @@ export default function SettingsPage() {
 
     try {
       const payload = {
-        tenant_id: TENANT_ID,
+
+        tenant_id: tenantId,
         name: editingVendor.name,
         contact_phone: editingVendor.contact_phone,
         whatsapp_number: editingVendor.whatsapp_number,
@@ -145,13 +182,13 @@ export default function SettingsPage() {
       };
 
       if (editingVendor.id.startsWith('new-')) {
-          const { data, error } = await supabase.from('vendors').insert(payload).select().single();
-          if (error) throw error;
-          if (data) setVendors(prev => [...prev, data as any]);
+        const { data, error } = await supabase.from('vendors').insert(payload).select().single();
+        if (error) throw error;
+        if (data) setVendors(prev => [...prev, data as any]);
       } else {
-          const { error } = await supabase.from('vendors').update(payload).eq('id', editingVendor.id);
-          if (error) throw error;
-          setVendors(prev => prev.map(v => v.id === editingVendor.id ? editingVendor : v));
+        const { error } = await supabase.from('vendors').update(payload).eq('id', editingVendor.id);
+        if (error) throw error;
+        setVendors(prev => prev.map(v => v.id === editingVendor.id ? editingVendor : v));
       }
       setEditingVendor(null);
     } catch (err: any) {
@@ -163,7 +200,7 @@ export default function SettingsPage() {
   };
 
   const handleDeleteVendor = async (id: string) => {
-    if(!confirm("Are you sure? This vendor will be removed from future PO suggestions.")) return;
+    if (!confirm("Are you sure? This vendor will be removed from future PO suggestions.")) return;
     const { error } = await supabase.from('vendors').delete().eq('id', id);
     if (error) {
       alert("Error deleting vendor");
@@ -192,9 +229,9 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: domainQuery })
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         setDomainResult({
           domain: data.domain,
@@ -215,7 +252,7 @@ export default function SettingsPage() {
   const buyDomain = async () => {
     if (!domainResult) return;
     const confirmed = confirm(`This will charge $${domainResult.price} to your card on file (Demo Mode). Continue?`);
-    
+
     if (confirmed) {
       setLoading(true);
       try {
@@ -224,9 +261,9 @@ export default function SettingsPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ domain: domainResult.domain, price: domainResult.price })
         });
-        
+
         const data = await res.json();
-        
+
         if (res.ok && data.success) {
           setProfile({ ...profile, custom_domain: domainResult.domain });
           setDomainResult(null);
@@ -252,7 +289,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8 font-sans">
       <div className="max-w-6xl mx-auto">
-        
+
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings & Configuration</h1>
           <p className="text-gray-500">Manage your store identity, branding, and supplier relationships.</p>
@@ -260,31 +297,31 @@ export default function SettingsPage() {
 
         {/* TABS */}
         <div className="flex gap-6 border-b border-gray-200 mb-8 overflow-x-auto hide-scrollbar">
-          <button 
+          <button
             onClick={() => setActiveTab('profile')}
             className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 border-b-2 transition ${activeTab === 'profile' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             <Building size={18} /> Store Profile
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('branding')}
             className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 border-b-2 transition ${activeTab === 'branding' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             <Palette size={18} /> Branding & Theme
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('vendors')}
             className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 border-b-2 transition ${activeTab === 'vendors' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             <Users size={18} /> Suppliers
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('website')}
             className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 border-b-2 transition ${activeTab === 'website' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             <LayoutTemplate size={18} /> Online Store
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('billing')}
             className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 border-b-2 transition ${activeTab === 'billing' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
@@ -297,27 +334,27 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Globe size={20} className="text-blue-500"/> Official Details
+                <Globe size={20} className="text-blue-500" /> Official Details
               </h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Store Name</label>
-                  <input type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-800" />
+                  <input type="text" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-800" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tax ID / EIN</label>
-                    <input type="text" value={profile.tax_id} onChange={(e) => setProfile({...profile, tax_id: e.target.value})} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" />
+                    <input type="text" value={profile.tax_id} onChange={(e) => setProfile({ ...profile, tax_id: e.target.value })} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Support Email</label>
-                    <input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    <input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Physical Address</label>
-                  <input type="text" value={profile.address} onChange={(e) => setProfile({...profile, address: e.target.value})} placeholder="Street Address" className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-2" />
-                  <input type="text" value={profile.city_state_zip} onChange={(e) => setProfile({...profile, city_state_zip: e.target.value})} placeholder="City, State, Zip" className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input type="text" value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} placeholder="Street Address" className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-2" />
+                  <input type="text" value={profile.city_state_zip} onChange={(e) => setProfile({ ...profile, city_state_zip: e.target.value })} placeholder="City, State, Zip" className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
                 </div>
               </div>
               <div className="mt-8 border-t pt-6 flex justify-end">
@@ -328,13 +365,13 @@ export default function SettingsPage() {
             </div>
             <div className="bg-white rounded-xl shadow-sm border p-6 h-fit">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <CreditCard size={20} className="text-green-500"/> Preferences
+                <CreditCard size={20} className="text-green-500" /> Preferences
               </h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Default Safety Stock</label>
                   <div className="flex items-center gap-2">
-                    <input type="number" value={profile.default_safety_stock} onChange={(e) => setProfile({...profile, default_safety_stock: parseInt(e.target.value)})} className="w-20 border p-2 rounded-lg font-mono font-bold text-center" />
+                    <input type="number" value={profile.default_safety_stock} onChange={(e) => setProfile({ ...profile, default_safety_stock: parseInt(e.target.value) })} className="w-20 border p-2 rounded-lg font-mono font-bold text-center" />
                     <span className="text-sm text-gray-400">units</span>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">
@@ -351,20 +388,20 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <ImageIcon size={20} className="text-purple-500"/> Store Assets
+                <ImageIcon size={20} className="text-purple-500" /> Store Assets
               </h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Store Logo (Square)</label>
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden relative group">
-                      {profile.logo_url ? <img src={profile.logo_url} className="w-full h-full object-cover" /> : <Building className="text-gray-300"/>}
+                      {profile.logo_url ? <img src={profile.logo_url} className="w-full h-full object-cover" /> : <Building className="text-gray-300" />}
                       <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-white text-xs">Change</div>
                     </div>
                     <div className="flex-1">
-                      <input 
-                        type="file" 
-                        accept="image/*" 
+                      <input
+                        type="file"
+                        accept="image/*"
                         className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         onChange={(e) => handleFileUpload('logo_url', e)}
                       />
@@ -377,9 +414,9 @@ export default function SettingsPage() {
                   <div className="w-full h-32 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden relative group mb-2">
                     {profile.hero_banner_url ? <img src={profile.hero_banner_url} className="w-full h-full object-cover" /> : <span className="text-gray-400 text-sm">No Banner Uploaded</span>}
                   </div>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
+                  <input
+                    type="file"
+                    accept="image/*"
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                     onChange={(e) => handleFileUpload('hero_banner_url', e)}
                   />
@@ -389,23 +426,23 @@ export default function SettingsPage() {
             </div>
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Palette size={20} className="text-pink-500"/> Color Theme
+                <Palette size={20} className="text-pink-500" /> Color Theme
               </h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-3">Primary Brand Color</label>
                   <div className="flex gap-4 items-center">
-                    <input 
-                      type="color" 
+                    <input
+                      type="color"
                       value={profile.primary_color}
-                      onChange={(e) => setProfile({...profile, primary_color: e.target.value})}
+                      onChange={(e) => setProfile({ ...profile, primary_color: e.target.value })}
                       className="w-16 h-16 rounded-xl border-none cursor-pointer"
                     />
                     <div className="flex-1">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={profile.primary_color}
-                        onChange={(e) => setProfile({...profile, primary_color: e.target.value})}
+                        onChange={(e) => setProfile({ ...profile, primary_color: e.target.value })}
                         className="w-full border p-2 rounded font-mono uppercase"
                       />
                       <p className="text-xs text-gray-400 mt-1">Used for buttons, links, and highlights.</p>
@@ -438,7 +475,7 @@ export default function SettingsPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">Approved Supplier List</h2>
-              <button 
+              <button
                 onClick={() => setEditingVendor({ id: `new-${Date.now()}`, name: '', contact_phone: '', whatsapp_number: '', email: '', transport_rate_per_pallet: 150 })}
                 className="bg-black text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm"
               >
@@ -460,8 +497,8 @@ export default function SettingsPage() {
                     <tr key={v.id} className="hover:bg-gray-50 group">
                       <td className="p-4 font-bold text-gray-900">{v.name}</td>
                       <td className="p-4 text-gray-600">
-                        <div className="flex items-center gap-2"><Phone size={14}/> {v.contact_phone || '-'}</div>
-                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-1"><Mail size={12}/> {v.email || '-'}</div>
+                        <div className="flex items-center gap-2"><Phone size={14} /> {v.contact_phone || '-'}</div>
+                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-1"><Mail size={12} /> {v.email || '-'}</div>
                       </td>
                       <td className="p-4">
                         <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded font-mono font-bold">
@@ -471,7 +508,7 @@ export default function SettingsPage() {
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => setEditingVendor(v)} className="text-blue-600 font-bold hover:underline">Edit</button>
-                          <button onClick={() => handleDeleteVendor(v.id)} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={16}/></button>
+                          <button onClick={() => handleDeleteVendor(v.id)} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -498,8 +535,8 @@ export default function SettingsPage() {
                   <h2 className="text-2xl font-black mb-1">Your Store is Live!</h2>
                   <p className="text-blue-100 opacity-90">Share this link to start selling immediately. No setup required.</p>
                 </div>
-                <Link 
-                  href="/shop" 
+                <Link
+                  href="/shop"
                   target="_blank"
                   className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-blue-50 transition"
                 >
@@ -521,7 +558,7 @@ export default function SettingsPage() {
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="bg-green-100 p-2 rounded-lg text-green-700">
-                    <LayoutTemplate size={20}/> 
+                    <LayoutTemplate size={20} />
                   </div>
                   <h2 className="text-lg font-bold text-gray-900">Custom Domain Studio</h2>
                 </div>
@@ -529,14 +566,14 @@ export default function SettingsPage() {
                   Want a professional look? Search and register a custom domain (e.g. <b>yourstore.com</b>) in seconds.
                 </p>
                 <div className="flex gap-2 mb-4">
-                  <input 
-                    type="text" 
-                    placeholder="Find your perfect domain..." 
+                  <input
+                    type="text"
+                    placeholder="Find your perfect domain..."
                     className="flex-1 border p-3 rounded-lg focus:ring-2 focus:ring-green-500 outline-none font-bold text-gray-800"
                     value={domainQuery}
                     onChange={(e) => setDomainQuery(e.target.value)}
                   />
-                  <button 
+                  <button
                     onClick={checkDomainAvailability}
                     disabled={isSearchingDomain || !domainQuery}
                     className="bg-black text-white px-6 rounded-lg font-bold flex items-center gap-2 disabled:opacity-50"
@@ -549,7 +586,7 @@ export default function SettingsPage() {
                   <div className={`p-4 rounded-xl border-2 flex justify-between items-center animate-in zoom-in-95 ${domainResult.available ? 'border-green-100 bg-green-50' : 'border-red-100 bg-red-50'}`}>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        {domainResult.available ? <Check className="text-green-600" size={20}/> : <X className="text-red-600" size={20}/>}
+                        {domainResult.available ? <Check className="text-green-600" size={20} /> : <X className="text-red-600" size={20} />}
                         <span className={`font-bold text-lg ${domainResult.available ? 'text-green-800' : 'text-red-800'}`}>
                           {domainResult.domain}
                         </span>
@@ -559,7 +596,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     {domainResult.available && (
-                      <button 
+                      <button
                         onClick={buyDomain}
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md transition"
                       >
@@ -575,7 +612,7 @@ export default function SettingsPage() {
                       <div className="text-lg font-bold text-gray-900">{profile.custom_domain}</div>
                     </div>
                     <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                      <Check size={12}/> Connected
+                      <Check size={12} /> Connected
                     </span>
                   </div>
                 )}
@@ -583,7 +620,7 @@ export default function SettingsPage() {
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="bg-blue-100 p-2 rounded-lg text-blue-700">
-                    <ExternalLink size={20}/> 
+                    <ExternalLink size={20} />
                   </div>
                   <h2 className="text-lg font-bold text-gray-900">Connect Existing Domain</h2>
                 </div>
@@ -613,7 +650,7 @@ export default function SettingsPage() {
         {activeTab === 'billing' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              
+
               {/* CURRENT PLAN */}
               <div className="lg:col-span-2">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
@@ -626,7 +663,7 @@ export default function SettingsPage() {
                       Active
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 mb-8">
                     <div className="bg-black text-white p-4 rounded-xl">
                       <ShieldCheck size={32} />
@@ -698,28 +735,28 @@ export default function SettingsPage() {
               {/* PAYMENT METHOD */}
               <div className="space-y-8">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                   <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                     <CreditCard size={20} className="text-gray-400" /> Payment Method
-                   </h2>
-                   <div className="bg-gradient-to-br from-gray-800 to-black p-6 rounded-xl text-white mb-6 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <CreditCard size={120} />
-                      </div>
-                      <div className="relative z-10">
-                        <div className="text-xs text-gray-400 uppercase font-bold mb-4">Current Card</div>
-                        <div className="text-2xl font-mono tracking-widest mb-4">•••• •••• •••• 4242</div>
-                        <div className="flex justify-between items-end">
-                          <div>
-                            <div className="text-[10px] text-gray-400 uppercase">Expires</div>
-                            <div className="font-mono">12/25</div>
-                          </div>
-                          <div className="font-bold">VISA</div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <CreditCard size={20} className="text-gray-400" /> Payment Method
+                  </h2>
+                  <div className="bg-gradient-to-br from-gray-800 to-black p-6 rounded-xl text-white mb-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                      <CreditCard size={120} />
+                    </div>
+                    <div className="relative z-10">
+                      <div className="text-xs text-gray-400 uppercase font-bold mb-4">Current Card</div>
+                      <div className="text-2xl font-mono tracking-widest mb-4">•••• •••• •••• 4242</div>
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <div className="text-[10px] text-gray-400 uppercase">Expires</div>
+                          <div className="font-mono">12/25</div>
                         </div>
+                        <div className="font-bold">VISA</div>
                       </div>
-                   </div>
-                   <button className="w-full border border-gray-300 text-gray-700 font-bold py-2 rounded-lg hover:bg-gray-50 text-sm">
-                     Update Payment Method
-                   </button>
+                    </div>
+                  </div>
+                  <button className="w-full border border-gray-300 text-gray-700 font-bold py-2 rounded-lg hover:bg-gray-50 text-sm">
+                    Update Payment Method
+                  </button>
                 </div>
 
                 <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
@@ -743,21 +780,21 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Company Name</label>
-                  <input required type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.name} onChange={e => setEditingVendor({...editingVendor, name: e.target.value})} />
+                  <input required type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.name} onChange={e => setEditingVendor({ ...editingVendor, name: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label>
-                    <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.contact_phone} onChange={e => setEditingVendor({...editingVendor, contact_phone: e.target.value})} />
+                    <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.contact_phone} onChange={e => setEditingVendor({ ...editingVendor, contact_phone: e.target.value })} />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">WhatsApp</label>
-                    <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.whatsapp_number} onChange={e => setEditingVendor({...editingVendor, whatsapp_number: e.target.value})} />
+                    <input type="text" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.whatsapp_number} onChange={e => setEditingVendor({ ...editingVendor, whatsapp_number: e.target.value })} />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
-                  <input type="email" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.email} onChange={e => setEditingVendor({...editingVendor, email: e.target.value})} />
+                  <input type="email" className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" value={editingVendor.email} onChange={e => setEditingVendor({ ...editingVendor, email: e.target.value })} />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1 flex items-center gap-2">
@@ -765,11 +802,11 @@ export default function SettingsPage() {
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-gray-400">$</span>
-                    <input 
-                      type="number" 
-                      className="w-full border p-2 pl-6 rounded focus:ring-2 focus:ring-blue-500 outline-none" 
-                      value={editingVendor.transport_rate_per_pallet || 150} 
-                      onChange={e => setEditingVendor({...editingVendor, transport_rate_per_pallet: parseFloat(e.target.value)})} 
+                    <input
+                      type="number"
+                      className="w-full border p-2 pl-6 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={editingVendor.transport_rate_per_pallet || 150}
+                      onChange={e => setEditingVendor({ ...editingVendor, transport_rate_per_pallet: parseFloat(e.target.value) })}
                     />
                   </div>
                 </div>

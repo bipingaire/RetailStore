@@ -1,21 +1,17 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 // Helper: Google Search
 const googleSearch = async (query: string, searchType: 'text' | 'image' = 'text') => {
   const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
   const cx = process.env.GOOGLE_SEARCH_CX || process.env.GOOGLE_CSE_ID;
-  
+
   // Debug Logs
   // console.log(`[Google Search] Key Available: ${!!apiKey}, CX Available: ${!!cx}`);
-  
+
   if (!apiKey || !cx) {
     console.warn("Google Search API Keys missing (Check .env.local). Falling back to AI knowledge.");
-    return null; 
+    return null;
   }
 
   const params = new URLSearchParams({
@@ -32,16 +28,16 @@ const googleSearch = async (query: string, searchType: 'text' | 'image' = 'text'
   }
 
   const url = `https://www.googleapis.com/customsearch/v1?${params.toString()}`;
-  
+
   try {
     const res = await fetch(url);
     const data = await res.json();
-    
+
     if (data.error) {
-        console.error("Google API Error:", data.error.message);
-        return null;
+      console.error("Google API Error:", data.error.message);
+      return null;
     }
-    
+
     return data.items || [];
   } catch (e) {
     console.error("Google Search Network Error:", e);
@@ -49,22 +45,26 @@ const googleSearch = async (query: string, searchType: 'text' | 'image' = 'text'
   }
 };
 
-// Helper: AI Detective Step
-async function askAI(systemPrompt: string, userPrompt: string, jsonMode = false) {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ],
-    response_format: jsonMode ? { type: "json_object" } : { type: "text" },
-    temperature: 0.2
-  });
-  return response.choices[0].message.content;
-}
-
 export async function POST(req: Request) {
   try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    // Helper: AI Detective Step
+    async function askAI(systemPrompt: string, userPrompt: string, jsonMode = false) {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        response_format: jsonMode ? { type: "json_object" } : { type: "text" },
+        temperature: 0.2
+      });
+      return response.choices[0].message.content;
+    }
+
     const { productName, upc: providedUpc, vendorWebsite } = await req.json();
 
     if (!productName) {
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
     }
 
     // --- PHASE 2: INVESTIGATION (Multi-Source Crawl) ---
-    
+
     let searchContext = "";
     let sourceUrl = "";
     let imageUrl = "";
@@ -111,73 +111,73 @@ export async function POST(req: Request) {
 
     // STRATEGY A: VENDOR WEBSITE SEARCH (High Priority)
     if (vendorWebsite) {
-        // Strip http/www for cleaner query if needed, or rely on Google's smarts
-        const siteQuery = `site:${vendorWebsite} ${cleanName} ${upc || ''}`;
-        console.log("Attempting Vendor Search:", siteQuery);
-        const vendorResults = await googleSearch(siteQuery, 'text');
-        
-        if (vendorResults && vendorResults.length > 0) {
-            textResults = vendorResults;
-            sourceUrl = vendorResults[0].link;
-            console.log("Found on Vendor Site:", sourceUrl);
-        }
+      // Strip http/www for cleaner query if needed, or rely on Google's smarts
+      const siteQuery = `site:${vendorWebsite} ${cleanName} ${upc || ''}`;
+      console.log("Attempting Vendor Search:", siteQuery);
+      const vendorResults = await googleSearch(siteQuery, 'text');
+
+      if (vendorResults && vendorResults.length > 0) {
+        textResults = vendorResults;
+        sourceUrl = vendorResults[0].link;
+        console.log("Found on Vendor Site:", sourceUrl);
+      }
     }
 
     // STRATEGY B: GLOBAL SEARCH (Fallback)
     if (!textResults || textResults.length === 0) {
-        console.log("Vendor search failed or no website provided. Falling back to global search.");
-        const query = upc 
-            ? `${upc} product specifications nutrition ingredients` 
-            : `${cleanName} product specifications nutrition facts`;
-            
-        textResults = await googleSearch(query, 'text');
+      console.log("Vendor search failed or no website provided. Falling back to global search.");
+      const query = upc
+        ? `${upc} product specifications nutrition ingredients`
+        : `${cleanName} product specifications nutrition facts`;
+
+      textResults = await googleSearch(query, 'text');
     }
 
     // PROCESS TEXT RESULTS
     if (textResults && textResults.length > 0) {
-        if (!sourceUrl) sourceUrl = textResults[0].link; 
-        
-        searchContext = textResults.slice(0, 5).map((r: any, i: number) => `
-            [Source ${i+1}]: ${r.title}
+      if (!sourceUrl) sourceUrl = textResults[0].link;
+
+      searchContext = textResults.slice(0, 5).map((r: any, i: number) => `
+            [Source ${i + 1}]: ${r.title}
             URL: ${r.link}
             Snippet: ${r.snippet}
         `).join('\n\n');
 
-        // Check for backup image in text metadata (OpenGraph/CSE)
-        const bestTextResult = textResults.find((r: any) => r.pagemap?.cse_image?.[0]?.src || r.pagemap?.metatags?.[0]?.['og:image']);
-        if (bestTextResult) {
-            imageUrl = bestTextResult.pagemap?.cse_image?.[0]?.src || bestTextResult.pagemap?.metatags?.[0]?.['og:image'];
-        }
+      // Check for backup image in text metadata (OpenGraph/CSE)
+      const bestTextResult = textResults.find((r: any) => r.pagemap?.cse_image?.[0]?.src || r.pagemap?.metatags?.[0]?.['og:image']);
+      if (bestTextResult) {
+        imageUrl = bestTextResult.pagemap?.cse_image?.[0]?.src || bestTextResult.pagemap?.metatags?.[0]?.['og:image'];
+      }
     } else {
-        searchContext = "No search results found. Rely on internal knowledge base and Raw Product Name.";
+      searchContext = "No search results found. Rely on internal knowledge base and Raw Product Name.";
     }
 
     // STRATEGY C: IMAGE SEARCH
     // If we didn't find an image on the specific vendor page, search broadly or specifically based on availability
     if (!imageUrl) {
-        // If we have a vendor website, try to find the image on that site specifically first
-        if (vendorWebsite) {
-             const vendorImgQuery = `site:${vendorWebsite} ${cleanName}`;
-             const vendorImages = await googleSearch(vendorImgQuery, 'image');
-             if (vendorImages && vendorImages.length > 0) {
-                 imageUrl = vendorImages[0].link;
-             }
+      // If we have a vendor website, try to find the image on that site specifically first
+      if (vendorWebsite) {
+        const vendorImgQuery = `site:${vendorWebsite} ${cleanName}`;
+        const vendorImages = await googleSearch(vendorImgQuery, 'image');
+        if (vendorImages && vendorImages.length > 0) {
+          imageUrl = vendorImages[0].link;
         }
+      }
 
-        // Fallback to global image search
-        if (!imageUrl) {
-            const imgQuery1 = upc 
-                ? `${upc} product packaging` 
-                : `${cleanName} product packaging white background`;
-            const imageResults = await googleSearch(imgQuery1, 'image');
-            if (imageResults && imageResults.length > 0) {
-                imageUrl = imageResults[0].link;
-            }
+      // Fallback to global image search
+      if (!imageUrl) {
+        const imgQuery1 = upc
+          ? `${upc} product packaging`
+          : `${cleanName} product packaging white background`;
+        const imageResults = await googleSearch(imgQuery1, 'image');
+        if (imageResults && imageResults.length > 0) {
+          imageUrl = imageResults[0].link;
         }
+      }
     }
 
     // --- PHASE 3: EXTRACTION ---
-    
+
     const extractionPrompt = `
       You are a Product Data Entry Bot.
       
@@ -221,7 +221,7 @@ export async function POST(req: Request) {
     // Merge Findings
     const result = {
       ...finalData,
-      upc_ean: finalData.upc_ean || upc, 
+      upc_ean: finalData.upc_ean || upc,
       image_url: imageUrl || "",
       source_url: sourceUrl
     };

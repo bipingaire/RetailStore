@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   // We will likely add image domain config here later for the AI images
   images: {
     remotePatterns: [
