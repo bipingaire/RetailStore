@@ -1,0 +1,140 @@
+'use client';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import {
+  LayoutDashboard,
+  FileInput,
+  ShoppingBag,
+  FileBarChart,
+  LogOut,
+  Store,
+  ClipboardCheck,
+  Truck,
+  Settings,
+  Home,
+  Users,
+  Link as LinkIcon,
+  Sparkles,
+  Megaphone,
+  Loader2,
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [posPending, setPosPending] = useState<number | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const navItems = [
+    { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },
+    { name: 'Scan Invoices', href: '/admin/invoices', icon: FileInput, desc: 'Receive Goods' },
+    { name: 'Daily Sales Sync', href: '/admin/sales', icon: FileBarChart, desc: 'Upload POS Report' },
+    { name: 'Sale Campaigns', href: '/admin/sale', icon: Sparkles, desc: 'Flash / Ending / Festive', badge: 'New' },
+    { name: 'Daily Shelf Audit', href: '/admin/audit', icon: ClipboardCheck, desc: 'Physical Count & QC' },
+    { name: 'Order Fulfillment', href: '/admin/orders', icon: ShoppingBag, desc: 'Customer Orders', badge: 'Live' },
+    { name: 'Inventory Pulse', href: '/admin/inventory', icon: LayoutDashboard, desc: 'Stock & Expiry' },
+    { name: 'Master Inventory', href: '/admin/inventory/master', icon: LayoutDashboard, desc: 'Vendors / Costs / Prices' },
+    { name: 'Social Media', href: '/admin/social', icon: Megaphone, desc: 'Push campaigns to socials' },
+    { name: 'Restock', href: '/admin/restock', icon: Truck, desc: 'Vendor POs', badge: 'Action' },
+    { name: 'Vendor Relations', href: '/admin/vendors', icon: Users, desc: 'Suppliers & Payments' },
+    { name: 'POS Mapping', href: '/admin/pos-mapping', icon: LinkIcon, desc: 'Fix Sales Data' },
+    { name: 'Settings', href: '/admin/settings', icon: Settings, desc: 'Store & Vendors' },
+  ];
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    toast.success('Signed out successfully');
+    router.push('/admin/login');
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <Loader2 className="animate-spin text-blue-500" size={32} />
+      </div>
+    );
+  }
+
+  // Login page bypass
+  if (!isAuthenticated && pathname !== '/admin/login') return null;
+
+  return (
+    <div className="flex min-h-screen bg-gray-50 font-sans">
+
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-slate-950 text-white flex flex-col fixed h-full inset-y-0 z-50 border-r border-slate-800">
+
+        {/* Brand */}
+        <div className="h-16 flex items-center px-6 border-b border-white/5 bg-slate-950">
+          <Link href="/admin" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:bg-blue-500 transition-colors">
+              <Store className="text-white" size={18} />
+            </div>
+            <div>
+              <div className="font-bold text-base tracking-tight text-white leading-none">RETAIL<span className="text-blue-500">OS</span></div>
+              <div className="text-[10px] text-slate-500 font-medium tracking-wider uppercase mt-1">Manager Console</div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto custom-scrollbar">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${isActive
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+              >
+                <Icon size={18} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'} />
+                <span className="flex-1 truncate">{item.name}</span>
+
+                {/* Badges */}
+                {(() => {
+                  /* Example badge logic */
+                  const badge = item.badge;
+                  if (badge) {
+                    return (
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                        }`}>
+                        {badge}
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User / Footer */}
+        <div className="p-4 border-t border-white/5 bg-slate-950">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3 w-full px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm font-medium"
+          >
+            <LogOut size={18} />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT WRAPPER */}
+      <main className="flex-1 ml-64 min-h-screen">
+        {children}
+      </main>
+
+    </div>
+  );
+}

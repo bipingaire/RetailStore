@@ -1,0 +1,2 @@
+CONTAINER ID   IMAGE             COMMAND                  CREATED          STATUS          PORTS                    NAMES
+7a210f204d6d   retailstore-web   "docker-entrypoint.s…"   12 seconds ago   Up 11 seconds   0.0.0.0:3000->3000/tcp   retailstore_web
