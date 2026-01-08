@@ -2,6 +2,7 @@
 import { useState, ChangeEvent } from 'react';
 import { supabase } from '@/lib/supabase'; // Import the client we just made
 import { Loader2, Check, AlertTriangle, Save, Search } from 'lucide-react'; // Icons
+import { toast } from 'sonner';
 
 // Types for our data
 type InvoiceItem = {
@@ -23,19 +24,19 @@ export default function InvoiceReview() {
     if (!file) return;
 
     setLoading(true);
-    
+
     // Convert to Base64
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = reader.result as string;
-      
+
       try {
         const res = await fetch('/api/parse-invoice', {
           method: 'POST',
           body: JSON.stringify({ imageUrl: base64 }),
         });
         const data = await res.json();
-        
+
         // 2. THE "DUMB" MATCHER LOGIC
         // In the real app, this would query Supabase for 'Global_Products'
         // Here we simulate it for the prototype
@@ -48,7 +49,7 @@ export default function InvoiceReview() {
 
         setItems(processedItems);
       } catch (err) {
-        alert("Scan failed");
+        toast.error("Scan failed");
       }
       setLoading(false);
     };
@@ -58,22 +59,22 @@ export default function InvoiceReview() {
   // 3. THE "SAVE" LOGIC
   const saveBatch = async () => {
     setUploading(true);
-    
+
     // This connects to your REAL Supabase Database
     // Note: You need a 'tenant_id' in your table. We are using a dummy UUID for now.
-    const dummyTenantId = "00000000-0000-0000-0000-000000000000"; 
+    const dummyTenantId = "00000000-0000-0000-0000-000000000000";
 
     try {
       // Loop through items and insert them
       for (const item of items) {
-         // In a real app, you would first create the 'store_inventory' record
-         // For this prototype, we will just log the success
-         console.log("Saving to DB:", item);
+        // In a real app, you would first create the 'store_inventory' record
+        // For this prototype, we will just log the success
+        console.log("Saving to DB:", item);
       }
-      
+
       // Simulate network delay
       await new Promise(r => setTimeout(r, 1000));
-      
+
       alert("✅ Inventory Updated Successfully!");
       setItems([]); // Clear screen
     } catch (err) {
@@ -86,7 +87,7 @@ export default function InvoiceReview() {
   return (
     <div className="min-h-screen bg-gray-50 p-8 font-sans">
       <div className="max-w-5xl mx-auto">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -94,13 +95,13 @@ export default function InvoiceReview() {
             <p className="text-gray-500">Scan invoice to update inventory levels.</p>
           </div>
           <div className="bg-white p-2 rounded shadow border">
-             <input 
-                type="file" 
-                accept="image/*"
-                onChange={handleFileUpload}
-                disabled={loading}
-                className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:bg-blue-50 file:text-blue-700 file:font-bold hover:file:bg-blue-100"
-              />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              disabled={loading}
+              className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:bg-blue-50 file:text-blue-700 file:font-bold hover:file:bg-blue-100"
+            />
           </div>
         </div>
 
@@ -137,12 +138,12 @@ export default function InvoiceReview() {
                         </div>
                       ) : (
                         <div className="flex gap-2">
-                           <input 
-                             type="text" 
-                             placeholder="Search Master DB..." 
-                             className="border rounded px-2 py-1 w-full bg-white"
-                           />
-                           <button className="text-gray-400 hover:text-blue-600"><Search size={16} /></button>
+                          <input
+                            type="text"
+                            placeholder="Search Master DB..."
+                            className="border rounded px-2 py-1 w-full bg-white"
+                          />
+                          <button className="text-gray-400 hover:text-blue-600"><Search size={16} /></button>
                         </div>
                       )}
                     </td>
@@ -159,10 +160,10 @@ export default function InvoiceReview() {
                 ))}
               </tbody>
             </table>
-            
+
             {/* Footer Action */}
             <div className="p-4 bg-gray-50 border-t flex justify-end">
-              <button 
+              <button
                 onClick={saveBatch}
                 disabled={uploading}
                 className="bg-black text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-800 transition-all"

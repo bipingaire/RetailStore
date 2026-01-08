@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign } from 'lucide-react';
+import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign, Loader2, ShoppingBag } from 'lucide-react';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,9 +28,7 @@ export default function OrderManager() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Live Fetching
   const fetchOrders = async () => {
-    // In real app: use Supabase Realtime Subscription for instant updates
     const { data } = await supabase
       .from('orders')
       .select(`
@@ -40,7 +38,7 @@ export default function OrderManager() {
           store_inventory ( global_products ( name, image_url ) )
         )
       `)
-      .order('created_at', { ascending: false }); // Newest first
+      .order('created_at', { ascending: false });
 
     if (data) setOrders(data as any);
     setLoading(false);
@@ -48,116 +46,114 @@ export default function OrderManager() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 10000); // Poll every 10s
+    const interval = setInterval(fetchOrders, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // 2. Status Actions
   const updateStatus = async (id: string, newStatus: string) => {
     await supabase.from('orders').update({ status: newStatus }).eq('id', id);
-    fetchOrders(); // Refresh UI
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 border-yellow-300 text-yellow-800';
-      case 'ready': return 'bg-blue-100 border-blue-300 text-blue-800';
-      case 'completed': return 'bg-green-100 border-green-300 text-green-800 opacity-60';
-      default: return 'bg-gray-100';
-    }
+    fetchOrders();
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
-      <header className="mb-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Package className="text-blue-600" />
-          Active Orders
-        </h1>
-        <div className="bg-white px-4 py-2 rounded-lg shadow text-sm font-bold text-green-600">
-          ● Live Updates On
+    <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
+      <div className="max-w-7xl mx-auto space-y-6">
+
+        {/* HEADER */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <ShoppingBag className="text-blue-600" />
+              Order Fulfillment
+            </h1>
+            <p className="text-sm text-gray-500">Manage incoming customer orders.</p>
+          </div>
+          <div className="bg-white border border-green-200 px-3 py-1 rounded-full shadow-sm text-xs font-bold text-green-700 flex items-center gap-2 animate-pulse">
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span> Live
+          </div>
         </div>
-      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {orders.map((order) => (
-          <div key={order.id} className={`bg-white rounded-xl shadow-sm border-l-4 overflow-hidden ${order.status === 'pending' ? 'border-l-yellow-400' : 'border-l-blue-500'}`}>
-            
-            {/* Card Header */}
-            <div className="p-4 border-b flex justify-between items-start bg-gray-50/50">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${getStatusColor(order.status)}`}>
-                    {order.status.replace('_', ' ')}
-                  </span>
-                  <span className="text-xs text-gray-400 font-mono">#{order.id.slice(0,4)}</span>
-                </div>
-                <div className="font-bold text-lg flex items-center gap-2">
-                  <Phone size={14} className="text-gray-400"/> {order.customer_phone || 'Guest'}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-black">${order.total_amount}</div>
-                <div className="text-xs text-gray-500 uppercase flex items-center justify-end gap-1">
-                  {order.fulfillment_method === 'delivery' ? <MapPin size={10}/> : <Package size={10}/>}
-                  {order.fulfillment_method}
-                </div>
-              </div>
-            </div>
+        {/* ORDER GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {orders.map((order) => (
+            <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
 
-            {/* Order Items */}
-            <div className="p-4 space-y-3 max-h-60 overflow-y-auto">
-              {order.order_items.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gray-200 rounded shrink-0 overflow-hidden">
-                    <img src={item.store_inventory.global_products.image_url} className="w-full h-full object-cover"/>
+              {/* Header */}
+              <div className={`px-5 py-4 border-b border-gray-100 flex justify-between items-start bg-gradient-to-r ${order.status === 'pending' ? 'from-yellow-50 to-white' : order.status === 'ready' ? 'from-blue-50 to-white' : 'from-gray-50 to-white'}`}>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${order.status === 'pending' ? 'bg-yellow-100 border-yellow-200 text-yellow-800' :
+                        order.status === 'ready' ? 'bg-blue-100 border-blue-200 text-blue-800' :
+                          'bg-gray-100 border-gray-200 text-gray-600'
+                      }`}>
+                      {order.status.replace('_', ' ')}
+                    </span>
+                    <span className="font-mono text-xs text-gray-400">#{order.id.slice(0, 4)}</span>
                   </div>
-                  <div className="text-sm">
-                    <span className="font-bold mr-2">{item.qty}x</span>
-                    <span className="text-gray-700">{item.store_inventory.global_products.name}</span>
+                  <div className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                    <Phone size={12} className="text-gray-400" /> {order.customer_phone || 'Guest Checkout'}
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="text-right">
+                  <div className="text-lg font-black text-gray-900">${order.total_amount}</div>
+                  <div className="text-[10px] uppercase font-bold text-gray-400 flex items-center justify-end gap-1">
+                    {order.fulfillment_method === 'delivery' ? <MapPin size={10} /> : <Package size={10} />} {order.fulfillment_method}
+                  </div>
+                </div>
+              </div>
 
-            {/* Action Footer */}
-            <div className="p-3 bg-gray-50 border-t flex gap-2">
-              {order.status === 'pending' && (
-                <button 
-                  onClick={() => updateStatus(order.id, 'ready')}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
-                >
-                  <Package size={18} /> Mark Ready
-                </button>
-              )}
-              
-              {order.status === 'ready' && (
-                <button 
-                  onClick={() => updateStatus(order.id, 'completed')}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2"
-                >
-                  <DollarSign size={18} /> Payment Received
-                </button>
-              )}
+              {/* Items */}
+              <div className="p-5 space-y-3 flex-1 overflow-y-auto max-h-64">
+                {order.order_items.map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 shrink-0 overflow-hidden">
+                      <img src={item.store_inventory.global_products.image_url} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="text-sm leading-tight">
+                      <span className="font-bold text-gray-900 mr-1">{item.qty}x</span>
+                      <span className="text-gray-600">{item.store_inventory.global_products.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-              {order.status === 'completed' && (
-                 <div className="w-full text-center text-gray-400 text-sm font-bold py-2 flex items-center justify-center gap-2">
-                   <CheckCircle size={16}/> Order Closed
-                 </div>
-              )}
-            </div>
-          </div>
-        ))}
+              {/* Actions */}
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 mt-auto">
+                {order.status === 'pending' && (
+                  <button
+                    onClick={() => updateStatus(order.id, 'ready')}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
+                  >
+                    <Package size={16} /> Mark Ready
+                  </button>
+                )}
+                {order.status === 'ready' && (
+                  <button
+                    onClick={() => updateStatus(order.id, 'completed')}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
+                  >
+                    <DollarSign size={16} /> Mark Paid & Complete
+                  </button>
+                )}
+                {order.status === 'completed' && (
+                  <div className="text-center text-xs font-bold text-gray-400 uppercase py-2 flex items-center justify-center gap-2">
+                    <CheckCircle size={14} /> Order Fulfilled
+                  </div>
+                )}
+              </div>
 
-        {orders.length === 0 && !loading && (
-          <div className="col-span-full text-center py-20 text-gray-400">
-            <div className="bg-white inline-block p-6 rounded-full mb-4 shadow-sm">
-               <Clock size={40} />
             </div>
-            <h3 className="text-xl font-bold">No Active Orders</h3>
-            <p>Waiting for customers...</p>
-          </div>
-        )}
+          ))}
+          {orders.length === 0 && !loading && (
+            <div className="col-span-full py-20 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <Clock size={32} />
+              </div>
+              <h3 className="text-gray-900 font-bold mb-1">No Active Orders</h3>
+              <p className="text-gray-500 text-sm">Waiting for new orders to arrive.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

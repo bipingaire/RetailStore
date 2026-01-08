@@ -1,8 +1,9 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { isSuperadmin } from '@/lib/auth/superadmin';
 import {
   LayoutDashboard,
   FileInput,
@@ -14,130 +15,180 @@ import {
   Truck,
   Settings,
   Home,
-  Receipt,
   Users,
-  LinkIcon,
+  Link as LinkIcon,
   Sparkles,
   Megaphone,
+  Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [posPending, setPosPending] = useState<number | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const supabase = createClientComponentClient();
 
   const navItems = [
-    {
-      name: 'Dashboard',
-      href: '/admin',
-      icon: Home,
-      desc: 'Overview'
-    },
-    {
-      name: 'Scan Invoices',
-      href: '/admin/invoices',
-      icon: FileInput,
-      desc: 'Receive Goods'
-    },
-    {
-      name: 'Daily Sales Sync',
-      href: '/admin/sales',
-      icon: FileBarChart,
-      desc: 'Upload POS Report'
-    },
-    {
-      name: 'Sale Campaigns',
-      href: '/admin/sale',
-      icon: Sparkles,
-      desc: 'Flash / Ending / Festive',
-      badge: 'New'
-    },
-    {
-      name: 'Daily Shelf Audit',
-      href: '/admin/audit',
-      icon: ClipboardCheck,
-      desc: 'Physical Count & QC'
-    },
-    {
-      name: 'Order Fulfillment',
-      href: '/admin/orders',
-      icon: ShoppingBag,
-      desc: 'Customer Orders',
-      badge: 'Live'
-    },
-    {
-      name: 'Inventory Pulse',
-      href: '/admin/inventory',
-      icon: LayoutDashboard,
-      desc: 'Stock & Expiry'
-    },
-    {
-      name: 'Master Inventory',
-      href: '/admin/inventory/master',
-      icon: LayoutDashboard,
-      desc: 'Vendors / Costs / Prices'
-    },
-    {
-      name: 'Social Media',
-      href: '/admin/social',
-      icon: Megaphone,
-      desc: 'Push campaigns to socials'
-    },
-    {
-      name: 'Restock',
-      href: '/admin/restock',
-      icon: Truck,
-      desc: 'Vendor POs',
-      badge: 'Action'
-    },
-    {
-      name: 'Settings',
-      href: '/admin/settings',
-      icon: Settings,
-      desc: 'Store & Vendors'
-    },
-
-    {
-      name: 'Vendor Relations',
-      href: '/admin/vendors',
-      icon: Users, // from lucide-react
-      desc: 'Suppliers & Payments'
-    },
-    {
-      name: 'POS Mapping',
-      href: '/admin/pos-mapping',
-      icon: LinkIcon, // Import Link as LinkIcon from lucide-react
-      desc: 'Fix Sales Data'
-    },
+    { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },
+    { name: 'Scan Invoices', href: '/admin/invoices', icon: FileInput, desc: 'Receive Goods' },
+    { name: 'Daily Sales Sync', href: '/admin/sales', icon: FileBarChart, desc: 'Upload POS Report' },
+    { name: 'Sale Campaigns', href: '/admin/sale', icon: Sparkles, desc: 'Flash / Ending / Festive', badge: 'New' },
+    { name: 'Daily Shelf Audit', href: '/admin/audit', icon: ClipboardCheck, desc: 'Physical Count & QC' },
+    { name: 'Order Fulfillment', href: '/admin/orders', icon: ShoppingBag, desc: 'Customer Orders', badge: 'Live' },
+    { name: 'Inventory Pulse', href: '/admin/inventory', icon: LayoutDashboard, desc: 'Stock & Expiry' },
+    { name: 'Master Inventory', href: '/admin/inventory/master', icon: LayoutDashboard, desc: 'Vendors / Costs / Prices' },
+    { name: 'Social Media', href: '/admin/social', icon: Megaphone, desc: 'Push campaigns to socials' },
+    { name: 'Restock', href: '/admin/restock', icon: Truck, desc: 'Vendor POs', badge: 'Action' },
+    { name: 'Vendor Relations', href: '/admin/vendors', icon: Users, desc: 'Suppliers & Payments' },
+    { name: 'POS Mapping', href: '/admin/pos-mapping', icon: LinkIcon, desc: 'Fix Sales Data' },
+    { name: 'Settings', href: '/admin/settings', icon: Settings, desc: 'Store & Vendors' },
   ];
 
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    toast.success('Signed out successfully');
+    router.push('/admin/login');
+  }
+
   useEffect(() => {
-    async function loadPosPending() {
-      const { count } = await supabase
-        .from('pos_mappings')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_verified', false);
-      setPosPending(count ?? 0);
+    async function checkAccess() {
+      setIsLoading(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+        return;
+      }
+
+      // SUPERADMIN GLOBAL BYPASS
+      const isSuper = await isSuperadmin(supabase, session.user.id);
+      if (isSuper) {
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // STRICT MULTI-TENANCY CHECK
+      // 1. Get current subdomain
+      const hostname = window.location.hostname;
+      const subdomain = hostname.split('.')[0];
+
+      // Allow localhost root access for dev testing/superadmin, otherwise enforce subdomain
+      if (hostname === 'localhost' || hostname.includes('vercel.app')) {
+        // In dev/root, we might just check if they have ANY role, or specific dev logic
+        // For now, let's allow if they have a role.
+        checkUserRole(session.user.id, null);
+      } else {
+        // 2. Resolve Tenant ID from Subdomain
+        const { data: tenantMap } = await supabase
+          .from('subdomain-tenant-mapping')
+          .select('tenant-id')
+          .eq('subdomain', subdomain)
+          .single();
+
+        if (!tenantMap) {
+          toast.error('Store not found for this subdomain');
+          setIsAuthenticated(false);
+          return;
+        }
+
+        // 3. Check if USER belongs to THIS TENANT
+        checkUserRole(session.user.id, tenantMap['tenant-id']);
+      }
     }
-    loadPosPending();
-  }, []);
+
+    async function checkUserRole(userId: string, tenantId: string | null) {
+      // BYPASS FOR LOCALHOST DEV ENVIRONMENT
+      // If we are on localhost, and just testing, allow any logged in user
+      // This solves the "Stuck on Login" issue if DB doesn't have roles set up yet.
+      if (window.location.hostname === 'localhost' && !tenantId) {
+        console.log('Dev Mode: Allowing access bypass on localhost');
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+
+      let query = supabase
+        .from('tenant-user-role')
+        .select('role-type, tenant-id')
+        .eq('user-id', userId);
+
+      if (tenantId) {
+        query = query.eq('tenant-id', tenantId);
+      }
+
+      // If checking globally (localhost), just get any valid role
+      // If checking specific tenant, we expect one row
+      const { data: roleData, error } = await query.limit(1).maybeSingle();
+
+      if (error || !roleData) {
+        console.error('Access verification failed:', error);
+        // Only show toast if we are NOT on the login page (to avoid double toast or conflict)
+        if (pathname !== '/admin/login') {
+          toast.error('Unauthorized: You do not have access to this store.');
+        }
+        // Do not sign out immediately, might be a valid user just at wrong URL
+        // allow middleware/router to handle
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+        setIsAuthenticated(false);
+      } else {
+        setIsAuthenticated(true);
+      }
+      setIsLoading(false);
+    }
+
+    checkAccess();
+  }, [pathname, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="animate-spin text-blue-600" size={32} />
+      </div>
+    );
+  }
+
+  // Login page bypass - render request content without admin shell
+  if (pathname === '/admin/login') {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {children}
+      </main>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans">
+    <div className="flex min-h-screen bg-gray-50 font-sans">
 
       {/* SIDEBAR */}
-      <aside className="w-64 bg-secondary text-secondary-foreground flex flex-col fixed h-full inset-y-0 z-50 border-r border-white/5 shadow-2xl">
+      <aside className="w-64 bg-slate-950 text-white flex flex-col fixed h-full inset-y-0 z-50 border-r border-slate-800">
 
-        {/* Brand - Now Clickable */}
-        <div className="p-6 border-b border-white/10">
-          <Link href="/admin" className="font-black text-2xl tracking-tight flex items-center gap-2 hover:opacity-80 transition cursor-pointer text-white">
-            <Store className="text-accent" />
-            RETAIL<span className="text-accent">OS</span>
+        {/* Brand */}
+        <div className="h-16 flex items-center px-6 border-b border-white/5 bg-slate-950">
+          <Link href="/admin" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:bg-blue-500 transition-colors">
+              <Store className="text-white" size={18} />
+            </div>
+            <div>
+              <div className="font-bold text-base tracking-tight text-white leading-none">RETAIL<span className="text-blue-500">OS</span></div>
+              <div className="text-[10px] text-slate-500 font-medium tracking-wider uppercase mt-1">Manager Console</div>
+            </div>
           </Link>
-          <p className="text-xs text-white/50 mt-1 uppercase tracking-wider">Manager Console</p>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto custom-scrollbar">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -146,22 +197,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-4 p-3 rounded-xl transition-all group ${isActive
-                    ? 'bg-white/10 text-white shadow-lg backdrop-blur-sm border border-white/10'
-                    : 'text-white/60 hover:bg-white/5 hover:text-white'
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${isActive
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
               >
-                <Icon size={20} className={isActive ? 'text-accent' : 'text-white/60 group-hover:text-accent transition-colors'} />
-                <div>
-                  <div className="font-bold text-sm">{item.name}</div>
-                  <div className="text-[10px] opacity-70 font-normal">{item.desc}</div>
-                </div>
+                <Icon size={18} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'} />
+                <span className="flex-1 truncate">{item.name}</span>
+
+                {/* Badges */}
                 {(() => {
-                  const pending = item.name === 'POS Mapping' ? posPending : null;
-                  const badge = pending !== null ? pending : item.badge;
-                  if (badge && badge !== 0) {
+                  /* Example badge logic */
+                  const badge = item.badge;
+                  if (badge) {
                     return (
-                      <span className="ml-auto bg-destructive text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md animate-pulse shadow-md shadow-red-900/20">
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                        }`}>
                         {badge}
                       </span>
                     );
@@ -173,18 +224,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-white/10">
-          <button className="flex items-center gap-3 w-full p-3 text-white/50 hover:text-destructive-foreground hover:bg-destructive/90 rounded-xl transition">
-            <LogOut size={20} />
-            <span className="font-bold text-sm">Sign Out</span>
+        {/* User / Footer */}
+        <div className="p-4 border-t border-white/5 bg-slate-950">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3 w-full px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm font-medium"
+          >
+            <LogOut size={18} />
+            <span>Sign Out</span>
           </button>
         </div>
-
       </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 ml-64 p-8">
+      {/* MAIN CONTENT WRAPPER */}
+      <main className="flex-1 ml-64 min-h-screen">
         {children}
       </main>
 

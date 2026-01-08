@@ -5,6 +5,9 @@ import {
     DollarSign, TrendingUp, TrendingDown, Package,
     ShoppingCart, Calendar, Download, BarChart3
 } from 'lucide-react';
+import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -126,7 +129,47 @@ export default function FinancialReportsPage() {
     }
 
     const exportToPDF = () => {
-        alert('PDF export feature coming soon! Will generate downloadable report.');
+        try {
+            const doc = new jsPDF();
+
+            // Title
+            doc.setFontSize(20);
+            doc.text('Financial Reports', 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 28);
+
+            // Summary Stats Table
+            autoTable(doc, {
+                startY: 35,
+                head: [['Metric', 'Value']],
+                body: [
+                    ['Total Revenue', `$${stats.totalRevenue.toFixed(2)}`],
+                    ['Total Orders', stats.totalOrders.toString()],
+                    ['Avg Order Value', `$${stats.avgOrderValue.toFixed(2)}`],
+                    ['Inventory Value', `$${stats.inventoryValue.toFixed(2)}`],
+                    ['Profit Margin', `${stats.profitMargin}%`]
+                ],
+            });
+
+            // Top Products Table
+            if (topProducts.length > 0) {
+                autoTable(doc, {
+                    startY: (doc as any).lastAutoTable.finalY + 10,
+                    head: [['Rank', 'Product', 'Units Sold', 'Revenue']],
+                    body: topProducts.map((p, idx) => [
+                        (idx + 1).toString(),
+                        p.name,
+                        p.quantity.toString(),
+                        `$${p.revenue.toFixed(2)}`
+                    ]),
+                });
+            }
+
+            doc.save(`financial-report-${new Date().toISOString().split('T')[0]}.pdf`);
+            toast.success('PDF report downloaded!');
+        } catch (error: any) {
+            toast.error('Failed to generate PDF: ' + error.message);
+        }
     };
 
     if (loading) {

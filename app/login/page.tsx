@@ -2,8 +2,8 @@
 import { useState, type FormEvent } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
-import { 
-  Store, Truck, Lock, Mail, User, ArrowRight, Loader2, CheckCircle 
+import {
+  Store, Truck, Lock, Mail, User, ArrowRight, Loader2, CheckCircle
 } from 'lucide-react';
 
 const supabase = createClient(
@@ -39,11 +39,11 @@ export default function LoginPage() {
         });
 
         if (authError) throw authError;
-        
+
         if (authData.user) {
           // 2. Create Tenant Record
           const { error: tenantError } = await supabase
-            .from('tenants')
+            .from('retail-store-tenant')
             .insert({
               name: companyName,
               type: role,
@@ -73,7 +73,7 @@ export default function LoginPage() {
         // Fetch tenant profile to know if they are retailer or supplier
         if (authData.user) {
           const { data: tenant } = await supabase
-            .from('tenants')
+            .from('retail-store-tenant')
             .select('type')
             .eq('owner_id', authData.user.id)
             .single();
@@ -83,7 +83,7 @@ export default function LoginPage() {
             else router.push('/supplier');
           } else {
             // Fallback: If no tenant found, assume customer
-            router.push('/'); 
+            router.push('/');
           }
         }
       }
@@ -98,18 +98,18 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
       <div className="bg-white w-full max-w-5xl h-[600px] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
-        
+
         {/* LEFT: BRANDING SIDE */}
         <div className={`w-full md:w-1/2 p-12 text-white flex flex-col justify-between transition-colors duration-500 ${role === 'retailer' ? 'bg-blue-600' : 'bg-purple-900'}`}>
           <div>
             <div className="font-black text-3xl tracking-tight flex items-center gap-2 mb-6">
-              {role === 'retailer' ? <Store size={32}/> : <Truck size={32}/>}
+              {role === 'retailer' ? <Store size={32} /> : <Truck size={32} />}
               {role === 'retailer' ? 'RETAIL' : 'SUPPLY'}
               <span className="text-white/50">OS</span>
             </div>
             <h1 className="text-4xl font-bold leading-tight mb-4">
-              {role === 'retailer' 
-                ? "Run your store like a tech giant." 
+              {role === 'retailer'
+                ? "Run your store like a tech giant."
                 : "Connect with thousands of local retailers."}
             </h1>
             <p className="text-lg opacity-80">
@@ -121,14 +121,14 @@ export default function LoginPage() {
 
           <div className="space-y-4 hidden md:block">
             <div className="flex items-center gap-4 p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <div className="bg-white/20 p-2 rounded-full"><CheckCircle size={20}/></div>
+              <div className="bg-white/20 p-2 rounded-full"><CheckCircle size={20} /></div>
               <div>
                 <div className="font-bold">Real-time Sync</div>
                 <div className="text-sm opacity-80">Always know what's in stock.</div>
               </div>
             </div>
             <div className="flex items-center gap-4 p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <div className="bg-white/20 p-2 rounded-full"><CheckCircle size={20}/></div>
+              <div className="bg-white/20 p-2 rounded-full"><CheckCircle size={20} /></div>
               <div>
                 <div className="font-bold">{role === 'retailer' ? 'AI Restocking' : 'Smart POs'}</div>
                 <div className="text-sm opacity-80">{role === 'retailer' ? 'Never run out of best-sellers.' : 'Automated proforma invoices.'}</div>
@@ -139,17 +139,17 @@ export default function LoginPage() {
 
         {/* RIGHT: FORM SIDE */}
         <div className="w-full md:w-1/2 p-12 flex flex-col justify-center relative">
-          
+
           {/* Role Switcher (Top Right) */}
           <div className="absolute top-8 right-8 flex bg-gray-100 p-1 rounded-lg">
-            <button 
+            <button
               onClick={() => setRole('retailer')}
               type="button"
               className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${role === 'retailer' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`}
             >
               Retailer
             </button>
-            <button 
+            <button
               onClick={() => setRole('supplier')}
               type="button"
               className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${role === 'supplier' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'}`}
@@ -168,15 +168,15 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleAuth} className="space-y-4">
-            
+
             {mode === 'signup' && (
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Business Name</label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <input 
-                    type="text" 
-                    required 
+                  <input
+                    type="text"
+                    required
                     placeholder={role === 'retailer' ? "Bob's Market" : "Global Distributors Inc."}
                     className="w-full border-gray-200 bg-gray-50 border rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={companyName}
@@ -190,9 +190,9 @@ export default function LoginPage() {
               <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input 
-                  type="email" 
-                  required 
+                <input
+                  type="email"
+                  required
                   placeholder="you@company.com"
                   className="w-full border-gray-200 bg-gray-50 border rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={email}
@@ -205,9 +205,9 @@ export default function LoginPage() {
               <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input 
-                  type="password" 
-                  required 
+                <input
+                  type="password"
+                  required
                   placeholder="••••••••"
                   className="w-full border-gray-200 bg-gray-50 border rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={password}
@@ -222,8 +222,8 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className={`w-full text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition hover:shadow-lg ${role === 'retailer' ? 'bg-black hover:bg-gray-800' : 'bg-purple-600 hover:bg-purple-700'}`}
             >
@@ -235,7 +235,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center text-sm text-gray-500">
             {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-            <button 
+            <button
               type="button"
               onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(''); }}
               className={`font-bold hover:underline ${role === 'retailer' ? 'text-blue-600' : 'text-purple-600'}`}

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Tag, X, Percent, DollarSign, Share2, Image as ImageIcon } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,7 +31,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
   const handleSave = async () => {
     setLoading(true);
-    
+
     // Calculate end date
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
@@ -51,7 +52,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
     setLoading(false);
     if (error) {
-      alert("Error creating promotion");
+      toast.error("Error creating promotion");
       console.error(error);
     } else {
       // Optionally attach to campaign
@@ -80,7 +81,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        
+
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white relative">
           <button onClick={onClose} className="absolute right-4 top-4 text-white/80 hover:text-white">
@@ -97,7 +98,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
         {/* Body */}
         <div className="p-6 space-y-6">
-          
+
           {/* Campaign attach */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Add to existing campaign (optional)</label>
@@ -117,13 +118,13 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
           {/* Toggle Type */}
           <div className="flex bg-gray-100 p-1 rounded-lg">
-            <button 
+            <button
               onClick={() => setType('percentage')}
               className={`flex-1 py-2 rounded-md text-sm font-bold transition ${type === 'percentage' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
             >
               % Discount
             </button>
-            <button 
+            <button
               onClick={() => setType('fixed_price')}
               className={`flex-1 py-2 rounded-md text-sm font-bold transition ${type === 'fixed_price' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
             >
@@ -137,14 +138,14 @@ export default function PromotionModal({ product, batch, onClose }: any) {
               {type === 'percentage' ? 'Percentage Off' : 'New Price'}
             </label>
             <div className="relative inline-block">
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={value}
                 onChange={(e) => setValue(Number(e.target.value))}
                 className="text-4xl font-black text-gray-800 w-32 text-center border-b-2 border-blue-500 focus:outline-none focus:border-purple-500 bg-transparent"
               />
               <span className="absolute right-0 top-2 text-gray-400">
-                {type === 'percentage' ? <Percent size={20}/> : <DollarSign size={20}/>}
+                {type === 'percentage' ? <Percent size={20} /> : <DollarSign size={20} />}
               </span>
             </div>
             {/* Live Preview */}
@@ -158,7 +159,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Duration</label>
             <div className="flex gap-2">
               {[1, 3, 7].map((d) => (
-                <button 
+                <button
                   key={d}
                   onClick={() => setDays(d)}
                   className={`flex-1 py-2 border rounded hover:bg-gray-50 ${days === d ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' : 'border-gray-200'}`}
@@ -196,7 +197,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
         {/* Footer */}
         <div className="p-4 border-t bg-gray-50">
-          <button 
+          <button
             onClick={handleSave}
             disabled={loading}
             className="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition transform hover:scale-[1.02]"

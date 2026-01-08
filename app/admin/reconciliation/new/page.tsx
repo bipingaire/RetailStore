@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Send, Search, Camera, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface InventoryItem {
     inventory_id: string;
@@ -118,7 +119,7 @@ export default function NewReconciliationPage() {
             .upsert(lineItems);
 
         setSaving(false);
-        alert('Draft saved successfully');
+        toast.success('Draft saved successfully');
     }
 
     async function submitForApproval() {
@@ -194,10 +195,10 @@ export default function NewReconciliationPage() {
                         <div
                             key={item.inventory_id}
                             className={`bg-white rounded-lg p-4 border-2 ${item.counted_quantity !== null
-                                    ? hasVariance
-                                        ? 'border-yellow-300 bg-yellow-50'
-                                        : 'border-green-300 bg-green-50'
-                                    : 'border-gray-200'
+                                ? hasVariance
+                                    ? 'border-yellow-300 bg-yellow-50'
+                                    : 'border-green-300 bg-green-50'
+                                : 'border-gray-200'
                                 }`}
                         >
                             <div className="flex items-start justify-between mb-3">

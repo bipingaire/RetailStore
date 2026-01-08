@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Reconciliation {
     id: string;
@@ -64,9 +65,9 @@ export default function ReconciliationDetailPage() {
         });
 
         if (error) {
-            alert('Error applying reconciliation: ' + error.message);
+            toast.error('Error applying reconciliation: ' + error.message);
         } else {
-            alert('Reconciliation approved and inventory updated!');
+            toast.success('Reconciliation approved and inventory updated!');
             router.push('/admin/reconciliation');
         }
 
@@ -81,7 +82,7 @@ export default function ReconciliationDetailPage() {
             .update({ status: 'rejected' })
             .eq('id', params.id);
 
-        alert('Reconciliation rejected');
+        toast.info('Reconciliation rejected');
         router.push('/admin/reconciliation');
         setProcessing(false);
     }
@@ -139,9 +140,9 @@ export default function ReconciliationDetailPage() {
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <div className="text-sm text-gray-500 mb-1">Status</div>
                     <div className={`text-lg font-bold capitalize ${reconciliation.status === 'approved' ? 'text-green-600' :
-                            reconciliation.status === 'pending_approval' ? 'text-yellow-600' :
-                                reconciliation.status === 'rejected' ? 'text-red-600' :
-                                    'text-blue-600'
+                        reconciliation.status === 'pending_approval' ? 'text-yellow-600' :
+                            reconciliation.status === 'rejected' ? 'text-red-600' :
+                                'text-blue-600'
                         }`}>
                         {reconciliation.status.replace('_', ' ')}
                     </div>
@@ -231,8 +232,8 @@ export default function ReconciliationDetailPage() {
                                     <td className="px-4 py-3 text-sm text-right text-gray-600">{item.expected_quantity}</td>
                                     <td className="px-4 py-3 text-sm text-right">{item.counted_quantity}</td>
                                     <td className={`px-4 py-3 text-sm text-right font-semibold ${item.variance > 0 ? 'text-green-600' :
-                                            item.variance < 0 ? 'text-red-600' :
-                                                'text-gray-600'
+                                        item.variance < 0 ? 'text-red-600' :
+                                            'text-gray-600'
                                         }`}>
                                         {item.variance !== 0 && (item.variance > 0 ? '+' : '')}{item.variance}
                                     </td>

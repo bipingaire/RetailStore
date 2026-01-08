@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { DollarSign, Calendar, Tag, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AddExpensePage() {
     const router = useRouter();
@@ -29,9 +30,9 @@ export default function AddExpensePage() {
             });
 
         if (error) {
-            alert('Error saving expense: ' + error.message);
+            toast.error('Error saving expense: ' + error.message);
         } else {
-            alert('Expense added successfully!');
+            toast.success('Expense added successfully!');
             router.push('/admin/reports/profit-loss');
         }
 

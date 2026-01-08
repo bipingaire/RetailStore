@@ -1,300 +1,300 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
-  TrendingUp, Users, Package, AlertCircle,
-  Clock, ArrowRight, DollarSign, Activity, ShoppingBag,
-  UploadCloud, FileBarChart, FileText, Link as LinkIcon
+  TrendingUp, Package, AlertCircle, ArrowUpRight, ArrowRight, MoreHorizontal
 } from 'lucide-react';
 import Link from 'next/link';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { toast } from 'sonner';
 
 export default function AdminDashboard() {
+  const supabase = createClientComponentClient();
   const [stats, setStats] = useState({
-    todaySales: 0,
-    pendingOrders: 0,
-    lowStockCount: 0,
-    expiredCount: 0,
-    activePromos: 0,
-    posMapped: 0,
-    posUnverified: 0
+    revenue: 0,
+    orders: 0,
+    lowStock: 0,
+    activeCampaigns: 0
   });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [storeName, setStoreName] = useState('My Store');
 
   useEffect(() => {
     async function fetchDashboardData() {
-      // 1. Fetch KPIs
-      const { data: inventory } = await supabase
-        .from('store_inventory')
-        .select('reorder_point, inventory_batches(batch_quantity, expiry_date)')
-        .eq('is_active', true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
 
-      const { count: pendingOrders } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
+        if (user) {
+          // 1. Try to get tenant ID from Role
+          const { data: roleData } = await supabase
+            .from('tenant-user-role')
+            .select('tenant-id')
+            .eq('user-id', user.id)
+            .limit(1)
+            .maybeSingle();
 
-      const { count: activePromos } = await supabase
-        .from('promotions')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
+          let tenantId = roleData?.['tenant-id'];
 
-      const { count: posMapped } = await supabase
-        .from('pos_mappings')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_verified', true);
+          // 2. Fallback: Resolve from Subdomain (Superadmin / Impersonation Mode)
+          if (!tenantId) {
+            const hostname = window.location.hostname;
+            const subdomain = hostname.split('.')[0];
 
-      const { count: posUnverified } = await supabase
-        .from('pos_mappings')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_verified', false);
+            if (subdomain && subdomain !== 'localhost' && !hostname.includes('vercel.app')) {
+              const { data: mapData } = await supabase
+                .from('subdomain-tenant-mapping')
+                .select('tenant-id')
+                .eq('subdomain', subdomain)
+                .single();
 
-      // Process Inventory Stats
-      let lowStock = 0;
-      let expired = 0;
-      const today = new Date();
+              if (mapData) tenantId = mapData['tenant-id'];
+            }
+          }
 
-      (inventory || []).forEach((item: any) => {
-        const batches = item.inventory_batches || [];
-        const totalQty = batches.reduce((sum: number, b: any) => sum + b.batch_quantity, 0);
+          if (tenantId) {
+            // 3. Get Store Name
+            const { data: storeData } = await supabase
+              .from('retail-store-tenant')
+              .select('store-name')
+              .eq('tenant-id', tenantId)
+              .single();
 
-        if (totalQty <= (item.reorder_point || 10)) lowStock++;
+            if (storeData) {
+              setStoreName(storeData['store-name']);
+            }
+          }
+        }
 
-        // Check expiry
-        batches.forEach((b: any) => {
-          if (b.expiry_date && new Date(b.expiry_date) < today) expired++;
+        // 1. KPIs
+        // Low Stock
+        const { count: lowStock } = await supabase
+          .from('retail-store-inventory-item')
+          .select('reorder-point-quantity', { count: 'exact', head: true })
+          .eq('is-active', true)
+          .lt('current-stock-quantity', 10);
+
+        // Pending Orders
+        const { count: pendingOrders } = await supabase
+          .from('customer-order-header')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+
+        // Active Campaigns (Promos)
+        const { count: activeCampaigns } = await supabase
+          .from('marketing-campaign-master')
+          .select('*', { count: 'exact', head: true })
+          .eq('is-active', true);
+
+        // 2. Recent Orders Table
+        const { data: orders } = await supabase
+          .from('customer-order-header')
+          .select('*')
+          .order('order-date-time', { ascending: false })
+          .limit(5);
+
+        // 3. Mock Revenue (until Sales Sync is full)
+        const mockRevenue = 12450.00;
+
+        setStats({
+          revenue: mockRevenue,
+          orders: pendingOrders || 0,
+          lowStock: lowStock || 0,
+          activeCampaigns: activeCampaigns || 0
         });
-      });
 
-      // 2. Fetch Recent Activity
-      const { data: recentOrders } = await supabase
-        .from('orders')
-        .select('id, total_amount, created_at, customer_phone')
-        .order('created_at', { ascending: false })
-        .limit(3);
-
-      const { data: recentInvoices } = await supabase
-        .from('invoices')
-        .select('id, created_at, status')
-        .order('created_at', { ascending: false })
-        .limit(2);
-
-      // Combine and sort activity
-      const activity = [
-        ...(recentOrders || []).map(o => ({
-          type: 'order',
-          title: `New Order ($${o.total_amount})`,
-          desc: `Customer: ${o.customer_phone}`,
-          time: o.created_at,
-          icon: ShoppingBag,
-          color: 'bg-blue-100 text-blue-600'
-        })),
-        ...(recentInvoices || []).map(i => ({
-          type: 'invoice',
-          title: 'Invoice Uploaded',
-          desc: `Status: ${i.status}`,
-          time: i.created_at,
-          icon: Package,
-          color: 'bg-purple-100 text-purple-600'
-        }))
-      ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-
-      setStats({
-        todaySales: 1250.00, // Mocked until Sales Sync is fully live
-        pendingOrders: pendingOrders || 0,
-        lowStockCount: lowStock,
-        expiredCount: expired,
-        activePromos: activePromos || 0,
-        posMapped: posMapped || 0,
-        posUnverified: posUnverified || 0
-      });
-      setRecentActivity(activity);
-      setLoading(false);
+        setRecentOrders(orders || []);
+      } catch (err) {
+        console.error('Dashboard load error', err);
+        // Toast is client side, ensure it doesn't break server render if used wrongly (here it's fine in useEffect)
+        toast.error('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchDashboardData();
   }, []);
 
+  // Simple CSS Chart Helper
+  const chartData = [45, 60, 75, 50, 80, 95, 85]; // Mock data
+  const maxVal = Math.max(...chartData);
+
   return (
-    <div className="min-h-screen p-8 font-sans text-foreground">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* Welcome Header */}
-        <div className="animate-fade-in">
-          <h1 className="text-4xl font-extrabold tracking-tight text-primary mb-2">Good Morning, Owner</h1>
-          <p className="text-lg text-muted-foreground">Here's your retail command center for today.</p>
+        {/* 1. HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{storeName} Dashboard</h1>
+            <p className="text-sm text-gray-500">Overview of your retail performance.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/invoices"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
+            >
+              Scan Invoice
+            </Link>
+            <Link
+              href="/admin/sale"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
+            >
+              <ArrowUpRight size={16} />
+              New Campaign
+            </Link>
+          </div>
         </div>
 
-        {/* PRIMARY ACTIONS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
-          <Link href="/admin/invoices" className="group relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-3xl p-8 flex items-center justify-between shadow-2xl shadow-black/20 transition-all hover:scale-[1.01] hover:shadow-primary/30 border border-white/10">
-            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10 flex items-center gap-6">
-              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                <UploadCloud size={32} className="text-accent drop-shadow-sm" />
-              </div>
-              <div>
-                <h3 className="font-bold text-2xl tracking-tight text-white">Scan Invoice</h3>
-                <p className="text-white/60 text-base font-medium opacity-90">Restock inventory & track costs</p>
-              </div>
-            </div>
-            <div className="bg-white/10 p-2 rounded-full backdrop-blur-md group-hover:translate-x-1 transition-transform border border-white/10">
-              <ArrowRight className="text-accent" size={24} />
-            </div>
-          </Link>
+        {/* 2. KPI CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-          <Link href="/admin/sale" className="group relative overflow-hidden bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground rounded-3xl p-8 flex items-center justify-between shadow-2xl shadow-black/20 transition-all hover:scale-[1.01] hover:shadow-secondary/30 border border-white/10">
-            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative z-10 flex items-center gap-6">
-              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                <FileBarChart size={32} className="text-accent drop-shadow-sm" />
-              </div>
-              <div>
-                <h3 className="font-bold text-2xl tracking-tight text-white">Campaigns</h3>
-                <p className="text-white/60 text-base font-medium opacity-90">Push flash sales & offers</p>
-              </div>
+          {/* Revenue */}
+          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
+            <div className="flex justify-between items-start">
+              <span className="text-sm font-medium text-gray-500">Total Revenue</span>
+              <span className="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">+12.5%</span>
             </div>
-            <div className="bg-white/10 p-2 rounded-full backdrop-blur-md group-hover:translate-x-1 transition-transform border border-white/10">
-              <ArrowRight className="text-accent" size={24} />
+            <div>
+              <div className="text-2xl font-bold text-gray-900">${stats.revenue.toLocaleString()}</div>
             </div>
-          </Link>
-        </div>
-
-        {/* 1. KPI GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up-delay">
-
-          {/* Revenue Card */}
-          <div className="glass p-6 rounded-3xl hover:scale-[1.02] transition-transform duration-300">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-emerald-100/50 rounded-2xl text-emerald-700">
-                <DollarSign className="w-6 h-6" />
-              </div>
-              <span className="flex items-center text-xs font-bold text-emerald-700 bg-emerald-100/50 px-3 py-1 rounded-full">
-                <TrendingUp size={12} className="mr-1" /> +12%
-              </span>
-            </div>
-            <div className="text-4xl font-black text-gray-900 tracking-tight">${stats.todaySales.toFixed(2)}</div>
-            <div className="text-sm text-gray-500 font-semibold mt-1">Today's Revenue</div>
           </div>
 
-          {/* Pending Orders */}
-          <div className="glass p-6 rounded-3xl hover:scale-[1.02] transition-transform duration-300">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-blue-100/50 rounded-2xl text-blue-700">
-                <ShoppingBag className="w-6 h-6" />
-              </div>
-              {stats.pendingOrders > 0 && (
-                <span className="flex items-center text-xs font-bold text-white bg-red-500 shadow-lg shadow-red-200 px-3 py-1 rounded-full animate-pulse">
-                  {stats.pendingOrders} New
-                </span>
-              )}
+          {/* Orders */}
+          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
+            <div className="flex justify-between items-start">
+              <span className="text-sm font-medium text-gray-500">Pending Orders</span>
+              {stats.orders > 0 && <span className="w-2 h-2 bg-blue-500 rounded-full"></span>}
             </div>
-            <div className="text-4xl font-black text-gray-900 tracking-tight">{stats.pendingOrders}</div>
-            <div className="text-sm text-gray-500 font-semibold mt-1">Orders to Pack</div>
+            <div>
+              <div className="text-2xl font-bold text-gray-900">{stats.orders}</div>
+              <div className="text-xs text-gray-500 mt-1">Orders to fulfill</div>
+            </div>
           </div>
 
           {/* Low Stock */}
-          <div className="glass p-6 rounded-3xl hover:scale-[1.02] transition-transform duration-300">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-orange-100/50 rounded-2xl text-orange-700">
-                <Package className="w-6 h-6" />
-              </div>
+          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
+            <div className="flex justify-between items-start">
+              <span className="text-sm font-medium text-gray-500">Low Stock Items</span>
+              <AlertCircle size={16} className={stats.lowStock > 0 ? "text-amber-500" : "text-gray-300"} />
             </div>
-            <div className="text-4xl font-black text-gray-900 tracking-tight">{stats.lowStockCount}</div>
-            <div className="text-sm text-gray-500 font-semibold mt-1">Items Low Stock</div>
+            <div>
+              <div className="text-2xl font-bold text-gray-900">{stats.lowStock}</div>
+              <div className="text-xs text-gray-500 mt-1">Requires attention</div>
+            </div>
           </div>
 
-          {/* Expired / Critical */}
-          <div className="glass p-6 rounded-3xl hover:scale-[1.02] transition-transform duration-300">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-red-100/50 rounded-2xl text-red-700">
-                <AlertCircle className="w-6 h-6" />
-              </div>
+          {/* Active Campaigns */}
+          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
+            <div className="flex justify-between items-start">
+              <span className="text-sm font-medium text-gray-500">Active Campaigns</span>
+              <span className="text-purple-600 bg-purple-50 p-1 rounded-md"><TrendingUp size={14} /></span>
             </div>
-            <div className="text-4xl font-black text-gray-900 tracking-tight">{stats.expiredCount}</div>
-            <div className="text-sm text-gray-500 font-semibold mt-1">Expired / Critical</div>
+            <div>
+              <div className="text-2xl font-bold text-gray-900">{stats.activeCampaigns}</div>
+              <div className="text-xs text-gray-500 mt-1">Live promotions</div>
+            </div>
           </div>
 
         </div>
 
-        {/* 2. MAIN SECTIONS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up-delay">
+        {/* 3. MAIN CONTENT GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Recent Activity Feed */}
-          <div className="lg:col-span-2 glass rounded-3xl p-8">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="font-bold text-xl flex items-center gap-2 text-gray-800">
-                <Activity className="text-blue-500" size={20} />
-                Recent Activity
-              </h3>
-              <button className="text-sm text-primary font-bold hover:underline">View All</button>
+          {/* LEFT: Recent Orders Table */}
+          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Recent Orders</h3>
+              <Link href="/admin/orders" className="text-sm text-blue-600 hover:text-blue-700 font-medium">View all</Link>
             </div>
 
-            <div className="space-y-6">
-              {recentActivity.length === 0 ? (
-                <div className="text-center py-12 text-gray-400 italic bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                  No activity yet. Start by scanning an invoice!
-                </div>
-              ) : (
-                recentActivity.map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={idx} className="flex gap-4 items-start group">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110 ${item.color.replace('bg-', 'bg-opacity-20 bg-')}`}>
-                        <Icon size={20} />
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <div className="flex justify-between items-center mb-1">
-                          <h4 className="font-bold text-gray-900 text-sm group-hover:text-primary transition-colors">{item.title}</h4>
-                          <span className="text-xs text-gray-400 font-medium flex items-center gap-1">
-                            <Clock size={12} />
-                            {new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-3">Order #</th>
+                    <th className="px-6 py-3">Customer</th>
+                    <th className="px-6 py-3">Date</th>
+                    <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {loading ? (
+                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Loading orders...</td></tr>
+                  ) : recentOrders.length === 0 ? (
+                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">No recent orders found.</td></tr>
+                  ) : (
+                    recentOrders.map((order) => (
+                      <tr key={order['order-id']} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-gray-900">
+                          #{order['order-id'].substring(0, 8)}...
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">
+                          {order['customer-phone'] || 'Guest'}
+                        </td>
+                        <td className="px-6 py-4 text-gray-500">
+                          {new Date(order['order-date-time']).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-50 text-green-700' :
+                            order.status === 'pending' ? 'bg-blue-50 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                            {order.status || 'Pending'}
                           </span>
-                        </div>
-                        <p className="text-sm text-gray-500">{item.desc}</p>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                        </td>
+                        <td className="px-6 py-4 text-right font-medium text-gray-900">
+                          ${order['final-amount']?.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          {/* Quick Actions / Financials */}
-          <div className="glass rounded-3xl p-8 flex flex-col justify-between">
-            <div>
-              <h3 className="font-bold text-xl mb-6 text-gray-800">Financial Health</h3>
+          {/* RIGHT: Sales Chart & Actions */}
+          <div className="space-y-6">
 
-              <div className="space-y-4">
-                <div className="p-5 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/40 shadow-sm">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600 font-bold">Gross Sales</span>
-                    <span className="text-emerald-700 bg-emerald-100 text-xs px-2 py-1 rounded-md font-bold">+5%</span>
-                  </div>
-                  <div className="text-3xl font-black text-gray-900 tracking-tight">$12,450.00</div>
-                </div>
+            {/* Sales Chart (CSS-only) */}
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-6">Weekly Sales Trend</h3>
 
-                <div className="p-5 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/40 shadow-sm">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600 font-bold">Est. Inventory Value</span>
+              <div className="h-48 flex items-end justify-between gap-2">
+                {chartData.map((val, i) => (
+                  <div key={i} className="w-full flex flex-col justify-end group relative">
+                    <div
+                      className="w-full bg-blue-100 rounded-t-sm hover:bg-blue-500 transition-colors duration-300 relative group-hover:shadow-lg"
+                      style={{ height: `${(val / maxVal) * 100}%` }}
+                    >
+                      {/* Tooltip */}
+                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        ${(val * 10).toFixed(0)}
+                      </div>
+                    </div>
+                    <span className="text-xs text-center text-gray-400 mt-2">
+                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
+                    </span>
                   </div>
-                  <div className="text-3xl font-black text-gray-900 tracking-tight">$45,200.00</div>
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="mt-8">
-              <div className="flex justify-between text-xs font-bold text-gray-500 mb-2">
-                <span>Monthly Goal</span>
-                <span>70%</span>
-              </div>
-              <div className="w-full bg-gray-100/80 h-3 rounded-full overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full w-[70%] rounded-full shadow-lg shadow-blue-200"></div>
+            {/* Quick Links */}
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-4">Quick Links</h3>
+              <div className="space-y-2">
+                <Link href="/admin/inventory" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors">
+                  <span className="flex items-center gap-2"><Package size={16} /> Inventory</span>
+                  <ArrowRight size={14} className="text-gray-400" />
+                </Link>
+                <Link href="/admin/settings" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors">
+                  <span className="flex items-center gap-2"><MoreHorizontal size={16} /> Settings</span>
+                  <ArrowRight size={14} className="text-gray-400" />
+                </Link>
               </div>
             </div>
 
