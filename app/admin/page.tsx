@@ -1,20 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
-  TrendingUp, Users, Package, AlertCircle,
-  Clock, ArrowRight, DollarSign, ShoppingBag,
-  MoreHorizontal, ArrowUpRight, Search
+  TrendingUp, Package, AlertCircle, ArrowUpRight, ArrowRight, MoreHorizontal
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export default function AdminDashboard() {
+  const supabase = createClientComponentClient();
   const [stats, setStats] = useState({
     revenue: 0,
     orders: 0,
@@ -24,9 +18,54 @@ export default function AdminDashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [storeName, setStoreName] = useState('My Store');
+
   useEffect(() => {
     async function fetchDashboardData() {
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+          // 1. Try to get tenant ID from Role
+          const { data: roleData } = await supabase
+            .from('tenant-user-role')
+            .select('tenant-id')
+            .eq('user-id', user.id)
+            .limit(1)
+            .maybeSingle();
+
+          let tenantId = roleData?.['tenant-id'];
+
+          // 2. Fallback: Resolve from Subdomain (Superadmin / Impersonation Mode)
+          if (!tenantId) {
+            const hostname = window.location.hostname;
+            const subdomain = hostname.split('.')[0];
+
+            if (subdomain && subdomain !== 'localhost' && !hostname.includes('vercel.app')) {
+              const { data: mapData } = await supabase
+                .from('subdomain-tenant-mapping')
+                .select('tenant-id')
+                .eq('subdomain', subdomain)
+                .single();
+
+              if (mapData) tenantId = mapData['tenant-id'];
+            }
+          }
+
+          if (tenantId) {
+            // 3. Get Store Name
+            const { data: storeData } = await supabase
+              .from('retail-store-tenant')
+              .select('store-name')
+              .eq('tenant-id', tenantId)
+              .single();
+
+            if (storeData) {
+              setStoreName(storeData['store-name']);
+            }
+          }
+        }
+
         // 1. KPIs
         // Low Stock
         const { count: lowStock } = await supabase
@@ -67,6 +106,7 @@ export default function AdminDashboard() {
         setRecentOrders(orders || []);
       } catch (err) {
         console.error('Dashboard load error', err);
+        // Toast is client side, ensure it doesn't break server render if used wrongly (here it's fine in useEffect)
         toast.error('Failed to load dashboard data');
       } finally {
         setLoading(false);
@@ -87,7 +127,7 @@ export default function AdminDashboard() {
         {/* 1. HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{storeName} Dashboard</h1>
             <p className="text-sm text-gray-500">Overview of your retail performance.</p>
           </div>
           <div className="flex items-center gap-3">
@@ -199,8 +239,8 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-50 text-green-700' :
-                              order.status === 'pending' ? 'bg-blue-50 text-blue-700' :
-                                'bg-gray-100 text-gray-600'
+                            order.status === 'pending' ? 'bg-blue-50 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
                             }`}>
                             {order.status || 'Pending'}
                           </span>

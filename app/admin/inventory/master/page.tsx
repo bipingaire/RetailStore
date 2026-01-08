@@ -1,127 +1,204 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X } from 'lucide-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-type MasterItem = {
-  id: string;
+// 1. Definition of Types based on Schema
+type InventoryItem = {
+  inventory_id: string; // from retail-store-inventory-item
+  product_id: string;   // from global-product-master-catalog
   name: string;
   sku: string;
   image: string;
   category: string;
-  vendor_name: string;
+  manufacturer: string;
   total_qty: number;
-  avg_unit_cost: number;
   sales_price: number;
-  margin: number;
-  pack: number | null;
-  uom: string | null;
-  last_received: string;
-  expiry_soon: string | null;
+  is_enriched: boolean;
+};
+
+type GlobalProduct = {
+  product_id: string;
+  name: string;
+  sku: string;
+  image: string;
+  category: string;
+  brand: string;
+  manufacturer: string;
+  is_active: boolean;
+  is_enriched: boolean;
 };
 
 export default function MasterInventoryPage() {
-  const [items, setItems] = useState<MasterItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<MasterItem[]>([]);
+  const supabase = createClientComponentClient();
+  const [activeTab, setActiveTab] = useState<'my-inventory' | 'global-catalog'>('my-inventory');
+
+  // Inventory State
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [globalItems, setGlobalItems] = useState<GlobalProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterVendor, setFilterVendor] = useState('All');
-  const [filterCategory, setFilterCategory] = useState('All');
-  const [vendorOptions, setVendorOptions] = useState<string[]>([]);
-  const [sortKey, setSortKey] = useState<'name' | 'price' | 'expiry'>('name');
-  const [detail, setDetail] = useState<MasterItem | null>(null);
 
-  // Edit states
-  const [editPrice, setEditPrice] = useState<string>('');
-  const [editName, setEditName] = useState<string>('');
-  const [editImage, setEditImage] = useState<string>('');
-  const [editCategory, setEditCategory] = useState<string>('');
-  const [editPack, setEditPack] = useState<string>('');
-  const [editUom, setEditUom] = useState<string>('');
+  // Checking existing inventory IDs to prevent duplicates in Global view
+  const [existingProductIds, setExistingProductIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    async function fetchData() {
-      const { data, error } = await supabase
-        .from('store_inventory')
-        .select(`
-          id, price, local_name, local_image_url, local_category, local_pack_quantity, local_uom,
-          global_products ( name, upc_ean, image_url, category, pack_quantity, uom, manufacturer ),
-          vendors ( name ),
-          inventory_batches ( batch_quantity, cost_basis, arrival_date, expiry_date )
-        `)
-        .eq('is_active', true);
+    fetchData();
+  }, [activeTab]);
 
-      const { data: vendorData } = await supabase.from('vendors').select('name').order('name');
-      if (error) return;
+  async function fetchData() {
+    setLoading(true);
+    try {
+      if (activeTab === 'my-inventory') {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const processed: MasterItem[] = (data || []).map((row: any) => {
-        const batches = row.inventory_batches || [];
-        const totalQty = batches.reduce((sum: number, b: any) => sum + b.batch_quantity, 0);
-        const totalValue = batches.reduce((sum: number, b: any) => sum + (b.batch_quantity * (b.cost_basis || 0)), 0);
-        const avgCost = totalQty > 0 ? totalValue / totalQty : 0;
-        const salesPrice = row.price || 0;
-        const margin = salesPrice > 0 ? ((salesPrice - avgCost) / salesPrice) * 100 : 0;
-        const lastArrival = batches.length > 0 ? batches.sort((a: any, b: any) => new Date(b.arrival_date).getTime() - new Date(a.arrival_date).getTime())[0].arrival_date : 'N/A';
-        const nextExpiry = batches.filter((b: any) => b.expiry_date).sort((a: any, b: any) => new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime())[0]?.expiry_date || null;
-        const gp = row.global_products || {};
+        // Get Tenant ID
+        const { data: roleData } = await supabase
+          .from('tenant-user-role')
+          .select('tenant-id')
+          .eq('user-id', user.id)
+          .single();
 
-        return {
-          id: row.id,
-          name: row.local_name || gp.name || 'Unknown',
-          sku: gp.upc_ean || 'N/A',
-          image: row.local_image_url || gp.image_url || '',
-          category: row.local_category || gp.category || 'Uncategorized',
-          vendor_name: row.vendors?.name || 'Unassigned',
-          total_qty: totalQty,
-          avg_unit_cost: avgCost,
-          sales_price: salesPrice,
-          margin,
-          pack: row.local_pack_quantity ?? gp.pack_quantity ?? null,
-          uom: row.local_uom || gp.uom || null,
-          last_received: lastArrival,
-          expiry_soon: nextExpiry,
-        };
-      });
+        if (roleData) {
+          const { data, error } = await supabase
+            .from('retail-store-inventory-item')
+            .select(`
+              inventory-id,
+              current-stock-quantity,
+              selling-price-amount,
+              global-product-master-catalog!global-product-id (
+                product-id,
+                product-name,
+                upc-ean-code,
+                image-url,
+                category-name,
+                manufacturer-name,
+                enriched-by-superadmin
+              )
+            `)
+            .eq('tenant-id', roleData['tenant-id'])
+            .eq('is-active', true);
 
-      setItems(processed);
-      setFilteredItems(processed);
-      setVendorOptions(Array.from(new Set(['All', ...(vendorData || []).map((v: any) => v.name), ...processed.map((p) => p.vendor_name)])).filter(Boolean));
+          if (error) throw error;
+
+          const processed: InventoryItem[] = (data || []).map((row: any) => {
+            const gp = row['global-product-master-catalog'] || {};
+            return {
+              inventory_id: row['inventory-id'],
+              product_id: gp['product-id'],
+              name: row['custom-product-name'] || gp['product-name'] || 'Unknown',
+              sku: gp['upc-ean-code'] || 'N/A',
+              image: row['override-image-url'] || gp['image-url'] || '',
+              category: gp['category-name'] || 'Uncategorized',
+              manufacturer: gp['manufacturer-name'] || 'N/A',
+              total_qty: row['current-stock-quantity'] || 0,
+              sales_price: row['selling-price-amount'] || 0,
+              is_enriched: gp['enriched-by-superadmin'] || false
+            };
+          });
+
+          setInventoryItems(processed);
+          setExistingProductIds(new Set(processed.map(i => i.product_id)));
+        }
+
+      } else {
+        // Fetch Global Catalog
+        const { data, error } = await supabase
+          .from('global-product-master-catalog')
+          .select('*')
+          .eq('is-active', true)
+          .order('product-name');
+
+        if (error) throw error;
+
+        const processed: GlobalProduct[] = (data || []).map((row: any) => ({
+          product_id: row['product-id'],
+          name: row['product-name'],
+          sku: row['upc-ean-code'],
+          image: row['image-url'],
+          category: row['category-name'],
+          brand: row['brand-name'],
+          manufacturer: row['manufacturer-name'],
+          is_active: row['is-active'],
+          is_enriched: row['enriched-by-superadmin']
+        }));
+
+        setGlobalItems(processed);
+      }
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      toast.error("Failed to load data");
+    } finally {
       setLoading(false);
     }
-    fetchData();
-  }, []);
+  }
 
-  useEffect(() => {
-    let result = items;
-    if (searchTerm) result = result.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm));
-    if (filterVendor !== 'All') result = result.filter(i => i.vendor_name === filterVendor);
-    if (filterCategory !== 'All') result = result.filter(i => i.category === filterCategory);
+  const handleAddToStore = async (product: GlobalProduct) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    if (sortKey === 'name') result.sort((a, b) => a.name.localeCompare(b.name));
-    if (sortKey === 'price') result.sort((a, b) => b.sales_price - a.sales_price);
-    if (sortKey === 'expiry') result.sort((a, b) => (a.expiry_soon ? new Date(a.expiry_soon).getTime() : Infinity) - (b.expiry_soon ? new Date(b.expiry_soon).getTime() : Infinity));
+      const { data: roleData } = await supabase
+        .from('tenant-user-role')
+        .select('tenant-id')
+        .eq('user-id', user.id)
+        .single();
 
-    setFilteredItems([...result]);
-  }, [searchTerm, filterVendor, filterCategory, sortKey, items]);
+      if (!roleData) return;
 
-  const vendorsList = useMemo(() => vendorOptions.length ? vendorOptions : Array.from(new Set(items.map(i => i.vendor_name))), [vendorOptions, items]);
-  const categoriesList = useMemo(() => Array.from(new Set(items.map(i => i.category))), [items]);
+      const { error } = await supabase
+        .from('retail-store-inventory-item')
+        .insert({
+          'tenant-id': roleData['tenant-id'],
+          'global-product-id': product.product_id,
+          'current-stock-quantity': 0,
+          'selling-price-amount': 0,
+          'is-active': true
+        });
+
+      if (error) throw error;
+
+      toast.success("Product added to your inventory!");
+      setExistingProductIds(prev => new Set(prev).add(product.product_id));
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to add product");
+    }
+  };
+
+  const displayedItems = activeTab === 'my-inventory'
+    ? inventoryItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm))
+    : globalItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm));
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* HEADER */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Package className="text-blue-600" /> Master Inventory Ledger
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Global view of all products, costs, and data.</p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Package className="text-blue-600" /> Master Inventory Ledger
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">Manage your store products and browse global catalog.</p>
+          </div>
+
+          <div className="bg-gray-200 p-1 rounded-lg flex gap-1">
+            <button
+              onClick={() => setActiveTab('my-inventory')}
+              className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'my-inventory' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              My Inventory
+            </button>
+            <button
+              onClick={() => setActiveTab('global-catalog')}
+              className={`px-4 py-2 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'global-catalog' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Globe size={14} /> Global Catalog
+            </button>
+          </div>
         </div>
 
         {/* CONTROLS */}
@@ -136,21 +213,6 @@ export default function MasterInventoryPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <Filter size={16} className="text-gray-400 shrink-0" />
-            <select className="border border-gray-200 p-2 rounded-lg text-sm bg-white outline-none focus:border-blue-500" value={filterVendor} onChange={(e) => setFilterVendor(e.target.value)}>
-              <option value="All">All Vendors</option>
-              {vendorsList.map(v => <option key={v} value={v}>{v}</option>)}
-            </select>
-            <select className="border border-gray-200 p-2 rounded-lg text-sm bg-white outline-none focus:border-blue-500" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-              <option value="All">All Categories</option>
-              {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <div className="h-6 w-px bg-gray-200 mx-2"></div>
-            <button onClick={() => setSortKey('name')} className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${sortKey === 'name' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>Name</button>
-            <button onClick={() => setSortKey('price')} className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${sortKey === 'price' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>Price</button>
-          </div>
         </div>
 
         {/* DATA TABLE */}
@@ -159,32 +221,34 @@ export default function MasterInventoryPage() {
             <thead className="bg-gray-50/50 text-gray-500 uppercase text-xs font-bold border-b border-gray-100">
               <tr>
                 <th className="px-6 py-3 font-medium">Product</th>
-                <th className="px-6 py-3 font-medium">Vendor</th>
-                <th className="px-6 py-3 font-medium text-right">Cost (Avg)</th>
-                <th className="px-6 py-3 font-medium text-right">Price</th>
-                <th className="px-6 py-3 font-medium text-right">Margin</th>
-                <th className="px-6 py-3 font-medium text-center">Stock</th>
+                <th className="px-6 py-3 font-medium">Category</th>
+                <th className="px-6 py-3 font-medium">Manufacturer</th>
+                {activeTab === 'my-inventory' ? (
+                  <>
+                    <th className="px-6 py-3 font-medium text-right">Price</th>
+                    <th className="px-6 py-3 font-medium text-center">Stock</th>
+                  </>
+                ) : (
+                  <th className="px-6 py-3 font-medium text-right">Action</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={6} className="p-12 text-center text-gray-400">Loading...</td></tr>
-              ) : filteredItems.length === 0 ? (
-                <tr><td colSpan={6} className="p-12 text-center text-gray-400">No items found.</td></tr>
-              ) : filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer" onClick={() => {
-                  setDetail(item);
-                  setEditPrice(item.sales_price.toString());
-                  setEditName(item.name);
-                  setEditImage(item.image || '');
-                  setEditCategory(item.category);
-                  setEditPack(item.pack?.toString() || '');
-                  setEditUom(item.uom || '');
-                }}>
+                <tr><td colSpan={5} className="p-12 text-center text-gray-400">Loading...</td></tr>
+              ) : displayedItems.length === 0 ? (
+                <tr><td colSpan={5} className="p-12 text-center text-gray-400">No items found.</td></tr>
+              ) : displayedItems.map((item: any) => (
+                <tr key={item.inventory_id || item.product_id} className="hover:bg-blue-50/30 transition-colors group">
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-gray-100 rounded-md shrink-0 overflow-hidden border border-gray-200">
-                        {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : null}
+                      <div className="w-10 h-10 bg-gray-100 rounded-md shrink-0 overflow-hidden border border-gray-200 relative">
+                        {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <Package className="p-2 text-gray-400" />}
+                        {item.is_enriched && (
+                          <div className="absolute top-0 right-0 bg-blue-500 text-white p-0.5 rounded-bl-md" title="Enriched by Superadmin">
+                            <CheckCircle2 size={8} />
+                          </div>
+                        )}
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{item.name}</div>
@@ -192,102 +256,35 @@ export default function MasterInventoryPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="text-gray-700 flex items-center gap-1.5"><Truck size={12} className="text-gray-400" /> {item.vendor_name}</div>
-                    <div className="text-xs text-gray-400 pl-4">{item.category}</div>
-                  </td>
-                  <td className="px-6 py-3 text-right font-mono text-gray-600 text-xs">${item.avg_unit_cost.toFixed(2)}</td>
-                  <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${item.sales_price.toFixed(2)}</td>
-                  <td className="px-6 py-3 text-right">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${item.margin > 30 ? 'bg-green-50 border-green-100 text-green-700' : item.margin > 15 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
-                      {item.margin.toFixed(1)}%
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-center">
-                    <div className="font-bold text-gray-900">{item.total_qty}</div>
-                    {item.expiry_soon && <div className="text-[10px] text-red-500 font-medium">Exp {new Date(item.expiry_soon).toLocaleDateString()}</div>}
-                  </td>
+                  <td className="px-6 py-3 text-gray-600">{item.category}</td>
+                  <td className="px-6 py-3 text-gray-600">{item.manufacturer}</td>
+
+                  {activeTab === 'my-inventory' ? (
+                    <>
+                      <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${item.sales_price.toFixed(2)}</td>
+                      <td className="px-6 py-3 text-center font-bold text-gray-900">{item.total_qty}</td>
+                    </>
+                  ) : (
+                    <td className="px-6 py-3 text-right">
+                      {existingProductIds.has(item.product_id) ? (
+                        <span className="text-green-600 text-xs font-bold flex items-center justify-end gap-1">
+                          <CheckCircle2 size={14} /> In Store
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleAddToStore(item)}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs font-bold hover:bg-blue-700 transition flex items-center gap-1 ml-auto"
+                        >
+                          <Plus size={14} /> Add to Store
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        {/* DRAWER */}
-        {detail && (
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-end z-50 animate-in fade-in">
-            <div className="w-full max-w-md bg-white h-full shadow-2xl p-6 overflow-y-auto animate-in slide-in-from-right duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2"><Edit3 size={18} className="text-blue-600" /> Edit Product</h3>
-                <button onClick={() => setDetail(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X size={20} /></button>
-              </div>
-
-              <div className="space-y-5">
-                <div className="flex gap-4">
-                  <div className="w-24 h-24 bg-gray-50 rounded-lg border border-gray-200 shrink-0 overflow-hidden">
-                    {editImage ? <img src={editImage} className="w-full h-full object-cover" /> : null}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <label className="text-xs font-semibold text-gray-500">Image URL</label>
-                    <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" value={editImage} onChange={(e) => setEditImage(e.target.value)} />
-                    <div className="text-[10px] text-gray-400">Preview updates automatically</div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500">Product Name</label>
-                  <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-900" value={editName} onChange={(e) => setEditName(e.target.value)} />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500">Category</label>
-                    <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" value={editCategory} onChange={(e) => setEditCategory(e.target.value)} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500">UOM / Unit</label>
-                    <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" value={editUom} onChange={(e) => setEditUom(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
-                  <h4 className="text-xs font-bold text-blue-800 uppercase">Pricing & Economics</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-semibold text-gray-500 block mb-1">Avg Cost</label>
-                      <div className="text-sm font-mono text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-2">${detail.avg_unit_cost.toFixed(2)}</div>
-                      <div className="text-[10px] text-gray-400 mt-1">Calculated from batches</div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-blue-700 block mb-1">Sales Price</label>
-                      <input className="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={async () => {
-                    const priceNum = parseFloat(editPrice || '0') || 0;
-                    const packNum = editPack ? parseInt(editPack, 10) : null;
-                    await supabase.from('store_inventory').update({
-                      price: priceNum,
-                      local_name: editName || null,
-                      local_image_url: editImage || null,
-                      local_category: editCategory || null,
-                      local_pack_quantity: packNum,
-                      local_uom: editUom || null,
-                    }).eq('id', detail.id);
-                    setItems((prev) => prev.map((i) => i.id === detail.id ? { ...i, sales_price: priceNum, name: editName, image: editImage, category: editCategory, pack: packNum, uom: editUom } : i));
-                    setDetail(null);
-                  }}
-                  className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 mt-4"
-                >
-                  <Save size={18} /> Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
     </div>

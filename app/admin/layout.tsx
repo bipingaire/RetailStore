@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { isSuperadmin } from '@/lib/auth/superadmin';
 import {
   LayoutDashboard,
   FileInput,
@@ -29,6 +30,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
+  const supabase = createClientComponentClient();
+
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },
     { name: 'Scan Invoices', href: '/admin/invoices', icon: FileInput, desc: 'Receive Goods' },
@@ -51,16 +54,119 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/admin/login');
   }
 
+  useEffect(() => {
+    async function checkAccess() {
+      setIsLoading(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+        return;
+      }
+
+      // SUPERADMIN GLOBAL BYPASS
+      const isSuper = await isSuperadmin(supabase, session.user.id);
+      if (isSuper) {
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // STRICT MULTI-TENANCY CHECK
+      // 1. Get current subdomain
+      const hostname = window.location.hostname;
+      const subdomain = hostname.split('.')[0];
+
+      // Allow localhost root access for dev testing/superadmin, otherwise enforce subdomain
+      if (hostname === 'localhost' || hostname.includes('vercel.app')) {
+        // In dev/root, we might just check if they have ANY role, or specific dev logic
+        // For now, let's allow if they have a role.
+        checkUserRole(session.user.id, null);
+      } else {
+        // 2. Resolve Tenant ID from Subdomain
+        const { data: tenantMap } = await supabase
+          .from('subdomain-tenant-mapping')
+          .select('tenant-id')
+          .eq('subdomain', subdomain)
+          .single();
+
+        if (!tenantMap) {
+          toast.error('Store not found for this subdomain');
+          setIsAuthenticated(false);
+          return;
+        }
+
+        // 3. Check if USER belongs to THIS TENANT
+        checkUserRole(session.user.id, tenantMap['tenant-id']);
+      }
+    }
+
+    async function checkUserRole(userId: string, tenantId: string | null) {
+      // BYPASS FOR LOCALHOST DEV ENVIRONMENT
+      // If we are on localhost, and just testing, allow any logged in user
+      // This solves the "Stuck on Login" issue if DB doesn't have roles set up yet.
+      if (window.location.hostname === 'localhost' && !tenantId) {
+        console.log('Dev Mode: Allowing access bypass on localhost');
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+
+      let query = supabase
+        .from('tenant-user-role')
+        .select('role-type, tenant-id')
+        .eq('user-id', userId);
+
+      if (tenantId) {
+        query = query.eq('tenant-id', tenantId);
+      }
+
+      // If checking globally (localhost), just get any valid role
+      // If checking specific tenant, we expect one row
+      const { data: roleData, error } = await query.limit(1).maybeSingle();
+
+      if (error || !roleData) {
+        console.error('Access verification failed:', error);
+        // Only show toast if we are NOT on the login page (to avoid double toast or conflict)
+        if (pathname !== '/admin/login') {
+          toast.error('Unauthorized: You do not have access to this store.');
+        }
+        // Do not sign out immediately, might be a valid user just at wrong URL
+        // allow middleware/router to handle
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+        setIsAuthenticated(false);
+      } else {
+        setIsAuthenticated(true);
+      }
+      setIsLoading(false);
+    }
+
+    checkAccess();
+  }, [pathname, router]);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <Loader2 className="animate-spin text-blue-500" size={32} />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="animate-spin text-blue-600" size={32} />
       </div>
     );
   }
 
-  // Login page bypass
-  if (!isAuthenticated && pathname !== '/admin/login') return null;
+  // Login page bypass - render request content without admin shell
+  if (pathname === '/admin/login') {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {children}
+      </main>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
@@ -92,8 +198,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
               >
                 <Icon size={18} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'} />

@@ -2,18 +2,13 @@
  * Superadmin authentication and authorization utilities
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 /**
  * Check if user is a superadmin
  */
-export async function isSuperadmin(userId: string): Promise<boolean> {
+export async function isSuperadmin(supabase: SupabaseClient, userId: string): Promise<boolean> {
     if (!userId) return false;
 
     const { data, error } = await supabase
@@ -44,7 +39,7 @@ export async function getSuperadminDetails(userId: string) {
 /**
  * Middleware to require superadmin access
  */
-export async function requireSuperadmin(request: NextRequest): Promise<NextResponse | null> {
+export async function requireSuperadmin(request: NextRequest, supabase: SupabaseClient): Promise<NextResponse | null> {
     // Get user from session
     const { data: { user } } = await supabase.auth.getUser();
 

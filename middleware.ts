@@ -2,7 +2,7 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse, type NextRequest } from 'next/server';
 import { extractSubdomain, getTenantFromSubdomain, isSuperadminDomain } from '@/lib/subdomain';
 
-const PROTECTED_PREFIXES = ['/admin', '/superadmin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
+const PROTECTED_PREFIXES = ['/admin', '/superadmin', '/super-admin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -58,9 +58,14 @@ export async function middleware(req: NextRequest) {
   }
 
   // Handle superadmin domain
-  if (pathname.startsWith('/superadmin')) {
+  if (pathname.startsWith('/superadmin') || pathname.startsWith('/super-admin')) {
+    // Check for session
     if (!session) {
-      const redirectUrl = new URL('/admin/login', req.url);
+      // Allow access to the login page itself
+      if (pathname === '/super-admin/login') {
+        return res;
+      }
+      const redirectUrl = new URL('/super-admin/login', req.url);
       redirectUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(redirectUrl);
     }
@@ -70,6 +75,10 @@ export async function middleware(req: NextRequest) {
 
   // Standard protected route check for non-subdomain requests
   if (isProtected && !session) {
+    // FIXED: Allow access to login page without redirecting to it (prevents infinite loop)
+    if (pathname === '/admin/login') {
+      return res;
+    }
     const redirectUrl = new URL('/admin/login', req.url);
     redirectUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(redirectUrl);
@@ -82,6 +91,7 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/superadmin/:path*',
+    '/super-admin/:path*',
     '/supplier/:path*',
     '/vendors/:path*',
     '/pos-mapping/:path*',
