@@ -78,7 +78,7 @@ export default function MasterInventoryPage() {
                 enriched-by-superadmin
               )
             `)
-            .eq('tenant-id', roleData['tenant-id'])
+            .eq('tenant-id', (roleData as any)['tenant-id'])
             .eq('is-active', true);
 
           if (error) throw error;
@@ -151,7 +151,7 @@ export default function MasterInventoryPage() {
       const { error } = await supabase
         .from('retail-store-inventory-item')
         .insert({
-          'tenant-id': roleData['tenant-id'],
+          'tenant-id': (roleData as any)['tenant-id'],
           'global-product-id': product.product_id,
           'current-stock-quantity': 0,
           'selling-price-amount': 0,

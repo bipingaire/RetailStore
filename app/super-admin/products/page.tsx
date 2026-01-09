@@ -45,7 +45,7 @@ export default function MasterCatalogPage() {
             .not('category-name', 'is', null);
 
         if (data) {
-            const uniqueCategories = [...new Set(data.map(p => p['category-name']).filter(Boolean))];
+            const uniqueCategories = [...new Set(data.map((p: any) => p['category-name']).filter(Boolean))];
             setCategories(uniqueCategories);
         }
     }

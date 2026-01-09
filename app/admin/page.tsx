@@ -70,7 +70,7 @@ export default function AdminDashboard() {
         // Low Stock
         const { count: lowStock } = await supabase
           .from('retail-store-inventory-item')
-          .select('reorder-point-quantity', { count: 'exact', head: true })
+          .select('reorder-point-value', { count: 'exact', head: true }) // Fixed column
           .eq('is-active', true)
           .lt('current-stock-quantity', 10);
 
@@ -78,13 +78,13 @@ export default function AdminDashboard() {
         const { count: pendingOrders } = await supabase
           .from('customer-order-header')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending');
+          .eq('order-status-code', 'pending'); // Fixed column
 
         // Active Campaigns (Promos)
         const { count: activeCampaigns } = await supabase
           .from('marketing-campaign-master')
           .select('*', { count: 'exact', head: true })
-          .eq('is-active', true);
+          .eq('is-active-flag', true); // Fixed column
 
         // 2. Recent Orders Table
         const { data: orders } = await supabase

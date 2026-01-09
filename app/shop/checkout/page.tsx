@@ -19,6 +19,8 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
     const [cart, setCart] = useState<any[]>([]);
     const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Confirmation
+    const [user, setUser] = useState<any>(null);
+    const [checkingAuth, setCheckingAuth] = useState(true);
 
     // Form state
     const [customerName, setCustomerName] = useState('');
@@ -36,12 +38,30 @@ export default function CheckoutPage() {
     const [deliveryInstructions, setDeliveryInstructions] = useState('');
 
     useEffect(() => {
+        checkUser();
         const savedCart = localStorage.getItem('retail_cart');
         if (savedCart) {
             const cartData = JSON.parse(savedCart);
             loadCartItems(cartData);
         }
     }, []);
+
+    async function checkUser() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            // Redirect to login if not authenticated
+            router.push('/shop/login?next=/shop/checkout');
+            return;
+        }
+        setUser(user);
+
+        // Pre-fill details if available
+        if (user.email) setCustomerEmail(user.email);
+        if (user.user_metadata?.full_name) setCustomerName(user.user_metadata.full_name);
+        if (user.user_metadata?.phone) setCustomerPhone(user.user_metadata.phone);
+
+        setCheckingAuth(false);
+    }
 
     async function loadCartItems(cartData: Record<string, number>) {
         const ids = Object.keys(cartData);
@@ -89,10 +109,16 @@ export default function CheckoutPage() {
             setLoading(true);
 
             try {
+                // Get Tenant ID from env or fallback (IMPORTANT: Must be set for RLS)
+                const tenantId = process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID;
+                if (!tenantId) throw new Error("System Error: Tenant ID not configured.");
+
                 // Create order in database
                 const { data: orderData, error: orderError } = await supabase
                     .from('customer-order-header')
                     .insert({
+                        'tenant-id': tenantId,
+                        'customer-id': user?.id, // Link to authenticated user
                         'customer-name': customerName,
                         'customer-email': customerEmail,
                         'customer-phone': customerPhone,
@@ -144,14 +170,22 @@ export default function CheckoutPage() {
                 // Redirect to success page
                 router.push(`/shop/checkout/success?orderId=${orderData['order-id']}`);
 
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Order error:', error);
-                alert('Failed to place order. Please try again.');
+                alert(`Failed to place order: ${error.message || error}`);
             } finally {
                 setLoading(false);
             }
         }
     };
+
+    if (checkingAuth) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loader2 className="animate-spin w-8 h-8 text-green-600" />
+            </div>
+        );
+    }
 
     if (cart.length === 0) {
         return (
@@ -251,8 +285,8 @@ export default function CheckoutPage() {
                                         <button
                                             onClick={() => setFulfillmentType('delivery')}
                                             className={`p-4 rounded-lg border-2 transition ${fulfillmentType === 'delivery'
-                                                    ? 'border-green-600 bg-green-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
+                                                ? 'border-green-600 bg-green-50'
+                                                : 'border-gray-200 hover:border-gray-300'
                                                 }`}
                                         >
                                             <Truck className={`mx-auto mb-2 ${fulfillmentType === 'delivery' ? 'text-green-600' : 'text-gray-400'}`} />
@@ -263,8 +297,8 @@ export default function CheckoutPage() {
                                         <button
                                             onClick={() => setFulfillmentType('pickup')}
                                             className={`p-4 rounded-lg border-2 transition ${fulfillmentType === 'pickup'
-                                                    ? 'border-green-600 bg-green-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
+                                                ? 'border-green-600 bg-green-50'
+                                                : 'border-gray-200 hover:border-gray-300'
                                                 }`}
                                         >
                                             <Package className={`mx-auto mb-2 ${fulfillmentType === 'pickup' ? 'text-green-600' : 'text-gray-400'}`} />
@@ -368,8 +402,8 @@ export default function CheckoutPage() {
                                     <button
                                         onClick={() => setPaymentMethod('card')}
                                         className={`w-full p-4 rounded-lg border-2 text-left transition ${paymentMethod === 'card'
-                                                ? 'border-green-600 bg-green-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-green-600 bg-green-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -384,8 +418,8 @@ export default function CheckoutPage() {
                                     <button
                                         onClick={() => setPaymentMethod('cash')}
                                         className={`w-full p-4 rounded-lg border-2 text-left transition ${paymentMethod === 'cash'
-                                                ? 'border-green-600 bg-green-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-green-600 bg-green-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -424,8 +458,10 @@ export default function CheckoutPage() {
                                         />
                                         <div className="flex-1">
                                             <div className="font-bold text-sm">{item.global_products.name}</div>
-                                            <div className="text-xs text-gray-500">Qty: {item.quantity}</div>
-                                            <div className="text-sm font-bold text-green-700">${(item.price * item.quantity).toFixed(2)}</div>
+                                            <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                                <span>{item.quantity} x ${item.price.toFixed(2)}</span>
+                                                <span className="font-bold text-gray-900">${(item.price * item.quantity).toFixed(2)}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

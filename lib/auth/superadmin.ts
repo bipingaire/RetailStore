@@ -16,7 +16,7 @@ export async function isSuperadmin(supabase: SupabaseClient, userId: string): Pr
         .select('superadmin-id')
         .eq('user-id', userId)
         .eq('is-active', true)
-        .single();
+        .maybeSingle();
 
     return !error && !!data;
 }
@@ -24,18 +24,6 @@ export async function isSuperadmin(supabase: SupabaseClient, userId: string): Pr
 /**
  * Get superadmin details
  */
-export async function getSuperadminDetails(userId: string) {
-    const { data, error } = await supabase
-        .from('superadmin-users')
-        .select('*')
-        .eq('user-id', userId)
-        .eq('is-active', true)
-        .single();
-
-    if (error) return null;
-    return data;
-}
-
 /**
  * Middleware to require superadmin access
  */
@@ -47,7 +35,7 @@ export async function requireSuperadmin(request: NextRequest, supabase: Supabase
         return NextResponse.redirect(new URL('/admin/login', request.url));
     }
 
-    const isAdmin = await isSuperadmin(user.id);
+    const isAdmin = await isSuperadmin(supabase, user.id);
 
     if (!isAdmin) {
         return NextResponse.json(
@@ -63,10 +51,11 @@ export async function requireSuperadmin(request: NextRequest, supabase: Supabase
  * Check superadmin permission
  */
 export async function hasSuperadminPermission(
+    supabase: SupabaseClient,
     userId: string,
     permission: 'manage_stores' | 'manage_products' | 'manage_users' | 'view_analytics'
 ): Promise<boolean> {
-    const details = await getSuperadminDetails(userId);
+    const details = await getSuperadminDetails(supabase, userId);
 
     if (!details) return false;
 
@@ -75,9 +64,24 @@ export async function hasSuperadminPermission(
 }
 
 /**
+ * Get superadmin details
+ */
+export async function getSuperadminDetails(supabase: SupabaseClient, userId: string) {
+    const { data, error } = await supabase
+        .from('superadmin-users')
+        .select('*')
+        .eq('user-id', userId)
+        .eq('is-active', true)
+        .maybeSingle();
+
+    if (error) return null;
+    return data;
+}
+
+/**
  * Create a new superadmin user
  */
-export async function createSuperadmin(userId: string, fullName: string, email: string) {
+export async function createSuperadmin(supabase: SupabaseClient, userId: string, fullName: string, email: string) {
     const { data, error } = await supabase
         .from('superadmin-users')
         .insert({
@@ -99,7 +103,7 @@ export async function createSuperadmin(userId: string, fullName: string, email: 
 /**
  * Deactivate superadmin
  */
-export async function deactivateSuperadmin(userId: string) {
+export async function deactivateSuperadmin(supabase: SupabaseClient, userId: string) {
     const { error } = await supabase
         .from('superadmin-users')
         .update({ 'is-active': false })
@@ -113,7 +117,7 @@ export async function deactivateSuperadmin(userId: string) {
 /**
  * Get all superadmins
  */
-export async function getAllSuperadmins() {
+export async function getAllSuperadmins(supabase: SupabaseClient) {
     const { data, error } = await supabase
         .from('superadmin-users')
         .select('*')

@@ -67,6 +67,7 @@ export default function ShopHome() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [isCartLoaded, setIsCartLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
 
   // --- AUTHENTICATION CHECK ---
@@ -235,8 +236,23 @@ export default function ShopHome() {
 
   const filteredProducts = products.filter((prod: any) => {
     const prodItem = Array.isArray(prod) ? prod[0] : prod;
-    return prodItem?.global_products?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = prodItem?.global_products?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory
+      ? prodItem?.global_products?.category === selectedCategory
+      : true;
+
+    return matchesSearch && matchesCategory;
   });
+
+  // Derive unique categories from available products
+  const availableCategories = useMemo(() => {
+    const cats = new Set<string>();
+    products.forEach((p: any) => {
+      const cat = p.global_products?.category;
+      if (cat) cats.add(cat);
+    });
+    return Array.from(cats).sort();
+  }, [products]);
 
   const promoLookup = useMemo(() => {
     const map: Record<string, Promotion> = {};
@@ -417,18 +433,22 @@ export default function ShopHome() {
       <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
         <h3 className="font-bold text-lg text-gray-900 mb-6">Shop by Category</h3>
         <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-          {['Vegetables', 'Fruits', 'Meat', 'Fish', 'Beverages', 'Snacks', 'Pet Care', 'Bakery', 'Dairy'].map((cat, i) => (
-            <div key={i} className="flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group">
-              <div className="w-20 h-20 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all">
+          {availableCategories.map((cat, i) => (
+            <div
+              key={i}
+              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+              className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transtion-all ${selectedCategory === cat ? 'scale-110' : ''}`}
+            >
+              <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === cat ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
                 {/* Placeholder Icons based on index to vary visuals */}
                 <img
                   src={`https://cdn-icons-png.flaticon.com/512/${i === 0 ? '2909/2909859' : i === 1 ? '3194/3194766' : i === 2 ? '1046/1046774' : i === 3 ? '2395/2395796' : '706/706164'
                     }.png`}
-                  className="w-10 h-10 opacity-80 group-hover:opacity-100 transition-opacity"
+                  className={`w-10 h-10 transition-opacity ${selectedCategory === cat ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}
                   alt={cat}
                 />
               </div>
-              <span className="text-sm font-medium text-gray-700 group-hover:text-green-600 transition-colors">{cat}</span>
+              <span className={`text-sm font-medium transition-colors ${selectedCategory === cat ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>{cat}</span>
             </div>
           ))}
         </div>

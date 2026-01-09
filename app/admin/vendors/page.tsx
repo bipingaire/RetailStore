@@ -45,18 +45,30 @@ export default function VendorDashboard() {
   useEffect(() => {
     async function loadVendorData() {
       setLoading(true);
-      const { data: invoiceData } = await supabase.from('invoices').select('*').order('invoice_date', { ascending: false });
+      const { data: invoiceData } = await supabase
+        .from('uploaded-vendor-invoice-document')
+        .select('*')
+        .order('invoice-date', { ascending: false });
       const { data: contactData } = await supabase.from('vendors').select('*');
 
       const rawInvoices = invoiceData || [];
-      setInvoices(rawInvoices as any);
+      // Safe casting/mapping to old shape if needed, or update usage below
+      const mappedInvoices = rawInvoices.map((inv: any) => ({
+        id: inv['invoice-id'],
+        invoice_number: inv['invoice-number'],
+        invoice_date: inv['invoice-date'],
+        total_amount: inv['total-amount-value'],
+        status: inv['processing-status'],
+        vendor_name: inv['supplier-name']
+      }));
+      setInvoices(mappedInvoices);
 
       const vendorMap: Record<string, VendorProfile> = {};
       contactData?.forEach((c: any) => {
         vendorMap[c.name] = {
-          id: c.id, name: c.name, contact_phone: c.contact_phone, email: c.email,
-          ein: c.ein, shipping_address: c.shipping_address, website: c.website, fax: c.fax, poc_name: c.poc_name,
-          total_spend: 0, invoice_count: 0, last_order_date: 'N/A', outstanding_balance: 0, reliability_score: 95
+          id: c.id, name: c.name, contact_phone: c['contact-phone'], email: c.email,
+          ein: c.ein, shipping_address: c.address, website: c.website, fax: c.fax, poc_name: c['poc-name'],
+          total_spend: 0, invoice_count: 0, last_order_date: 'N/A', outstanding_balance: 0, reliability_score: c['reliability-score'] || 95
         };
       });
 
