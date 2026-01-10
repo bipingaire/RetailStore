@@ -12,7 +12,7 @@ export default function ShopLayout({
   children: ReactNode;
   params?: { slug?: string };
 }) {
-  const storeName = params?.slug || "IndyMart";
+  const storeName = params?.slug || "InduMart";
 
   return (
     <div className="min-h-screen bg-muted/30">
