@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, ArrowRight, ShoppingBag } from 'lucide-react';
@@ -16,6 +16,49 @@ export default function LoginPage() {
     const [error, setError] = useState('');
 
     const redirectTo = searchParams?.get('redirect') || '/shop';
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        async function checkSession() {
+            setLoading(true);
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session?.user) {
+                // Verify they are NOT an admin (using same logic as login)
+                const { data: superAdmin } = await supabase
+                    .from('superadmin-users')
+                    .select('superadmin-id')
+                    .eq('user-id', session.user.id)
+                    .single();
+
+                if (superAdmin) {
+                    // Do nothing, let them see login (or show message? logic says restrict login, so maybe sign out? But here we just want to skip login for legitimate users)
+                    // If they are superadmin, stay here (or maybe signOut to be safe? but handleLogin does that).
+                    // For now, if they are admin, we definitely don't auto-redirect them to shop.
+                    await supabase.auth.signOut();
+                    setError('Access Denied: Superadmins must use the Superadmin Dashboard.');
+                } else {
+                    const { data: tenantRole } = await supabase
+                        .from('tenant-user-role')
+                        .select('role-type')
+                        .eq('user-id', session.user.id)
+                        .in('role-type', ['owner', 'manager'])
+                        .single();
+
+                    if (tenantRole) {
+                        await supabase.auth.signOut();
+                        setError('Access Denied: Store Admins/Managers must use the Store Dashboard.');
+                    } else {
+                        // Valid Customer - Auto Redirect
+                        console.log('✅ Already logged in, redirecting to:', redirectTo);
+                        router.replace(redirectTo);
+                    }
+                }
+            }
+            setLoading(false);
+        }
+        checkSession();
+    }, []);
 
     async function handleLogin() {
         setLoading(true);

@@ -222,7 +222,7 @@ export default function CheckoutPage() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50 safe-area-bottom">
-        <Link href="/shop/checkout" className="w-full bg-black text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-between px-6 hover:bg-gray-800 transition-all">
+        <Link href={`/shop/checkout?fulfillment=${method}`} className="w-full bg-black text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-between px-6 hover:bg-gray-800 transition-all">
           <span>Proceed to Checkout</span>
           <ArrowRight />
         </Link>

@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
   Search, ShoppingBag, Star, ArrowRight, Check, Plus, Minus,
-  Phone, Menu, Heart, User, ChevronDown, Clock, Zap
+  Phone, Menu, Heart, User, ChevronDown, Clock, Zap, CheckCircle
 } from 'lucide-react';
 import CountdownTimer from './components/countdown-timer';
 import Link from 'next/link';
@@ -69,6 +69,7 @@ export default function ShopHome() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [boughtProducts, setBoughtProducts] = useState<Product[]>([]);
 
   // --- AUTHENTICATION CHECK ---
   useEffect(() => {
@@ -78,6 +79,54 @@ export default function ShopHome() {
     }
     checkUser();
   }, []);
+
+  // --- FETCH PURCHASE HISTORY ---
+  useEffect(() => {
+    async function fetchBoughtProducts() {
+      if (!user) return;
+
+      // 1. Get Orders
+      const { data: orders } = await supabase
+        .from('customer-order-header')
+        .select('order-id')
+        .eq('customer-id', user.id);
+
+      if (!orders || orders.length === 0) return;
+
+      const orderIds = orders.map(o => o['order-id']);
+
+      // 2. Get Inventory IDs
+      const { data: lineItems } = await supabase
+        .from('order-line-item-detail')
+        .select('inventory-id')
+        .in('order-id', orderIds);
+
+      if (!lineItems || lineItems.length === 0) return;
+
+      const inventoryIds = Array.from(new Set(lineItems.map(i => i['inventory-id'])));
+
+      // 3. Fetch Product Details
+      const { data: products } = await supabase
+        .from('retail-store-inventory-item')
+        .select(`
+          id: inventory-id,
+          price: selling-price-amount,
+          global_products: global-product-master-catalog!global-product-id (
+             name: product-name,
+             image_url: image-url,
+             category: category-name,
+             manufacturer: manufacturer-name
+          )
+        `)
+        .in('inventory-id', inventoryIds)
+        .limit(10); // Limit to recent 10 unique items
+
+      if (products) {
+        setBoughtProducts(products.map((p: any) => ({ ...p, price: p.price || 0 })));
+      }
+    }
+    fetchBoughtProducts();
+  }, [user]);
 
   // --- DATA LOADING & CART LOGIC (Kept same as before) ---
   useEffect(() => {
@@ -429,10 +478,65 @@ export default function ShopHome() {
         </div>
       )}
 
+      {/* 2.5 BUY AGAIN (NEW) */}
+      {boughtProducts.length > 0 && !searchTerm && (
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
+          <h3 className="font-bold text-lg text-gray-900 mb-6 flex items-center gap-2">
+            <CheckCircle className="text-green-600" size={20} />
+            Buy Again
+          </h3>
+          <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+            {boughtProducts.map((prod) => {
+              const qty = cart[prod.id] || 0;
+              return (
+                <div key={prod.id} className="min-w-[160px] bg-white rounded-xl p-4 border border-green-100 shadow-sm flex flex-col items-center text-center relative">
+                  <div className="absolute top-2 right-2 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Purchased
+                  </div>
+                  <div className="w-20 h-20 mb-3 bg-gray-50 rounded-lg flex items-center justify-center p-2">
+                    <img src={prod.global_products.image_url} className="w-full h-full object-contain mix-blend-multiply" />
+                  </div>
+                  <h4 className="font-bold text-xs text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{cleanName(prod.global_products.name)}</h4>
+                  <div className="font-black text-green-600 mb-3">${prod.price.toFixed(2)}</div>
+
+                  {qty === 0 ? (
+                    <button
+                      onClick={() => updateQty(prod.id, 1)}
+                      className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-700 transition"
+                    >
+                      Add
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 w-full bg-gray-100 rounded-lg py-1">
+                      <button onClick={() => updateQty(prod.id, -1)} className="p-1 hover:text-red-500"><Minus size={12} /></button>
+                      <span className="font-bold text-xs">{qty}</span>
+                      <button onClick={() => updateQty(prod.id, 1)} className="p-1 hover:text-green-600"><Plus size={12} /></button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 3. CATEGORY RAIL */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
         <h3 className="font-bold text-lg text-gray-900 mb-6">Shop by Category</h3>
         <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+          {/* Static 'All Products' Option */}
+          <div
+            onClick={() => setSelectedCategory(null)}
+            className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transtion-all ${selectedCategory === null ? 'scale-110' : ''}`}
+          >
+            <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === null ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <ShoppingBag className={`w-full h-full transition-colors ${selectedCategory === null ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}`} />
+              </div>
+            </div>
+            <span className={`text-sm font-medium transition-colors ${selectedCategory === null ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>All Products</span>
+          </div>
+
           {availableCategories.map((cat, i) => (
             <div
               key={i}
