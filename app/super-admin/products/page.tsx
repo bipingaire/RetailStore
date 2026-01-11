@@ -122,28 +122,80 @@ export default function MasterCatalogPage() {
                     </div>
                 ) : (
                     filteredProducts.map(product => (
-                        <Link
+                        <div
                             key={product['product-id']}
-                            href={`/superadmin/products/${product['product-id']}/enrich`}
-                            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+                            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden group relative"
                         >
-                            <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                                {product['image-url'] ? (
-                                    <img
-                                        src={product['image-url']}
-                                        alt={product['product-name']}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            <Link href={`/superadmin/products/${product['product-id']}/edit`} legacyBehavior>
+                                <a className="peer block aspect-square bg-gray-100 relative overflow-hidden">
+                                    {product['image-url'] ? (
+                                        <img
+                                            src={product['image-url']}
+                                            alt={product['product-name']}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Package className="w-16 h-16 text-gray-300" />
+                                        </div>
+                                    )}
+                                    {product['enriched-by-superadmin'] && (
+                                        <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                                            Enriched
+                                        </div>
+                                    )}
+                                </a>
+                            </Link>
+
+                            {/* UPLOAD OVERLAY */}
+                            <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                <label className="cursor-pointer bg-black/60 hover:bg-black/80 text-white p-2 rounded-lg flex items-center gap-2 backdrop-blur-sm text-xs font-bold shadow-sm">
+                                    <Image className="w-4 h-4" />
+                                    <span>Upload</span>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+
+                                            const toastId = toast.loading("Uploading image...");
+                                            try {
+                                                const fileName = `${product['product-id']}-${Date.now()}.jpg`;
+                                                const { data: uploadData, error: uploadError } = await supabase.storage
+                                                    .from('product-images')
+                                                    .upload(fileName, file);
+
+                                                if (uploadError) throw uploadError;
+
+                                                const { data: { publicUrl } } = supabase.storage
+                                                    .from('product-images')
+                                                    .getPublicUrl(fileName);
+
+                                                const { error: updateError } = await supabase
+                                                    .from('global-product-master-catalog')
+                                                    .update({ 'image-url': publicUrl })
+                                                    .eq('product-id', product['product-id']);
+
+                                                if (updateError) throw updateError;
+
+                                                toast.success("Image updated!", { id: toastId });
+
+                                                // Refresh local state without full reload
+                                                setProducts(prev => prev.map(p =>
+                                                    p['product-id'] === product['product-id']
+                                                        ? { ...p, 'image-url': publicUrl }
+                                                        : p
+                                                ));
+
+                                            } catch (err: any) {
+                                                console.error(err);
+                                                toast.error("Upload failed: " + err.message, { id: toastId });
+                                            }
+                                        }}
                                     />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <Package className="w-16 h-16 text-gray-300" />
-                                    </div>
-                                )}
-                                {product['enriched-by-superadmin'] && (
-                                    <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                                        Enriched
-                                    </div>
-                                )}
+                                </label>
                             </div>
 
                             <div className="p-4">
@@ -162,7 +214,7 @@ export default function MasterCatalogPage() {
                                     <p className="text-xs text-gray-400 mt-2">UPC: {product['upc-ean-code']}</p>
                                 )}
                             </div>
-                        </Link>
+                        </div>
                     ))
                 )}
             </div>

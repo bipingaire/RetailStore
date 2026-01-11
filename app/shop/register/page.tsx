@@ -40,6 +40,12 @@ export default function RegisterPage() {
         }
 
         try {
+            // Resolve Tenant ID (Mock or Real)
+            // Ideally this comes from the URL subdomain or a context
+            // For now, we use a known ID for InduMart or fallback
+            // In a real app, you would fetch this from "subdomain-tenant-mapping"
+            let tenantId = '11111111-1111-1111-1111-111111111111'; // Default to InduMart Demo
+
             // Sign up with email confirmation enabled
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
@@ -48,6 +54,7 @@ export default function RegisterPage() {
                     data: {
                         full_name: formData.fullName,
                         phone: formData.phone,
+                        tenant_id: tenantId // Pass Tenant ID to Trigger
                     },
                     emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`
                 }

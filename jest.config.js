@@ -10,6 +10,18 @@ const config = {
         '**/__tests__/**/*.test.[jt]s?(x)',
         '**/?(*.)+(spec|test).[jt]s?(x)'
     ],
+    transform: {
+        '^.+\\.(ts|tsx)$': ['ts-jest', {
+            tsconfig: {
+                ...require('./tsconfig.json').compilerOptions,
+                jsx: 'react-jsx',
+            },
+        }],
+        '^.+\\.(js|jsx)$': 'babel-jest',
+    },
+    transformIgnorePatterns: [
+        'node_modules/(?!(lucide-react|@supabase|sonner)/)',
+    ],
     collectCoverageFrom: [
         'app/**/*.{js,jsx,ts,tsx}',
         'lib/**/*.{js,jsx,ts,tsx}',

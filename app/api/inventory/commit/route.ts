@@ -25,21 +25,35 @@ export async function POST(req: Request) {
     for (const item of items) {
       console.log(`🔄 Processing: ${item.name}`);
 
-      // 1. Check Global Product
+      // 1. Check Global Product (By SKU first, then Name)
       let globalProductId = null;
-      const { data: existingProduct, error: fetchError } = await supabase
-        .from('global-product-master-catalog')
-        .select('product-id')
-        .eq('product-name', item.name)
-        .maybeSingle();
+      let existingProduct = null;
 
-      if (fetchError) {
-        console.error("❌ Global DB Fetch Error:", fetchError);
-        throw fetchError;
+      // A. Try finding by SKU if available
+      if (item.sku) {
+        const { data: skuMatch } = await supabase
+          .from('global-product-master-catalog')
+          .select('product-id')
+          .eq('upc-ean-code', item.sku)
+          .maybeSingle();
+
+        if (skuMatch) existingProduct = skuMatch;
+      }
+
+      // B. If no SKU match, try Name
+      if (!existingProduct) {
+        const { data: nameMatch } = await supabase
+          .from('global-product-master-catalog')
+          .select('product-id')
+          .eq('product-name', item.name)
+          .maybeSingle();
+
+        if (nameMatch) existingProduct = nameMatch;
       }
 
       if (existingProduct) {
         globalProductId = existingProduct['product-id'];
+        console.log(`   --> Found existing Global Product: ${globalProductId}`);
       } else {
         console.log("   --> Creating new Global Product");
         const { data: newProduct, error: createError } = await supabase
@@ -77,7 +91,9 @@ export async function POST(req: Request) {
           .from('retail-store-inventory-item')
           .insert({
             'tenant-id': tenantId,
-            'global-product-id': globalProductId
+            'global-product-id': globalProductId,
+            'is-active': true, // Explicitly set active on creation
+            'current-stock-quantity': 0 // Initialize at 0, update later
           })
           .select()
           .single();
@@ -104,6 +120,27 @@ export async function POST(req: Request) {
         console.error("❌ Batch Insert Error:", batchError);
         throw batchError;
       }
+
+      // 4. Update Inventory Total Stock & ensure Active
+      // We manually update the parent record to reflect the new stock
+      console.log("   --> Updating Inventory Totals...");
+
+      // Fetch current stock first (safe increment)
+      const { data: currentInv } = await supabase
+        .from('retail-store-inventory-item')
+        .select('current-stock-quantity')
+        .eq('inventory-id', inventoryId)
+        .single();
+
+      const newTotal = (currentInv?.['current-stock-quantity'] || 0) + parseInt(item.qty);
+
+      await supabase
+        .from('retail-store-inventory-item')
+        .update({
+          'current-stock-quantity': newTotal,
+          'is-active': true  // Force Active so it shows in "My Inventory"
+        })
+        .eq('inventory-id', inventoryId);
     }
 
     console.log("✅ Success!");

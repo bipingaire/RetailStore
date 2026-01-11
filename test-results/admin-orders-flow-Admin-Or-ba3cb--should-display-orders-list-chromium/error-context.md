@@ -1,0 +1,54 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "InduMart" [ref=e5] [cursor=pointer]:
+          - /url: /shop
+        - generic [ref=e6]:
+          - link "Cart" [ref=e7] [cursor=pointer]:
+            - /url: /shop/cart
+            - img [ref=e8]
+            - text: Cart
+          - link "Account" [ref=e11] [cursor=pointer]:
+            - /url: /shop/account
+            - img [ref=e12]
+            - text: Account
+    - main [ref=e15]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - link "InduMart" [ref=e19] [cursor=pointer]:
+            - /url: /shop
+            - img [ref=e21]
+            - generic [ref=e24]: InduMart
+          - heading "Welcome Back" [level=1] [ref=e25]
+          - paragraph [ref=e26]: Sign in to your account
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic [ref=e30]: Email
+              - textbox "your@email.com" [ref=e31]: admin@techhaven.com
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - generic [ref=e34]: Password
+                - link "Forgot?" [ref=e35] [cursor=pointer]:
+                  - /url: /shop/forgot-password
+              - textbox "••••••••" [active] [ref=e36]: password123
+            - button "Sign In" [ref=e37] [cursor=pointer]:
+              - text: Sign In
+              - img [ref=e38]
+          - generic [ref=e44]: OR
+          - button "Continue with Google" [ref=e45] [cursor=pointer]:
+            - img [ref=e46]
+            - text: Continue with Google
+          - paragraph [ref=e52]:
+            - text: Don't have an account?
+            - link "Sign up" [ref=e53] [cursor=pointer]:
+              - /url: /shop/register?redirect=/shop
+        - link "← Back to Shop" [ref=e55] [cursor=pointer]:
+          - /url: /shop
+  - region "Notifications alt+T"
+  - alert [ref=e56]
+```
