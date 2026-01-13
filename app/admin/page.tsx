@@ -17,6 +17,7 @@ export default function AdminDashboard() {
   });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
 
   const [storeName, setStoreName] = useState('My Store');
 
@@ -36,7 +37,7 @@ export default function AdminDashboard() {
 
           let tenantId = roleData?.['tenant-id'];
 
-          // 2. Fallback: Resolve from Subdomain (Superadmin / Impersonation Mode)
+          // 2. Fallback: Resolve from Subdomain or Hardcoded Dev Fallback
           if (!tenantId) {
             const hostname = window.location.hostname;
             const subdomain = hostname.split('.')[0];
@@ -63,50 +64,80 @@ export default function AdminDashboard() {
             if (storeData) {
               setStoreName(storeData['store-name']);
             }
+
+            // Load stats filtered by tenant
+            // Low Stock for this tenant
+            const { count: lowStock } = await supabase
+              .from('retail-store-inventory-item')
+              .select('reorder-point-value', { count: 'exact', head: true })
+              .eq('tenant-id', tenantId)
+              .eq('is-active', true)
+              .lt('current-stock-quantity', 10);
+
+            // Pending Orders for this tenant
+            const { count: pendingOrders } = await supabase
+              .from('customer-order-header')
+              .select('*', { count: 'exact', head: true })
+              .eq('tenant-id', tenantId)
+              .eq('order-status-code', 'pending');
+
+            // Active Campaigns for this tenant
+            const { count: activeCampaigns } = await supabase
+              .from('marketing-campaign-master')
+              .select('*', { count: 'exact', head: true })
+              .eq('tenant-id', tenantId)
+              .eq('is-active-flag', true);
+
+            // Recent Orders for this tenant
+            const { data: orders } = await supabase
+              .from('customer-order-header')
+              .select('*')
+              .eq('tenant-id', tenantId)
+              .order('order-date-time', { ascending: false })
+              .limit(5);
+
+            // Calculate Total Revenue from paid orders
+            const { data: revenueData } = await supabase
+              .from('customer-order-header')
+              .select('final-amount')
+              .eq('tenant-id', tenantId)
+              .eq('payment-status', 'paid');
+
+            const totalRevenue = revenueData?.reduce((sum, order) => sum + (order['final-amount'] || 0), 0) || 0;
+
+            // Weekly Sales Trend (Last 7 Days)
+            const weeklyData: number[] = [0, 0, 0, 0, 0, 0, 0];
+            const today = new Date();
+
+            for (let i = 0; i < 7; i++) {
+              const date = new Date(today);
+              date.setDate(today.getDate() - (6 - i));
+              const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+              const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+
+              const { data: daySales } = await supabase
+                .from('customer-order-header')
+                .select('final-amount')
+                .eq('tenant-id', tenantId)
+                .gte('order-date-time', startOfDay)
+                .lte('order-date-time', endOfDay);
+
+              weeklyData[i] = daySales?.reduce((sum, order) => sum + (order['final-amount'] || 0), 0) || 0;
+            }
+
+            setStats({
+              revenue: totalRevenue,
+              orders: pendingOrders || 0,
+              lowStock: lowStock || 0,
+              activeCampaigns: activeCampaigns || 0
+            });
+
+            setChartData(weeklyData);
+            setRecentOrders(orders || []);
           }
         }
-
-        // 1. KPIs
-        // Low Stock
-        const { count: lowStock } = await supabase
-          .from('retail-store-inventory-item')
-          .select('reorder-point-quantity', { count: 'exact', head: true })
-          .eq('is-active', true)
-          .lt('current-stock-quantity', 10);
-
-        // Pending Orders
-        const { count: pendingOrders } = await supabase
-          .from('customer-order-header')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending');
-
-        // Active Campaigns (Promos)
-        const { count: activeCampaigns } = await supabase
-          .from('marketing-campaign-master')
-          .select('*', { count: 'exact', head: true })
-          .eq('is-active', true);
-
-        // 2. Recent Orders Table
-        const { data: orders } = await supabase
-          .from('customer-order-header')
-          .select('*')
-          .order('order-date-time', { ascending: false })
-          .limit(5);
-
-        // 3. Mock Revenue (until Sales Sync is full)
-        const mockRevenue = 12450.00;
-
-        setStats({
-          revenue: mockRevenue,
-          orders: pendingOrders || 0,
-          lowStock: lowStock || 0,
-          activeCampaigns: activeCampaigns || 0
-        });
-
-        setRecentOrders(orders || []);
       } catch (err) {
         console.error('Dashboard load error', err);
-        // Toast is client side, ensure it doesn't break server render if used wrongly (here it's fine in useEffect)
         toast.error('Failed to load dashboard data');
       } finally {
         setLoading(false);
@@ -115,10 +146,6 @@ export default function AdminDashboard() {
 
     fetchDashboardData();
   }, []);
-
-  // Simple CSS Chart Helper
-  const chartData = [45, 60, 75, 50, 80, 95, 85]; // Mock data
-  const maxVal = Math.max(...chartData);
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
@@ -264,22 +291,25 @@ export default function AdminDashboard() {
               <h3 className="font-semibold text-gray-900 mb-6">Weekly Sales Trend</h3>
 
               <div className="h-48 flex items-end justify-between gap-2">
-                {chartData.map((val, i) => (
-                  <div key={i} className="w-full flex flex-col justify-end group relative">
-                    <div
-                      className="w-full bg-blue-100 rounded-t-sm hover:bg-blue-500 transition-colors duration-300 relative group-hover:shadow-lg"
-                      style={{ height: `${(val / maxVal) * 100}%` }}
-                    >
-                      {/* Tooltip */}
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                        ${(val * 10).toFixed(0)}
+                {chartData.map((val, i) => {
+                  const maxVal = Math.max(...chartData, 1);
+                  return (
+                    <div key={i} className="w-full flex flex-col justify-end group relative">
+                      <div
+                        className="w-full bg-blue-100 rounded-t-sm hover:bg-blue-500 transition-colors duration-300 relative group-hover:shadow-lg"
+                        style={{ height: `${(val / maxVal) * 100}%` }}
+                      >
+                        {/* Tooltip */}
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          ${val.toFixed(0)}
+                        </div>
                       </div>
+                      <span className="text-xs text-center text-gray-400 mt-2">
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
+                      </span>
                     </div>
-                    <span className="text-xs text-center text-gray-400 mt-2">
-                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

@@ -36,13 +36,12 @@ export default function AccountPage() {
     });
 
     // Load purchase history
-    const { data: orderData } = await supabase
-      .from('orders')
+    const { data } = await supabase
+      .from('customer-order-header')
       .select('*')
-      .eq('customer_id', user.id)
-      .order('order_date_time', { ascending: false });
-
-    setOrders(orderData || []);
+      .eq('customer-id', user.id)
+      .order('order-date-time', { ascending: false });
+    setOrders(data || []);
     setLoading(false);
   }
 
@@ -217,35 +216,35 @@ export default function AccountPage() {
                 <div className="space-y-4">
                   {orders.map((order) => (
                     <div
-                      key={order.order_id}
+                      key={order['order-id']}
                       className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-200"
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <div className="text-white font-bold text-lg mb-1">
-                            Order #{order.order_id.slice(0, 8)}
+                            Order #{order['order-id']?.slice(0, 8)}
                           </div>
                           <div className="flex items-center gap-2 text-purple-200 text-sm">
                             <Calendar size={14} />
-                            {new Date(order.order_date_time).toLocaleDateString()}
+                            {new Date(order['order-date-time']).toLocaleDateString()}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-black text-white">
-                            ${order.final_amount?.toFixed(2)}
+                            ${order['final-amount']?.toFixed(2)}
                           </div>
-                          <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${order.order_status === 'delivered' ? 'bg-green-500/20 text-green-300' :
-                              order.order_status === 'shipped' ? 'bg-blue-500/20 text-blue-300' :
-                                order.order_status === 'cancelled' ? 'bg-red-500/20 text-red-300' :
-                                  'bg-yellow-500/20 text-yellow-300'
+                          <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${order['order-status-code'] === 'delivered' ? 'bg-green-500/20 text-green-300' :
+                            order['order-status-code'] === 'shipped' ? 'bg-blue-500/20 text-blue-300' :
+                              order['order-status-code'] === 'cancelled' ? 'bg-red-500/20 text-red-300' :
+                                'bg-yellow-500/20 text-yellow-300'
                             }`}>
-                            {order.order_status}
+                            {order['order-status-code']}
                           </div>
                         </div>
                       </div>
 
                       <div className="text-purple-200 text-sm">
-                        Payment: <span className="text-white font-semibold">{order.payment_status}</span>
+                        Payment: <span className="text-white font-semibold">{order['payment-status']}</span>
                       </div>
                     </div>
                   ))}

@@ -85,12 +85,24 @@ export default function InvoicePage() {
   const fetchHistory = async () => {
     if (!TENANT_ID || TENANT_ID.includes('PASTE')) return;
     const { data } = await supabase
-      .from('invoices')
-      .select('id, vendor_name, invoice_number, invoice_date, total_amount, created_at, status')
-      .eq('tenant_id', TENANT_ID)
-      .order('created_at', { ascending: false })
+      .from('uploaded-vendor-invoice-document')
+      .select('invoice-id, supplier-name, invoice-number, invoice-date, total-amount-value, created-at, processing-status')
+      .eq('tenant-id', TENANT_ID)
+      .order('created-at', { ascending: false })
       .limit(10);
-    if (data) setHistory(data);
+
+    if (data) {
+      const mappedHistory = data.map((d: any) => ({
+        id: d['invoice-id'],
+        vendor_name: d['supplier-name'],
+        invoice_number: d['invoice-number'],
+        invoice_date: d['invoice-date'],
+        total_amount: d['total-amount-value'],
+        created_at: d['created-at'],
+        status: d['processing-status']
+      }));
+      setHistory(mappedHistory);
+    }
     setLoadingHistory(false);
   };
 
@@ -206,15 +218,15 @@ export default function InvoicePage() {
       poc_name: vendorData.poc_name
     }, { onConflict: 'name' });
 
-    const { error: invError } = await supabase.from('invoices').insert({
-      tenant_id: TENANT_ID,
-      image_url: 'stored_file_url_placeholder',
-      status: 'completed',
-      vendor_name: finalVendorName,
-      invoice_number: metadata.invoice_number,
-      invoice_date: metadata.invoice_date,
-      total_amount: metadata.total_amount,
-      line_items_json: items
+    const { error: invError } = await supabase.from('uploaded-vendor-invoice-document').insert({
+      'tenant-id': TENANT_ID,
+      'file-url-path': 'stored_file_url_placeholder',
+      'processing-status': 'processed',
+      'supplier-name': finalVendorName,
+      'invoice-number': metadata.invoice_number,
+      'invoice-date': metadata.invoice_date,
+      'total-amount-value': metadata.total_amount,
+      'ai-extracted-data-json': { items, metadata } // Store items in JSON
     });
 
     if (invError) return toast.error(`Failed to save: ${invError.message}`);

@@ -19,7 +19,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
-  
+
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [cartCounts, setCartCounts] = useState<Record<string, number>>({});
 
@@ -38,19 +38,20 @@ export default function CheckoutPage() {
 
       // 2. Fetch Details for IDs
       const { data } = await supabase
-        .from('store_inventory')
+        .from('retail-store-inventory-item')
         .select(`
-          id, price, 
-          global_products ( name, image_url )
+          id:inventory-id, 
+          price:selling-price-amount, 
+          global_product:global-product-master-catalog ( name:product-name, image:image-url )
         `)
-        .in('id', ids);
+        .in('inventory-id', ids);
 
       if (data) {
         // Merge DB data with LocalStorage counts
         const merged = data.map((item: any) => ({
           id: item.id,
-          name: item.global_products?.name || 'Unknown Item',
-          image: item.global_products?.image_url,
+          name: item.global_product?.name || 'Unknown Item',
+          image: item.global_product?.image,
           price: item.price,
           qty: counts[item.id],
           restriction: 'all' // In real app, fetch this from DB
@@ -91,8 +92,8 @@ export default function CheckoutPage() {
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
-          tenant_id: TENANT_ID, 
-          customer_phone: '555-0101', 
+          tenant_id: TENANT_ID,
+          customer_phone: '555-0101',
           fulfillment_method: method,
           payment_method: payment,
           total_amount: total,
@@ -147,37 +148,42 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32 font-sans">
       <div className="bg-white p-4 border-b sticky top-0 z-10 flex items-center gap-4">
-        <Link href="/shop" className="p-2 hover:bg-gray-100 rounded-full"><ArrowRight className="rotate-180" size={20}/></Link>
+        <Link href="/shop" className="p-2 hover:bg-gray-100 rounded-full"><ArrowRight className="rotate-180" size={20} /></Link>
         <h1 className="text-xl font-bold">Checkout</h1>
       </div>
 
       <div className="p-4 space-y-6 max-w-lg mx-auto">
-        
+
         {/* ITEMS LIST */}
         <div className="bg-white p-4 rounded-xl shadow-sm border">
           <h2 className="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider">Items ({cartItems.length})</h2>
           <div className="space-y-4">
             {cartItems.map((item) => (
-              <div key={item.id} className="flex gap-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 overflow-hidden">
-                   {item.image ? <img src={item.image} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-300">IMG</div>}
+              <div key={item.id} className="flex gap-4 border-b pb-4 last:border-0 last:pb-0">
+                <div className="w-20 h-20 bg-gray-100 rounded-lg shrink-0 overflow-hidden border">
+                  {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-300">IMG</div>}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 space-y-1">
                   <div className="flex justify-between items-start">
-                    <div>
-                      <div className="font-bold text-gray-900 line-clamp-1">{item.name}</div>
-                      <div className="text-xs text-gray-500">${item.price} / unit</div>
-                    </div>
-                    <div className="font-mono font-bold">${(item.price * item.qty).toFixed(2)}</div>
+                    <div className="font-bold text-gray-900 line-clamp-2">{item.name}</div>
+                    <button onClick={() => updateItemQty(item.id, -item.qty)} className="text-gray-300 hover:text-red-500 p-1"><Trash2 size={16} /></button>
                   </div>
-                  
-                  <div className="flex items-center justify-between mt-2">
-                     <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-1">
-                        <button onClick={() => updateItemQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm hover:text-red-500"><Minus size={12}/></button>
-                        <span className="text-xs font-bold w-4 text-center">{item.qty}</span>
-                        <button onClick={() => updateItemQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-blue-600"><Plus size={12}/></button>
-                     </div>
-                     <button onClick={() => updateItemQty(item.id, -item.qty)} className="text-gray-300 hover:text-red-500 p-1"><Trash2 size={16}/></button>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm mt-2">
+                    <div className="text-gray-500">Unit Price:</div>
+                    <div className="text-right font-medium">${item.price}</div>
+
+                    <div className="text-gray-500">Qty:</div>
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => updateItemQty(item.id, -1)} className="w-5 h-5 flex items-center justify-center bg-gray-100 rounded hover:bg-gray-200"><Minus size={10} /></button>
+                      <span className="font-bold w-4 text-center">{item.qty}</span>
+                      <button onClick={() => updateItemQty(item.id, 1)} className="w-5 h-5 flex items-center justify-center bg-gray-100 rounded hover:bg-gray-200"><Plus size={10} /></button>
+                    </div>
+
+                    <div className="text-gray-900 font-bold pt-1 border-t">Total Price:</div>
+                    <div className="text-right font-bold text-emerald-600 pt-1 border-t transition-colors underline decoration-emerald-200 decoration-2 underline-offset-2">
+                      ${(item.price * item.qty).toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -202,7 +208,7 @@ export default function CheckoutPage() {
             </button>
           </div>
           {method === 'delivery' && (
-            <textarea className="w-full border rounded-lg p-3 mt-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" rows={2} placeholder="Delivery Address..." value={address} onChange={(e) => setAddress(e.target.value)}/>
+            <textarea className="w-full border rounded-lg p-3 mt-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" rows={2} placeholder="Delivery Address..." value={address} onChange={(e) => setAddress(e.target.value)} />
           )}
         </div>
 
@@ -216,9 +222,10 @@ export default function CheckoutPage() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50 safe-area-bottom">
-        <button onClick={handlePlaceOrder} disabled={placingOrder || (method === 'delivery' && !address)} className="w-full bg-black text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-between px-6 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all">
-          {placingOrder ? <div className="flex gap-2 mx-auto"><Loader2 className="animate-spin"/> Processing...</div> : <><span>Confirm Order</span><ArrowRight/></>}
-        </button>
+        <Link href={`/shop/checkout?fulfillment=${method}`} className="w-full bg-black text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-between px-6 hover:bg-gray-800 transition-all">
+          <span>Proceed to Checkout</span>
+          <ArrowRight />
+        </Link>
       </div>
     </div>
   );

@@ -1,0 +1,51 @@
+﻿__tests__/profit-calculator.test.ts(41,13): error TS2322: Type 'Mock<{ gte: Mock<{ lte: Mock<{ data: { final_amount: number; }[]; }, [], any>; }, [], any>; }, [], any>' is not assignable to type 'Mock<{ gte: Mock<{ lte: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>; in: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>'.
+  Types of property 'mock' are incompatible.
+    Type 'MockContext<{ gte: Mock<{ lte: Mock<{ data: { final_amount: number; }[]; }, [], any>; }, [], any>; }, [], any>' is not assignable to type 'MockContext<{ gte: Mock<{ lte: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>; in: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>'.
+      Property 'in' is missing in type '{ gte: jest.Mock<{ lte: jest.Mock<{ data: { final_amount: number; }[]; }, [], any>; }, [], any>; }' but required in type '{ gte: jest.Mock<{ lte: jest.Mock<{ data: never[]; error: null; }, [], any>; }, [], any>; in: jest.Mock<{ data: never[]; error: null; }, [], any>; }'.
+app/admin/campaigns/create/page.tsx(86,35): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/inventory/master/page.tsx(81,39): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/inventory/master/page.tsx(154,33): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/layout.tsx(105,50): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/login/page.tsx(53,78): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/page.tsx(37,37): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/page.tsx(51,47): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/page.tsx(64,38): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/reports/page.tsx(46,69): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/reports/page.tsx(50,45): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/reports/page.tsx(51,77): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/admin/restock/page.tsx(171,22): error TS2304: Cannot find name 'ShoppingBag'.
+app/admin/social/page.tsx(391,52): error TS2304: Cannot find name 'handleProductPost'.
+app/api/admin/products/enrich/route.ts(54,34): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/api/admin/products/enrich/route.ts(56,50): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/api/social/publish/route.ts(20,35): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/api/social/save-settings/route.ts(23,35): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+app/shop/product/[id]/page.tsx(50,55): error TS2339: Property 'category' does not exist on type '{ name: any; image_url: any; category: any; manufacturer: any; description: any; package_size: any; }[]'.
+app/super-admin/products/page.tsx(48,66): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+lib/analytics/profit-calculator.ts(34,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(34,42): error TS7006: Parameter 'order' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(47,37): error TS7006: Parameter 'o' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(49,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(61,45): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(61,50): error TS7006: Parameter 'exp' implicitly has an 'any' type.
+lib/auth/superadmin.ts(28,35): error TS2304: Cannot find name 'supabase'.
+lib/auth/superadmin.ts(50,27): error TS2554: Expected 2 arguments, but got 1.
+lib/auth/superadmin.ts(81,35): error TS2304: Cannot find name 'supabase'.
+lib/auth/superadmin.ts(103,29): error TS2304: Cannot find name 'supabase'.
+lib/auth/superadmin.ts(117,35): error TS2304: Cannot find name 'supabase'.
+lib/inventory/availability.ts(48,17): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+lib/inventory/availability.ts(89,30): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+lib/inventory/availability.ts(91,32): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+lib/inventory/availability.ts(96,37): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+lib/subdomain.ts(84,17): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+supabase/functions/low-stock-alert/index.ts(4,23): error TS2307: Cannot find module 'https://deno.land/std@0.168.0/http/server.ts' or its corresponding type declarations.
+supabase/functions/low-stock-alert/index.ts(5,30): error TS2307: Cannot find module 'https://esm.sh/@supabase/supabase-js@2' or its corresponding type declarations.
+supabase/functions/low-stock-alert/index.ts(7,26): error TS2304: Cannot find name 'Deno'.
+supabase/functions/low-stock-alert/index.ts(8,22): error TS2304: Cannot find name 'Deno'.
+supabase/functions/low-stock-alert/index.ts(9,35): error TS2304: Cannot find name 'Deno'.
+supabase/functions/low-stock-alert/index.ts(11,14): error TS7006: Parameter 'req' implicitly has an 'any' type.
+supabase/functions/order-confirmation/index.ts(4,23): error TS2307: Cannot find module 'https://deno.land/std@0.168.0/http/server.ts' or its corresponding type declarations.
+supabase/functions/order-confirmation/index.ts(5,30): error TS2307: Cannot find module 'https://esm.sh/@supabase/supabase-js@2' or its corresponding type declarations.
+supabase/functions/order-confirmation/index.ts(7,26): error TS2304: Cannot find name 'Deno'.
+supabase/functions/order-confirmation/index.ts(8,22): error TS2304: Cannot find name 'Deno'.
+supabase/functions/order-confirmation/index.ts(9,35): error TS2304: Cannot find name 'Deno'.
+supabase/functions/order-confirmation/index.ts(17,14): error TS7006: Parameter 'req' implicitly has an 'any' type.

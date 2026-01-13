@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, ArrowRight, ShoppingBag } from 'lucide-react';
@@ -17,19 +17,95 @@ export default function LoginPage() {
 
     const redirectTo = searchParams?.get('redirect') || '/shop';
 
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        async function checkSession() {
+            setLoading(true);
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session?.user) {
+                // Verify they are NOT an admin (using same logic as login)
+                const { data: superAdmin } = await supabase
+                    .from('superadmin-users')
+                    .select('superadmin-id')
+                    .eq('user-id', session.user.id)
+                    .single();
+
+                if (superAdmin) {
+                    // Do nothing, let them see login (or show message? logic says restrict login, so maybe sign out? But here we just want to skip login for legitimate users)
+                    // If they are superadmin, stay here (or maybe signOut to be safe? but handleLogin does that).
+                    // For now, if they are admin, we definitely don't auto-redirect them to shop.
+                    await supabase.auth.signOut();
+                    setError('Access Denied: Superadmins must use the Superadmin Dashboard.');
+                } else {
+                    const { data: tenantRole } = await supabase
+                        .from('tenant-user-role')
+                        .select('role-type')
+                        .eq('user-id', session.user.id)
+                        .in('role-type', ['owner', 'manager'])
+                        .single();
+
+                    if (tenantRole) {
+                        await supabase.auth.signOut();
+                        setError('Access Denied: Store Admins/Managers must use the Store Dashboard.');
+                    } else {
+                        // Valid Customer - Auto Redirect
+                        console.log('✅ Already logged in, redirecting to:', redirectTo);
+                        router.replace(redirectTo);
+                    }
+                }
+            }
+            setLoading(false);
+        }
+        checkSession();
+    }, []);
+
     async function handleLogin() {
         setLoading(true);
         setError('');
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
 
-        if (error) {
-            setError(error.message);
+        if (authError) {
+            setError(authError.message);
             setLoading(false);
-        } else {
+            return;
+        }
+
+        if (authData.user) {
+            // Check if user is Superadmin
+            const { data: superAdmin } = await supabase
+                .from('superadmin-users')
+                .select('superadmin-id')
+                .eq('user-id', authData.user.id)
+                .single();
+
+            if (superAdmin) {
+                await supabase.auth.signOut();
+                setError('Access Denied: Superadmins must use the Superadmin Dashboard.');
+                setLoading(false);
+                return;
+            }
+
+            // Check if user is Tenant Admin (Owner/Manager)
+            const { data: tenantRole } = await supabase
+                .from('tenant-user-role')
+                .select('role-type')
+                .eq('user-id', authData.user.id)
+                .in('role-type', ['owner', 'manager'])
+                .single();
+
+            if (tenantRole) {
+                await supabase.auth.signOut();
+                setError('Access Denied: Store Admins/Managers must use the Store Dashboard.');
+                setLoading(false);
+                return;
+            }
+
+            // Valid Customer - Proceed
             // Check for pending cart item
             const pendingItem = sessionStorage.getItem('pending_cart_item');
 
@@ -78,7 +154,7 @@ export default function LoginPage() {
                         <div className="p-2 bg-emerald-600 rounded-lg shadow group-hover:bg-emerald-700 transition-colors">
                             <ShoppingBag className="text-white" size={24} />
                         </div>
-                        <span className="text-xl font-bold text-gray-900">IndyMart</span>
+                        <span className="text-xl font-bold text-gray-900">InduMart</span>
                     </Link>
                     <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome Back</h1>
                     <p className="text-sm text-gray-600">Sign in to your account</p>

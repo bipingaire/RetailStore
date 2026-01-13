@@ -51,9 +51,9 @@ export async function POST(request: NextRequest) {
             .eq('inventory-id', inventoryId)
             .single();
 
-        if (inventoryItem.data?.['global-product-id']) {
+        if ((inventoryItem.data as any)?.['global-product-id']) {
             await supabase.from('product-enrichment-history').insert({
-                'product-id': inventoryItem.data['global-product-id'],
+                'product-id': (inventoryItem.data as any)['global-product-id'],
                 'enriched-by-user-id': user.id,
                 'enrichment-type': 'store-admin-override',
                 'tenant-id': tenantId,

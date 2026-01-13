@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { Package, Mail, FileText, Send, Zap, ShoppingCart, AlertCircle, CheckCircle2, ChevronRight, Truck } from 'lucide-react';
+import { Package, Mail, FileText, Send, Zap, ShoppingCart, AlertCircle, CheckCircle2, ChevronRight, Truck, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface RestockItem {
@@ -30,34 +30,78 @@ export default function RestockPage() {
   }, []);
 
   async function loadLowStockItems() {
-    const { data } = await supabase
-      .from('store_inventory')
-      .select(`
-        inventory_id,
-        current_stock_quantity,
-        reorder_point_value,
-        cost_price_amount,
-        global_products (product_name)
-      `)
-      .lte('current_stock_quantity', supabase.rpc('reorder_point_value'))
-      .eq('is_active', true);
+    try {
+      // Get current user to try and filter by tenant (optional but good practice)
+      const { data: { user } } = await supabase.auth.getUser();
 
-    const items: RestockItem[] = (data || []).map((item: any) => {
-      const suggestedQty = Math.max(50, (item.reorder_point_value || 10) * 3);
-      return {
-        inventory_id: item.inventory_id,
-        product_name: item.global_products?.product_name || 'Unknown',
-        current_stock: item.current_stock_quantity,
-        reorder_point: item.reorder_point_value,
-        suggested_quantity: suggestedQty,
-        unit_cost: item.cost_price_amount || 0,
-        total_cost: suggestedQty * (item.cost_price_amount || 0)
-      };
-    });
+      let query = supabase
+        .from('retail-store-inventory-item')
+        .select(`
+          inventory-id,
+          current-stock-quantity,
+          reorder-point-value,
+          cost-price-amount,
+          global:global-product-master-catalog!global-product-id (
+             product-name
+          )
+        `)
+        .eq('is-active', true);
 
-    setLowStockItems(items);
-    setSelectedItems(items.map(i => i.inventory_id));
-    setLoading(false);
+      // If we have a user, try to filter by their tenant (via role)
+      // mirrors the logic we typically use, but keeps it loose if RLS is disabled
+      if (user) {
+        const { data: roleData } = await supabase
+          .from('tenant-user-role')
+          .select('tenant-id')
+          .eq('user-id', user.id)
+          .single();
+
+        if (roleData) {
+          query = query.eq('tenant-id', (roleData as any)['tenant-id']);
+        }
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error loading restock items:", error);
+        toast.error("Failed to load inventory data");
+        setLoading(false);
+        return;
+      }
+
+      // Filter low stock items client-side (or could do DB side)
+      // Logic: Stock <= Reorder Point (default 10 if null)
+      const lowStock = (data || []).filter((item: any) => {
+        const reorderPoint = item['reorder-point-value'] ?? 10;
+        const currentStock = item['current-stock-quantity'] ?? 0;
+        return currentStock <= reorderPoint;
+      });
+
+      const items: RestockItem[] = lowStock.map((item: any) => {
+        const reorderPoint = item['reorder-point-value'] ?? 10;
+        const suggestedQty = Math.max(50, reorderPoint * 3);
+        const unitCost = item['cost-price-amount'] ?? 0;
+
+        return {
+          inventory_id: item['inventory-id'],
+          product_name: item.global?.['product-name'] || 'Unknown Product',
+          current_stock: item['current-stock-quantity'] ?? 0,
+          reorder_point: reorderPoint,
+          suggested_quantity: suggestedQty,
+          unit_cost: unitCost,
+          total_cost: suggestedQty * unitCost
+        };
+      });
+
+      setLowStockItems(items);
+      setSelectedItems(items.map(i => i.inventory_id));
+    } catch (err) {
+      console.error("Crash loading restock:", err);
+      toast.error("Something went wrong loading data");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function generatePurchaseOrder() {

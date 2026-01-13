@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal } from 'lucide-react';
 import PromotionModal from './promotion-modal';
@@ -176,7 +176,7 @@ export default function InventoryDashboard() {
                   const isExpanded = expandedRow === product.id;
 
                   return (
-                    <>
+                    <React.Fragment key={product.id}>
                       {/* MAIN ROW */}
                       <tr
                         key={product.id}
@@ -275,7 +275,7 @@ export default function InventoryDashboard() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>

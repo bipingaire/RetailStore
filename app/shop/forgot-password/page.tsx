@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
                         <div className="p-2 bg-emerald-600 rounded-lg shadow group-hover:bg-emerald-700 transition-colors">
                             <ShoppingBag className="text-white" size={24} />
                         </div>
-                        <span className="text-xl font-bold text-gray-900">IndyMart</span>
+                        <span className="text-xl font-bold text-gray-900">InduMart</span>
                     </Link>
                     <h1 className="text-2xl font-bold text-gray-900 mb-1">Forgot Password?</h1>
                     <p className="text-sm text-gray-600">Enter your email to reset your password</p>
