@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+// Initialize lazily
+// const openai = ...
 
 export async function POST(request: NextRequest) {
     try {
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+        });
+
         const { products } = await request.json();
 
         if (!products || products.length === 0) {

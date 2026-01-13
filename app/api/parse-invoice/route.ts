@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openaiKey = process.env.OPENAI_API_KEY;
-const openai = openaiKey
-  ? new OpenAI({ apiKey: openaiKey })
-  : null;
+// Initialize lazily inside handler
+// const openai = ...
 
 export async function POST(req: Request) {
   try {
@@ -69,6 +67,11 @@ export async function POST(req: Request) {
         { type: "text", text: "Extract detailed vendor and product data." },
         { type: "image_url", image_url: { url: fileData } }
       ];
+
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const openai = openaiKey
+      ? new OpenAI({ apiKey: openaiKey })
+      : null;
 
     if (!openai) {
       // --- DEMO MODE: SMART RANDOM MOCK ---

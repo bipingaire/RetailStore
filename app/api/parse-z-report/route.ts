@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+// Initialize lazily
+// const openai = ...
 
 export async function POST(request: NextRequest) {
     try {
@@ -18,6 +17,10 @@ export async function POST(request: NextRequest) {
         const fileText = await fileResponse.text();
 
         // Use OpenAI to parse the Z-report
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+        });
+
         const completion = await openai.chat.completions.create({
             model: 'gpt-4',
             messages: [
