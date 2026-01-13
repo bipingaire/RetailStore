@@ -5,10 +5,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { matchProductToMasterCatalog, ProductData } from './product-matcher';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Initialize lazily inside functions
+// const supabase = ...
 
 export interface AutoSyncResult {
     action: 'linked' | 'added' | 'queued' | 'error';
@@ -27,6 +25,11 @@ export async function autoSyncProduct(
     productData: ProductData
 ): Promise<AutoSyncResult> {
     try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
         // Fetch master catalog products for matching
         const { data: masterProducts, error: fetchError } = await supabase
             .from('global-product-master-catalog')
@@ -148,6 +151,11 @@ export async function approvePendingProduct(
     existingProductId?: string
 ): Promise<{ success: boolean; productId?: string; message: string }> {
     try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
         // Get pending product details
         const { data: pending, error: fetchError } = await supabase
             .from('pending-product-additions')
@@ -229,6 +237,11 @@ export async function rejectPendingProduct(
     reason?: string
 ): Promise<{ success: boolean; message: string }> {
     try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
         await supabase
             .from('pending-product-additions')
             .update({

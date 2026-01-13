@@ -6,10 +6,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { calculateDistance } from '../geolocation/distance';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Initialize lazily inside functions
+// const supabase = ...
 
 export interface StoreWithStock {
     tenantId: string;
@@ -36,6 +34,11 @@ export async function checkProductAvailability(
     productId: string,
     tenantId: string
 ): Promise<number> {
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     const { data, error } = await supabase
         .from('retail-store-inventory-item')
         .select('current-stock-quantity')
@@ -54,6 +57,11 @@ export async function checkProductAvailability(
 export async function findStoresWithProduct(
     productId: string
 ): Promise<StoreWithStock[]> {
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     const { data: inventoryItems, error } = await supabase
         .from('retail-store-inventory-item')
         .select(`

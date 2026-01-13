@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Initialize lazily inside handler to avoid build-time errors with missing secrets
+// const supabase = createClient(...) <- MOVED INSIDE
 
 /**
  * POST /api/admin/products/enrich
  * Create local product enrichment for a store
  */
 export async function POST(request: NextRequest) {
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     try {
         const body = await request.json();
         const {
