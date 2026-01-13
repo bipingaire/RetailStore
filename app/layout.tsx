@@ -9,13 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "RetailOs",
   description: "SaaS for Grocery Store Digitization",
-  icons: {
-    icon: [
-      { url: '/indumart-logo.png' },
-    ],
-    shortcut: '/indumart-logo.png',
-    apple: '/indumart-logo.png',
-  },
+  icons: '/favicon.ico',
 };
 
 export default function RootLayout({
