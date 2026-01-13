@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize lazily inside functions
+// const resend = ...
 
 /**
  * Send purchase order email to vendor
@@ -14,6 +15,8 @@ export async function sendPurchaseOrder(params: {
     const { to, subject, message, from = 'orders@retailstore.app' } = params;
 
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
         const { data, error } = await resend.emails.send({
             from,
             to,
