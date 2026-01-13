@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, ArrowRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();

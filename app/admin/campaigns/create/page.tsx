@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Upload, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
+export const dynamic = 'force-dynamic';
+
 export default function CreateCampaignPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
