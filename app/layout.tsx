@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   title: "RetailOs",
   description: "SaaS for Grocery Store Digitization",
   icons: {
-    icon: '/indumart-logo.png',
+    icon: [
+      { url: '/indumart-logo.png' },
+    ],
+    shortcut: '/indumart-logo.png',
+    apple: '/indumart-logo.png',
   },
 };
 
