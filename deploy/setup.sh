@@ -25,20 +25,17 @@ else
     echo "✅ Docker already installed"
 fi
 
-# 3. Check for .env file
-# In GitHub workflow, user must create .env manually on server
-if [ ! -f .env ]; then
-    echo "❌ Error: .env file not found in deploy/ folder!"
-    echo "👉 You must create the .env file manually with your production secrets."
-    echo "   Use: cp .env.example .env && nano .env"
+# 3. Check for .env.production file
+if [ ! -f .env.production ]; then
+    echo "❌ Error: .env.production file not found!"
+    echo "👉 Please create .env.production with your secrets."
     exit 1
 fi
 
 # 4. Deploy
 echo "🚀 Deploying containers..."
-# Use docker-compose.prod.yml
-# We assume we are in the /deploy directory
-docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
+# Use docker-compose.prod.yml with .env.production
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans
 
 echo "✅ Deployment complete!"
 echo "🌍 Your app should be live at https://retailOS.cloud"

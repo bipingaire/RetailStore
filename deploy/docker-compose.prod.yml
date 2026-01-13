@@ -6,6 +6,10 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     restart: always
     environment:
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
@@ -14,8 +18,9 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - NEXT_PUBLIC_APP_URL=https://retailOS.cloud
       - HOSTNAME=0.0.0.0
+      - PORT=3010
     expose:
-      - "3000"
+      - "3010"
     networks:
       - web_net
 
@@ -34,6 +39,7 @@ services:
 
 networks:
   web_net:
+
 
 volumes:
   caddy_data:
