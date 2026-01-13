@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    # Use the Dockerfile in the root of the project
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NEXT_PUBLIC_APP_URL=https://retailOS.cloud
+      - HOSTNAME=0.0.0.0
+    expose:
+      - "3000"
+    networks:
+      - web_net
+
+  caddy:
+    image: caddy:2.7-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web_net
+
+networks:
+  web_net:
+
+volumes:
+  caddy_data:
+  caddy_config:
