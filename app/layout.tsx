@@ -7,7 +7,7 @@ import { ToastProvider } from "@/components/toast-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Retail Revive",
+  title: "RetailOs",
   description: "SaaS for Grocery Store Digitization",
 };
 
