@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Upload, Send } from 'lucide-react';
@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 export const dynamic = 'force-dynamic';
 
-export default function CreateCampaignPage() {
+function CreateCampaignPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClientComponentClient();
@@ -361,5 +361,13 @@ export default function CreateCampaignPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function CreateCampaignPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-gray-500">Loading...</div></div>}>
+            <CreateCampaignPageContent />
+        </Suspense>
     );
 }

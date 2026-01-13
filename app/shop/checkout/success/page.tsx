@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CheckCircle, Download, ArrowRight, Loader2 } from 'lucide-react';
@@ -9,7 +9,7 @@ import autoTable from 'jspdf-autotable';
 
 export const dynamic = 'force-dynamic';
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessPageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const orderId = searchParams?.get('orderId');
@@ -178,5 +178,13 @@ export default function CheckoutSuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutSuccessPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-gray-500">Loading...</div></div>}>
+            <CheckoutSuccessPageContent />
+        </Suspense>
     );
 }
