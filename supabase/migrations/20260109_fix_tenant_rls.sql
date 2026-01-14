@@ -7,6 +7,8 @@ ALTER TABLE "retail-store-tenant" ENABLE ROW LEVEL SECURITY;
 -- Drop existing restrictive policies if any
 DROP POLICY IF EXISTS "tenant_read_own" ON "retail-store-tenant";
 DROP POLICY IF EXISTS "tenant_read_all" ON "retail-store-tenant";
+DROP POLICY IF EXISTS "superadmin_read_all_tenants" ON "retail-store-tenant";
+DROP POLICY IF EXISTS "user_read_own_tenant" ON "retail-store-tenant";
 
 -- Allow superadmins to read ALL tenants
 CREATE POLICY "superadmin_read_all_tenants"

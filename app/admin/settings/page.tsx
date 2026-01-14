@@ -42,6 +42,7 @@ export default function SettingsPage() {
   const [domainQuery, setDomainQuery] = useState('');
   const [isSearchingDomain, setIsSearchingDomain] = useState(false);
   const [domainResult, setDomainResult] = useState<{ domain: string, available: boolean, price: number } | null>(null);
+  const [isEditingSubdomain, setIsEditingSubdomain] = useState(false); // [NEW] Track edit mode
 
   // Billing State
   const [currentPlan, setCurrentPlan] = useState('Growth');
@@ -72,7 +73,6 @@ export default function SettingsPage() {
           phone: t['phone-number'] || '',
           email: t['email-address'] || '',
           tax_id: 'US-XX-XXXX',
-          default_safety_stock: 10,
           default_safety_stock: 10,
           subdomain: t['subdomain'] || '',
           custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
@@ -282,135 +282,127 @@ export default function SettingsPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Subdomain</label>
                       <div className="flex gap-2">
-                        <div className="flex-1 flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <div className={`flex-1 flex items-center border rounded-lg overflow-hidden ${isEditingSubdomain ? 'border-gray-300 ring-2 ring-blue-500/10' : 'border-gray-200 bg-gray-50'}`}>
                           <input
                             type="text"
+                            disabled={!isEditingSubdomain}
                             value={profile.subdomain}
                             onChange={(e) => setProfile({ ...profile, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                            className="flex-1 px-3 py-2 text-sm outline-none"
+                            className={`flex-1 px-3 py-2 text-sm outline-none ${!isEditingSubdomain ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                             placeholder="my-store"
                           />
-                          <div className="bg-gray-50 border-l border-gray-300 px-3 py-2 text-sm text-gray-500">
+                          <div className={`px-3 py-2 text-sm ${isEditingSubdomain ? 'bg-gray-50 text-gray-500 border-l border-gray-300' : 'text-gray-400 border-l border-gray-200'}`}>
                             .{process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}
                           </div>
                         </div>
-                        <button
-                          onClick={async () => {
-                            if (!profile.subdomain) return;
-                            setIsSearchingDomain(true);
-                            try {
-                              // Import dynamically to avoid top-level SSR issues if needed, or use existing generic check
-                              // Using the function from lib/subdomain would be best if imported, 
-                              // but for now we'll implement a direct check or assume the save will handle validation
-                              const { data } = await supabase
-                                .from('subdomain-tenant-mapping')
-                                .select('tenant-id')
-                                .eq('subdomain', profile.subdomain)
-                                .neq('tenant-id', tenantId) // Don't count self
-                                .single();
 
-                              setDomainResult({
-                                domain: `${profile.subdomain}.${process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}`,
-                                available: !data,
-                                price: 0
-                              });
-                            } catch (e) {
-                              console.error(e);
-                            }
-                            setIsSearchingDomain(false);
-                          }}
-                          disabled={isSearchingDomain || !profile.subdomain}
-                          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50"
-                        >
-                          {isSearchingDomain ? 'Checking...' : 'Check'}
-                        </button>
+                        {!isEditingSubdomain ? (
+                          <button
+                            onClick={() => setIsEditingSubdomain(true)}
+                            className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all flex items-center gap-2"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            Edit
+                          </button>
+                        ) : (
+                          <button
+                            onClick={async () => {
+                              if (!profile.subdomain) return;
+                              setIsSearchingDomain(true);
+                              try {
+                                const { data } = await supabase
+                                  .from('subdomain-tenant-mapping')
+                                  .select('tenant-id')
+                                  .eq('subdomain', profile.subdomain)
+                                  .neq('tenant-id', tenantId)
+                                  .maybeSingle();
+
+                                setDomainResult({
+                                  domain: `${profile.subdomain}.${process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}`,
+                                  available: !data,
+                                  price: 0
+                                });
+                              } catch (e) { console.error(e); }
+                              setIsSearchingDomain(false);
+                            }}
+                            disabled={isSearchingDomain || !profile.subdomain}
+                            className="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 disabled:opacity-50"
+                          >
+                            {isSearchingDomain ? 'Checking...' : 'Verify'}
+                          </button>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Your store will be accessible at <span className="font-mono font-medium">https://{profile.subdomain}.{process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}</span>
+
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+                        <span>Your store is live at:</span>
+                        <a href={`https://${profile.subdomain}.${process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}`} target="_blank" rel="noopener noreferrer" className="font-mono font-medium text-blue-600 hover:underline flex items-center gap-1">
+                          https://{profile.subdomain}.{process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}
+                          <ExternalLink size={10} />
+                        </a>
                       </p>
                     </div>
 
-                    {domainResult && (
-                      <div className={`p-4 rounded-lg border flex items-center gap-3 ${domainResult.available ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                    {isEditingSubdomain && domainResult && (
+                      <div className={`p-3 rounded-lg border flex items-center gap-3 ${domainResult.available ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
                         {domainResult.available ? (
                           <>
                             <Check size={18} />
-                            <span className="text-sm font-medium">Subdomain is available!</span>
+                            <span className="text-sm font-medium">Available! Click Save to apply.</span>
                           </>
                         ) : (
                           <>
                             <X size={18} />
-                            <span className="text-sm font-medium">Subdomain is taken. Please choose another.</span>
+                            <span className="text-sm font-medium">Taken. Try another.</span>
                           </>
                         )}
                       </div>
                     )}
 
-                    <div className="pt-4">
-                      <button
-                        onClick={async () => {
-                          if (!tenantId) return;
-                          setLoading(true);
-                          try {
-                            // 1. Check availability again strictly
-                            const { data: existing } = await supabase
-                              .from('subdomain-tenant-mapping')
-                              .select('tenant-id')
-                              .eq('subdomain', profile.subdomain)
-                              .neq('tenant-id', tenantId) // Ignore self
-                              .maybeSingle();
+                    {isEditingSubdomain && (
+                      <div className="pt-2 flex gap-3">
+                        <button
+                          onClick={async () => {
+                            if (!tenantId) return;
+                            setLoading(true);
+                            try {
+                              // Verify availability strict
+                              const { data: existing } = await supabase.from('subdomain-tenant-mapping').select('tenant-id').eq('subdomain', profile.subdomain).neq('tenant-id', tenantId).maybeSingle();
+                              if (existing) { toast.error("Too late! Someone just took that subdomain."); setLoading(false); return; }
 
-                            if (existing) {
-                              toast.error("Subdomain is already taken.");
-                              setLoading(false);
-                              return;
+                              await supabase.from('subdomain-tenant-mapping').upsert({ 'tenant-id': tenantId, subdomain: profile.subdomain }, { onConflict: 'tenant-id' });
+                              await supabase.from('retail-store-tenant').update({ subdomain: profile.subdomain }).eq('tenant-id', tenantId);
+
+                              toast.success("Subdomain updated!");
+                              setIsEditingSubdomain(false); // Lock it
+                              setDomainResult(null); // Clear result
+
+                              // Optional: Redirect if needed, but staying here is smoother
+                              // window.location.reload(); 
+                            } catch (e: any) {
+                              toast.error("Error: " + e.message);
                             }
+                            setLoading(false);
+                          }}
+                          disabled={loading || (domainResult ? !domainResult.available : true)} // Must verify first
+                          className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2"
+                        >
+                          <Save size={16} />
+                          {loading ? 'Saving...' : 'Save Subdomain'}
+                        </button>
 
-                            // 2. Update subdomain-tenant-mapping (Upsert to handle change)
-                            // First delete old mapping to ensure cleanliness or just update?
-                            // Better to insert new and delete old, or update if unique constraint allows.
-                            // The table has unique constraint on subdomain.
-
-                            // Strategy: Update the existing mapping for this tenant
-                            const { error: mapError } = await supabase
-                              .from('subdomain-tenant-mapping')
-                              .update({ subdomain: profile.subdomain })
-                              .eq('tenant-id', tenantId);
-
-                            if (mapError) throw mapError;
-
-                            // 3. Update retail-store-tenant for record keeping (if column exists there)
-                            // The column exists based on previous file views.
-                            await supabase
-                              .from('retail-store-tenant')
-                              .update({ subdomain: profile.subdomain })
-                              .eq('tenant-id', tenantId);
-
-                            // 4. Update store-location-mapping if it exists
-                            await supabase
-                              .from('store-location-mapping')
-                              .update({ subdomain: profile.subdomain })
-                              .eq('tenant-id', tenantId);
-
-                            toast.success("Domain updated successfully! Redirecting...");
-
-                            // Optional: Redirect to new domain after short delay
-                            setTimeout(() => {
-                              const newUrl = `${window.location.protocol}//${profile.subdomain}.${process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}/admin/settings`;
-                              window.location.href = newUrl;
-                            }, 2000);
-
-                          } catch (e: any) {
-                            toast.error("Error updating domain: " + e.message);
-                          }
-                          setLoading(false);
-                        }}
-                        disabled={loading || (domainResult ? !domainResult.available : false)}
-                        className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50"
-                      >
-                        {loading ? 'Saving...' : 'Update Subdomain'}
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => {
+                            setIsEditingSubdomain(false);
+                            setDomainResult(null);
+                            // Reset to original? Logic for "Cancel" would typically reset from original state, 
+                            // but simplistic toggle is okay for now or we reload from DB if strictly needed.
+                          }}
+                          className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
