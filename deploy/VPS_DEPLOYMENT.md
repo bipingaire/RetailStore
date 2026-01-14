@@ -21,7 +21,7 @@ Go to Hostinger DNS Zone Editor for `retailOS.cloud`:
 
 | Type | Name | Content/Value | TTL |
 |------|------|---------------|-----|
-| **A** | @ | `YOUR_VPS_IP` | 300 |
+| **A** | @ | `82.25.86.144` | 300 |
 | **CNAME** | www | `retailOS.cloud` | 300 |
 | **CNAME** | * | `retailOS.cloud` | 300 |
 
@@ -31,7 +31,7 @@ Go to GoDaddy DNS Management for `indumart.us`:
 
 | Type | Name | Content/Value | TTL |
 |------|------|---------------|-----|
-| **A** | @ | `YOUR_VPS_IP` | 600 |
+| **A** | @ | `82.25.86.144` | 600 |
 | **CNAME** | www | `indumart.us` | 600 |
 | **CNAME** | * | `indumart.us` | 600 |
 
