@@ -59,6 +59,9 @@ export default function SettingsPage() {
     async function loadSettings() {
       setLoading(true);
 
+      // 0. Get User for Owner ID
+      const { data: { user } } = await supabase.auth.getUser();
+
       // 1. Resolve Tenant
       let currentTenantId = null;
       const { data: existingTenants, error: fetchError } = await supabase.from('retail-store-tenant').select('*').limit(1);
@@ -85,7 +88,8 @@ export default function SettingsPage() {
         console.log("No tenant found. Creating default...");
         const { data: newTenant, error: createError } = await supabase.from('retail-store-tenant').insert({
           'store-name': 'New Retail Store', 'store-address': '123 Market St', 'store-city': 'Retail City', 'store-state': 'NY',
-          'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com'
+          'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com',
+          'owner_id': user?.id // Explicitly link owner
         }).select().single();
 
         if (createError) {
