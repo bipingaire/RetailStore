@@ -66,22 +66,41 @@ export default function StoresManagement() {
         setLoading(true);
 
         try {
-            if (editingStore['tenant-id']) {
+            let tenantId = editingStore['tenant-id'];
+
+            if (tenantId) {
                 // Update existing store
                 const { error } = await supabase
                     .from('retail-store-tenant')
                     .update(editingStore)
-                    .eq('tenant-id', editingStore['tenant-id']);
+                    .eq('tenant-id', tenantId);
 
                 if (error) throw error;
                 toast.success('Store updated successfully');
             } else {
                 // Create new store
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('retail-store-tenant')
-                    .insert(editingStore);
+                    .insert(editingStore)
+                    .select()
+                    .single();
 
                 if (error) throw error;
+                tenantId = data['tenant-id'];
+
+                // Create subdomain mapping
+                if (editingStore.subdomain) {
+                    const { error: subError } = await supabase
+                        .from('subdomain-tenant-mapping')
+                        .insert({
+                            'subdomain': editingStore.subdomain,
+                            'tenant-id': tenantId,
+                            'is-active': true
+                        });
+
+                    if (subError) console.error('Subdomain mapping error:', subError);
+                }
+
                 toast.success('Store created successfully');
             }
 
@@ -93,6 +112,65 @@ export default function StoresManagement() {
         }
 
         setLoading(false);
+    }
+
+    async function handleGeocodeStore(store: StoreData) {
+        if (!store['store-address'] || !store['store-city'] || !store['store-state']) {
+            toast.error('Store must have address, city, and state to geocode');
+            return;
+        }
+
+        if (!store.subdomain) {
+            toast.error('Store must have a subdomain to create location mapping');
+            return;
+        }
+
+        toast.info('Geocoding address...');
+
+        try {
+            // Call geocoding API
+            const response = await fetch('/api/geocode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    street: store['store-address'],
+                    city: store['store-city'],
+                    state: store['store-state'],
+                    postalCode: store['store-zip-code'],
+                    country: 'USA'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Geocoding failed');
+            }
+
+            const { result } = await response.json();
+
+            // Save to store-location-mapping
+            const { error } = await supabase
+                .from('store-location-mapping')
+                .upsert({
+                    'tenant-id': store['tenant-id'],
+                    'subdomain': store.subdomain,
+                    'latitude': result.latitude,
+                    'longitude': result.longitude,
+                    'address-text': store['store-address'],
+                    'city': store['store-city'],
+                    'state-province': store['store-state'],
+                    'postal-code': store['store-zip-code'],
+                    'country': 'USA',
+                    'is-active': true
+                }, {
+                    onConflict: 'subdomain'
+                });
+
+            if (error) throw error;
+
+            toast.success(`Location saved! (${result.latitude.toFixed(4)}, ${result.longitude.toFixed(4)})`);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to geocode address');
+        }
     }
 
     async function handleToggleActive(storeId: string, isActive: boolean) {
@@ -304,8 +382,8 @@ export default function StoresManagement() {
                                                 </a>
                                             )}
                                             <span className={`text-xs px-2 py-1 rounded-full ${store['is-active']
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-gray-100 text-gray-600'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-600'
                                                 }`}>
                                                 {store['is-active'] ? 'Active' : 'Inactive'}
                                             </span>
@@ -342,6 +420,13 @@ export default function StoresManagement() {
 
                                     <div className="flex items-center gap-2">
                                         <button
+                                            onClick={() => handleGeocodeStore(store)}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                                            title="Geocode store location"
+                                        >
+                                            <MapPin className="w-4 h-4" />
+                                        </button>
+                                        <button
                                             onClick={() => setEditingStore(store)}
                                             className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                                             title="Edit store"
@@ -351,8 +436,8 @@ export default function StoresManagement() {
                                         <button
                                             onClick={() => handleToggleActive(store['tenant-id'], store['is-active'])}
                                             className={`p-2 rounded-lg ${store['is-active']
-                                                    ? 'text-red-600 hover:bg-red-50'
-                                                    : 'text-green-600 hover:bg-green-50'
+                                                ? 'text-red-600 hover:bg-red-50'
+                                                : 'text-green-600 hover:bg-green-50'
                                                 }`}
                                             title={store['is-active'] ? 'Deactivate' : 'Activate'}
                                         >
