@@ -384,17 +384,23 @@ export default function SettingsPage() {
 
                               if (existing) { toast.error("Too late! Someone just took that subdomain."); setLoading(false); return; }
 
-                              await supabase.from('subdomain-tenant-mapping').upsert({ 'tenant-id': tenantId, subdomain: profile.subdomain }, { onConflict: 'tenant-id' });
-                              await supabase.from('retail-store-tenant').update({ subdomain: profile.subdomain }).eq('tenant-id', tenantId);
+                              const { error: upsertError } = await supabase.from('subdomain-tenant-mapping').upsert({ 'tenant-id': tenantId, subdomain: profile.subdomain }, { onConflict: 'tenant-id' });
+                              if (upsertError) throw upsertError;
 
-                              toast.success("Subdomain updated!");
+                              const { error: updateError } = await supabase.from('retail-store-tenant').update({ subdomain: profile.subdomain }).eq('tenant-id', tenantId);
+                              if (updateError) throw updateError;
+
+                              toast.success("Subdomain updated successfully!");
                               setIsEditingSubdomain(false); // Lock it
                               setDomainResult(null); // Clear result
 
-                              // Optional: Redirect if needed, but staying here is smoother
-                              // window.location.reload(); 
                             } catch (e: any) {
-                              toast.error("Error: " + e.message);
+                              console.error("Save Error:", e);
+                              if (e.code === '23505' || e.message?.includes('unique')) {
+                                toast.error("This subdomain is already taken by another store.");
+                              } else {
+                                toast.error("Failed to save: " + e.message);
+                              }
                             }
                             setLoading(false);
                           }}
