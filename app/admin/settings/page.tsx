@@ -61,9 +61,12 @@ export default function SettingsPage() {
 
       // 1. Resolve Tenant
       let currentTenantId = null;
-      const { data: existingTenants } = await supabase.from('retail-store-tenant').select('*').limit(1);
+      const { data: existingTenants, error: fetchError } = await supabase.from('retail-store-tenant').select('*').limit(1);
 
-      if (existingTenants && existingTenants.length > 0) {
+      if (fetchError) {
+        console.error("Error fetching tenant:", fetchError);
+        toast.error("Database Error: " + fetchError.message);
+      } else if (existingTenants && existingTenants.length > 0) {
         const t = existingTenants[0];
         currentTenantId = t['tenant-id'];
         setProfile({
@@ -79,11 +82,16 @@ export default function SettingsPage() {
         });
       } else {
         // Create Default
-        const { data: newTenant } = await supabase.from('retail-store-tenant').insert({
+        console.log("No tenant found. Creating default...");
+        const { data: newTenant, error: createError } = await supabase.from('retail-store-tenant').insert({
           'store-name': 'New Retail Store', 'store-address': '123 Market St', 'store-city': 'Retail City', 'store-state': 'NY',
           'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com'
         }).select().single();
-        if (newTenant) {
+
+        if (createError) {
+          console.error("Error creating tenant:", createError);
+          toast.error("Setup Error: " + createError.message);
+        } else if (newTenant) {
           currentTenantId = newTenant['tenant-id'];
           setProfile({
             name: newTenant['store-name'], address: newTenant['store-address'],
