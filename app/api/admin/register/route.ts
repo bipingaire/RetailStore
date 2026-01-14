@@ -99,8 +99,7 @@ export async function POST(req: Request) {
             .insert({
                 'tenant-id': tenantId,
                 'user-id': userId,
-                'role-type': 'owner',
-                'is-active': true
+                'role-type': 'owner'
             });
 
         if (roleError) {
