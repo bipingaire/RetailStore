@@ -38,5 +38,5 @@ echo "🚀 Deploying containers..."
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans
 
 echo "✅ Deployment complete!"
-echo "🌍 Your app should be live at https://retailOS.cloud"
+echo "🌍 Your app should be live at https://retail.cloud and https://indumart.us"
 echo "🔍 Check logs with: docker compose -f docker-compose.prod.yml logs -f"

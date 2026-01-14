@@ -60,19 +60,7 @@ export default function SettingsPage() {
 
       // 1. Resolve Tenant
       let currentTenantId = null;
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      // Get tenant from mapping or user metadata
-      // Ideally we should use the same logic as our hook, but for now fetch directly
-      const { data: existingTenants } = await supabase
-        .from('retail-store-tenant')
-        .select('*')
-        .limit(1); // TODO: Filter by user access
+      const { data: existingTenants } = await supabase.from('retail-store-tenant').select('*').limit(1);
 
       if (existingTenants && existingTenants.length > 0) {
         const t = existingTenants[0];
@@ -86,19 +74,32 @@ export default function SettingsPage() {
           tax_id: 'US-XX-XXXX',
           default_safety_stock: 10,
           subdomain: t['subdomain'] || '',
-          custom_domain: '',
-          logo_url: '',
-          hero_banner_url: '',
-          primary_color: '#2563eb'
+          custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
         });
+      } else {
+        // Create Default
+        const { data: newTenant } = await supabase.from('retail-store-tenant').insert({
+          'store-name': 'New Retail Store', 'store-address': '123 Market St', 'store-city': 'Retail City', 'store-state': 'NY',
+          'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com'
+        }).select().single();
+        if (newTenant) {
+          currentTenantId = newTenant['tenant-id'];
+          setProfile({
+            name: newTenant['store-name'], address: newTenant['store-address'],
+            city_state_zip: `${newTenant['store-city']}, ${newTenant['store-state']} ${newTenant['store-zip-code']}`,
+            phone: newTenant['phone-number'], email: newTenant['email-address'], tax_id: '', default_safety_stock: 10,
+            subdomain: 'new-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
+          });
+        }
       }
       setTenantId(currentTenantId);
 
       // 2. Load Vendors
-      if (currentTenantId) {
-        const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
-        if (vendorData) setVendors(vendorData as any);
+      const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
+      if (vendorData) setVendors(vendorData as any);
 
+      // 3. Load Social Accounts
+      if (currentTenantId) {
         const { data: socialData } = await supabase.from('social-media-accounts').select('*').eq('tenant-id', currentTenantId);
         if (socialData) setSocialAccounts(socialData);
       }
@@ -111,13 +112,9 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     if (!tenantId) return;
     setLoading(true);
-
+    const parts = profile.city_state_zip.split(',');
     const { error } = await supabase.from('retail-store-tenant').update({
-      'store-name': profile.name,
-      'store-address': profile.address,
-      'phone-number': profile.phone,
-      'email-address': profile.email,
-      // 'subdomain': profile.subdomain // CAUTION: Changing subdomain requires validation logic separate from profile save
+      'store-name': profile.name, 'store-address': profile.address, 'phone-number': profile.phone, 'email-address': profile.email
     }).eq('tenant-id', tenantId);
 
     if (error) toast.error("Error saving: " + error.message);
@@ -278,66 +275,156 @@ export default function SettingsPage() {
             {/* WEBSITE TAB */}
             {activeTab === 'website' && (
               <div className="space-y-6">
-
-                {/* Subdomain Settings */}
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Subdomain</h3>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Your store is accessible at this subdomain. To change it, please contact support or check availability below.
-                  </p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Domain</h3>
+                  <div className="space-y-4 max-w-xl">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Subdomain</label>
+                      <div className="flex gap-2">
+                        <div className="flex-1 flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                          <input
+                            type="text"
+                            value={profile.subdomain}
+                            onChange={(e) => setProfile({ ...profile, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                            className="flex-1 px-3 py-2 text-sm outline-none"
+                            placeholder="my-store"
+                          />
+                          <div className="bg-gray-50 border-l border-gray-300 px-3 py-2 text-sm text-gray-500">
+                            .{process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!profile.subdomain) return;
+                            setIsSearchingDomain(true);
+                            try {
+                              // Import dynamically to avoid top-level SSR issues if needed, or use existing generic check
+                              // Using the function from lib/subdomain would be best if imported, 
+                              // but for now we'll implement a direct check or assume the save will handle validation
+                              const { data } = await supabase
+                                .from('subdomain-tenant-mapping')
+                                .select('tenant-id')
+                                .eq('subdomain', profile.subdomain)
+                                .neq('tenant-id', tenantId) // Don't count self
+                                .single();
 
-                  <div className="flex items-center gap-2 mb-6">
-                    <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 font-mono flex items-center justify-between">
-                      <span>{profile.subdomain}.indumart.us</span>
+                              setDomainResult({
+                                domain: `${profile.subdomain}.${process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}`,
+                                available: !data,
+                                price: 0
+                              });
+                            } catch (e) {
+                              console.error(e);
+                            }
+                            setIsSearchingDomain(false);
+                          }}
+                          disabled={isSearchingDomain || !profile.subdomain}
+                          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50"
+                        >
+                          {isSearchingDomain ? 'Checking...' : 'Check'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Your store will be accessible at <span className="font-mono font-medium">https://{profile.subdomain}.{process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}</span>
+                      </p>
+                    </div>
+
+                    {domainResult && (
+                      <div className={`p-4 rounded-lg border flex items-center gap-3 ${domainResult.available ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                        {domainResult.available ? (
+                          <>
+                            <Check size={18} />
+                            <span className="text-sm font-medium">Subdomain is available!</span>
+                          </>
+                        ) : (
+                          <>
+                            <X size={18} />
+                            <span className="text-sm font-medium">Subdomain is taken. Please choose another.</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="pt-4">
                       <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`https://${profile.subdomain}.indumart.us`);
-                          toast.success('URL copied to clipboard');
+                        onClick={async () => {
+                          if (!tenantId) return;
+                          setLoading(true);
+                          try {
+                            // 1. Check availability again strictly
+                            const { data: existing } = await supabase
+                              .from('subdomain-tenant-mapping')
+                              .select('tenant-id')
+                              .eq('subdomain', profile.subdomain)
+                              .neq('tenant-id', tenantId) // Ignore self
+                              .maybeSingle();
+
+                            if (existing) {
+                              toast.error("Subdomain is already taken.");
+                              setLoading(false);
+                              return;
+                            }
+
+                            // 2. Update subdomain-tenant-mapping (Upsert to handle change)
+                            // First delete old mapping to ensure cleanliness or just update?
+                            // Better to insert new and delete old, or update if unique constraint allows.
+                            // The table has unique constraint on subdomain.
+
+                            // Strategy: Update the existing mapping for this tenant
+                            const { error: mapError } = await supabase
+                              .from('subdomain-tenant-mapping')
+                              .update({ subdomain: profile.subdomain })
+                              .eq('tenant-id', tenantId);
+
+                            if (mapError) throw mapError;
+
+                            // 3. Update retail-store-tenant for record keeping (if column exists there)
+                            // The column exists based on previous file views.
+                            await supabase
+                              .from('retail-store-tenant')
+                              .update({ subdomain: profile.subdomain })
+                              .eq('tenant-id', tenantId);
+
+                            // 4. Update store-location-mapping if it exists
+                            await supabase
+                              .from('store-location-mapping')
+                              .update({ subdomain: profile.subdomain })
+                              .eq('tenant-id', tenantId);
+
+                            toast.success("Domain updated successfully! Redirecting...");
+
+                            // Optional: Redirect to new domain after short delay
+                            setTimeout(() => {
+                              const newUrl = `${window.location.protocol}//${profile.subdomain}.${process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}/admin/settings`;
+                              window.location.href = newUrl;
+                            }, 2000);
+
+                          } catch (e: any) {
+                            toast.error("Error updating domain: " + e.message);
+                          }
+                          setLoading(false);
                         }}
-                        className="text-blue-600 hover:text-blue-700 text-xs font-semibold"
+                        disabled={loading || (domainResult ? !domainResult.available : false)}
+                        className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50"
                       >
-                        Copy URL
+                        {loading ? 'Saving...' : 'Update Subdomain'}
                       </button>
                     </div>
-                    <a
-                      href={`https://${profile.subdomain}.indumart.us`}
-                      target="_blank"
-                      className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800"
-                    >
-                      Visit Store
-                    </a>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Domain</h3>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Find your perfect domain..."
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500"
-                      value={domainQuery}
-                      onChange={(e) => setDomainQuery(e.target.value)}
-                    />
-                    <button
-                      onClick={checkDomainAvailability}
-                      disabled={isSearchingDomain || !domainQuery}
-                      className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50"
-                    >
-                      {isSearchingDomain ? 'Checking...' : 'Search'}
-                    </button>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Custom Domain</h3>
+                    <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-bold uppercase">Pro Feature</span>
                   </div>
-                  {domainResult && (
-                    <div className="mt-4 p-4 rounded-lg bg-green-50 border border-green-100 flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Check size={16} className="text-green-600" />
-                        <span className="text-sm font-bold text-green-900">{domainResult.domain} is available!</span>
-                      </div>
-                      <button className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-md font-bold hover:bg-green-700">
-                        Buy for ${domainResult.price}
-                      </button>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-500 mb-4">
+                    Connect your own custom domain (e.g. www.mystore.com) to your store.
+                    Upgrade to Pro plan to unlock this feature.
+                  </p>
+                  <button disabled className="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg text-sm font-semibold cursor-not-allowed">
+                    Connect Custom Domain
+                  </button>
                 </div>
               </div>
             )}
