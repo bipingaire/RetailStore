@@ -106,7 +106,9 @@ export async function POST(req: Request) {
         if (roleError) {
             console.error('Role Assignment Error:', roleError);
             // Even if role fails, user exists. But they can't login.
-            return NextResponse.json({ error: 'Store created but admin role failed. Contact support.' }, { status: 500 });
+            return NextResponse.json({
+                error: 'Store created but admin role failed: ' + (roleError.message || JSON.stringify(roleError))
+            }, { status: 500 });
         }
 
         // 7. Create Store Location Stub (For Map visibility)
