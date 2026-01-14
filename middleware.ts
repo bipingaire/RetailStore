@@ -54,7 +54,7 @@ export async function middleware(req: NextRequest) {
 
     // Handle admin routes (tenant admins access their panels here)
     if (pathname.startsWith('/admin')) {
-      if (!session && pathname !== '/admin/login') {
+      if (!session && pathname !== '/admin/login' && pathname !== '/admin/register') {
         const redirectUrl = new URL('/admin/login', req.url);
         redirectUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(redirectUrl);
@@ -190,7 +190,7 @@ export async function middleware(req: NextRequest) {
 
   // Standard protected route check
   if (isProtected && !session) {
-    if (pathname === '/admin/login') {
+    if (pathname === '/admin/login' || pathname === '/admin/register') {
       return res;
     }
     const redirectUrl = new URL('/admin/login', req.url);
