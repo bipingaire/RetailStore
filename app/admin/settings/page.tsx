@@ -96,8 +96,10 @@ export default function SettingsPage() {
       setTenantId(currentTenantId);
 
       // 2. Load Vendors
-      const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
-      if (vendorData) setVendors(vendorData as any);
+      if (currentTenantId) {
+        const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
+        if (vendorData) setVendors(vendorData as any);
+      }
 
       // 3. Load Social Accounts
       if (currentTenantId) {
@@ -368,7 +370,10 @@ export default function SettingsPage() {
                       <div className="pt-2 flex gap-3">
                         <button
                           onClick={async () => {
-                            if (!tenantId) return;
+                            if (!tenantId) {
+                              toast.error("Error: Store not loaded. Please refresh the page.");
+                              return;
+                            }
                             setLoading(true);
                             try {
                               // Verify availability strict
