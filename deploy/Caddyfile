@@ -17,6 +17,11 @@ https://indumart.us {
     reverse_proxy app:3010
 }
 
+# Legacy Site Restoration
+https://supertruck.ai, https://www.supertruck.ai {
+    reverse_proxy http://host.docker.internal:8080
+}
+
 https://*.indumart.us {
     tls {
         on_demand
