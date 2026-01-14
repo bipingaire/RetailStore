@@ -82,13 +82,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const hostname = window.location.hostname;
       const subdomain = hostname.split('.')[0];
 
-      // Allow localhost root access for dev testing/superadmin, otherwise enforce subdomain
-      if (hostname === 'localhost' || hostname.includes('vercel.app')) {
-        // In dev/root, we might just check if they have ANY role, or specific dev logic
-        // For now, let's allow if they have a role.
-        checkUserRole(session.user.id, null);
+      // Allow localhost root access for dev testing/superadmin, OR Central Login on main domain
+      const isMainDomain = hostname === 'retailos.cloud' || hostname === 'www.retailos.cloud' || hostname === 'localhost' || hostname.includes('vercel.app');
+
+      if (isMainDomain) {
+        // Central Login: Lookup Tenant by User ID
+        // We find the first tenant this user owns or manages
+        const { data: userRole } = await supabase
+          .from('tenant-user-role')
+          .select('tenant-id')
+          .eq('user-id', session.user.id)
+          .limit(1)
+          .maybeSingle();
+
+        if (userRole) {
+          checkUserRole(session.user.id, userRole['tenant-id']);
+        } else {
+          // User has no tenant? Maybe brand new or superadmin.
+          // Just let checkUserRole handle null (it might show Unauthorized or Superadmin bypass)
+          checkUserRole(session.user.id, null);
+        }
+
       } else {
-        // 2. Resolve Tenant ID from Subdomain
+        // 2. Resolve Tenant ID from Subdomain (Strict for subdomains)
         const { data: tenantMap } = await supabase
           .from('subdomain-tenant-mapping')
           .select('tenant-id')
