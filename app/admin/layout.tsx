@@ -63,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (!session) {
         setIsAuthenticated(false);
         setIsLoading(false);
-        if (pathname !== '/admin/login') {
+        if (pathname !== '/admin/login' && pathname !== '/admin/register') {
           router.push('/admin/login');
         }
         return;
@@ -160,7 +160,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   // Login page bypass - render request content without admin shell
-  if (pathname === '/admin/login') {
+  if (pathname === '/admin/login' || pathname === '/admin/register') {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         {children}
