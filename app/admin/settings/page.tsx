@@ -73,6 +73,7 @@ export default function SettingsPage() {
           email: t['email-address'] || '',
           tax_id: 'US-XX-XXXX',
           default_safety_stock: 10,
+          default_safety_stock: 10,
           subdomain: t['subdomain'] || '',
           custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
         });
