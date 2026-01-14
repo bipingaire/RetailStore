@@ -93,7 +93,23 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Store created but domain mapping failed. Contact support.' }, { status: 500 });
         }
 
-        // 6. Create Store Location Stub (For Map visibility)
+        // 6. Assign "Owner" Role (CRITICAL for Login Page Access)
+        const { error: roleError } = await supabaseAdmin
+            .from('tenant-user-role')
+            .insert({
+                'tenant-id': tenantId,
+                'user-id': userId,
+                'role-type': 'owner',
+                'is-active': true
+            });
+
+        if (roleError) {
+            console.error('Role Assignment Error:', roleError);
+            // Even if role fails, user exists. But they can't login.
+            return NextResponse.json({ error: 'Store created but admin role failed. Contact support.' }, { status: 500 });
+        }
+
+        // 7. Create Store Location Stub (For Map visibility)
         // We'll just put it at 0,0 or a default until they set it
         const { error: locationError } = await supabaseAdmin
             .from('store-location-mapping')
