@@ -9,7 +9,7 @@
     }
 }
 
-https://retail.cloud {
+https://retailOS.cloud {
     reverse_proxy app:3010
 }
 
@@ -24,7 +24,7 @@ https://*.indumart.us {
     reverse_proxy app:3010
 }
 
-https://*.retail.cloud {
+https://*.retailOS.cloud {
     tls {
         on_demand
     }

@@ -15,15 +15,15 @@ This guide covers deploying the multi-domain RetailStore architecture on a Hosti
 
 You need to point both domains to your VPS IP Address. Find your VPS IP (e.g., `123.45.67.89`) in Hostinger panel.
 
-### 1. Hostinger DNS (for retail.cloud)
+### 1. Hostinger DNS (for retailOS.cloud)
 
-Go to Hostinger DNS Zone Editor for `retail.cloud`:
+Go to Hostinger DNS Zone Editor for `retailOS.cloud`:
 
 | Type | Name | Content/Value | TTL |
 |------|------|---------------|-----|
 | **A** | @ | `YOUR_VPS_IP` | 300 |
-| **CNAME** | www | `retail.cloud` | 300 |
-| **CNAME** | * | `retail.cloud` | 300 |
+| **CNAME** | www | `retailOS.cloud` | 300 |
+| **CNAME** | * | `retailOS.cloud` | 300 |
 
 ### 2. GoDaddy DNS (for indumart.us)
 
@@ -73,12 +73,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Domain Configuration
-NEXT_PUBLIC_RETAILOS_DOMAIN=retail.cloud
+NEXT_PUBLIC_RETAILOS_DOMAIN=retailOS.cloud
 NEXT_PUBLIC_INDUMART_DOMAIN=indumart.us
 NEXT_PUBLIC_GEOLOCATION_FALLBACK_STORE=highpoint
 
 # App URL (Primary)
-NEXT_PUBLIC_APP_URL=https://retail.cloud
+NEXT_PUBLIC_APP_URL=https://retailOS.cloud
 
 # OpenAI (Optional)
 OPENAI_API_KEY=sk-...
@@ -122,7 +122,7 @@ You should see `retailstore-app` and `retailstore-caddy` running.
 
 ### 2. Test Domains
 
-- **Admin/Business:** Visit `https://retail.cloud`
+- **Admin/Business:** Visit `https://retailOS.cloud`
   - Should show Business Landing Page.
   
 - **Geolocation Redirect:** Visit `https://indumart.us`
