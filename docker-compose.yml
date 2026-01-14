@@ -6,13 +6,24 @@ services:
       dockerfile: Dockerfile
     container_name: retailstore_web
     restart: always
-    ports:
-      - "3000:3000"
+    # Ports removed because Nginx handles ingress
+    # ports:
+    #   - "3000:3000" 
     environment:
-      # Pass through env vars from the host's .env.local via the env_file directive
-      # or explicitly map them if needed.
-      # For now, we assume .env.local has the correct remote credentials.
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - HOSTNAME=0.0.0.0
     env_file:
       - .env.local
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: retailstore_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web

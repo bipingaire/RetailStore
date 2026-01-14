@@ -60,7 +60,19 @@ export default function SettingsPage() {
 
       // 1. Resolve Tenant
       let currentTenantId = null;
-      const { data: existingTenants } = await supabase.from('retail-store-tenant').select('*').limit(1);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // Get tenant from mapping or user metadata
+      // Ideally we should use the same logic as our hook, but for now fetch directly
+      const { data: existingTenants } = await supabase
+        .from('retail-store-tenant')
+        .select('*')
+        .limit(1); // TODO: Filter by user access
 
       if (existingTenants && existingTenants.length > 0) {
         const t = existingTenants[0];
@@ -73,32 +85,20 @@ export default function SettingsPage() {
           email: t['email-address'] || '',
           tax_id: 'US-XX-XXXX',
           default_safety_stock: 10,
-          subdomain: 'my-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
+          subdomain: t['subdomain'] || '',
+          custom_domain: '',
+          logo_url: '',
+          hero_banner_url: '',
+          primary_color: '#2563eb'
         });
-      } else {
-        // Create Default
-        const { data: newTenant } = await supabase.from('retail-store-tenant').insert({
-          'store-name': 'New Retail Store', 'store-address': '123 Market St', 'store-city': 'Retail City', 'store-state': 'NY',
-          'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com'
-        }).select().single();
-        if (newTenant) {
-          currentTenantId = newTenant['tenant-id'];
-          setProfile({
-            name: newTenant['store-name'], address: newTenant['store-address'],
-            city_state_zip: `${newTenant['store-city']}, ${newTenant['store-state']} ${newTenant['store-zip-code']}`,
-            phone: newTenant['phone-number'], email: newTenant['email-address'], tax_id: '', default_safety_stock: 10,
-            subdomain: 'new-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
-          });
-        }
       }
       setTenantId(currentTenantId);
 
       // 2. Load Vendors
-      const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
-      if (vendorData) setVendors(vendorData as any);
-
-      // 3. Load Social Accounts
       if (currentTenantId) {
+        const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
+        if (vendorData) setVendors(vendorData as any);
+
         const { data: socialData } = await supabase.from('social-media-accounts').select('*').eq('tenant-id', currentTenantId);
         if (socialData) setSocialAccounts(socialData);
       }
@@ -111,9 +111,13 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     if (!tenantId) return;
     setLoading(true);
-    const parts = profile.city_state_zip.split(',');
+
     const { error } = await supabase.from('retail-store-tenant').update({
-      'store-name': profile.name, 'store-address': profile.address, 'phone-number': profile.phone, 'email-address': profile.email
+      'store-name': profile.name,
+      'store-address': profile.address,
+      'phone-number': profile.phone,
+      'email-address': profile.email,
+      // 'subdomain': profile.subdomain // CAUTION: Changing subdomain requires validation logic separate from profile save
     }).eq('tenant-id', tenantId);
 
     if (error) toast.error("Error saving: " + error.message);
@@ -274,6 +278,37 @@ export default function SettingsPage() {
             {/* WEBSITE TAB */}
             {activeTab === 'website' && (
               <div className="space-y-6">
+
+                {/* Subdomain Settings */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Subdomain</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Your store is accessible at this subdomain. To change it, please contact support or check availability below.
+                  </p>
+
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 font-mono flex items-center justify-between">
+                      <span>{profile.subdomain}.indumart.us</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://${profile.subdomain}.indumart.us`);
+                          toast.success('URL copied to clipboard');
+                        }}
+                        className="text-blue-600 hover:text-blue-700 text-xs font-semibold"
+                      >
+                        Copy URL
+                      </button>
+                    </div>
+                    <a
+                      href={`https://${profile.subdomain}.indumart.us`}
+                      target="_blank"
+                      className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800"
+                    >
+                      Visit Store
+                    </a>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Domain</h3>
                   <div className="flex gap-2">
