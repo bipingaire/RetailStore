@@ -6,14 +6,6 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-// This endpoint is called by Caddy to verify if a domain is allowed to have an SSL certificate.
-// Caddy sends a GET request with ?domain=example.com
-
-export const dynamic = 'force-dynamic';
-
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const domain = searchParams.get("domain");
@@ -25,6 +17,7 @@ export async function GET(req: NextRequest) {
     const ALLOWED_Root_DOMAINS = ["retailOS.cloud", "indumart.us"];
 
     // 1. Allow the main root domains themselves (e.g. retailOS.cloud, indumart.us)
+    // Check if domain is exactly one of the roots or www.root
     if (ALLOWED_Root_DOMAINS.includes(domain) || ALLOWED_Root_DOMAINS.includes(domain.replace('www.', ''))) {
         return new NextResponse("OK", { status: 200 });
     }
