@@ -225,7 +225,7 @@ export default function AdminLoginPage() {
                             </button>
 
                             <p className="text-center text-sm text-gray-500 mt-6">
-                                Don't have an account? <a href="#" className="text-blue-600 font-bold hover:underline">Sign Up</a>
+                                Don't have an account? <Link href="/admin/register" className="text-blue-600 font-bold hover:underline">Sign Up</Link>
                             </p>
                         </form>
                     </div>
