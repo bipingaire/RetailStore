@@ -1,20 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-// Initialize Supabase Admin Client (Service Role)
-// We need this to create users programmatically without sending confirmation emails immediately implies
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // MUST use service role for admin.createUser
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    }
-);
-
 export async function POST(req: Request) {
+    // Initialize Supabase Admin Client INSIDE the request
+    // This prevents "Supabase Key is required" error during build time
+    // when the environment variable might not be present in the Docker build context.
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        }
+    );
+
     try {
         const body = await req.json();
         const { email, password, fullName, storeName, subdomain } = body;
