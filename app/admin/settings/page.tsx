@@ -310,19 +310,25 @@ export default function SettingsPage() {
                               if (!profile.subdomain) return;
                               setIsSearchingDomain(true);
                               try {
-                                const { data } = await supabase
+                                let query = supabase
                                   .from('subdomain-tenant-mapping')
                                   .select('tenant-id')
-                                  .eq('subdomain', profile.subdomain)
-                                  .neq('tenant-id', tenantId)
-                                  .maybeSingle();
+                                  .eq('subdomain', profile.subdomain);
+
+                                if (tenantId) {
+                                  query = query.neq('tenant-id', tenantId);
+                                }
+
+                                const { data } = await query.maybeSingle();
 
                                 setDomainResult({
                                   domain: `${profile.subdomain}.${process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us'}`,
                                   available: !data,
                                   price: 0
                                 });
-                              } catch (e) { console.error(e); }
+                              } catch (e) {
+                                console.error(e);
+                              }
                               setIsSearchingDomain(false);
                             }}
                             disabled={isSearchingDomain || !profile.subdomain}
@@ -366,7 +372,11 @@ export default function SettingsPage() {
                             setLoading(true);
                             try {
                               // Verify availability strict
-                              const { data: existing } = await supabase.from('subdomain-tenant-mapping').select('tenant-id').eq('subdomain', profile.subdomain).neq('tenant-id', tenantId).maybeSingle();
+                              let query = supabase.from('subdomain-tenant-mapping').select('tenant-id').eq('subdomain', profile.subdomain);
+                              if (tenantId) query = query.neq('tenant-id', tenantId);
+
+                              const { data: existing } = await query.maybeSingle();
+
                               if (existing) { toast.error("Too late! Someone just took that subdomain."); setLoading(false); return; }
 
                               await supabase.from('subdomain-tenant-mapping').upsert({ 'tenant-id': tenantId, subdomain: profile.subdomain }, { onConflict: 'tenant-id' });
