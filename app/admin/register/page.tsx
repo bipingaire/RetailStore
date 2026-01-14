@@ -117,7 +117,7 @@ export default function AdminRegisterPage() {
                                 className="w-full pl-11 pr-32 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-mono text-sm"
                             />
                             <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400 text-sm select-none bg-gray-50 rounded-r-xl border-l border-gray-200 px-3">
-                                .retailos.cloud
+                                .indumart.us
                             </div>
                         </div>
                     </div>
