@@ -31,7 +31,7 @@ export default function SettingsPage() {
   // Profile State
   const [profile, setProfile] = useState<StoreProfile>({
     name: '', address: '', city_state_zip: '', phone: '', email: '', tax_id: '',
-    default_safety_stock: 10, subdomain: 'demo-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
+    default_safety_stock: 10, subdomain: '', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
   });
 
   // Vendor State
@@ -89,7 +89,7 @@ export default function SettingsPage() {
             name: newTenant['store-name'], address: newTenant['store-address'],
             city_state_zip: `${newTenant['store-city']}, ${newTenant['store-state']} ${newTenant['store-zip-code']}`,
             phone: newTenant['phone-number'], email: newTenant['email-address'], tax_id: '', default_safety_stock: 10,
-            subdomain: 'new-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
+            subdomain: '', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
           });
         }
       }
