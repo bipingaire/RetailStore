@@ -46,7 +46,6 @@ export default function SocialPage() {
       setLoading(true);
       // Load Campaigns
       const { data: cData } = await supabase
-      const { data: cData } = await supabase
         .from('marketing-campaign-master')
         .select(`
             id: campaign-id,
@@ -164,6 +163,13 @@ export default function SocialPage() {
   };
 
   // ... (rest of handles)
+
+  // Placeholder for product-specific posting
+  const handleProductPost = async (c: Campaign, product: any) => {
+    setStatus(`Posting distinct product "${product?.global_products?.name}" feature... (Coming Soon)`);
+    // Future: Call specific API endpoint
+    setTimeout(() => setStatus(''), 2000);
+  };
 
   const handleProductImage = async (campaign: Campaign, product: any) => {
     const prodName = product?.global_products?.name || 'Product';
