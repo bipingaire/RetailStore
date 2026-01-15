@@ -488,7 +488,7 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
 
 export default function SuperAdminPage() {
   const supabase = createClientComponentClient();
-  const [activeTab, setActiveTab] = useState<'products' | 'tenants' | 'pending' | 'website' | 'revenue' | 'catalog'>('products');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'tenants' | 'pending' | 'website' | 'revenue'>('catalog');
   const [products, setProducts] = useState<GlobalProduct[]>([]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
@@ -817,7 +817,6 @@ export default function SuperAdminPage() {
           <div className="flex items-center gap-4">
             <div className="flex bg-gray-800/50 p-1 rounded-xl">
               {[
-                { id: 'products', icon: Globe, label: 'Master Catalog' },
                 { id: 'catalog', icon: Database, label: 'Global Catalog' },
                 { id: 'pending', icon: MessageSquare, label: 'Approvals', count: pendingItems.length },
                 { id: 'tenants', icon: Store, label: 'Tenant Network' },
