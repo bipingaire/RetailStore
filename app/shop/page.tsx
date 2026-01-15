@@ -378,20 +378,8 @@ export default function ShopHome() {
   return (
     <div className="bg-gray-50 min-h-screen font-sans pb-32">
 
-      {/* 1. TOP HEADER */}
-      {/* DEBUG OVERLAY - Remove after fixing */}
-      {products.length === 0 && !loading && (
-        <div className="bg-black text-white p-4 font-mono text-xs overflow-auto max-h-40 border-b-4 border-red-500">
-          <h3 className="text-red-400 font-bold text-sm mb-2">⚠️ DEBUG MODE: NO PRODUCTS FOUND</h3>
-          <p><strong>Hostname:</strong> {typeof window !== 'undefined' ? window.location.hostname : 'N/A'}</p>
-          <p><strong>Resolved Tenant ID:</strong> {user?.user_metadata?.tenant_id || 'Not found in user meta'}</p>
-          <p><strong>Subdomain Logic:</strong> {typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : 'N/A'}</p>
-          {/* Note: The state variables for tenantId locally aren't easily exposed unless we store them in state. 
-               We will log them to console instead/add simple visual cue */}
-          <p>Check Console (F12) to see specific Tenant ID used in query.</p>
-        </div>
-      )}
 
+      {/* 1. TOP HEADER */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
 
