@@ -61,6 +61,9 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [dbCount, setDbCount] = useState<number | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [enrichingId, setEnrichingId] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     loadCatalog();
@@ -91,6 +94,112 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
       setProducts(data || []);
     }
     setLoading(false);
+  }
+
+  // AI Enrichment Handler
+  async function handleEnrich(product: any) {
+    setEnrichingId(product['product-id']);
+    try {
+      const response = await fetch('/api/ai/enrich-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: product['product-name'] || 'Unknown Product',
+          upc: product['upc-ean-code']
+        })
+      });
+
+      if (!response.ok) throw new Error('Enrichment failed');
+
+      const { data } = await response.json();
+
+      // Update in database
+      const { error } = await supabase
+        .from('global-product-master-catalog')
+        .update({
+          'description-text': data.description,
+          'category-name': data.category,
+          'image-url': data.image_url,
+          'enriched-by-superadmin': true
+        })
+        .eq('product-id', product['product-id']);
+
+      if (error) throw error;
+
+      // Refresh products list
+      await loadCatalog();
+      toast.success('Product enriched successfully!');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Enrichment failed');
+    } finally {
+      setEnrichingId(null);
+    }
+  }
+
+  // Save Product Handler
+  async function handleSaveProduct() {
+    if (!editingProduct) return;
+    try {
+      const { error } = await supabase
+        .from('global-product-master-catalog')
+        .update({
+          'product-name': editingProduct['product-name'],
+          'brand-name': editingProduct['brand-name'],
+          'category-name': editingProduct['category-name'],
+          'description-text': editingProduct['description-text'],
+          'image-url': editingProduct['image-url'],
+          'enriched-by-superadmin': true
+        })
+        .eq('product-id', editingProduct['product-id']);
+
+      if (error) throw error;
+
+      await loadCatalog();
+      setEditingProduct(null);
+      toast.success('Product updated successfully!');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Update failed');
+    }
+  }
+
+  // Image Upload Handler
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${editingProduct['product-id']}-${Date.now()}.${fileExt}`;
+      const filePath = `product-images/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      // Update editing product state
+      setEditingProduct({
+        ...editingProduct,
+        'image-url': data.publicUrl
+      });
+
+      toast.success('Image uploaded successfully!');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Image upload failed');
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   // NULL-SAFE filter
@@ -153,6 +262,29 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
                 <span className="text-xs bg-yellow-900/30 text-yellow-400 px-2 py-1 rounded">⚠️ Draft</span>
               )}
             </div>
+            {/* Action Buttons */}
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => handleEnrich(product)}
+                disabled={enrichingId === product['product-id']}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-sm font-bold transition flex items-center justify-center gap-1"
+              >
+                {enrichingId === product['product-id'] ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Enriching...
+                  </>
+                ) : (
+                  <>✨ Enrich</>
+                )}
+              </button>
+              <button
+                onClick={() => setEditingProduct(product)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-bold transition"
+              >
+                ✏️ Edit
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -160,6 +292,133 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
       {filteredProducts.length === 0 && (
         <div className="text-center text-gray-500 py-12 bg-gray-800/50 rounded-lg border border-gray-700">
           No products found matching "{searchQuery}"
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-white">Edit Product</h3>
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  className="text-gray-400 hover:text-white transition"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-2">Product Image</label>
+                <div className="relative group">
+                  <img
+                    src={editingProduct['image-url'] || 'https://via.placeholder.com/400x300?text=No+Image'}
+                    alt="Product"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer rounded-lg">
+                    <div className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                      {uploadingImage ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud size={16} />
+                          Upload New Image
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Product Name */}
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-2">Product Name</label>
+                <input
+                  type="text"
+                  value={editingProduct['product-name'] || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, 'product-name': e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Enter product name"
+                />
+              </div>
+
+              {/* Brand */}
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-2">Brand</label>
+                <input
+                  type="text"
+                  value={editingProduct['brand-name'] || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, 'brand-name': e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Enter brand name"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-2">Category</label>
+                <input
+                  type="text"
+                  value={editingProduct['category-name'] || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, 'category-name': e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Enter category"
+                />
+              </div>
+
+              {/* UPC (Read-only) */}
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-2">UPC/EAN Code</label>
+                <input
+                  type="text"
+                  value={editingProduct['upc-ean-code'] || 'N/A'}
+                  readOnly
+                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-3 py-2 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-bold text-gray-400 mb-2">Description</label>
+                <textarea
+                  value={editingProduct['description-text'] || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, 'description-text': e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
+                  placeholder="Enter product description"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-bold transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveProduct}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
