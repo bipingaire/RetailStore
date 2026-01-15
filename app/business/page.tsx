@@ -22,18 +22,15 @@ export default function BusinessPage() {
                         </span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Link
-                            href="/super-admin/login"
-                            className="text-gray-600 hover:text-gray-900 font-semibold transition"
-                        >
-                            Super Admin
-                        </Link>
-                        <Link
-                            href="/admin/login"
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-bold transition shadow-lg shadow-blue-200"
-                        >
-                            Tenant Login
-                        </Link>
+                        <button className="text-gray-600 hover:text-gray-900 font-semibold transition">
+                            Features
+                        </button>
+                        <button className="text-gray-600 hover:text-gray-900 font-semibold transition">
+                            Pricing
+                        </button>
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-bold transition shadow-lg shadow-blue-200">
+                            Contact Sales
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -56,15 +53,12 @@ export default function BusinessPage() {
                                 for managing multiple stores, inventory, customers, and analytics from a single dashboard.
                             </p>
                             <div className="flex flex-wrap gap-4">
-                                <Link
-                                    href="/super-admin/login"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-blue-200 inline-flex items-center gap-2"
-                                >
-                                    Get Started
+                                <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-blue-200 inline-flex items-center gap-2">
+                                    Request Demo
                                     <ArrowRight size={20} />
-                                </Link>
+                                </button>
                                 <button className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-full font-bold text-lg transition border-2 border-gray-200">
-                                    Watch Demo
+                                    View Pricing
                                 </button>
                             </div>
                         </div>
@@ -240,13 +234,10 @@ export default function BusinessPage() {
                         Join hundreds of retailers already using RetailOS to power their operations
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center">
-                        <Link
-                            href="/super-admin/login"
-                            className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-full font-bold text-lg transition shadow-xl inline-flex items-center gap-2"
-                        >
-                            Access Platform
+                        <button className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-full font-bold text-lg transition shadow-xl inline-flex items-center gap-2">
+                            Get Started
                             <ArrowRight size={20} />
-                        </Link>
+                        </button>
                         <button className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-4 rounded-full font-bold text-lg transition border-2 border-blue-400">
                             Schedule Demo
                         </button>
