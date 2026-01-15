@@ -153,6 +153,30 @@ export default function ShopHome() {
 
   useEffect(() => {
     async function loadData() {
+      // 0. Resolve Tenant from Hostname
+      const hostname = window.location.hostname;
+      const subdomain = hostname.split('.')[0];
+
+      console.log('Resolving tenant for subdomain:', subdomain);
+
+      // Default to highpoint for localhost if needed, or handle dev logic
+      const lookupSubdomain = hostname.includes('localhost') ? 'highpoint' : subdomain;
+
+      const { data: tenantData } = await supabase
+        .from('subdomain-tenant-mapping')
+        .select('tenant-id')
+        .eq('subdomain', lookupSubdomain)
+        .single();
+
+      if (!tenantData) {
+        console.error('Tenant not found for subdomain:', lookupSubdomain);
+        setLoading(false);
+        return;
+      }
+
+      const tenantId = tenantData['tenant-id'];
+      console.log('Loaded tenant ID:', tenantId);
+
       // 1. Fetch Campaigns (replaces product_segments AND promotions)
       const { data: campaignData, error: campaignError } = await supabase
         .from('marketing-campaign-master')
@@ -185,11 +209,12 @@ export default function ShopHome() {
           )
         `)
         .eq('is-active-flag', true)
+        .eq('tenant-id', tenantId) // Filter by Tenant
         .order('sort-order', { ascending: true });
 
       if (campaignError) console.error("Campaign load error:", campaignError);
 
-      // 2. Fetch General Inventory (for featured products grid)
+      // 2. Fetch General Inventory
       const { data: prodData, error: prodError } = await supabase
         .from('retail-store-inventory-item')
         .select(`
@@ -203,6 +228,7 @@ export default function ShopHome() {
           )
         `)
         .eq('is-active', true)
+        .eq('tenant-id', tenantId) // Filter by Tenant
         .limit(1000);
 
       if (prodError) console.error("Inventory load error:", prodError);
