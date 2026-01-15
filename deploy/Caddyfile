@@ -1,22 +1,26 @@
 {
     email advikai757@gmail.com
-    # Disable auto-HTTPS because Nginx handles SSL and proxies via HTTP
-    auto_https off
+    # Enable auto-HTTPS - Caddy will handle SSL directly
 }
 
-http://retailOS.cloud {
+# Main domains with automatic SSL
+indumart.us, www.indumart.us {
     reverse_proxy app:3010
+    encode gzip
 }
 
-http://indumart.us {
+retailOS.cloud, www.retailOS.cloud {
     reverse_proxy app:3010
+    encode gzip
 }
 
-# Generic catch-all for subdomains (passed from Nginx)
-http://*.indumart.us {
+# All tenant subdomains - automatic SSL for each
+*.indumart.us {
     reverse_proxy app:3010
+    encode gzip
 }
 
-http://*.retailOS.cloud {
+*.retailOS.cloud {
     reverse_proxy app:3010
+    encode gzip
 }
