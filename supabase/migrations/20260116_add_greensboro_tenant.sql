@@ -6,25 +6,17 @@ INSERT INTO "retail-store-tenant" (
   "tenant-id",
   "store-name",
   "subdomain",
-  "address-line1",
-  "city",
-  "state-province",
-  "postal-code",
-  "country",
-  "is-active",
-  "created-at"
+  "store-address",
+  "store-city",
+  "subscription-tier"
 )
 VALUES (
   gen_random_uuid(),
   'Greensboro Store',
   'greensboro',
-  '123 Main Street',
+  '123 Main Street, Greensboro, NC',
   'Greensboro',
-  'North Carolina',
-  '27401',
-  'United States',
-  true,
-  NOW()
+  'beta'
 )
 ON CONFLICT ("subdomain") DO NOTHING
 RETURNING "tenant-id";
