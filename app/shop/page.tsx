@@ -203,7 +203,7 @@ export default function ShopHome() {
           )
         `)
         .eq('is-active', true)
-        .limit(50);
+        .limit(1000);
 
       if (prodError) console.error("Inventory load error:", prodError);
 
