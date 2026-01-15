@@ -1,13 +1,11 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal } from 'lucide-react';
 import PromotionModal from './promotion-modal';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClientComponentClient();
 
 // 1. Types
 type ProductRow = {
