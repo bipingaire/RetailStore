@@ -100,6 +100,8 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
   async function handleEnrich(product: any) {
     setEnrichingId(product['product-id']);
     try {
+      console.log(`[Enrichment] Starting for product: ${product['product-name'] || 'Unknown'}, UPC: ${product['upc-ean-code']}`);
+
       const response = await fetch('/api/ai/enrich-product', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,28 +111,44 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
         })
       });
 
-      if (!response.ok) throw new Error('Enrichment failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Enrichment] API error:', errorText);
+        throw new Error(`Enrichment API failed: ${response.status}`);
+      }
 
-      const { data } = await response.json();
+      const result = await response.json();
+      console.log('[Enrichment] API response:', result);
 
-      // Update in database
+      if (!result.success || !result.data) {
+        throw new Error('Invalid API response structure');
+      }
+
+      const enrichedData = result.data;
+
+      // Update in database - map API fields to DB fields
       const { error } = await supabase
         .from('global-product-master-catalog')
         .update({
-          'description-text': data.description,
-          'category-name': data.category,
-          'image-url': data.image_url,
+          'description-text': enrichedData.description || '',
+          'category-name': enrichedData.category || enrichedData.subcategory || '',
+          'image-url': enrichedData.image_url || '',
+          'brand-name': enrichedData.manufacturer || product['brand-name'] || '',
           'enriched-by-superadmin': true
         })
         .eq('product-id', product['product-id']);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[Enrichment] Database update error:', error);
+        throw error;
+      }
 
+      console.log('[Enrichment] Successfully enriched product');
       // Refresh products list
       await loadCatalog();
       toast.success('Product enriched successfully!');
     } catch (error: any) {
-      console.error(error);
+      console.error('[Enrichment] Error:', error);
       toast.error(error.message || 'Enrichment failed');
     } finally {
       setEnrichingId(null);
