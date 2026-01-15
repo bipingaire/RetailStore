@@ -126,16 +126,59 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
 
       const enrichedData = result.data;
 
+      // Get image URL - use API result or fetch from Unsplash as fallback
+      let imageUrl = enrichedData.image_url || '';
+
+      // If no image from API, try Unsplash as fallback
+      if (!imageUrl || imageUrl.trim() === '') {
+        console.log('[Enrichment] No image from API, fetching from Unsplash...');
+        try {
+          const unsplashQuery = encodeURIComponent(product['product-name'] || 'product');
+          const unsplashRes = await fetch(
+            `https://source.unsplash.com/800x600/?${unsplashQuery},product,package`
+          );
+          if (unsplashRes.ok) {
+            imageUrl = unsplashRes.url; // Unsplash redirects to actual image
+            console.log('[Enrichment] Fallback image from Unsplash:', imageUrl);
+          }
+        } catch (e) {
+          console.error('[Enrichment] Unsplash fallback failed:', e);
+          // Use placeholder as last resort
+          imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(product['product-name'] || 'Product')}`;
+        }
+      }
+
       // Update in database - map API fields to DB fields
+      const updateData = {
+        'enriched-by-superadmin': true
+      } as any;
+
+      // Only update fields that have values
+      if (enrichedData.description && enrichedData.description.trim()) {
+        updateData['description-text'] = enrichedData.description;
+      }
+
+      if (enrichedData.category && enrichedData.category.trim()) {
+        updateData['category-name'] = enrichedData.category;
+      } else if (enrichedData.subcategory && enrichedData.subcategory.trim()) {
+        updateData['category-name'] = enrichedData.subcategory;
+      }
+
+      if (enrichedData.manufacturer && enrichedData.manufacturer.trim()) {
+        updateData['brand-name'] = enrichedData.manufacturer;
+      }
+
+      // Always update image if we have one
+      if (imageUrl && imageUrl.trim()) {
+        updateData['image-url'] = imageUrl;
+        console.log('[Enrichment] Setting image URL:', imageUrl);
+      }
+
+      console.log('[Enrichment] Updating database with:', updateData);
+
       const { error } = await supabase
         .from('global-product-master-catalog')
-        .update({
-          'description-text': enrichedData.description || '',
-          'category-name': enrichedData.category || enrichedData.subcategory || '',
-          'image-url': enrichedData.image_url || '',
-          'brand-name': enrichedData.manufacturer || product['brand-name'] || '',
-          'enriched-by-superadmin': true
-        })
+        .update(updateData)
         .eq('product-id', product['product-id']);
 
       if (error) {
