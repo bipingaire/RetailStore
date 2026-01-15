@@ -161,12 +161,27 @@ export default function SaleAdmin() {
 
   const handleNewCampaign = async () => {
     setSaving(true);
+
+    // Get current user's tenant ID
+    const { data: roleData } = await supabase
+      .from('tenant-user-role')
+      .select('tenant-id')
+      .eq('user-id', (await supabase.auth.getUser()).data.user?.id)
+      .single();
+
+    if (!roleData) {
+      toast.error('Unable to determine your tenant. Please refresh the page.');
+      setSaving(false);
+      return;
+    }
+
     const now = Date.now();
     const slug = `campaign-${now}`;
     // Mapped inserts
     const { data: rawData, error } = await supabase
       .from('marketing-campaign-master')
       .insert({
+        'tenant-id': roleData['tenant-id'], // ✅ Include tenant-id
         'title-text': 'New Campaign',
         'campaign-name': 'New Campaign', // required in DB
         'campaign-slug': slug,
@@ -400,8 +415,8 @@ export default function SaleAdmin() {
                     key={seg.id}
                     onClick={() => handleSelectSegment(seg)}
                     className={`w-full text-left p-3 rounded-lg border transition-all group ${seg.id === selectedSegmentId
-                        ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-200'
-                        : 'bg-white border-transparent hover:bg-gray-50 hover:border-gray-200'
+                      ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-200'
+                      : 'bg-white border-transparent hover:bg-gray-50 hover:border-gray-200'
                       }`}
                   >
                     <div className="flex justify-between items-start mb-1">

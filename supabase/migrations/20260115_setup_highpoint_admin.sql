@@ -72,9 +72,10 @@ BEGIN
     
     RAISE NOTICE '✅ Created new admin user: %', v_email;
   ELSE
-    -- Optional: Reset password if user exists
+    -- Reset password AND update tenant metadata if user exists
     UPDATE auth.users 
-    SET encrypted_password = crypt(v_password, gen_salt('bf'))
+    SET encrypted_password = crypt(v_password, gen_salt('bf')),
+        raw_user_meta_data = jsonb_build_object('full_name', 'Highpoint Admin', 'tenant_id', v_tenant_id)
     WHERE id = v_user_id;
     RAISE NOTICE 'ℹ️ Updated password for existing user: %', v_email;
   END IF;
@@ -86,6 +87,9 @@ BEGIN
   ON CONFLICT ("tenant-id", "user-id") DO UPDATE
   SET "role-type" = 'owner'; -- Ensure they are owner if they were something else
   
-  RAISE NOTICE '✅ Assigned OWNER role to user';
+  RAISE NOTICE '✅ ASSIGNMENT COMPLETE.';
+  RAISE NOTICE '   URL:      https://retailos.cloud/admin/login';
+  RAISE NOTICE '   EMAIL:    %', v_email;
+  RAISE NOTICE '   PASSWORD: %', v_password;
 
 END $$;
