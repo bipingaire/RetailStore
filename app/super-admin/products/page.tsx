@@ -48,9 +48,9 @@ export default function MasterCatalogPage() {
 
     const filteredProducts = products.filter(product => {
         const matchesSearch = searchQuery === '' ||
-            product['product-name'].toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product['brand-name']?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product['upc-ean-code']?.includes(searchQuery);
+            (product['product-name'] || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product['brand-name'] || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product['upc-ean-code'] || '').includes(searchQuery);
 
         const matchesCategory = filterCategory === 'all' ||
             product['category-name'] === filterCategory;
