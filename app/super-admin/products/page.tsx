@@ -14,9 +14,25 @@ export default function MasterCatalogPage() {
     const [filterCategory, setFilterCategory] = useState('all');
     const [categories, setCategories] = useState<string[]>([]);
 
+    // DEBUG STATE
+    const [debugInfo, setDebugInfo] = useState<{ email: string | null, rawCount: number | null, error: string | null }>({
+        email: null, rawCount: null, error: null
+    });
+
     useEffect(() => {
         loadProducts();
         loadCategories();
+        // Load Debug Info
+        const loadDebug = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { count, error } = await supabase.from('global-product-master-catalog').select('*', { count: 'exact', head: true });
+            setDebugInfo({
+                email: user?.email || 'No User',
+                rawCount: count,
+                error: error ? error.message : null
+            });
+        };
+        loadDebug();
     }, []);
 
     async function loadProducts() {
@@ -29,6 +45,7 @@ export default function MasterCatalogPage() {
             toast.error('Failed to load products');
             console.error(error);
         } else {
+            console.log("LOADED PRODUCTS:", data?.length); // Console log for good measure
             setProducts(data || []);
         }
         setLoading(false);
@@ -64,6 +81,14 @@ export default function MasterCatalogPage() {
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-6">
+            {/* DEBUG BANNER */}
+            <div className="bg-red-50 border border-red-200 p-4 rounded-lg flex flex-col gap-1 text-xs font-mono text-red-800">
+                <strong>DEBUG MODE ACTIVE</strong>
+                <div>User Email: {debugInfo.email}</div>
+                <div>Frontend Fetched: {products.length} items</div>
+                <div>Database Exact Count: {debugInfo.rawCount} items</div>
+                {debugInfo.error && <div className="font-bold">Error: {debugInfo.error}</div>}
+            </div>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
