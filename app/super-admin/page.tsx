@@ -111,15 +111,6 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
 
   return (
     <div className="space-y-6">
-      {/* Debug Banner */}
-      <div className="bg-blue-900/30 border border-blue-700 p-4 rounded-lg">
-        <div className="text-sm font-mono space-y-1 text-blue-300">
-          <div><strong>User:</strong> {userEmail}</div>
-          <div><strong>DB Count:</strong> {dbCount} products</div>
-          <div><strong>Loaded:</strong> {products.length} products</div>
-          <div><strong>Filtered:</strong> {filteredProducts.length} products</div>
-        </div>
-      </div>
 
       {/* Header & Search */}
       <div className="flex justify-between items-center">
