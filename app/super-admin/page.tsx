@@ -126,23 +126,45 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
 
       const enrichedData = result.data;
 
-      // Get image URL - use API result or fetch from Unsplash as fallback
+      // Get image URL - generate with DALL-E if not available
       let imageUrl = enrichedData.image_url || '';
 
-      // If no image from API, try Unsplash as fallback
+      // If no image from API, generate with DALL-E
       if (!imageUrl || imageUrl.trim() === '') {
-        console.log('[Enrichment] No image from API, fetching from Unsplash...');
+        console.log('[Enrichment] No image from API, generating with DALL-E...');
         try {
-          const unsplashQuery = encodeURIComponent(product['product-name'] || 'product');
-          const unsplashRes = await fetch(
-            `https://source.unsplash.com/800x600/?${unsplashQuery},product,package`
-          );
-          if (unsplashRes.ok) {
-            imageUrl = unsplashRes.url; // Unsplash redirects to actual image
-            console.log('[Enrichment] Fallback image from Unsplash:', imageUrl);
+          const productName = product['product-name'] || 'product';
+          const category = enrichedData.category || enrichedData.subcategory || 'item';
+
+          const dallePrompt = `Professional product photography of ${productName}, ${category}, white background, studio lighting, high quality, detailed, centered, commercial product shot`;
+
+          const dalleResponse = await fetch('/api/ai/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: dallePrompt,
+              size: '1024x1024'
+            })
+          });
+
+          if (dalleResponse.ok) {
+            const dalleData = await dalleResponse.json();
+            imageUrl = dalleData.imageUrl;
+            console.log('[Enrichment] Generated DALL-E image:', imageUrl);
+          } else {
+            console.warn('[Enrichment] DALL-E failed, using Unsplash fallback...');
+            // Fallback to Unsplash if DALL-E fails
+            const unsplashQuery = encodeURIComponent(productName);
+            const unsplashRes = await fetch(
+              `https://source.unsplash.com/800x600/?${unsplashQuery},product,package`
+            );
+            if (unsplashRes.ok) {
+              imageUrl = unsplashRes.url;
+              console.log('[Enrichment] Fallback image from Unsplash:', imageUrl);
+            }
           }
         } catch (e) {
-          console.error('[Enrichment] Unsplash fallback failed:', e);
+          console.error('[Enrichment] Image generation failed:', e);
           // Use placeholder as last resort
           imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(product['product-name'] || 'Product')}`;
         }
