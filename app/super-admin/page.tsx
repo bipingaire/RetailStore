@@ -54,9 +54,130 @@ type PendingItem = {
   "tenant"?: { "store-name": string };
 };
 
+// Global Catalog Tab Component - NULL-SAFE Implementation
+function GlobalCatalogTab({ supabase }: { supabase: any }) {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [dbCount, setDbCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    loadCatalog();
+  }, []);
+
+  async function loadCatalog() {
+    // Get user info
+    const { data: { user } } = await supabase.auth.getUser();
+    setUserEmail(user?.email || 'Unknown');
+
+    // Get exact count
+    const { count } = await supabase
+      .from('global-product-master-catalog')
+      .select('*', { count: 'exact', head: true });
+    setDbCount(count);
+
+    // Load all products
+    const { data, error } = await supabase
+      .from('global-product-master-catalog')
+      .select('*')
+      .order('created-at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading catalog:', error);
+      toast.error('Failed to load catalog');
+    } else {
+      console.log('Loaded products:', data?.length);
+      setProducts(data || []);
+    }
+    setLoading(false);
+  }
+
+  // NULL-SAFE filter
+  const filteredProducts = products.filter(product => {
+    const name = product['product-name'] || '';
+    const brand = product['brand-name'] || '';
+    const upc = product['upc-ean-code'] || '';
+
+    return searchQuery === '' ||
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      upc.includes(searchQuery);
+  });
+
+  if (loading) {
+    return <div className="p-8 text-center text-gray-400">Loading Global Catalog...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Debug Banner */}
+      <div className="bg-blue-900/30 border border-blue-700 p-4 rounded-lg">
+        <div className="text-sm font-mono space-y-1 text-blue-300">
+          <div><strong>User:</strong> {userEmail}</div>
+          <div><strong>DB Count:</strong> {dbCount} products</div>
+          <div><strong>Loaded:</strong> {products.length} products</div>
+          <div><strong>Filtered:</strong> {filteredProducts.length} products</div>
+        </div>
+      </div>
+
+      {/* Header & Search */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Global Product Catalog</h2>
+          <p className="text-gray-400">All products across the network ({filteredProducts.length} shown)</p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-3 text-gray-500" size={16} />
+          <input
+            type="text"
+            placeholder="Search by name, brand, or UPC..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-80 px-10 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredProducts.map((product) => (
+          <div key={product['product-id']} className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition">
+            {product['image-url'] && (
+              <img
+                src={product['image-url']}
+                alt={product['product-name'] || 'Product'}
+                className="w-full h-40 object-cover rounded mb-3"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            )}
+            <h3 className="font-semibold text-white">{product['product-name'] || 'Unnamed Product'}</h3>
+            <p className="text-sm text-gray-400">{product['brand-name'] || 'No Brand'}</p>
+            <p className="text-xs text-gray-500">{product['category-name'] || 'Uncategorized'}</p>
+            <p className="text-xs text-gray-600 mt-1">UPC: {product['upc-ean-code'] || 'N/A'}</p>
+            <div className="mt-2">
+              {product['enriched-by-superadmin'] ? (
+                <span className="text-xs bg-green-900/30 text-green-400 px-2 py-1 rounded">✅ Enriched</span>
+              ) : (
+                <span className="text-xs bg-yellow-900/30 text-yellow-400 px-2 py-1 rounded">⚠️ Draft</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center text-gray-500 py-12 bg-gray-800/50 rounded-lg border border-gray-700">
+          No products found matching "{searchQuery}"
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SuperAdminPage() {
   const supabase = createClientComponentClient();
-  const [activeTab, setActiveTab] = useState<'products' | 'tenants' | 'pending' | 'website' | 'revenue'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'tenants' | 'pending' | 'website' | 'revenue' | 'catalog'>('products');
   const [products, setProducts] = useState<GlobalProduct[]>([]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
@@ -386,6 +507,7 @@ export default function SuperAdminPage() {
             <div className="flex bg-gray-800/50 p-1 rounded-xl">
               {[
                 { id: 'products', icon: Globe, label: 'Master Catalog' },
+                { id: 'catalog', icon: Database, label: 'Global Catalog' },
                 { id: 'pending', icon: MessageSquare, label: 'Approvals', count: pendingItems.length },
                 { id: 'tenants', icon: Store, label: 'Tenant Network' },
                 { id: 'revenue', icon: DollarSign, label: 'Revenue' },
@@ -795,8 +917,12 @@ export default function SuperAdminPage() {
               </div>
             </div>
           </div>
-        )
-        }
+        )}
+
+        {/* GLOBAL CATALOG TAB - NULL-SAFE with DEBUG */}
+        {activeTab === 'catalog' && (
+          <GlobalCatalogTab supabase={supabase} />
+        )}
 
       </main >
 
