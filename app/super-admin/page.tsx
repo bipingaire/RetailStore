@@ -126,17 +126,19 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
 
       const enrichedData = result.data;
 
-      // Get image URL - generate with DALL-E if not available
-      let imageUrl = enrichedData.image_url || '';
+      // ALWAYS generate image if product doesn't have one
+      let imageUrl = enrichedData.image_url || product['image-url'] || '';
 
-      // If no image from API, generate with DALL-E
-      if (!imageUrl || imageUrl.trim() === '') {
-        console.log('[Enrichment] No image from API, generating with DALL-E...');
+      // If product has no image, generate with DALL-E
+      if (!product['image-url'] || product['image-url'].trim() === '') {
+        console.log('[Enrichment] Product has no image, generating with DALL-E...');
         try {
           const productName = product['product-name'] || 'product';
-          const category = enrichedData.category || enrichedData.subcategory || 'item';
+          const category = enrichedData.category || enrichedData.subcategory || product['category-name'] || 'item';
 
           const dallePrompt = `Professional product photography of ${productName}, ${category}, white background, studio lighting, high quality, detailed, centered, commercial product shot`;
+
+          console.log('[Enrichment] DALL-E prompt:', dallePrompt);
 
           const dalleResponse = await fetch('/api/ai/generate-image', {
             method: 'POST',
@@ -149,25 +151,40 @@ function GlobalCatalogTab({ supabase }: { supabase: any }) {
 
           if (dalleResponse.ok) {
             const dalleData = await dalleResponse.json();
-            imageUrl = dalleData.imageUrl;
-            console.log('[Enrichment] Generated DALL-E image:', imageUrl);
+            if (dalleData.success && dalleData.imageUrl) {
+              imageUrl = dalleData.imageUrl;
+              console.log('[Enrichment] ✅ Generated DALL-E image:', imageUrl);
+            } else {
+              throw new Error('Invalid DALL-E response');
+            }
           } else {
-            console.warn('[Enrichment] DALL-E failed, using Unsplash fallback...');
-            // Fallback to Unsplash if DALL-E fails
+            const errorText = await dalleResponse.text();
+            console.error('[Enrichment] DALL-E API error:', errorText);
+            throw new Error(`DALL-E failed: ${dalleResponse.status}`);
+          }
+        } catch (e: any) {
+          console.error('[Enrichment] DALL-E failed:', e.message);
+          console.log('[Enrichment] Using Unsplash fallback...');
+          // Fallback to Unsplash if DALL-E fails
+          try {
+            const productName = product['product-name'] || 'product';
             const unsplashQuery = encodeURIComponent(productName);
             const unsplashRes = await fetch(
               `https://source.unsplash.com/800x600/?${unsplashQuery},product,package`
             );
             if (unsplashRes.ok) {
               imageUrl = unsplashRes.url;
-              console.log('[Enrichment] Fallback image from Unsplash:', imageUrl);
+              console.log('[Enrichment] ✅ Fallback image from Unsplash:', imageUrl);
             }
+          } catch (unsplashError) {
+            console.error('[Enrichment] Unsplash also failed');
+            // Use placeholder as last resort
+            imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(product['product-name'] || 'Product')}`;
           }
-        } catch (e) {
-          console.error('[Enrichment] Image generation failed:', e);
-          // Use placeholder as last resort
-          imageUrl = `https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=${encodeURIComponent(product['product-name'] || 'Product')}`;
         }
+      } else {
+        console.log('[Enrichment] Product already has image, keeping it:', product['image-url']);
+        imageUrl = product['image-url'];
       }
 
       // Update in database - map API fields to DB fields
