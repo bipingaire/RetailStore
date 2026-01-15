@@ -50,23 +50,6 @@ BEGIN
   )
   ON CONFLICT ("subdomain") DO NOTHING;
 
-  -- Optional: Add store location for geo-redirect
-  INSERT INTO "retail-store-location" (
-    "location-id",
-    "tenant-id",
-    "latitude",
-    "longitude",
-    "is-active"
-  )
-  VALUES (
-    gen_random_uuid(),
-    greensboro_tenant_id,
-    36.0726,  -- Greensboro, NC coordinates
-    -79.7920,
-    true
-  )
-  ON CONFLICT DO NOTHING;
-
   RAISE NOTICE '✅ Greensboro tenant created successfully!';
   RAISE NOTICE 'Tenant ID: %', greensboro_tenant_id;
   RAISE NOTICE 'Subdomain: greensboro.indumart.us';
