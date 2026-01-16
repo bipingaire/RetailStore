@@ -61,11 +61,25 @@ export default function SaleAdmin() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
+
+      // 1. Get Me (Tenant ID)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return; // Handle no user
+
+      const { data: roleData } = await supabase
+        .from('tenant-user-role')
+        .select('tenant-id')
+        .eq('user-id', user.id)
+        .single();
+
+      const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
+
       const [{ data: segData }, { data: invData }] = await Promise.all([
         supabase
           .from('marketing-campaign-master')
           .select(`
             id: campaign-id,
+            tenant-id,
             slug: campaign-slug,
             title: title-text,
             subtitle: subtitle-text,
@@ -84,6 +98,7 @@ export default function SaleAdmin() {
           .from('retail-store-inventory-item')
           .select(`
             id: inventory-id,
+            tenant-id,
             price: selling-price-amount,
             global_products: global-product-master-catalog!global-product-id (
               name: product-name,
@@ -96,21 +111,25 @@ export default function SaleAdmin() {
           .limit(120)
       ]);
 
+      // 2. FORCE FILTER (Safety Net)
+      const filteredSegments = (segData || []).filter((s: any) => s['tenant-id'] === myTenantId);
+      const filteredInventory = (invData || []).filter((i: any) => i['tenant-id'] === myTenantId);
+
       const normalizedSegments =
-        (segData as any[] | null)?.map((seg) => ({
+        filteredSegments.map((seg: any) => ({
           ...seg,
           segment_products: seg.segment_products || [],
           // Mock missing columns for UI compatibility
           valid_till_stock: false,
           default_discount: 0,
           purchase_mode: 'both'
-        })) || [];
+        }));
 
       const normalizedInventory =
-        (invData as any[] | null)?.map((row) => ({
+        filteredInventory.map((row: any) => ({
           ...row,
           price: Number(row.price ?? 0),
-        })) || [];
+        }));
 
       setSegments(normalizedSegments);
       setInventory(normalizedInventory);
