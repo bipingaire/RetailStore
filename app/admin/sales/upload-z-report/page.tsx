@@ -11,6 +11,30 @@ export default function ZReportUploadPage() {
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState('');
+    const [syncing, setSyncing] = useState(false);
+    const [syncResult, setSyncResult] = useState<any>(null);
+
+    async function handleSyncInventory() {
+        if (!result || !result.lineItems) return;
+        setSyncing(true);
+        try {
+            const res = await fetch('/api/sales/process-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: result.lineItems,
+                    tenantId
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Sync failed');
+            setSyncResult(data);
+        } catch (err: any) {
+            setError("Sync Failed: " + err.message);
+        } finally {
+            setSyncing(false);
+        }
+    }
 
     async function handleUpload() {
         if (!file) return;
@@ -196,12 +220,31 @@ export default function ZReportUploadPage() {
                         </div>
                     )}
 
-                    <button
-                        onClick={() => { setFile(null); setResult(null); }}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                        Upload Another Report
-                    </button>
+                    <div className="flex gap-4 pt-4 border-t border-green-200">
+                        <button
+                            onClick={handleSyncInventory}
+                            disabled={syncing || syncResult}
+                            className={`flex-1 py-3 rounded-lg font-bold text-white shadow-md flex items-center justify-center gap-2 ${syncResult ? 'bg-green-600 opacity-100' : 'bg-blue-600 hover:bg-blue-700'}`}
+                        >
+                            {syncing ? <Loader2 className="animate-spin" /> : <CheckCircle />}
+                            {syncing ? "Syncing Stock..." : syncResult ? "Stock Updated!" : "Confirm & Deduct Inventory"}
+                        </button>
+                    </div>
+
+                    {syncResult && (
+                        <div className="bg-white p-3 rounded-md border border-gray-200 text-sm text-gray-600">
+                            <span className="font-bold text-gray-900">Result:</span> Processed {syncResult.processed?.length} items. Inventory has been updated.
+                        </div>
+                    )}
+
+                    <div className="text-center">
+                        <button
+                            onClick={() => { setFile(null); setResult(null); setSyncResult(null); }}
+                            className="text-gray-400 hover:text-gray-600 font-medium text-sm mt-2"
+                        >
+                            Upload Another Report
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
