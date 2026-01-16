@@ -61,23 +61,24 @@ export default function SaleAdmin() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
+      try {
+        // 1. Get Me (Tenant ID)
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) return; // Will hit finally
 
-      // 1. Get Me (Tenant ID)
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return; // Should redirect ideally
+        const { data: roleData, error: roleError } = await supabase
+          .from('tenant-user-role')
+          .select('tenant-id')
+          .eq('user-id', userData.user.id)
+          .maybeSingle();
 
-      const { data: roleData } = await supabase
-        .from('tenant-user-role')
-        .select('tenant-id')
-        .eq('user-id', userData.user.id)
-        .single();
+        if (roleError) console.error("Tenant fetch error:", roleError);
+        const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
 
-      const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
-
-      const [{ data: segData }, { data: invData }] = await Promise.all([
-        supabase
-          .from('marketing-campaign-master')
-          .select(`
+        const [{ data: segData, error: segError }, { data: invData, error: invError }] = await Promise.all([
+          supabase
+            .from('marketing-campaign-master')
+            .select(`
             id: campaign-id,
             tenant-id,
             slug: campaign-slug,
@@ -93,10 +94,10 @@ export default function SaleAdmin() {
             end_date: end-date-time,
             segment_products: campaign-product-segment-group!campaign-id ( store_inventory_id: inventory-id )
           `)
-          .order('sort-order', { ascending: true }),
-        supabase
-          .from('retail-store-inventory-item')
-          .select(`
+            .order('sort-order', { ascending: true }),
+          supabase
+            .from('retail-store-inventory-item')
+            .select(`
             id: inventory-id,
             tenant-id,
             price: selling-price-amount,
@@ -107,42 +108,50 @@ export default function SaleAdmin() {
               manufacturer: manufacturer-name
             )
           `)
-          .eq('is-active', true)
-          .limit(120)
-      ]);
+            .eq('is-active', true)
+            .limit(120)
+        ]);
 
-      // 2. FORCE FILTER ON FRONTEND (Safety Net)
-      const filteredSegments = (segData || []).filter((s: any) => s['tenant-id'] === myTenantId);
-      const filteredInventory = (invData || []).filter((i: any) => i['tenant-id'] === myTenantId);
+        if (segError) console.error("Campaign fetch error:", segError);
+        if (invError) console.error("Inventory fetch error:", invError);
 
-      const normalizedSegments =
-        filteredSegments.map((seg: any) => ({
-          ...seg,
-          segment_products: seg.segment_products || [],
-          // Mock missing columns for UI compatibility
-          valid_till_stock: false,
-          default_discount: 0,
-          purchase_mode: 'both'
-        }));
+        // 2. FORCE FILTER ON FRONTEND (Safety Net)
+        const filteredSegments = (segData || []).filter((s: any) => s['tenant-id'] === myTenantId);
+        const filteredInventory = (invData || []).filter((i: any) => i['tenant-id'] === myTenantId);
 
-      const normalizedInventory =
-        filteredInventory.map((row: any) => ({
-          ...row,
-          price: Number(row.price ?? 0),
-        }));
+        const normalizedSegments =
+          filteredSegments.map((seg: any) => ({
+            ...seg,
+            segment_products: seg.segment_products || [],
+            // Mock missing columns for UI compatibility
+            valid_till_stock: false,
+            default_discount: 0,
+            purchase_mode: 'both'
+          }));
 
-      setSegments(normalizedSegments);
-      setInventory(normalizedInventory);
+        const normalizedInventory =
+          filteredInventory.map((row: any) => ({
+            ...row,
+            price: Number(row.price ?? 0),
+          }));
 
-      // Auto select first segment
-      const first = normalizedSegments[0];
-      if (first) {
-        setSelectedSegmentId(first.id);
-        setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
-        setDraft(first);
+        setSegments(normalizedSegments);
+        setInventory(normalizedInventory);
+
+        // Auto select first segment
+        const first = normalizedSegments[0];
+        if (first) {
+          setSelectedSegmentId(first.id);
+          setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
+          setDraft(first);
+        }
+
+      } catch (err) {
+        console.error("Critical error loading campaigns:", err);
+        toast.error("Failed to load campaigns.");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     loadData();
