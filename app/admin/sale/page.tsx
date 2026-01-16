@@ -190,12 +190,22 @@ export default function SaleAdmin() {
   const handleNewCampaign = async () => {
     setSaving(true);
 
-    // Get current user's tenant ID
-    const { data: roleData } = await supabase
+    // 1. Get User
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      toast.error('You must be logged in.');
+      setSaving(false);
+      return;
+    }
+
+    // 2. Get Tenant
+    const { data: roleData, error: roleError } = await supabase
       .from('tenant-user-role')
       .select('tenant-id')
-      .eq('user-id', (await supabase.auth.getUser()).data.user?.id)
-      .single();
+      .eq('user-id', userData.user.id)
+      .maybeSingle();
+
+    if (roleError) console.error("Tenant check error:", roleError);
 
     if (!roleData) {
       toast.error('Unable to determine your tenant. Please refresh the page.');
