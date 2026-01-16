@@ -12,17 +12,13 @@ export function useTenant() {
 
     useEffect(() => {
         async function getTenant() {
-            // TEMP: Auth disabled, return default tenant ID
-            setTenantId('f5dcdfde-b185-4b89-b513-f0758c73cc5f');
-            setLoading(false);
-
-            /* ORIGINAL CODE - Disabled for now
             try {
                 // Get current user session
                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
                 if (sessionError || !session) {
-                    router.push('/login');
+                    // console.warn("useTenant: No session found");
+                    setLoading(false);
                     return;
                 }
 
@@ -31,21 +27,23 @@ export function useTenant() {
                     .from('tenant-user-role')
                     .select('tenant-id')
                     .eq('user-id', session.user.id)
-                    .single();
+                    .maybeSingle();
 
                 if (roleError) {
-                    setError('No tenant associated with this user');
-                    setLoading(false);
-                    return;
+                    console.error('Error fetching tenant:', roleError);
+                    setError('Error fetching tenant');
+                } else if (data) {
+                    setTenantId(data['tenant-id']);
+                } else {
+                    // Fallback for subdomain if needed, but role is safer
+                    console.warn("No tenant role found for user");
                 }
-
-                setTenantId(data?.['tenant-id'] || null);
-                setLoading(false);
             } catch (err: any) {
+                console.error("useTenant crash:", err);
                 setError(err.message);
+            } finally {
                 setLoading(false);
             }
-            */
         }
 
         getTenant();
