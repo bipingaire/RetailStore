@@ -54,11 +54,21 @@ export default function MasterInventoryPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
+        // 1. Get My Tenant ID
+        const { data: roleData } = await supabase
+          .from('tenant-user-role')
+          .select('tenant-id')
+          .eq('user-id', user.id)
+          .single();
+
+        const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
+
         if (true) {
           const { data, error } = await supabase
             .from('retail-store-inventory-item')
             .select(`
               inventory-id,
+              tenant-id,  
               current-stock-quantity,
               selling-price-amount,
               global-product-master-catalog!global-product-id (
@@ -74,7 +84,10 @@ export default function MasterInventoryPage() {
 
           if (error) throw error;
 
-          const processed: InventoryItem[] = (data || []).map((row: any) => {
+          // 2. FORCE FILTER ON FRONTEND (Safety Net)
+          const filteredData = (data || []).filter((row: any) => row['tenant-id'] === myTenantId);
+
+          const processed: InventoryItem[] = filteredData.map((row: any) => {
             const gp = row['global-product-master-catalog'] || {};
             return {
               inventory_id: row['inventory-id'],
