@@ -60,32 +60,12 @@ export default function SaleAdmin() {
 
   useEffect(() => {
     async function loadData() {
-      async function loadData() {
-        setLoading(true);
-        try {
-
-          // 1. Get Me (Tenant ID)
-          const { data: { user }, error: authError } = await supabase.auth.getUser();
-          if (authError || !user) {
-            console.error("Auth Error:", authError);
-            setLoading(false);
-            return;
-          }
-
-          const { data: roleData } = await supabase
-            .from('tenant-user-role')
-            .select('tenant-id')
-            .eq('user-id', user.id)
-            .single();
-
-          const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
-
-          const [{ data: segData }, { data: invData }] = await Promise.all([
-            supabase
-              .from('marketing-campaign-master')
-              .select(`
+      setLoading(true);
+      const [{ data: segData }, { data: invData }] = await Promise.all([
+        supabase
+          .from('marketing-campaign-master')
+          .select(`
             id: campaign-id,
-            tenant-id,
             slug: campaign-slug,
             title: title-text,
             subtitle: subtitle-text,
@@ -99,12 +79,11 @@ export default function SaleAdmin() {
             end_date: end-date-time,
             segment_products: campaign-product-segment-group!campaign-id ( store_inventory_id: inventory-id )
           `)
-              .order('sort-order', { ascending: true }),
-            supabase
-              .from('retail-store-inventory-item')
-              .select(`
+          .order('sort-order', { ascending: true }),
+        supabase
+          .from('retail-store-inventory-item')
+          .select(`
             id: inventory-id,
-            tenant-id,
             price: selling-price-amount,
             global_products: global-product-master-catalog!global-product-id (
               name: product-name,
@@ -113,51 +92,42 @@ export default function SaleAdmin() {
               manufacturer: manufacturer-name
             )
           `)
-              .eq('is-active', true)
-              .limit(120)
-          ]);
+          .eq('is-active', true)
+          .limit(120)
+      ]);
 
-          // 2. FORCE FILTER (Safety Net)
-          const filteredSegments = (segData || []).filter((s: any) => s['tenant-id'] === myTenantId);
-          const filteredInventory = (invData || []).filter((i: any) => i['tenant-id'] === myTenantId);
+      const normalizedSegments =
+        (segData as any[] | null)?.map((seg) => ({
+          ...seg,
+          segment_products: seg.segment_products || [],
+          // Mock missing columns for UI compatibility
+          valid_till_stock: false,
+          default_discount: 0,
+          purchase_mode: 'both'
+        })) || [];
 
-          const normalizedSegments =
-            filteredSegments.map((seg: any) => ({
-              ...seg,
-              segment_products: seg.segment_products || [],
-              // Mock missing columns for UI compatibility
-              valid_till_stock: false,
-              default_discount: 0,
-              purchase_mode: 'both'
-            }));
+      const normalizedInventory =
+        (invData as any[] | null)?.map((row) => ({
+          ...row,
+          price: Number(row.price ?? 0),
+        })) || [];
 
-          const normalizedInventory =
-            filteredInventory.map((row: any) => ({
-              ...row,
-              price: Number(row.price ?? 0),
-            }));
+      setSegments(normalizedSegments);
+      setInventory(normalizedInventory);
 
-          setSegments(normalizedSegments);
-          setInventory(normalizedInventory);
-
-          // Auto select first segment
-          const first = normalizedSegments[0];
-          if (first) {
-            setSelectedSegmentId(first.id);
-            setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
-            setDraft(first);
-          }
-
-        } catch (err) {
-          console.error("Critical error in loadData:", err);
-          toast.error("Failed to load campaigns");
-        } finally {
-          setLoading(false);
-        }
+      // Auto select first segment
+      const first = normalizedSegments[0];
+      if (first) {
+        setSelectedSegmentId(first.id);
+        setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
+        setDraft(first);
       }
 
-      loadData();
-    }, []);
+      setLoading(false);
+    }
+
+    loadData();
+  }, []);
 
   const selectedSegment = useMemo(
     () => segments.find((s) => s.id === selectedSegmentId) || null,
