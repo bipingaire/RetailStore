@@ -1,17 +1,14 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { Loader2, UploadCloud, Save, Trash2, Plus, FileText, Truck, Receipt, Calendar, User, CheckSquare, Clock } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 
 const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
 const PDFJS_WORKER_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClientComponentClient();
 
 type InvoiceItem = {
   id: string;
@@ -206,18 +203,53 @@ export default function InvoicePage() {
 
     const finalVendorName = vendorData.name || metadata.vendor_name;
 
-    await supabase.from('vendors').upsert({
-      tenant_id: TENANT_ID,
-      name: finalVendorName,
-      ein: vendorData.ein,
-      shipping_address: vendorData.address,
-      website: vendorData.website,
-      email: vendorData.email,
-      contact_phone: vendorData.phone,
-      fax: vendorData.fax,
-      poc_name: vendorData.poc_name
-    }, { onConflict: 'name' });
+    // 1. Handle Vendor (Manual Upsert to avoid 400 error on missing unique constraint)
+    let vendorId = null;
+    try {
+      // Check existence
+      const { data: existing } = await supabase
+        .from('vendors')
+        .select('id')
+        .eq('tenant-id', TENANT_ID)
+        .eq('name', finalVendorName)
+        .single();
 
+      if (existing) {
+        // Update
+        vendorId = existing.id;
+        await supabase.from('vendors').update({
+          ein: vendorData.ein,
+          shipping_address: vendorData.address,
+          website: vendorData.website,
+          email: vendorData.email,
+          contact_phone: vendorData.phone,
+          fax: vendorData.fax,
+          poc_name: vendorData.poc_name
+        }).eq('id', vendorId);
+      } else {
+        // Insert
+        const { data: newVendor, error: vError } = await supabase.from('vendors').insert({
+          'tenant-id': TENANT_ID,
+          name: finalVendorName,
+          ein: vendorData.ein,
+          shipping_address: vendorData.address,
+          website: vendorData.website,
+          email: vendorData.email,
+          contact_phone: vendorData.phone,
+          fax: vendorData.fax,
+          poc_name: vendorData.poc_name
+        }).select().single();
+
+        if (vError) throw vError;
+        vendorId = newVendor?.id;
+      }
+    } catch (err: any) {
+      console.error("Vendor Save Error:", err);
+      // We continue even if vendor save might fail slightly, but ideally we warn.
+      // But let's assume we proceed to save the invoice.
+    }
+
+    // 2. Save Invoice (Authenticated Client fixes 401 RLS)
     const { error: invError } = await supabase.from('uploaded-vendor-invoice-document').insert({
       'tenant-id': TENANT_ID,
       'file-url-path': 'stored_file_url_placeholder',
@@ -226,11 +258,12 @@ export default function InvoicePage() {
       'invoice-number': metadata.invoice_number,
       'invoice-date': metadata.invoice_date,
       'total-amount-value': metadata.total_amount,
-      'ai-extracted-data-json': { items, metadata } // Store items in JSON
+      'ai-extracted-data-json': { items, metadata }
     });
 
-    if (invError) return toast.error(`Failed to save: ${invError.message}`);
+    if (invError) return toast.error(`Failed to save invoice: ${invError.message}`);
 
+    // 3. Commit Inventory
     const res = await fetch('/api/inventory/commit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

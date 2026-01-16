@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal, Save } from 'lucide-react';
 import PromotionModal from './promotion-modal';
 
 const supabase = createClientComponentClient();
@@ -14,7 +14,9 @@ type ProductRow = {
   sku: string;
   image: string;
   total_qty: number;
+  price: number;
   batches: Batch[];
+  isDirty?: boolean; // Track if the row has been modified
 };
 
 type Batch = {
@@ -101,6 +103,7 @@ export default function InventoryDashboard() {
             sku: item['global-product-master-catalog']?.['upc-ean-code'] || 'N/A',
             image: item['global-product-master-catalog']?.['image-url'],
             total_qty: item['current-stock-quantity'] || totalQty,
+            price: item['selling-price-amount'] || 0,
             batches: batches.sort((a: any, b: any) => a.days_left - b.days_left)
           };
         });
@@ -123,6 +126,43 @@ export default function InventoryDashboard() {
       case 'CRITICAL': return 'bg-red-50 text-red-700 border-red-200';
       case 'WARNING': return 'bg-amber-50 text-amber-700 border-amber-200';
       default: return 'bg-green-50 text-green-700 border-green-200';
+    }
+  };
+
+  // 5. Handlers for Editing
+  const handleLocalChange = (id: string, field: 'price' | 'total_qty', value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return;
+
+    setProducts(prev => prev.map(p => {
+      if (p.id === id) {
+        return { ...p, [field]: numValue, isDirty: true };
+      }
+      return p;
+    }));
+  };
+
+  const saveProduct = async (e: React.MouseEvent, product: ProductRow) => {
+    e.stopPropagation(); // Prevent row expand
+    if (!product.isDirty) return;
+
+    try {
+      const { error } = await supabase
+        .from('retail-store-inventory-item')
+        .update({
+          'current-stock-quantity': product.total_qty,
+          'selling-price-amount': product.price
+        })
+        .eq('inventory-id', product.id);
+
+      if (error) throw error;
+
+      // Reset dirty flag
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isDirty: false } : p));
+      alert("Product updated successfully!");
+    } catch (err: any) {
+      console.error("Error updating product:", err);
+      alert(`Failed to update: ${err.message}`);
     }
   };
 
@@ -169,7 +209,8 @@ export default function InventoryDashboard() {
               <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3">Product</th>
-                  <th className="px-6 py-3">Total Stock</th>
+                  <th className="px-6 py-3">Price</th>
+                  <th className="px-6 py-3">Stock</th>
                   <th className="px-6 py-3">Health Status</th>
                   <th className="px-6 py-3 text-right">Action</th>
                 </tr>
@@ -209,10 +250,25 @@ export default function InventoryDashboard() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-gray-900">{product.total_qty}</span>
-                            <span className="text-gray-400 text-xs">units</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-400 text-sm">$</span>
+                            <input
+                              type="number"
+                              value={product.price}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => handleLocalChange(product.id, 'price', e.target.value)}
+                              className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <input
+                            type="number"
+                            value={product.total_qty}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => handleLocalChange(product.id, 'total_qty', e.target.value)}
+                            className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                          />
                         </td>
                         <td className="px-6 py-4">
                           {worstBatch ? (
@@ -225,6 +281,15 @@ export default function InventoryDashboard() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
+                          {product.isDirty && (
+                            <button
+                              onClick={(e) => saveProduct(e, product)}
+                              className="mr-3 text-blue-600 hover:text-blue-800 transition-colors p-1 rounded-full hover:bg-blue-50"
+                              title="Save Changes"
+                            >
+                              <Save size={18} />
+                            </button>
+                          )}
                           <button className="text-gray-400 hover:text-gray-600 transition-colors">
                             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                           </button>
@@ -234,7 +299,7 @@ export default function InventoryDashboard() {
                       {/* EXPANDED DETAILS (BATCH VIEW) */}
                       {isExpanded && (
                         <tr className="bg-gray-50/50">
-                          <td colSpan={4} className="px-6 py-4">
+                          <td colSpan={5} className="px-6 py-4">
                             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden p-4 ml-14">
                               <div className="flex justify-between items-center mb-4">
                                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">

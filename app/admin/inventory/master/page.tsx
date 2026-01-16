@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2, Sparkles, RefreshCcw } from 'lucide-react';
+import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 // 1. Definition of Types based on Schema
@@ -172,48 +172,7 @@ export default function MasterInventoryPage() {
     }
   };
 
-  const [enrichingId, setEnrichingId] = useState<string | null>(null);
 
-  const handleEnrich = async (item: any) => {
-    // If it's a linked inventory item, we need the global product ID.
-    // The current mapping might have 'product_id' or 'inventory_id'.
-    // globalItems have 'product_id'. inventoryItems have 'product_id' inside the join but flattened?
-    // Let's check the data fetching logic. 
-    // inventoryItems map: id: i['inventory-id'], product_id: i.product?.['product-id'] ...
-
-    // Wait, I need to check how I mapped the IDs in loadData. 
-    // Assuming item.product_id is available even activeTab is 'my-inventory'
-    const pid = item.product_id;
-    if (!pid) {
-      toast.error("Cannot enrich: Missing Product ID");
-      return;
-    }
-
-    setEnrichingId(pid);
-    toast.info("Generating AI Image... This may take a moment.");
-
-    try {
-      const res = await fetch('/api/inventory/enrich', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: pid, productName: item.name })
-      });
-      const json = await res.json();
-
-      if (json.success) {
-        toast.success("Image generated successfully!");
-        // Update local state to show new image immediately
-        setGlobalItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: json.imageUrl } : i));
-        setInventoryItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: json.imageUrl } : i));
-      } else {
-        toast.error(json.error || "Failed to generate image");
-      }
-    } catch (e) {
-      toast.error("Network error during enrichment");
-    } finally {
-      setEnrichingId(null);
-    }
-  };
 
   const displayedItems = activeTab === 'my-inventory'
     ? inventoryItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm))
@@ -293,14 +252,7 @@ export default function MasterInventoryPage() {
                         {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <Package className="p-2 text-gray-400" />}
 
                         {/* ENRICH BUTTON OVERLAY */}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleEnrich(item); }}
-                          disabled={enrichingId === item.product_id}
-                          className={`absolute inset-0 bg-black/60 flex items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity ${enrichingId === item.product_id ? 'opacity-100 cursor-wait' : 'cursor-pointer'}`}
-                          title="Magic Enrich Image"
-                        >
-                          {enrichingId === item.product_id ? <RefreshCcw size={16} className="animate-spin" /> : <Sparkles size={16} className="text-yellow-400" />}
-                        </button>
+
 
                       </div>
                       <div>
