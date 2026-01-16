@@ -38,10 +38,23 @@ export default function InventoryDashboard() {
   useEffect(() => {
     async function fetchData() {
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // 1. Get Me (Tenant ID)
+        const { data: roleData } = await supabase
+          .from('tenant-user-role')
+          .select('tenant-id')
+          .eq('user-id', user.id)
+          .single();
+
+        const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
+
         const { data, error } = await supabase
           .from('retail-store-inventory-item')
           .select(`
             inventory-id,
+            tenant-id,
             selling-price-amount,
             current-stock-quantity,
             global-product-master-catalog!global-product-id (
@@ -63,8 +76,11 @@ export default function InventoryDashboard() {
           return;
         }
 
+        // 2. FORCE FILTER ON FRONTEND (Safety Net)
+        const filteredData = (data || []).filter((item: any) => item['tenant-id'] === myTenantId);
+
         // 3. Transform Data & Calculate Expiry Logic
-        const processed: ProductRow[] = (data || []).map((item: any) => {
+        const processed: ProductRow[] = filteredData.map((item: any) => {
           const batches = (item['inventory-batch-tracking-record'] || []).map((b: any) => {
             const daysLeft = Math.ceil((new Date(b['expiry-date-timestamp']).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
             return {
