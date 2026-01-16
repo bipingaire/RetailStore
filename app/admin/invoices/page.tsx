@@ -219,12 +219,12 @@ export default function InvoicePage() {
         vendorId = existing.id;
         await supabase.from('vendors').update({
           ein: vendorData.ein,
-          shipping_address: vendorData.address,
+          address: vendorData.address, // Correct column name
           website: vendorData.website,
           email: vendorData.email,
-          contact_phone: vendorData.phone,
+          'contact-phone': vendorData.phone, // Kebab-case
           fax: vendorData.fax,
-          poc_name: vendorData.poc_name
+          'poc-name': vendorData.poc_name    // Kebab-case
         }).eq('id', vendorId);
       } else {
         // Insert
@@ -232,12 +232,12 @@ export default function InvoicePage() {
           'tenant-id': TENANT_ID,
           name: finalVendorName,
           ein: vendorData.ein,
-          shipping_address: vendorData.address,
+          address: vendorData.address, // Correct column name
           website: vendorData.website,
           email: vendorData.email,
-          contact_phone: vendorData.phone,
+          'contact-phone': vendorData.phone, // Kebab-case
           fax: vendorData.fax,
-          poc_name: vendorData.poc_name
+          'poc-name': vendorData.poc_name    // Kebab-case
         }).select().single();
 
         if (vError) throw vError;
