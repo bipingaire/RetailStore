@@ -61,26 +61,11 @@ export default function SaleAdmin() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      try {
-        // 1. Get Me (Tenant ID)
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) return; // Will hit finally
-
-        const { data: roleData, error: roleError } = await supabase
-          .from('tenant-user-role')
-          .select('tenant-id')
-          .eq('user-id', userData.user.id)
-          .maybeSingle();
-
-        if (roleError) console.error("Tenant fetch error:", roleError);
-        const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
-
-        const [{ data: segData, error: segError }, { data: invData, error: invError }] = await Promise.all([
-          supabase
-            .from('marketing-campaign-master')
-            .select(`
+      const [{ data: segData }, { data: invData }] = await Promise.all([
+        supabase
+          .from('marketing-campaign-master')
+          .select(`
             id: campaign-id,
-            tenant-id,
             slug: campaign-slug,
             title: title-text,
             subtitle: subtitle-text,
@@ -94,12 +79,11 @@ export default function SaleAdmin() {
             end_date: end-date-time,
             segment_products: campaign-product-segment-group!campaign-id ( store_inventory_id: inventory-id )
           `)
-            .order('sort-order', { ascending: true }),
-          supabase
-            .from('retail-store-inventory-item')
-            .select(`
+          .order('sort-order', { ascending: true }),
+        supabase
+          .from('retail-store-inventory-item')
+          .select(`
             id: inventory-id,
-            tenant-id,
             price: selling-price-amount,
             global_products: global-product-master-catalog!global-product-id (
               name: product-name,
@@ -108,50 +92,38 @@ export default function SaleAdmin() {
               manufacturer: manufacturer-name
             )
           `)
-            .eq('is-active', true)
-            .limit(120)
-        ]);
+          .eq('is-active', true)
+          .limit(120)
+      ]);
 
-        if (segError) console.error("Campaign fetch error:", segError);
-        if (invError) console.error("Inventory fetch error:", invError);
+      const normalizedSegments =
+        (segData as any[] | null)?.map((seg) => ({
+          ...seg,
+          segment_products: seg.segment_products || [],
+          // Mock missing columns for UI compatibility
+          valid_till_stock: false,
+          default_discount: 0,
+          purchase_mode: 'both'
+        })) || [];
 
-        // 2. FORCE FILTER ON FRONTEND (Safety Net)
-        const filteredSegments = (segData || []).filter((s: any) => s['tenant-id'] === myTenantId);
-        const filteredInventory = (invData || []).filter((i: any) => i['tenant-id'] === myTenantId);
+      const normalizedInventory =
+        (invData as any[] | null)?.map((row) => ({
+          ...row,
+          price: Number(row.price ?? 0),
+        })) || [];
 
-        const normalizedSegments =
-          filteredSegments.map((seg: any) => ({
-            ...seg,
-            segment_products: seg.segment_products || [],
-            // Mock missing columns for UI compatibility
-            valid_till_stock: false,
-            default_discount: 0,
-            purchase_mode: 'both'
-          }));
+      setSegments(normalizedSegments);
+      setInventory(normalizedInventory);
 
-        const normalizedInventory =
-          filteredInventory.map((row: any) => ({
-            ...row,
-            price: Number(row.price ?? 0),
-          }));
-
-        setSegments(normalizedSegments);
-        setInventory(normalizedInventory);
-
-        // Auto select first segment
-        const first = normalizedSegments[0];
-        if (first) {
-          setSelectedSegmentId(first.id);
-          setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
-          setDraft(first);
-        }
-
-      } catch (err) {
-        console.error("Critical error loading campaigns:", err);
-        toast.error("Failed to load campaigns.");
-      } finally {
-        setLoading(false);
+      // Auto select first segment
+      const first = normalizedSegments[0];
+      if (first) {
+        setSelectedSegmentId(first.id);
+        setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
+        setDraft(first);
       }
+
+      setLoading(false);
     }
 
     loadData();
@@ -190,22 +162,12 @@ export default function SaleAdmin() {
   const handleNewCampaign = async () => {
     setSaving(true);
 
-    // 1. Get User
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      toast.error('You must be logged in.');
-      setSaving(false);
-      return;
-    }
-
-    // 2. Get Tenant
-    const { data: roleData, error: roleError } = await supabase
+    // Get current user's tenant ID
+    const { data: roleData } = await supabase
       .from('tenant-user-role')
       .select('tenant-id')
-      .eq('user-id', userData.user.id)
-      .maybeSingle();
-
-    if (roleError) console.error("Tenant check error:", roleError);
+      .eq('user-id', (await supabase.auth.getUser()).data.user?.id)
+      .single();
 
     if (!roleData) {
       toast.error('Unable to determine your tenant. Please refresh the page.');
