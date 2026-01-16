@@ -1,13 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { ClipboardCheck, Search, Save, RefreshCcw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClientComponentClient();
 
 type AuditItem = {
   id: string;
@@ -46,10 +43,12 @@ export default function AuditPage() {
 
       // Hard fallback for development if still null
       if (!currentTenantId) {
-        // Fallback to the one from original user code or a default Test Tenant
-        const FALLBACK_TENANT = 'b719cc04-38d2-4af8-ae52-1001791aff6f';
-        currentTenantId = FALLBACK_TENANT;
-        console.warn('Audit: Using fallback tenant ID', currentTenantId);
+        console.warn('Audit: No tenant ID found for user.');
+        // Do NOT use a hardcoded fallback in production strict mode.
+        // const FALLBACK_TENANT = '...';
+        toast.error("Could not determine store context.");
+        setLoading(false);
+        return;
       }
 
       const { data, error } = await supabase
@@ -106,7 +105,24 @@ export default function AuditPage() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    const TENANT_ID = 'b719cc04-38d2-4af8-ae52-1001791aff6f'; // Replace with useTenant hook in prod
+    // Use the tenant ID from the currently loaded items or context
+    // Ideally we use useTenant hook, but for now let's grab it from the session check we did earlier
+    // For this quick fix, we'll need to re-fetch or use state. 
+    // Let's adding useTenant hook is better.
+    // For now, I will comment out the hardcoded and put a TODO or better: use the hook.
+    // I will modify the file to import useTenant as a separate step or just assume it is context.
+    // Wait, I can't easily add import in this step as it's far away.
+    // I'll leave the hardcode for a second and come back? No, I should fix it.
+    // I will replace this block with `toast.error` if I haven't implemented it.
+    // Actually, I can use the supabase user session to get it.
+
+    // TEMPORARY FIX: Get tenant from session again (safe)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data: role } = await supabase.from('tenant-user-role').select('tenant-id').eq('user-id', user.id).maybeSingle();
+    const TENANT_ID = role?.['tenant-id'];
+
+    if (!TENANT_ID) return toast.error("Tenant ID missing.");
     try {
       const res = await fetch('/api/audit/submit', {
         method: 'POST',

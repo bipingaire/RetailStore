@@ -1,10 +1,11 @@
-'use client';
 import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Upload, FileText, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function ZReportUploadPage() {
     const supabase = createClientComponentClient();
+    const { tenantId } = useTenant();
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -12,6 +13,10 @@ export default function ZReportUploadPage() {
 
     async function handleUpload() {
         if (!file) return;
+        if (!tenantId) {
+            setError("Tenant context missing. Please refresh.");
+            return;
+        }
 
         setUploading(true);
         setError('');
@@ -50,6 +55,7 @@ export default function ZReportUploadPage() {
 
             // 4. Save to database
             await supabase.from('daily_sales_z_report_data').insert({
+                tenant_id: tenantId, // Add tenant_id
                 report_date: parseResult.reportDate,
                 total_sales_amount: parseResult.totalSales,
                 transaction_count: parseResult.transactionCount,
