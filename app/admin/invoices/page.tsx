@@ -168,9 +168,29 @@ export default function InvoicePage() {
         if (json.success) {
           aggregatedItems = [...aggregatedItems, ...json.data.items.map((item: any) => ({ ...item, id: Math.random().toString(36).substr(2, 9), expiry: '' }))];
           const pageMeta = json.data.metadata || {};
-          lastMetadata = { ...lastMetadata, ...pageMeta };
+
+          // Smart Merge: Don't overwrite existing valid data with empty/zero from other pages
+          lastMetadata = {
+            ...lastMetadata,
+            vendor_name: (pageMeta.vendor_name && pageMeta.vendor_name !== 'string') ? pageMeta.vendor_name : lastMetadata.vendor_name,
+            invoice_number: (pageMeta.invoice_number && pageMeta.invoice_number !== 'string') ? pageMeta.invoice_number : lastMetadata.invoice_number,
+            invoice_date: (pageMeta.invoice_date && pageMeta.invoice_date !== 'YYYY-MM-DD') ? pageMeta.invoice_date : lastMetadata.invoice_date,
+
+            // Prefer non-zero values
+            total_tax: (pageMeta.total_tax > 0) ? pageMeta.total_tax : (lastMetadata.total_tax || 0),
+            total_transport: (pageMeta.total_transport > 0) ? pageMeta.total_transport : (lastMetadata.total_transport || 0),
+            total_amount: (pageMeta.total_amount > 0) ? pageMeta.total_amount : (lastMetadata.total_amount || 0),
+          };
+
           const pageVendor = json.data.vendor || {};
-          lastVendorData = { ...lastVendorData, ...pageVendor };
+          // Merge vendor data, preferring longer/more complete strings
+          Object.keys(pageVendor).forEach(key => {
+            // @ts-ignore
+            if (pageVendor[key] && pageVendor[key] !== 'string' && pageVendor[key].length > (lastVendorData[key]?.length || 0)) {
+              // @ts-ignore
+              lastVendorData[key] = pageVendor[key];
+            }
+          });
         }
       }
 

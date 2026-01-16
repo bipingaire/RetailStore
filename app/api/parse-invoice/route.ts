@@ -30,7 +30,10 @@ export async function POST(req: Request) {
       
       2. **INVOICE METADATA**:
          - 'invoice_number', 'invoice_date'
-         - 'total_tax', 'total_transport', 'total_amount'
+         - 'total_tax': Look for "Tax", "VAT", "GST".
+         - 'total_transport': Look for "Shipping", "Freight", "Transport", "Delivery".
+         - 'total_amount': The Grand Total / Final Amount Due.
+         - *CRITICAL*: If explicit totals are missing, SUM the line items to calculate them.
 
       3. **LINE ITEMS**:
          - Clean product names, SKU, UPC, Qty, Unit Cost.
