@@ -207,25 +207,29 @@ export default function InvoicePage() {
     let vendorId = null;
     try {
       // Check existence
-      const { data: existing } = await supabase
+      const { data: existing, error: fetchError } = await supabase
         .from('vendors')
         .select('id')
         .eq('tenant-id', TENANT_ID)
         .eq('name', finalVendorName)
-        .single();
+        .maybeSingle();
+
+      if (fetchError) console.warn("Error checking vendor:", fetchError);
 
       if (existing) {
         // Update
         vendorId = existing.id;
-        await supabase.from('vendors').update({
+        const { error: updateError } = await supabase.from('vendors').update({
           ein: vendorData.ein,
-          address: vendorData.address, // Correct column name
+          address: vendorData.address,
           website: vendorData.website,
           email: vendorData.email,
-          'contact-phone': vendorData.phone, // Kebab-case
+          'contact-phone': vendorData.phone,
           fax: vendorData.fax,
-          'poc-name': vendorData.poc_name    // Kebab-case
+          'poc-name': vendorData.poc_name
         }).eq('id', vendorId);
+
+        if (updateError) throw updateError;
       } else {
         // Insert
         const { data: newVendor, error: vError } = await supabase.from('vendors').insert({
