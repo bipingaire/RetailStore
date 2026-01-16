@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase Client
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY! // Use Service Role to ensure we can write to inventory/batches
-);
-
 export async function POST(req: Request) {
+    // Initialize Supabase Client inside handler (Runtime only)
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     try {
         const { items, tenantId } = await req.json();
 
