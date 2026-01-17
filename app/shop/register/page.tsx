@@ -2,8 +2,9 @@
 import { useState, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, User, Phone, ArrowRight, ShoppingBag, CheckCircle } from 'lucide-react';
+import { Mail, Loader2, ShoppingBag, CheckCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,9 +20,10 @@ function RegisterPageContent() {
         password: '',
         confirmPassword: ''
     });
+    const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [emailSent, setEmailSent] = useState(false);
+    const [step, setStep] = useState<'form' | 'otp'>('form');
 
     const redirectTo = searchParams?.get('redirect') || '/shop';
 
@@ -42,49 +44,77 @@ function RegisterPageContent() {
         }
 
         try {
-            // Resolve Tenant ID (Mock or Real)
-            // Ideally this comes from the URL subdomain or a context
-            // For now, we use a known ID for InduMart or fallback
-            // In a real app, you would fetch this from "subdomain-tenant-mapping"
-            let tenantId = '11111111-1111-1111-1111-111111111111'; // Default to InduMart Demo
+            // Resolve Tenant ID
+            let tenantId = '11111111-1111-1111-1111-111111111111'; // Default
 
-            // Sign up with email confirmation enabled
-            const { data, error: signUpError } = await supabase.auth.signUp({
+            // Use signInWithOtp to send a code instead of a link
+            const { error: otpError } = await supabase.auth.signInWithOtp({
                 email: formData.email,
-                password: formData.password,
                 options: {
+                    shouldCreateUser: true,
                     data: {
                         full_name: formData.fullName,
                         phone: formData.phone,
-                        tenant_id: tenantId // Pass Tenant ID to Trigger
-                    },
-                    emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`
+                        tenant_id: tenantId
+                    }
                 }
             });
 
-            if (signUpError) {
-                setError(signUpError.message);
+            if (otpError) {
+                setError(otpError.message);
                 setLoading(false);
                 return;
             }
 
-            if (data.user) {
-                // Check if email confirmation is required
-                if (data.user.identities && data.user.identities.length === 0) {
-                    // Email already registered
-                    setError('This email is already registered. Please login instead.');
-                    setLoading(false);
-                    return;
-                }
+            // OTP sent successfully
+            setStep('otp');
+            setError('');
+            setLoading(false);
 
-                // Email sent successfully - show confirmation message
-                setEmailSent(true);
-                setLoading(false);
-
-                console.log('✅ Registration successful! Confirmation email sent to:', formData.email);
-            }
         } catch (err: any) {
             setError(err.message || 'An error occurred during registration');
+            setLoading(false);
+        }
+    }
+
+    async function handleVerifyOtp() {
+        setLoading(true);
+        setError('');
+
+        try {
+            // Verify the OTP
+            const { data, error: verifyError } = await supabase.auth.verifyOtp({
+                email: formData.email,
+                token: otp,
+                type: 'email'
+            });
+
+            if (verifyError) {
+                setError(verifyError.message);
+                setLoading(false);
+                return;
+            }
+
+            if (data.session) {
+                // User is verified and logged in. Now set the password.
+                const { error: updateError } = await supabase.auth.updateUser({
+                    password: formData.password
+                });
+
+                if (updateError) {
+                    console.error('Error setting password:', updateError);
+                    // Don't block login, but warn? Or just proceed since they are logged in.
+                    toast.error('Account verified, but failed to set password. Please reset it later.');
+                } else {
+                    toast.success('Account created and verified successfully!');
+                }
+
+                // Redirect
+                router.push(redirectTo);
+                router.refresh();
+            }
+        } catch (err: any) {
+            setError(err.message || 'Failed to verify OTP');
             setLoading(false);
         }
     }
@@ -104,54 +134,62 @@ function RegisterPageContent() {
         }
     }
 
-    // Show success message after email is sent
-    if (emailSent) {
+    if (step === 'otp') {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                 <div className="w-full max-w-md">
                     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 text-center">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
-                            <CheckCircle className="text-emerald-600" size={32} />
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                            <Mail className="text-blue-600" size={32} />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email!</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
                         <p className="text-gray-600 mb-6">
-                            We've sent a confirmation link to:
+                            We've sent a 6-digit verification code to:
                         </p>
-                        <p className="text-emerald-600 font-semibold text-lg mb-6">
+                        <p className="text-blue-600 font-semibold text-lg mb-6">
                             {formData.email}
                         </p>
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                            <p className="text-sm text-blue-900 mb-2">
-                                <strong>📧 Next Steps:</strong>
-                            </p>
-                            <ol className="text-sm text-blue-800 space-y-1 ml-4 list-decimal">
-                                <li>Open your email inbox</li>
-                                <li>Click the confirmation link</li>
-                                <li>You'll be automatically logged in</li>
-                                <li>Start shopping!</li>
-                            </ol>
+                        <div className="mb-6">
+                            <label className="block text-left text-sm font-semibold text-gray-700 mb-2">Enter Verification Code</label>
+                            <input
+                                type="text"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                placeholder="123456"
+                                className="w-full text-center text-2xl tracking-widest bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                                maxLength={6}
+                            />
                         </div>
 
-                        <p className="text-xs text-gray-500 mb-4">
-                            Didn't receive the email? Check your spam folder
-                        </p>
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm mb-4">
+                                {error}
+                            </div>
+                        )}
 
-                        <div className="space-y-3">
-                            <button
-                                onClick={() => setEmailSent(false)}
-                                className="w-full bg-gray-100 text-gray-700 py-2.5 rounded-lg font-semibold text-sm hover:bg-gray-200 transition-all duration-200"
-                            >
-                                ← Back to Registration
-                            </button>
-                            <Link
-                                href="/shop/login"
-                                className="block w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 text-center"
-                            >
-                                Go to Login
-                            </Link>
-                        </div>
+                        <button
+                            onClick={handleVerifyOtp}
+                            disabled={loading || otp.length < 6}
+                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="animate-spin" size={20} />
+                                    Verifying...
+                                </>
+                            ) : (
+                                'Verify & Login'
+                            )}
+                        </button>
+
+                        <button
+                            onClick={() => setStep('form')}
+                            className="mt-4 text-sm text-gray-500 hover:text-gray-700 underline"
+                        >
+                            Use a different email
+                        </button>
                     </div>
                 </div>
             </div>
@@ -256,8 +294,16 @@ function RegisterPageContent() {
                             disabled={loading || !formData.email || !formData.password || !formData.fullName}
                             className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            {loading ? 'Sending confirmation email...' : 'Create Account'}
-                            <ArrowRight size={16} />
+                            {loading ? (
+                                <>
+                                    <Loader2 className="animate-spin" size={16} />
+                                    Sending OTP...
+                                </>
+                            ) : (
+                                <>
+                                    Create Account <ArrowRight size={16} />
+                                </>
+                            )}
                         </button>
                     </div>
 
