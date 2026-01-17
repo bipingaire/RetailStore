@@ -12,6 +12,7 @@ import Link from 'next/link';
 type Product = {
   id: string;
   price: number;
+  stock: number;
   global_products: {
     name: string;
     image_url: string;
@@ -111,6 +112,7 @@ export default function ShopHome() {
         .select(`
           id: inventory-id,
           price: selling-price-amount,
+          stock: current-stock-quantity,
           global_products: global-product-master-catalog!global-product-id (
              name: product-name,
              image_url: image-url,
@@ -196,16 +198,17 @@ export default function ShopHome() {
           featured_on_website: featured-on-website,
           segment_products: campaign-product-segment-group!campaign-id (
              store_inventory: retail-store-inventory-item!inventory-id (
-                id: inventory-id,
-                price: selling-price-amount,
-                global_products: global-product-master-catalog!global-product-id (
-                   name: product-name,
-                   image_url: image-url,
-                   category: category-name,
-                   manufacturer: manufacturer-name,
-                   upc_ean: upc-ean-code
-                )
-             )
+                 id: inventory-id,
+                 price: selling-price-amount,
+                 stock: current-stock-quantity,
+                 global_products: global-product-master-catalog!global-product-id (
+                    name: product-name,
+                    image_url: image-url,
+                    category: category-name,
+                    manufacturer: manufacturer-name,
+                    upc_ean: upc-ean-code
+                 )
+              )
           )
         `)
         .eq('is-active-flag', true)
@@ -220,6 +223,7 @@ export default function ShopHome() {
         .select(`
           id: inventory-id,
           price: selling-price-amount,
+          stock: current-stock-quantity,
           global_products: global-product-master-catalog!global-product-id (
             name: product-name,
             image_url: image-url,
@@ -524,9 +528,16 @@ export default function ShopHome() {
                     <img src={prod.global_products.image_url} className="w-full h-full object-contain mix-blend-multiply" />
                   </div>
                   <h4 className="font-bold text-xs text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{cleanName(prod.global_products.name)}</h4>
-                  <div className="font-black text-green-600 mb-3">${prod.price.toFixed(2)}</div>
+                  <div className="font-black text-green-600 mb-2">${prod.price.toFixed(2)}</div>
+                  <div className="text-[10px] text-gray-500 mb-2">
+                    {prod.stock > 0 ? `${prod.stock} in stock` : 'Out of stock'}
+                  </div>
 
-                  {qty === 0 ? (
+                  {prod.stock === 0 ? (
+                    <div className="w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-lg text-xs text-center cursor-not-allowed">
+                      Out of Stock
+                    </div>
+                  ) : qty === 0 ? (
                     <button
                       onClick={() => updateQty(prod.id, 1)}
                       className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-700 transition"
@@ -666,13 +677,22 @@ export default function ShopHome() {
                         </h4>
 
                         {/* Pricing */}
-                        <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center gap-2 mb-2">
                           <span className="text-xl font-black text-red-600">${salePrice.toFixed(2)}</span>
                           <span className="text-sm text-gray-400 line-through">${originalPrice.toFixed(2)}</span>
                         </div>
 
+                        {/* Stock Display */}
+                        <div className="text-xs text-gray-500 mb-3">
+                          {prodItem.stock > 0 ? `${prodItem.stock} in stock` : 'Out of stock'}
+                        </div>
+
                         {/* Add to Cart */}
-                        {qty === 0 ? (
+                        {prodItem.stock === 0 ? (
+                          <div className="w-full bg-gray-300 text-gray-500 font-bold py-2.5 rounded-lg text-sm text-center cursor-not-allowed">
+                            Out of Stock
+                          </div>
+                        ) : qty === 0 ? (
                           <button
                             onClick={() => updateQty(prodItem.id, 1)}
                             className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-colors shadow-md"
@@ -755,7 +775,7 @@ export default function ShopHome() {
                           {prodItem.global_products.category || 'Assorted'}
                         </div>
                         <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em]">{cleanName(prodItem.global_products.name)}</h4>
-                        <div className="flex items-center justify-between mt-2 mb-4">
+                        <div className="flex items-center justify-between mt-2 mb-2">
                           <div className="flex items-center gap-2">
                             <span className="text-lg font-black text-green-700">${finalPrice.toFixed(2)}</span>
                             {hasPromo && <span className="text-xs text-gray-400 line-through">${prodItem.price.toFixed(2)}</span>}
@@ -766,9 +786,16 @@ export default function ShopHome() {
                             </span>
                           )}
                         </div>
+                        <div className="text-[10px] text-gray-500 mb-3">
+                          {prodItem.stock > 0 ? `${prodItem.stock} in stock` : 'Out of stock'}
+                        </div>
                         {(() => {
                           const qty = cart[prodItem.id] || 0;
-                          return qty === 0 ? (
+                          return prodItem.stock === 0 ? (
+                            <div className="w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-lg text-sm text-center cursor-not-allowed">
+                              Out of Stock
+                            </div>
+                          ) : qty === 0 ? (
                             <button
                               onClick={() => updateQty(prodItem.id, 1)}
                               className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
@@ -937,13 +964,23 @@ export default function ShopHome() {
                     <span className="text-[10px] text-gray-400">(4)</span>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  {/* Stock Badge */}
+                  {prodItem.stock === 0 && (
+                    <div className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm z-20">
+                      OUT OF STOCK
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex flex-col">
                       <span className="text-lg font-black text-green-700">${prodItem.price}</span>
+                      <span className="text-[10px] text-gray-500">
+                        {prodItem.stock > 0 ? `${prodItem.stock} in stock` : 'Out of stock'}
+                      </span>
                     </div>
 
                     {/* Compact Add/Qty Button */}
-                    {qty === 0 ? (
+                    {prodItem.stock === 0 ? null : qty === 0 ? (
                       <button
                         onClick={() => updateQty(prodItem.id, 1)}
                         className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-green-600 hover:text-white transition-colors"
