@@ -935,7 +935,7 @@ export default function ShopHome() {
                   />
                   {/* Quick Add Overlay on Desktop */}
                   <div className="absolute bottom-2 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {qty === 0 && (
+                    {prodItem.stock > 0 && qty === 0 && (
                       <button
                         onClick={() => updateQty(prodItem.id, 1)}
                         className="bg-white text-gray-900 shadow-md text-xs font-bold px-4 py-2 rounded-full hover:bg-green-600 hover:text-white transition-colors"
