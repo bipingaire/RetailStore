@@ -92,8 +92,9 @@ export async function POST(req: Request) {
           .insert({
             'tenant-id': tenantId,
             'global-product-id': globalProductId,
-            'is-active': true, // Explicitly set active on creation
-            'current-stock-quantity': 0 // Initialize at 0, update later
+            'is-active': true,
+            'current-stock-quantity': 0,
+            'selling-price-amount': item.unit_cost || 0 // Initialize with Cost Price
           })
           .select()
           .single();
@@ -125,21 +126,29 @@ export async function POST(req: Request) {
       // We manually update the parent record to reflect the new stock
       console.log("   --> Updating Inventory Totals...");
 
-      // Fetch current stock first (safe increment)
+      // Fetch current stock & price
       const { data: currentInv } = await supabase
         .from('retail-store-inventory-item')
-        .select('current-stock-quantity')
+        .select('current-stock-quantity, selling-price-amount')
         .eq('inventory-id', inventoryId)
         .single();
 
       const newTotal = (currentInv?.['current-stock-quantity'] || 0) + parseInt(item.qty);
+      const currentPrice = currentInv?.['selling-price-amount'] || 0;
+
+      const updates: any = {
+        'current-stock-quantity': newTotal,
+        'is-active': true
+      };
+
+      // Only update price if it's currently 0 (avoid overwriting set prices)
+      if (currentPrice === 0 && item.unit_cost > 0) {
+        updates['selling-price-amount'] = item.unit_cost;
+      }
 
       await supabase
         .from('retail-store-inventory-item')
-        .update({
-          'current-stock-quantity': newTotal,
-          'is-active': true  // Force Active so it shows in "My Inventory"
-        })
+        .update(updates)
         .eq('inventory-id', inventoryId);
     }
 
