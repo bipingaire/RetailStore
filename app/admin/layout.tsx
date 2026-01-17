@@ -45,6 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Restock', href: '/admin/restock', icon: Truck, desc: 'Vendor POs', badge: 'Action' },
     { name: 'Vendor Relations', href: '/admin/vendors', icon: Users, desc: 'Suppliers & Payments' },
     { name: 'POS Mapping', href: '/admin/pos-mapping', icon: LinkIcon, desc: 'Fix Sales Data' },
+    { name: 'Payment Settings', href: '/admin/settings/payment', icon: Settings, desc: 'Stripe Config', badge: 'New' },
     { name: 'Settings', href: '/admin/settings', icon: Settings, desc: 'Store & Vendors' },
   ];
 
