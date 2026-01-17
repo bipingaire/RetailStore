@@ -9,11 +9,9 @@ import CountdownTimer from './components/countdown-timer';
 import Link from 'next/link';
 
 // --- TYPES ---
-// 1. Type Update
 type Product = {
   id: string;
   price: number;
-  stock: number; // Added stock
   global_products: {
     name: string;
     image_url: string;
@@ -24,7 +22,6 @@ type Product = {
 
 type InventoryItem = {
   price: number;
-  stock: number;
   global_products: {
     name: string;
     image_url: string;
@@ -87,44 +84,66 @@ export default function ShopHome() {
   useEffect(() => {
     async function fetchBoughtProducts() {
       if (!user) return;
-      const { data: orders } = await supabase.from('customer-order-header').select('order-id').eq('customer-id', user.id);
+
+      // 1. Get Orders
+      const { data: orders } = await supabase
+        .from('customer-order-header')
+        .select('order-id')
+        .eq('customer-id', user.id);
+
       if (!orders || orders.length === 0) return;
+
       const orderIds = orders.map(o => o['order-id']);
-      const { data: lineItems } = await supabase.from('order-line-item-detail').select('inventory-id').in('order-id', orderIds);
+
+      // 2. Get Inventory IDs
+      const { data: lineItems } = await supabase
+        .from('order-line-item-detail')
+        .select('inventory-id')
+        .in('order-id', orderIds);
+
       if (!lineItems || lineItems.length === 0) return;
+
       const inventoryIds = Array.from(new Set(lineItems.map(i => i['inventory-id'])));
 
+      // 3. Fetch Product Details
       const { data: products } = await supabase
         .from('retail-store-inventory-item')
         .select(`
           id: inventory-id,
           price: selling-price-amount,
-          stock: current-stock-quantity,
           global_products: global-product-master-catalog!global-product-id (
-             name: product-name, image_url: image-url, category: category-name, manufacturer: manufacturer-name
+             name: product-name,
+             image_url: image-url,
+             category: category-name,
+             manufacturer: manufacturer-name
           )
         `)
         .in('inventory-id', inventoryIds)
-        .limit(10);
+        .limit(10); // Limit to recent 10 unique items
 
       if (products) {
-        setBoughtProducts(products.map((p: any) => ({ ...p, price: p.price || 0, stock: p.stock || 0 })));
+        setBoughtProducts(products.map((p: any) => ({ ...p, price: p.price || 0 })));
       }
     }
     fetchBoughtProducts();
   }, [user]);
 
-  // --- DATA LOADING & CART LOGIC ---
+  // --- DATA LOADING & CART LOGIC (Kept same as before) ---
   useEffect(() => {
     const savedCart = localStorage.getItem('retail_cart');
     if (savedCart) setCart(JSON.parse(savedCart));
     setIsCartLoaded(true);
+
+    // Check for pending cart item from redirect
     const pendingItem = sessionStorage.getItem('pending_cart_item');
     if (pendingItem && user) {
       const productId = pendingItem;
       setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
       sessionStorage.removeItem('pending_cart_item');
-      setTimeout(() => { window.location.href = '/shop/cart'; }, 500);
+      // Redirect to cart after adding
+      setTimeout(() => {
+        window.location.href = '/shop/cart';
+      }, 500);
     }
   }, [user]);
 
@@ -134,37 +153,83 @@ export default function ShopHome() {
 
   useEffect(() => {
     async function loadData() {
+      // 0. Resolve Tenant from Hostname
       const hostname = window.location.hostname;
       const subdomain = hostname.split('.')[0];
-      const lookupSubdomain = hostname.includes('localhost') ? 'highpoint' : subdomain;
-      const { data: tenantData } = await supabase.from('subdomain-tenant-mapping').select('tenant-id').eq('subdomain', lookupSubdomain).single();
-      if (!tenantData) { setLoading(false); return; }
-      const tenantId = tenantData['tenant-id'];
 
-      // 1. Campaign Query
-      const { data: campaignData } = await supabase
+      console.log('Resolving tenant for subdomain:', subdomain);
+
+      // Default to highpoint for localhost if needed, or handle dev logic
+      const lookupSubdomain = hostname.includes('localhost') ? 'highpoint' : subdomain;
+
+      const { data: tenantData } = await supabase
+        .from('subdomain-tenant-mapping')
+        .select('tenant-id')
+        .eq('subdomain', lookupSubdomain)
+        .single();
+
+      if (!tenantData) {
+        console.error('Tenant not found for subdomain:', lookupSubdomain);
+        setLoading(false);
+        return;
+      }
+
+      const tenantId = tenantData['tenant-id'];
+      console.log('Loaded tenant ID:', tenantId);
+
+      // 1. Fetch Campaigns (replaces product_segments AND promotions)
+      const { data: campaignData, error: campaignError } = await supabase
         .from('marketing-campaign-master')
         .select(`
-          id: campaign-id, slug: campaign-slug, title: title-text, subtitle: subtitle-text, badge_label: badge-label, badge_color: badge-color, tagline: tagline-text, segment_type: campaign-type, sort_order: sort-order, is_promoted: is-promoted, promotion_ends_at: promotion-ends-at, discount_percentage: discount-percentage, featured_on_website: featured-on-website,
+          id: campaign-id,
+          slug: campaign-slug,
+          title: title-text,
+          subtitle: subtitle-text,
+          badge_label: badge-label,
+          badge_color: badge-color,
+          tagline: tagline-text,
+          segment_type: campaign-type,
+          sort_order: sort-order,
+          is_promoted: is-promoted,
+          promotion_ends_at: promotion-ends-at,
+          discount_percentage: discount-percentage,
+          featured_on_website: featured-on-website,
           segment_products: campaign-product-segment-group!campaign-id (
              store_inventory: retail-store-inventory-item!inventory-id (
-                id: inventory-id, price: selling-price-amount, stock: current-stock-quantity,
+                id: inventory-id,
+                price: selling-price-amount,
                 global_products: global-product-master-catalog!global-product-id (
-                   name: product-name, image_url: image-url, category: category-name, manufacturer: manufacturer-name, upc_ean: upc-ean-code
+                   name: product-name,
+                   image_url: image-url,
+                   category: category-name,
+                   manufacturer: manufacturer-name,
+                   upc_ean: upc-ean-code
                 )
              )
           )
         `)
-        .eq('is-active-flag', true).eq('tenant-id', tenantId).order('sort-order', { ascending: true });
+        .eq('is-active-flag', true)
+        .eq('tenant-id', tenantId) // Filter by Tenant
+        .order('sort-order', { ascending: true });
 
-      // 2. Inventory Query
+      if (campaignError) console.error("Campaign load error:", campaignError);
+
+      // 2. Fetch General Inventory
       const { data: prodData, error: prodError } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          id: inventory-id, price: selling-price-amount, stock: current-stock-quantity,
-          global_products: global-product-master-catalog!global-product-id ( name: product-name, image_url: image-url, category: category-name, manufacturer: manufacturer-name )
+          id: inventory-id,
+          price: selling-price-amount,
+          global_products: global-product-master-catalog!global-product-id (
+            name: product-name,
+            image_url: image-url,
+            category: category-name,
+            manufacturer: manufacturer-name
+          )
         `)
-        .eq('is-active', true).eq('tenant-id', tenantId).limit(1000);
+        .eq('is-active', true)
+        .eq('tenant-id', tenantId) // Filter by Tenant
+        .limit(1000);
 
       if (prodError) console.error("Inventory load error:", prodError);
 
@@ -227,29 +292,6 @@ export default function ShopHome() {
   };
 
   const updateQty = (id: string, delta: number) => {
-    // 1. Check Stock Availability if adding
-    if (delta > 0) {
-      let product = products.find(p => p.id === id) || boughtProducts.find(p => p.id === id);
-      if (!product) {
-        for (const s of segments) {
-          const found = s.segment_products.find(sp => sp.store_inventory?.id === id);
-          if (found?.store_inventory) {
-            product = found.store_inventory;
-            break;
-          }
-        }
-      }
-
-      if (product) {
-        const maxStock = product.stock ?? 0;
-        const currentQty = cart[id] || 0;
-        if (currentQty + delta > maxStock) {
-          alert(`Sorry, only ${maxStock} items available in stock.`);
-          return;
-        }
-      }
-    }
-
     setCart(prev => {
       const current = prev[id] || 0;
       const newQty = Math.max(0, current + delta);
