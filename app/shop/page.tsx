@@ -7,11 +7,13 @@ import {
 } from 'lucide-react';
 import CountdownTimer from './components/countdown-timer';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 // --- TYPES ---
 type Product = {
   id: string;
   price: number;
+  stock_qty: number;
   global_products: {
     name: string;
     image_url: string;
@@ -198,6 +200,7 @@ export default function ShopHome() {
              store_inventory: retail-store-inventory-item!inventory-id (
                 id: inventory-id,
                 price: selling-price-amount,
+                stock_qty: current-stock-quantity,
                 global_products: global-product-master-catalog!global-product-id (
                    name: product-name,
                    image_url: image-url,
@@ -220,6 +223,7 @@ export default function ShopHome() {
         .select(`
           id: inventory-id,
           price: selling-price-amount,
+          stock_qty: current-stock-quantity,
           global_products: global-product-master-catalog!global-product-id (
             name: product-name,
             image_url: image-url,
@@ -268,7 +272,8 @@ export default function ShopHome() {
 
       const normalizedProducts = (prodData as any[] | null)?.map((p) => ({
         ...p,
-        price: Number(p.price ?? 0)
+        price: Number(p.price ?? 0),
+        stock_qty: Number(p.stock_qty ?? 0)
       })) || [];
 
       setPromos(derivedPromos);
@@ -292,6 +297,20 @@ export default function ShopHome() {
   };
 
   const updateQty = (id: string, delta: number) => {
+    // Check stock when adding to cart
+    if (delta > 0) {
+      const product = products.find(p => p.id === id);
+      if (product && product.stock_qty === 0) {
+        toast.error('Sorry, this item is out of stock');
+        return;
+      }
+      const currentQty = cart[id] || 0;
+      if (product && currentQty >= product.stock_qty) {
+        toast.error(`Only ${product.stock_qty} items available in stock`);
+        return;
+      }
+    }
+
     setCart(prev => {
       const current = prev[id] || 0;
       const newQty = Math.max(0, current + delta);
@@ -526,7 +545,11 @@ export default function ShopHome() {
                   <h4 className="font-bold text-xs text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{cleanName(prod.global_products.name)}</h4>
                   <div className="font-black text-green-600 mb-3">${prod.price.toFixed(2)}</div>
 
-                  {qty === 0 ? (
+                  {prod.stock_qty === 0 ? (
+                    <div className="w-full bg-gray-200 text-gray-500 font-bold py-2 rounded-lg text-xs text-center cursor-not-allowed">
+                      Out of Stock
+                    </div>
+                  ) : qty === 0 ? (
                     <button
                       onClick={() => updateQty(prod.id, 1)}
                       className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-700 transition"
@@ -672,7 +695,11 @@ export default function ShopHome() {
                         </div>
 
                         {/* Add to Cart */}
-                        {qty === 0 ? (
+                        {prodItem.stock_qty === 0 ? (
+                          <div className="w-full bg-gray-300 text-gray-600 font-bold py-2.5 rounded-lg text-sm text-center cursor-not-allowed">
+                            Out of Stock
+                          </div>
+                        ) : qty === 0 ? (
                           <button
                             onClick={() => updateQty(prodItem.id, 1)}
                             className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-colors shadow-md"
@@ -768,7 +795,11 @@ export default function ShopHome() {
                         </div>
                         {(() => {
                           const qty = cart[prodItem.id] || 0;
-                          return qty === 0 ? (
+                          return prodItem.stock_qty === 0 ? (
+                            <div className="w-full bg-gray-200 text-gray-500 font-bold py-2 rounded-lg text-sm text-center cursor-not-allowed">
+                              Out of Stock
+                            </div>
+                          ) : qty === 0 ? (
                             <button
                               onClick={() => updateQty(prodItem.id, 1)}
                               className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
