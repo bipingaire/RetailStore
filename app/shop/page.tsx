@@ -543,25 +543,32 @@ export default function ShopHome() {
                     <img src={prod.global_products.image_url} className="w-full h-full object-contain mix-blend-multiply" />
                   </div>
                   <h4 className="font-bold text-xs text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{cleanName(prod.global_products.name)}</h4>
-                  <div className="font-black text-green-600 mb-3">${prod.price.toFixed(2)}</div>
+                  <div className="font-black text-green-600 mb-1">${prod.price.toFixed(2)}</div>
 
+                  {/* Stock Badge */}
                   {prod.stock_qty === 0 ? (
-                    <div className="w-full bg-gray-200 text-gray-500 font-bold py-2 rounded-lg text-xs text-center cursor-not-allowed">
-                      Out of Stock
-                    </div>
-                  ) : qty === 0 ? (
-                    <button
-                      onClick={() => updateQty(prod.id, 1)}
-                      className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-700 transition"
-                    >
-                      Add
-                    </button>
+                    <div className="text-[10px] font-bold text-red-600 mb-3">Out of Stock</div>
+                  ) : prod.stock_qty <= 10 ? (
+                    <div className="text-[10px] font-bold text-orange-600 mb-3">Only {prod.stock_qty} left in stock</div>
                   ) : (
-                    <div className="flex items-center justify-center gap-2 w-full bg-gray-100 rounded-lg py-1">
-                      <button onClick={() => updateQty(prod.id, -1)} className="p-1 hover:text-red-500"><Minus size={12} /></button>
-                      <span className="font-bold text-xs">{qty}</span>
-                      <button onClick={() => updateQty(prod.id, 1)} className="p-1 hover:text-green-600"><Plus size={12} /></button>
-                    </div>
+                    <div className="text-[10px] font-bold text-green-600 mb-3">In Stock ({prod.stock_qty} available)</div>
+                  )}
+
+                  {prod.stock_qty > 0 && (
+                    qty === 0 ? (
+                      <button
+                        onClick={() => updateQty(prod.id, 1)}
+                        className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-700 transition"
+                      >
+                        Add
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 w-full bg-gray-100 rounded-lg py-1">
+                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 hover:text-red-500"><Minus size={12} /></button>
+                        <span className="font-bold text-xs">{qty}</span>
+                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 hover:text-green-600"><Plus size={12} /></button>
+                      </div>
+                    )
                   )}
                 </div>
               );
@@ -689,33 +696,40 @@ export default function ShopHome() {
                         </h4>
 
                         {/* Pricing */}
-                        <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center gap-2 mb-2">
                           <span className="text-xl font-black text-red-600">${salePrice.toFixed(2)}</span>
                           <span className="text-sm text-gray-400 line-through">${originalPrice.toFixed(2)}</span>
                         </div>
 
-                        {/* Add to Cart */}
+                        {/* Stock Badge */}
                         {prodItem.stock_qty === 0 ? (
-                          <div className="w-full bg-gray-300 text-gray-600 font-bold py-2.5 rounded-lg text-sm text-center cursor-not-allowed">
-                            Out of Stock
-                          </div>
-                        ) : qty === 0 ? (
-                          <button
-                            onClick={() => updateQty(prodItem.id, 1)}
-                            className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-colors shadow-md"
-                          >
-                            Add to Cart
-                          </button>
+                          <div className="text-xs font-bold text-red-600 mb-3">Out of Stock</div>
+                        ) : prodItem.stock_qty <= 10 ? (
+                          <div className="text-xs font-bold text-orange-600 mb-3">Only {prodItem.stock_qty} left!</div>
                         ) : (
-                          <div className="flex items-center gap-2 bg-white border-2 border-red-200 rounded-full px-2 py-1 shadow-sm">
-                            <button onClick={() => updateQty(prodItem.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
-                              <Minus size={14} />
+                          <div className="text-xs font-bold text-green-600 mb-3">In Stock</div>
+                        )}
+
+                        {/* Add to Cart */}
+                        {prodItem.stock_qty > 0 && (
+                          qty === 0 ? (
+                            <button
+                              onClick={() => updateQty(prodItem.id, 1)}
+                              className="w-full bg-red-600 text-white font-bold py-2.5 rounded-lg text-sm hover:bg-red-700 transition-colors shadow-md"
+                            >
+                              Add to Cart
                             </button>
-                            <span className="text-sm font-bold w-6 text-center">{qty}</span>
-                            <button onClick={() => updateQty(prodItem.id, 1)} className="p-1 text-gray-500 hover:text-red-600">
-                              <Plus size={14} />
-                            </button>
-                          </div>
+                          ) : (
+                            <div className="flex items-center gap-2 bg-white border-2 border-red-200 rounded-full px-2 py-1 shadow-sm">
+                              <button onClick={() => updateQty(prodItem.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
+                                <Minus size={14} />
+                              </button>
+                              <span className="text-sm font-bold w-6 text-center">{qty}</span>
+                              <button onClick={() => updateQty(prodItem.id, 1)} className="p-1 text-gray-500 hover:text-red-600">
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                          )
                         )}
                       </div>
                     );
@@ -782,7 +796,7 @@ export default function ShopHome() {
                           {prodItem.global_products.category || 'Assorted'}
                         </div>
                         <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em]">{cleanName(prodItem.global_products.name)}</h4>
-                        <div className="flex items-center justify-between mt-2 mb-4">
+                        <div className="flex items-center justify-between mt-2 mb-2">
                           <div className="flex items-center gap-2">
                             <span className="text-lg font-black text-green-700">${finalPrice.toFixed(2)}</span>
                             {hasPromo && <span className="text-xs text-gray-400 line-through">${prodItem.price.toFixed(2)}</span>}
@@ -793,29 +807,37 @@ export default function ShopHome() {
                             </span>
                           )}
                         </div>
+
+                        {/* Stock Badge */}
+                        {prodItem.stock_qty === 0 ? (
+                          <div className="text-xs font-bold text-red-600 mb-4">Out of Stock</div>
+                        ) : prodItem.stock_qty <= 10 ? (
+                          <div className="text-xs font-bold text-orange-600 mb-4">Only {prodItem.stock_qty} left in stock</div>
+                        ) : (
+                          <div className="text-xs font-bold text-green-600 mb-4">In Stock ({prodItem.stock_qty} available)</div>
+                        )}
+
                         {(() => {
                           const qty = cart[prodItem.id] || 0;
-                          return prodItem.stock_qty === 0 ? (
-                            <div className="w-full bg-gray-200 text-gray-500 font-bold py-2 rounded-lg text-sm text-center cursor-not-allowed">
-                              Out of Stock
-                            </div>
-                          ) : qty === 0 ? (
-                            <button
-                              onClick={() => updateQty(prodItem.id, 1)}
-                              className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                            >
-                              Add to cart
-                            </button>
-                          ) : (
-                            <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
-                              <button onClick={() => updateQty(prodItem.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
-                                <Minus size={12} />
+                          return prodItem.stock_qty > 0 && (
+                            qty === 0 ? (
+                              <button
+                                onClick={() => updateQty(prodItem.id, 1)}
+                                className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                              >
+                                Add to cart
                               </button>
-                              <span className="text-xs font-bold w-5 text-center">{qty}</span>
-                              <button onClick={() => updateQty(prodItem.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
-                                <Plus size={12} />
-                              </button>
-                            </div>
+                            ) : (
+                              <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
+                                <button onClick={() => updateQty(prodItem.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
+                                  <Minus size={12} />
+                                </button>
+                                <span className="text-xs font-bold w-5 text-center">{qty}</span>
+                                <button onClick={() => updateQty(prodItem.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                            )
                           );
                         })()}
                       </div>
