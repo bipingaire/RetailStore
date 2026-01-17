@@ -173,6 +173,29 @@ export async function POST(req: Request) {
 
     const parsedData = JSON.parse(response.choices[0].message.content || '{}');
 
+    // --- POST-PROCESSING: Calculate Totals if Missing ---
+    if (!parsedData.metadata) parsedData.metadata = {};
+
+    const meta = parsedData.metadata;
+    const items = parsedData.items || [];
+
+    // Ensure numeric defaults
+    if (typeof meta.total_tax !== 'number') meta.total_tax = 0;
+    if (typeof meta.total_transport !== 'number') meta.total_transport = 0;
+
+    // Calculate sum of items
+    const itemsSum = items.reduce((acc: number, item: any) => {
+      const qty = parseFloat(item.qty) || 0;
+      const cost = parseFloat(item.unit_cost) || 0;
+      return acc + (qty * cost);
+    }, 0);
+
+    // If total_amount is missing, zero, or suspicious (less than items sum), recalculate
+    // We update it to ensure the frontend receives a valid total.
+    if (!meta.total_amount || meta.total_amount === 0 || meta.total_amount < itemsSum) {
+      meta.total_amount = parseFloat((itemsSum + meta.total_tax + meta.total_transport).toFixed(2));
+    }
+
     return NextResponse.json({ success: true, data: parsedData });
 
   } catch (error: any) {

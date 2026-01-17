@@ -194,6 +194,16 @@ export default function InvoicePage() {
         }
       }
 
+      // Final Calculation Fallback: If AI missed the total, sum the items
+      const allItems = [...items, ...aggregatedItems];
+      const itemsTotal = allItems.reduce((sum, item) => sum + (item.qty * item.unit_cost), 0);
+
+      // @ts-ignore
+      if ((!lastMetadata.total_amount || lastMetadata.total_amount === 0) && itemsTotal > 0) {
+        // @ts-ignore
+        lastMetadata.total_amount = itemsTotal + (lastMetadata.total_tax || 0) + (lastMetadata.total_transport || 0);
+      }
+
       setItems(prev => [...prev, ...aggregatedItems]);
       setMetadata(prev => ({ ...prev, ...lastMetadata } as any));
       setVendorData(prev => ({ ...prev, ...lastVendorData } as any));
@@ -204,6 +214,14 @@ export default function InvoicePage() {
       setUploading(false);
       setProcessingStatus('');
     }
+  };
+
+  const recalculateTotal = () => {
+    const itemsTotal = items.reduce((sum, item) => sum + (item.qty * item.unit_cost), 0);
+    const tax = metadata.total_tax || 0;
+    const transport = metadata.total_transport || 0;
+    setMetadata(prev => ({ ...prev, total_amount: itemsTotal + tax + transport }));
+    toast.success("Total updated based on items");
   };
 
   const updateItem = (id: string, field: keyof InvoiceItem, value: any) => setItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
@@ -378,7 +396,10 @@ export default function InvoicePage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-700">Grand Total</label>
+                  <label className="text-xs font-bold text-gray-700 flex justify-between">
+                    Grand Total
+                    <button onClick={recalculateTotal} className="text-blue-600 hover:text-blue-800 text-[10px] uppercase font-bold tracking-wider">Recalculate</button>
+                  </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-gray-900 text-sm font-bold">$</span>
                     <input type="number" className="w-full border border-blue-200 bg-blue-50/50 rounded-lg pl-6 py-2 text-sm font-bold text-blue-700" value={metadata.total_amount} onChange={(e) => setMetadata({ ...metadata, total_amount: parseFloat(e.target.value) })} />
