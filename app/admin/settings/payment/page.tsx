@@ -206,8 +206,8 @@ export default function PaymentSettingsPage() {
                     <button
                         onClick={() => setActiveTab('settings')}
                         className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${activeTab === 'settings'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
                         <CreditCard size={16} />
@@ -216,8 +216,8 @@ export default function PaymentSettingsPage() {
                     <button
                         onClick={() => setActiveTab('statements')}
                         className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${activeTab === 'statements'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                         disabled={!config.paymentEnabled}
                     >
@@ -293,7 +293,7 @@ export default function PaymentSettingsPage() {
                                             />
                                         ) : (
                                             <div className="w-full border border-gray-200 rounded-lg px-4 py-3 pr-12 bg-gray-50 font-mono text-sm text-gray-700">
-                                                {config.secretKey ? (showSecretKey ? config.secretKey : maskSecret Key(config.secretKey)) : 'Not configured'}
+                                                {config.secretKey ? (showSecretKey ? config.secretKey : maskSecretKey(config.secretKey)) : 'Not configured'}
                                             </div>
                                         )}
                                         <button
@@ -401,8 +401,8 @@ export default function PaymentSettingsPage() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stmt.status === 'succeeded' ? 'bg-green-100 text-green-800' :
-                                                            stmt.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-red-100 text-red-800'
+                                                        stmt.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-red-100 text-red-800'
                                                         }`}>
                                                         {stmt.status}
                                                     </span>
