@@ -1,50 +1,178 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2, Trash2 } from 'lucide-react';
+import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import EditInventoryModal from './edit-modal';
 
-// ... (Types remain same)
+// 1. Definition of Types based on Schema
+type InventoryItem = {
+  inventory_id: string; // from retail-store-inventory-item
+  product_id: string;   // from global-product-master-catalog
+  name: string;
+  sku: string;
+  image: string;
+  category: string;
+  manufacturer: string;
+  total_qty: number;
+  sales_price: number;
+  is_enriched: boolean;
+};
+
+type GlobalProduct = {
+  product_id: string;
+  name: string;
+  sku: string;
+  image: string;
+  category: string;
+  brand: string;
+  manufacturer: string;
+  is_active: boolean;
+  is_enriched: boolean;
+};
 
 export default function MasterInventoryPage() {
   const supabase = createClientComponentClient();
   const [activeTab, setActiveTab] = useState<'my-inventory' | 'global-catalog'>('my-inventory');
 
-  // Edit State
-  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  // Inventory State
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [globalItems, setGlobalItems] = useState<GlobalProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // ... (State & Fetch Data logic remains same)
+  // Checking existing inventory IDs to prevent duplicates in Global view
+  const [existingProductIds, setExistingProductIds] = useState<Set<string>>(new Set());
 
-  // ... (handleAddToStore remains same)
+  useEffect(() => {
+    fetchData();
+  }, [activeTab]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this item from your inventory? This cannot be undone.")) return;
-
+  async function fetchData() {
+    setLoading(true);
     try {
+      if (activeTab === 'my-inventory') {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // 1. Get My Tenant ID
+        const { data: roleData } = await supabase
+          .from('tenant-user-role')
+          .select('tenant-id')
+          .eq('user-id', user.id)
+          .single();
+
+        const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
+
+        if (true) {
+          const { data, error } = await supabase
+            .from('retail-store-inventory-item')
+            .select(`
+              inventory-id,
+              tenant-id,  
+              current-stock-quantity,
+              selling-price-amount,
+              global-product-master-catalog!global-product-id (
+                product-id,
+                product-name,
+                upc-ean-code,
+                image-url,
+                category-name,
+                manufacturer-name,
+                enriched-by-superadmin
+              )
+            `);
+
+          if (error) throw error;
+
+          // 2. FORCE FILTER ON FRONTEND (Safety Net)
+          const filteredData = (data || []).filter((row: any) => row['tenant-id'] === myTenantId);
+
+          const processed: InventoryItem[] = filteredData.map((row: any) => {
+            const gp = row['global-product-master-catalog'] || {};
+            return {
+              inventory_id: row['inventory-id'],
+              product_id: gp['product-id'],
+              name: row['custom-product-name'] || gp['product-name'] || 'Unknown',
+              sku: gp['upc-ean-code'] || 'N/A',
+              image: row['override-image-url'] || gp['image-url'] || '',
+              category: gp['category-name'] || 'Uncategorized',
+              manufacturer: gp['manufacturer-name'] || 'N/A',
+              total_qty: row['current-stock-quantity'] || 0,
+              sales_price: row['selling-price-amount'] || 0,
+              is_enriched: gp['enriched-by-superadmin'] || false
+            };
+          });
+
+          setInventoryItems(processed);
+          setExistingProductIds(new Set(processed.map(i => i.product_id)));
+        }
+
+      } else {
+        // Fetch Global Catalog
+        const { data, error } = await supabase
+          .from('global-product-master-catalog')
+          .select('*')
+          .eq('is-active', true)
+          .order('product-name');
+
+        if (error) throw error;
+
+        const processed: GlobalProduct[] = (data || []).map((row: any) => ({
+          product_id: row['product-id'],
+          name: row['product-name'],
+          sku: row['upc-ean-code'],
+          image: row['image-url'],
+          category: row['category-name'],
+          brand: row['brand-name'],
+          manufacturer: row['manufacturer-name'],
+          is_active: row['is-active'],
+          is_enriched: row['enriched-by-superadmin']
+        }));
+
+        setGlobalItems(processed);
+      }
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleAddToStore = async (product: GlobalProduct) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roleData } = await supabase
+        .from('tenant-user-role')
+        .select('tenant-id')
+        .eq('user-id', user.id)
+        .single();
+
+      if (!roleData) return;
+
       const { error } = await supabase
         .from('retail-store-inventory-item')
-        .delete()
-        .eq('inventory-id', id);
+        .insert({
+          'tenant-id': (roleData as any)['tenant-id'],
+          'global-product-id': product.product_id,
+          'current-stock-quantity': 0,
+          'selling-price-amount': 0,
+          'is-active': true
+        });
 
       if (error) throw error;
 
-      toast.success("Item deleted.");
-      setInventoryItems(prev => prev.filter(i => i.inventory_id !== id));
-      setExistingProductIds(prev => {
-        const next = new Set(prev);
-        // We need to find the product_id for this inventory_id to remove from set, simpler to just re-fetch or ignore.
-        // But let's try to remove it if possible.
-        const item = inventoryItems.find(i => i.inventory_id === id);
-        if (item) next.delete(item.product_id);
-        return next;
-      });
-
+      toast.success("Product added to your inventory!");
+      setExistingProductIds(prev => new Set(prev).add(product.product_id));
     } catch (err: any) {
       console.error(err);
-      toast.error("Failed to delete: " + err.message);
+      toast.error("Failed to add product");
     }
   };
+
+
 
   const displayedItems = activeTab === 'my-inventory'
     ? inventoryItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm))
@@ -52,7 +180,6 @@ export default function MasterInventoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
-      {/* ... Header & Controls ... */}
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* HEADER */}
@@ -102,26 +229,31 @@ export default function MasterInventoryPage() {
                 <th className="px-6 py-3 font-medium">Product</th>
                 <th className="px-6 py-3 font-medium">Category</th>
                 <th className="px-6 py-3 font-medium">Manufacturer</th>
-                {activeTab === 'my-inventory' && (
+                {activeTab === 'my-inventory' ? (
                   <>
                     <th className="px-6 py-3 font-medium text-right">Price</th>
                     <th className="px-6 py-3 font-medium text-center">Stock</th>
                   </>
+                ) : (
+                  <th className="px-6 py-3 font-medium text-right">Action</th>
                 )}
-                <th className="px-6 py-3 font-medium text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={6} className="p-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={5} className="p-12 text-center text-gray-400">Loading...</td></tr>
               ) : displayedItems.length === 0 ? (
-                <tr><td colSpan={6} className="p-12 text-center text-gray-400">No items found.</td></tr>
+                <tr><td colSpan={5} className="p-12 text-center text-gray-400">No items found.</td></tr>
               ) : displayedItems.map((item: any) => (
                 <tr key={item.inventory_id || item.product_id} className="hover:bg-blue-50/30 transition-colors group">
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-md shrink-0 overflow-hidden border border-gray-200 relative group/img">
                         {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <Package className="p-2 text-gray-400" />}
+
+                        {/* ENRICH BUTTON OVERLAY */}
+
+
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{item.name}</div>
@@ -134,26 +266,8 @@ export default function MasterInventoryPage() {
 
                   {activeTab === 'my-inventory' ? (
                     <>
-                      <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${item.sales_price?.toFixed(2)}</td>
+                      <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${item.sales_price.toFixed(2)}</td>
                       <td className="px-6 py-3 text-center font-bold text-gray-900">{item.total_qty}</td>
-                      <td className="px-6 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setEditItem(item)}
-                            className="p-1.5 hover:bg-blue-100 text-blue-600 rounded-md transition-colors"
-                            title="Edit Details"
-                          >
-                            <Edit3 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.inventory_id)}
-                            className="p-1.5 hover:bg-red-100 text-red-600 rounded-md transition-colors"
-                            title="Delete Item"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
                     </>
                   ) : (
                     <td className="px-6 py-3 text-right">
@@ -176,14 +290,6 @@ export default function MasterInventoryPage() {
             </tbody>
           </table>
         </div>
-
-        {editItem && (
-          <EditInventoryModal
-            item={editItem}
-            onClose={() => setEditItem(null)}
-            onSuccess={fetchData}
-          />
-        )}
 
       </div>
     </div>
