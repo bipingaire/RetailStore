@@ -15,7 +15,7 @@ type CartItem = {
     image: string;
 };
 
-function CheckoutForm({ cart, total, onSuccess }: { cart: CartItem[], total: number, onSuccess: () => void }) {
+function CheckoutForm({ cart, total, tenantId, onSuccess }: { cart: CartItem[], total: number, tenantId: string, onSuccess: () => void }) {
     const stripe = useStripe();
     const elements = useElements();
     const [loading, setLoading] = useState(false);
@@ -50,7 +50,8 @@ function CheckoutForm({ cart, total, onSuccess }: { cart: CartItem[], total: num
                 body: JSON.stringify({
                     paymentMethodId: paymentMethod.id,
                     cart,
-                    total
+                    total,
+                    tenantId // Pass tenant ID for multi-tenant isolation
                 })
             });
 
@@ -119,6 +120,7 @@ export default function CheckoutPage() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [paymentEnabled, setPaymentEnabled] = useState(false);
     const [user, setUser] = useState<any>(null);
+    const [tenantId, setTenantId] = useState<string>('');
 
     useEffect(() => {
         initializeCheckout();
@@ -187,10 +189,13 @@ export default function CheckoutPage() {
                 return;
             }
 
+            const currentTenantId = tenantData['tenant-id'];
+            setTenantId(currentTenantId); // Store tenant ID for payment processing
+
             const { data: paymentConfig } = await supabase
                 .from('tenant-payment-config')
                 .select('stripe-publishable-key, payment-enabled')
-                .eq('tenant-id', tenantData['tenant-id'])
+                .eq('tenant-id', currentTenantId)
                 .maybeSingle();
 
             if (!paymentConfig || !paymentConfig['payment-enabled']) {
@@ -290,9 +295,9 @@ export default function CheckoutPage() {
                             Payment Details
                         </h2>
 
-                        {stripePromise && (
+                        {stripePromise && tenantId && (
                             <Elements stripe={stripePromise}>
-                                <CheckoutForm cart={cart} total={total} onSuccess={handlePaymentSuccess} />
+                                <CheckoutForm cart={cart} total={total} tenantId={tenantId} onSuccess={handlePaymentSuccess} />
                             </Elements>
                         )}
                     </div>
