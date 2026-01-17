@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2 } from 'lucide-react';
+import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2, Trash2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 // 1. Definition of Types based on Schema
@@ -40,6 +40,10 @@ export default function MasterInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Edit Modal State
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', price: 0, stock: 0 });
+
   // Checking existing inventory IDs to prevent duplicates in Global view
   const [existingProductIds, setExistingProductIds] = useState<Set<string>>(new Set());
 
@@ -71,6 +75,7 @@ export default function MasterInventoryPage() {
               tenant-id,  
               current-stock-quantity,
               selling-price-amount,
+              custom-product-name,
               global-product-master-catalog!global-product-id (
                 product-id,
                 product-name,
@@ -172,7 +177,53 @@ export default function MasterInventoryPage() {
     }
   };
 
+  const handleEdit = (item: InventoryItem) => {
+    setEditingItem(item);
+    setEditForm({ name: item.name, price: item.sales_price, stock: item.total_qty });
+  };
 
+  const handleSaveEdit = async () => {
+    if (!editingItem) return;
+
+    try {
+      const { error } = await supabase
+        .from('retail-store-inventory-item')
+        .update({
+          'custom-product-name': editForm.name,
+          'selling-price-amount': editForm.price,
+          'current-stock-quantity': editForm.stock
+        })
+        .eq('inventory-id', editingItem.inventory_id);
+
+      if (error) throw error;
+
+      toast.success("Product updated successfully!");
+      setEditingItem(null);
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to update product");
+    }
+  };
+
+  const handleDelete = async (item: InventoryItem) => {
+    if (!confirm(`Are you sure you want to delete "${item.name}" from your inventory?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from('retail-store-inventory-item')
+        .delete()
+        .eq('inventory-id', item.inventory_id);
+
+      if (error) throw error;
+
+      toast.success("Product deleted successfully!");
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to delete product");
+    }
+  };
 
   const displayedItems = activeTab === 'my-inventory'
     ? inventoryItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm))
@@ -233,6 +284,7 @@ export default function MasterInventoryPage() {
                   <>
                     <th className="px-6 py-3 font-medium text-right">Price</th>
                     <th className="px-6 py-3 font-medium text-center">Stock</th>
+                    <th className="px-6 py-3 font-medium text-center">Actions</th>
                   </>
                 ) : (
                   <th className="px-6 py-3 font-medium text-right">Action</th>
@@ -241,19 +293,15 @@ export default function MasterInventoryPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="p-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={6} className="p-12 text-center text-gray-400">Loading...</td></tr>
               ) : displayedItems.length === 0 ? (
-                <tr><td colSpan={5} className="p-12 text-center text-gray-400">No items found.</td></tr>
+                <tr><td colSpan={6} className="p-12 text-center text-gray-400">No items found.</td></tr>
               ) : displayedItems.map((item: any) => (
                 <tr key={item.inventory_id || item.product_id} className="hover:bg-blue-50/30 transition-colors group">
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-md shrink-0 overflow-hidden border border-gray-200 relative group/img">
                         {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <Package className="p-2 text-gray-400" />}
-
-                        {/* ENRICH BUTTON OVERLAY */}
-
-
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{item.name}</div>
@@ -268,6 +316,24 @@ export default function MasterInventoryPage() {
                     <>
                       <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${item.sales_price.toFixed(2)}</td>
                       <td className="px-6 py-3 text-center font-bold text-gray-900">{item.total_qty}</td>
+                      <td className="px-6 py-3">
+                        <div className="flex gap-2 justify-center">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
                     </>
                   ) : (
                     <td className="px-6 py-3 text-right">
@@ -290,6 +356,74 @@ export default function MasterInventoryPage() {
             </tbody>
           </table>
         </div>
+
+        {/* EDIT MODAL */}
+        {editingItem && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Edit className="text-blue-600" size={20} />
+                  Edit Product
+                </h2>
+                <button onClick={() => setEditingItem(null)} className="text-gray-400 hover:text-gray-600">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1">Product Name</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm({ ...editForm, price: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Stock</label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={editForm.stock}
+                      onChange={(e) => setEditForm({ ...editForm, stock: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                >
+                  <Save size={16} />
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
