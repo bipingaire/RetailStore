@@ -24,6 +24,9 @@ export async function POST(req: Request) {
     // Loop through items
     for (const item of items) {
       console.log(`🔄 Processing: ${item.name}`);
+      const costPrice = parseFloat(item.unit_cost) || 0;
+      const qty = parseInt(item.qty) || 0;
+      console.log(`   --> Qty: ${qty}, Cost: ${costPrice}`);
 
       // 1. Check Global Product (By SKU first, then Name)
       let globalProductId = null;
@@ -94,7 +97,7 @@ export async function POST(req: Request) {
             'global-product-id': globalProductId,
             'is-active': true,
             'current-stock-quantity': 0,
-            'selling-price-amount': item.unit_cost || 0 // Initialize with Cost Price
+            'selling-price-amount': costPrice // Initialize with Cost Price
           })
           .select()
           .single();
@@ -112,9 +115,9 @@ export async function POST(req: Request) {
         .from('inventory-batch-tracking-record')
         .insert({
           'inventory-id': inventoryId,
-          'batch-quantity-count': parseInt(item.qty),
+          'batch-quantity-count': qty,
           'expiry-date-timestamp': item.expiry || null,
-          'purchase-price-amount': item.unit_cost || 0
+          'purchase-price-amount': costPrice
         });
 
       if (batchError) {
@@ -133,7 +136,7 @@ export async function POST(req: Request) {
         .eq('inventory-id', inventoryId)
         .single();
 
-      const newTotal = (currentInv?.['current-stock-quantity'] || 0) + parseInt(item.qty);
+      const newTotal = (currentInv?.['current-stock-quantity'] || 0) + qty;
       const currentPrice = currentInv?.['selling-price-amount'] || 0;
 
       const updates: any = {
@@ -142,8 +145,10 @@ export async function POST(req: Request) {
       };
 
       // Only update price if it's currently 0 (avoid overwriting set prices)
-      if (currentPrice === 0 && item.unit_cost > 0) {
-        updates['selling-price-amount'] = item.unit_cost;
+      // Comparison is safe as costPrice is explicitly float
+      if (currentPrice === 0 && costPrice > 0) {
+        console.log(`   --> Auto-setting Price to ${costPrice}`);
+        updates['selling-price-amount'] = costPrice;
       }
 
       await supabase
