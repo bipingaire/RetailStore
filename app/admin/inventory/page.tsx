@@ -22,6 +22,7 @@ type ProductRow = {
 type Batch = {
   id: string;
   qty: number;
+  cost?: number; // Added to track purchase price
   expiry: string;
   days_left: number;
   status: string;
@@ -67,6 +68,7 @@ export default function InventoryDashboard() {
             inventory-batch-tracking-record!inventory-id (
               batch-id,
               batch-quantity-count,
+              purchase-price-amount,
               expiry-date-timestamp
             )
           `);
@@ -88,6 +90,7 @@ export default function InventoryDashboard() {
             return {
               id: b['batch-id'],
               qty: b['batch-quantity-count'],
+              cost: b['purchase-price-amount'] || 0,
               expiry: b['expiry-date-timestamp'],
               days_left: daysLeft,
               status: daysLeft < 7 ? 'CRITICAL' : daysLeft < 30 ? 'WARNING' : 'GOOD'
@@ -326,6 +329,10 @@ export default function InventoryDashboard() {
                                         <div>
                                           <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Quantity</span>
                                           <span className="font-mono font-semibold text-gray-900">{batch.qty}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Unit Cost</span>
+                                          <span className="font-mono font-semibold text-gray-900">${batch.cost?.toFixed(2) || '0.00'}</span>
                                         </div>
                                         <div>
                                           <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Expiry Date</span>
