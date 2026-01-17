@@ -72,6 +72,9 @@ export default function PaymentSettingsPage() {
                     publishableKey: data['stripe-publishable-key'] || '',
                     secretKey: data['stripe-secret-key'] || ''
                 });
+            } else {
+                // No config found, enable edit mode by default
+                setEditMode(true);
             }
         } catch (err: any) {
             console.error('Error fetching payment config:', err);
@@ -190,13 +193,13 @@ export default function PaymentSettingsPage() {
                         <p className="text-sm text-gray-500 mt-1">Configure Stripe payment integration for your store</p>
                     </div>
 
-                    {activeTab === 'settings' && !editMode && config.publishableKey && (
+                    {activeTab === 'settings' && !editMode && (
                         <button
                             onClick={() => setEditMode(true)}
                             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
                         >
                             <Edit2 size={16} />
-                            Edit Keys
+                            {config.publishableKey ? 'Edit Keys' : 'Configure Keys'}
                         </button>
                     )}
                 </div>
@@ -219,7 +222,6 @@ export default function PaymentSettingsPage() {
                             ? 'bg-blue-600 text-white shadow-sm'
                             : 'text-gray-600 hover:text-gray-900'
                             }`}
-                        disabled={!config.paymentEnabled}
                     >
                         <FileText size={16} />
                         Statements
