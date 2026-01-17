@@ -179,60 +179,54 @@ export default function ShopHome() {
       const tenantId = tenantData['tenant-id'];
       console.log('Loaded tenant ID:', tenantId);
 
-      // 1. Fetch Campaigns (replaces product_segments AND promotions)
+      // 1. Fetch Campaigns (via Secure View)
       const { data: campaignData, error: campaignError } = await supabase
-        .from('marketing-campaign-master')
+        .from('store_campaigns_view')
         .select(`
-          id: campaign-id,
-          slug: campaign-slug,
-          title: title-text,
-          subtitle: subtitle-text,
-          badge_label: badge-label,
-          badge_color: badge-color,
-          tagline: tagline-text,
-          segment_type: campaign-type,
-          sort_order: sort-order,
-          is_promoted: is-promoted,
-          promotion_ends_at: promotion-ends-at,
-          discount_percentage: discount-percentage,
-          featured_on_website: featured-on-website,
-          segment_products: campaign-product-segment-group!campaign-id (
-             store_inventory: retail-store-inventory-item!inventory-id (
-                 id: inventory-id,
-                 price: selling-price-amount,
-                 stock: current-stock-quantity,
-                 global_products: global-product-master-catalog!global-product-id (
-                    name: product-name,
-                    image_url: image-url,
-                    category: category-name,
-                    manufacturer: manufacturer-name,
-                    upc_ean: upc-ean-code
-                 )
-              )
+          id,
+          slug,
+          title,
+          subtitle,
+          badge_label,
+          badge_color,
+          tagline,
+          segment_type,
+          sort_order: "sort-order",
+          is_promoted: "is-promoted",
+          promotion_ends_at: "promotion-ends-at",
+          discount_percentage: "discount-percentage",
+          featured_on_website: "featured-on-website",
+          segment_products: store_campaign_products_view!campaign-id (
+             inventory_id,
+             price,
+             stock,
+             name,
+             image_url: "image-url",
+             category,
+             manufacturer,
+             highlight_label: "highlight-label"
           )
         `)
-        .eq('is-active-flag', true)
-        .eq('tenant-id', tenantId) // Filter by Tenant
+        .eq('tenant-id', tenantId)
         .order('sort-order', { ascending: true });
 
       if (campaignError) console.error("Campaign load error:", campaignError);
 
-      // 2. Fetch General Inventory
+      // 2. Fetch General Inventory (via Secure View)
       const { data: prodData, error: prodError } = await supabase
-        .from('retail-store-inventory-item')
+        .from('store_inventory_view')
         .select(`
-          id: inventory-id,
-          price: selling-price-amount,
-          stock: current-stock-quantity,
-          global_products: global-product-master-catalog!global-product-id (
-            name: product-name,
-            image_url: image-url,
-            category: category-name,
-            manufacturer: manufacturer-name
-          )
+          id,
+          price,
+          stock,
+          name,
+          image_url: "image-url",
+          category,
+          manufacturer,
+          upc_ean
+          /* global_products join no longer needed (view flattens it) */
         `)
-        .eq('is-active', true)
-        .eq('tenant-id', tenantId) // Filter by Tenant
+        .eq('tenant-id', tenantId)
         .limit(1000);
 
       if (prodError) console.error("Inventory load error:", prodError);
