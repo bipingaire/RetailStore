@@ -80,6 +80,17 @@ export default function CheckoutSuccessPage() {
         doc.text('Phone: -', rightX, yPos);
 
         // Products Table with GREEN header
+        console.log('Order details for PDF:', orderDetails);
+        console.log('Items array:', orderDetails.items);
+
+        if (!orderDetails.items || orderDetails.items.length === 0) {
+            console.error('No items found in order!');
+            doc.setFontSize(10);
+            doc.text('No items in this order', 14, 70);
+            doc.save(`Receipt-${orderDetails.orderId}.pdf`);
+            return;
+        }
+
         const tableData = orderDetails.items.map((item, index) => [
             item.name,
             `ITEM-${String(index + 1).padStart(3, '0')}`,
