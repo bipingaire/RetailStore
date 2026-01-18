@@ -49,7 +49,7 @@ function RegisterPageContent() {
         }
 
         try {
-            // Create account with email confirmation
+            // Create account WITHOUT email confirmation (instant signup)
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
@@ -58,7 +58,7 @@ function RegisterPageContent() {
                         full_name: formData.fullName,
                         phone: formData.phone,
                     },
-                    emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`
+                    emailRedirectTo: undefined // Disable email verification
                 }
             });
 
@@ -68,82 +68,15 @@ function RegisterPageContent() {
                 return;
             }
 
-            console.log('✅ Registration successful! Confirmation email sent.');
-            setEmailSent(true);
-            setLoading(false);
+            console.log('✅ Account created and logged in!');
+
+            // Redirect immediately (no email verification needed)
+            router.push(redirectTo);
 
         } catch (err: any) {
             setError(err.message || 'Failed to create account');
             setLoading(false);
         }
-    }
-
-    // Email Sent Confirmation Screen
-    if (emailSent) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-md">
-                    <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-                            <Mail className="text-green-600" size={40} />
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h1>
-                        <p className="text-gray-600">
-                            We sent a confirmation link to:
-                        </p>
-                        <p className="text-emerald-600 font-semibold text-lg mt-2">
-                            {formData.email}
-                        </p>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                        <div className="space-y-4">
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                                    <Mail size={18} />
-                                    Next Steps:
-                                </h3>
-                                <ol className="text-sm text-blue-900 space-y-2 list-decimal list-inside">
-                                    <li>Open your email inbox</li>
-                                    <li>Find the email from Supabase Auth</li>
-                                    <li>Click the "Confirm your email" link</li>
-                                    <li>You'll be automatically logged in</li>
-                                </ol>
-                            </div>
-
-                            <div className="text-center text-xs text-gray-500">
-                                <p>Didn't receive the email? Check your spam folder.</p>
-                                <button
-                                    onClick={() => setEmailSent(false)}
-                                    className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors mt-2"
-                                >
-                                    Try a different email
-                                </button>
-                            </div>
-
-                            <Link
-                                href="/shop"
-                                className="block w-full text-center bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition"
-                            >
-                                Back to Shop
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="text-center mt-4">
-                        <p className="text-gray-600 text-xs">
-                            Already verified?{' '}
-                            <Link
-                                href={`/shop/login?redirect=${redirectTo}`}
-                                className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
-                            >
-                                Sign in
-                            </Link>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
     }
 
     // Registration Form
@@ -233,7 +166,7 @@ function RegisterPageContent() {
 
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                             <p className="text-xs text-blue-900">
-                                <strong>📧 Email Verification:</strong> We'll send a confirmation link to your email. Click it to activate your account.
+                                <strong>🚀 Instant Signup:</strong> Create your account and start shopping immediately - no email verification needed!
                             </p>
                         </div>
 
