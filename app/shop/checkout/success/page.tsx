@@ -24,6 +24,7 @@ export default function CheckoutSuccessPage() {
         orderId: string;
         customerName?: string;
         customerEmail?: string;
+        paymentMethod?: string;
     } | null>(null);
 
     useEffect(() => {
@@ -70,7 +71,7 @@ export default function CheckoutSuccessPage() {
         yPos += 5;
         doc.text(`Date: ${orderDetails.orderDate}`, leftX, yPos);
         yPos += 5;
-        doc.text('Payment: CASH', leftX, yPos);
+        doc.text(`Payment: ${orderDetails.paymentMethod || 'N/A'}`, leftX, yPos);
 
         // Right side - Customer Details
         const rightX = 120;

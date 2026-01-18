@@ -17,7 +17,7 @@ type CartItem = {
 
 type PaymentMethod = 'stripe' | 'wallet' | 'cash';
 
-function CheckoutForm({ cart, total, tenantId, onSuccess }: { cart: CartItem[], total: number, tenantId: string, onSuccess: () => void }) {
+function CheckoutForm({ cart, total, tenantId, onSuccess }: { cart: CartItem[], total: number, tenantId: string, onSuccess: (method: 'Card' | 'Wallet' | 'Cash') => void }) {
     const stripe = useStripe();
     const elements = useElements();
     const [loading, setLoading] = useState(false);
@@ -65,7 +65,7 @@ function CheckoutForm({ cart, total, tenantId, onSuccess }: { cart: CartItem[], 
             }
 
             toast.success('Payment successful!');
-            onSuccess();
+            onSuccess('Card');
         } catch (err: any) {
             console.error('Payment error:', err);
             toast.error(err.message || 'Payment failed');
@@ -234,7 +234,7 @@ export default function CheckoutPage() {
     const deliveryCharges = 0; // Free pickup
     const total = subtotal; // Total = Subtotal only
 
-    const handlePaymentSuccess = () => {
+    const handlePaymentSuccess = (paymentMethod: 'Card' | 'Wallet' | 'Cash') => {
         // Save order details for success page
         const orderData = {
             items: cart.map(item => ({
@@ -255,7 +255,8 @@ export default function CheckoutPage() {
             }),
             orderId: `ORD-${Date.now()}`,
             customerName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Customer',
-            customerEmail: user?.email || 'No email provided'
+            customerEmail: user?.email || 'No email provided',
+            paymentMethod
         };
 
         sessionStorage.setItem('last_order', JSON.stringify(orderData));
@@ -292,7 +293,7 @@ export default function CheckoutPage() {
             }
 
             toast.success('Payment successful! Wallet balance deducted.');
-            handlePaymentSuccess();
+            handlePaymentSuccess('Wallet');
         } catch (err: any) {
             console.error('Wallet payment error:', err);
             toast.error(err.message || 'Payment failed');
@@ -324,7 +325,7 @@ export default function CheckoutPage() {
             }
 
             toast.success('Order placed! Pay cash on delivery.');
-            handlePaymentSuccess();
+            handlePaymentSuccess('Cash');
         } catch (err: any) {
             console.error('Cash order error:', err);
             toast.error(err.message || 'Order failed');
