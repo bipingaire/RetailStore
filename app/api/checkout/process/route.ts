@@ -70,7 +70,7 @@ export async function POST(req: Request) {
                     'customer-name': customerName,
                     'customer-email': customerEmail,
                     'order-date-time': new Date().toISOString(),
-                    'order-status-code': 'paid',
+                    'order-status-code': 'confirmed',
                     'payment-status': 'paid',
                     'payment-method': 'stripe',
                     'stripe-payment-intent-id': paymentIntent.id,
@@ -166,7 +166,7 @@ export async function POST(req: Request) {
                     'customer-name': customerName,
                     'customer-email': customerEmail,
                     'order-date-time': new Date().toISOString(),
-                    'order-status-code': 'paid',
+                    'order-status-code': 'confirmed',
                     'payment-status': 'paid',
                     'payment-method': 'wallet',
                     'stripe-payment-intent-id': `WALLET-${Date.now()}`, // Using this field for reference
