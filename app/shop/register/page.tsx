@@ -68,15 +68,93 @@ function RegisterPageContent() {
                 return;
             }
 
-            console.log('✅ Account created and logged in!');
-
-            // Redirect immediately (no email verification needed)
-            router.push(redirectTo);
+            // Check if user is actually logged in (auto-confirmed) or needs email verification
+            if (data.session) {
+                // SUCCESS: User is logged in immediately
+                console.log('✅ Account created and logged in!', data.session);
+                router.push(redirectTo);
+            } else if (data.user && !data.user.confirmed_at) {
+                // User created but needs email confirmation
+                console.log('⚠️ Email confirmation required');
+                setEmailSent(true);
+                setLoading(false);
+            } else {
+                // Fallback - try to get session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    console.log('✅ Session found, logging in');
+                    router.push(redirectTo);
+                } else {
+                    setError('Account created but login failed. Please try logging in.');
+                    setLoading(false);
+                }
+            }
 
         } catch (err: any) {
             setError(err.message || 'Failed to create account');
             setLoading(false);
         }
+    }
+
+    // Email Sent Confirmation Screen (if Supabase requires confirmation)
+    if (emailSent) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="w-full max-w-md">
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-4">
+                            <Mail className="text-yellow-600" size={40} />
+                        </div>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Email Verification Required</h1>
+                        <p className="text-gray-600">
+                            Please check your email:
+                        </p>
+                        <p className="text-emerald-600 font-semibold text-lg mt-2">
+                            {formData.email}
+                        </p>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                        <div className="space-y-4">
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <p className="text-sm text-yellow-900">
+                                    <strong>⚠️ Note:</strong> Your Supabase project requires email confirmation.
+                                    To enable instant signup, disable "Email Confirmation" in your Supabase Dashboard under Authentication → Settings.
+                                </p>
+                            </div>
+
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h3 className="font-semibold text-blue-900 mb-2">Next Steps:</h3>
+                                <ol className="text-sm text-blue-900 space-y-1 list-decimal list-inside">
+                                    <li>Open your email inbox</li>
+                                    <li>Click the confirmation link</li>
+                                    <li>You'll be logged in automatically</li>
+                                </ol>
+                            </div>
+
+                            <Link
+                                href="/shop"
+                                className="block w-full text-center bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition"
+                            >
+                                Back to Shop
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className="text-center mt-4">
+                        <p className="text-gray-600 text-xs">
+                            Already verified?{' '}
+                            <Link
+                                href={`/shop/login?redirect=${redirectTo}`}
+                                className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
+                            >
+                                Sign in
+                            </Link>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     // Registration Form
