@@ -174,7 +174,7 @@ export default function CheckoutPage() {
             const cartItems: CartItem[] = (products || []).map((p: any) => ({
                 id: p.id,
                 name: p.global_products.name,
-                price: p.price,
+                price: p.price || 0, // Fallback to 0 if price is null
                 quantity: cartData[p.id],
                 image: p.global_products.image_url
             }));
