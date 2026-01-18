@@ -229,9 +229,34 @@ export default function CheckoutPage() {
         }
     }
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const tax = subtotal * 0.13; // 13% tax
+    const deliveryCharges = 5.00;
+    const total = subtotal + tax + deliveryCharges;
 
     const handlePaymentSuccess = () => {
+        // Save order details for success page
+        const orderData = {
+            items: cart.map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price
+            })),
+            subtotal,
+            tax,
+            deliveryCharges,
+            total,
+            orderDate: new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
+            orderId: `ORD-${Date.now()}`
+        };
+
+        sessionStorage.setItem('last_order', JSON.stringify(orderData));
         localStorage.removeItem('retail_cart');
         router.push('/shop/checkout/success');
     };
@@ -330,29 +355,58 @@ export default function CheckoutPage() {
                             Order Summary
                         </h2>
 
-                        <div className="space-y-4 mb-6">
-                            {cart.map(item => (
-                                <div key={item.id} className="flex gap-4">
-                                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                        {item.image ? (
-                                            <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
-                                        ) : (
-                                            <ShoppingBag className="text-gray-400" size={24} />
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="font-semibold text-gray-900">{item.name}</div>
-                                        <div className="text-sm text-gray-500">Qty: {item.quantity}</div>
-                                    </div>
-                                    <div className="font-bold text-gray-900">${(item.price * item.quantity).toFixed(2)}</div>
-                                </div>
-                            ))}
+                        {/* Product Table */}
+                        <div className="overflow-x-auto mb-6">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-gray-200">
+                                        <th className="text-left py-2 text-gray-600 font-semibold">Product</th>
+                                        <th className="text-right py-2 text-gray-600 font-semibold">Qty</th>
+                                        <th className="text-right py-2 text-gray-600 font-semibold">Unit Price</th>
+                                        <th className="text-right py-2 text-gray-600 font-semibold">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {cart.map(item => (
+                                        <tr key={item.id} className="border-b border-gray-100">
+                                            <td className="py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                        {item.image ? (
+                                                            <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
+                                                        ) : (
+                                                            <ShoppingBag className="text-gray-400" size={18} />
+                                                        )}
+                                                    </div>
+                                                    <span className="font-semibold text-gray-900">{item.name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 text-right text-gray-700">{item.quantity}</td>
+                                            <td className="py-3 text-right text-gray-700">${item.price.toFixed(2)}</td>
+                                            <td className="py-3 text-right font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
 
-                        <div className="border-t pt-4">
-                            <div className="flex justify-between text-2xl font-bold text-gray-900">
-                                <span>Total</span>
+                        {/* Price Breakdown */}
+                        <div className="border-t pt-4 space-y-2">
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>Subtotal</span>
                                 <span>${total.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>Tax (13%)</span>
+                                <span>${(total * 0.13).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>Delivery Charges</span>
+                                <span>$5.00</span>
+                            </div>
+                            <div className="border-t pt-2 flex justify-between text-xl font-bold text-gray-900">
+                                <span>Total</span>
+                                <span>${(total + (total * 0.13) + 5).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -369,8 +423,8 @@ export default function CheckoutPage() {
                                     <button
                                         onClick={() => setSelectedPaymentMethod('stripe')}
                                         className={`w-full border-2 rounded-lg p-4 text-left transition ${selectedPaymentMethod === 'stripe'
-                                                ? 'border-blue-600 bg-blue-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-blue-600 bg-blue-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -393,8 +447,8 @@ export default function CheckoutPage() {
                                 <button
                                     onClick={() => setSelectedPaymentMethod('wallet')}
                                     className={`w-full border-2 rounded-lg p-4 text-left transition ${selectedPaymentMethod === 'wallet'
-                                            ? 'border-purple-600 bg-purple-50'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-purple-600 bg-purple-50'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
@@ -418,8 +472,8 @@ export default function CheckoutPage() {
                                 <button
                                     onClick={() => setSelectedPaymentMethod('cash')}
                                     className={`w-full border-2 rounded-lg p-4 text-left transition ${selectedPaymentMethod === 'cash'
-                                            ? 'border-green-600 bg-green-50'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-green-600 bg-green-50'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
