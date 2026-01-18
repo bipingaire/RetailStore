@@ -253,7 +253,9 @@ export default function CheckoutPage() {
                 hour: '2-digit',
                 minute: '2-digit'
             }),
-            orderId: `ORD-${Date.now()}`
+            orderId: `ORD-${Date.now()}`,
+            customerName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Customer',
+            customerEmail: user?.email || 'No email provided'
         };
 
         sessionStorage.setItem('last_order', JSON.stringify(orderData));
@@ -386,8 +388,8 @@ export default function CheckoutPage() {
                                                 </div>
                                             </td>
                                             <td className="py-3 text-right text-gray-700">{item.quantity}</td>
-                                            <td className="py-3 text-right text-gray-700">${item.price.toFixed(2)}</td>
-                                            <td className="py-3 text-right font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</td>
+                                            <td className="py-3 text-right text-gray-700">${(item.price || 0).toFixed(2)}</td>
+                                            <td className="py-3 text-right font-semibold text-gray-900">${((item.price || 0) * item.quantity).toFixed(2)}</td>
                                         </tr>
                                     ))}
                                 </tbody>

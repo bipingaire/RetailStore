@@ -22,6 +22,8 @@ export default function CheckoutSuccessPage() {
         total: number;
         orderDate: string;
         orderId: string;
+        customerName?: string;
+        customerEmail?: string;
     } | null>(null);
 
     useEffect(() => {
@@ -73,9 +75,9 @@ export default function CheckoutSuccessPage() {
         // Right side - Customer Details
         const rightX = 120;
         yPos = 50;
-        doc.text('Customer: Walk-in Customer', rightX, yPos);
+        doc.text(`Customer: ${orderDetails.customerName || 'Walk-in Customer'}`, rightX, yPos);
         yPos += 5;
-        doc.text('Email: -', rightX, yPos);
+        doc.text(`Email: ${orderDetails.customerEmail || '-'}`, rightX, yPos);
         yPos += 5;
         doc.text('Phone: -', rightX, yPos);
 
