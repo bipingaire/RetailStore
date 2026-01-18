@@ -2,7 +2,7 @@
 import { useState, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, ArrowRight, ShoppingBag, CheckCircle, Loader2 } from 'lucide-react';
+import { Mail, ArrowRight, ShoppingBag, Loader2, Lock } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -12,12 +12,14 @@ function RegisterPageContent() {
     const searchParams = useSearchParams();
     const supabase = createClientComponentClient();
 
-    const [step, setStep] = useState<'email' | 'otp'>('email');
+    const [step, setStep] = useState<'details' | 'otp' | 'password'>('details');
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
         phone: '',
-        otp: ''
+        otp: '',
+        password: '',
+        confirmPassword: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -35,18 +37,11 @@ function RegisterPageContent() {
         }
 
         try {
-            // Resolve Tenant ID
-            let tenantId = '11111111-1111-1111-1111-111111111111';
-
-            // Send OTP to email
-            const { data, error: otpError } = await supabase.auth.signInWithOtp({
+            // Send OTP for email verification
+            const { error: otpError } = await supabase.auth.signInWithOtp({
                 email: formData.email,
                 options: {
-                    data: {
-                        full_name: formData.fullName,
-                        phone: formData.phone,
-                        tenant_id: tenantId
-                    }
+                    shouldCreateUser: false, // Don't create user yet
                 }
             });
 
@@ -56,7 +51,7 @@ function RegisterPageContent() {
                 return;
             }
 
-            console.log('✅ OTP sent successfully to:', formData.email);
+            console.log('✅ OTP sent to:', formData.email);
             setStep('otp');
             setLoading(false);
 
@@ -78,7 +73,7 @@ function RegisterPageContent() {
 
         try {
             // Verify OTP
-            const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            const { error: verifyError } = await supabase.auth.verifyOtp({
                 email: formData.email,
                 token: formData.otp,
                 type: 'email'
@@ -90,15 +85,63 @@ function RegisterPageContent() {
                 return;
             }
 
-            if (data.user) {
-                console.log('✅ OTP verified! User logged in:', data.user.email);
-
-                // Redirect to shop or intended page
-                router.push(redirectTo);
-            }
+            console.log('✅ Email verified! Now set password');
+            setStep('password');
+            setLoading(false);
 
         } catch (err: any) {
             setError(err.message || 'Invalid OTP code');
+            setLoading(false);
+        }
+    }
+
+    async function handleCreateAccount() {
+        setLoading(true);
+        setError('');
+
+        if (!formData.password || !formData.confirmPassword) {
+            setError('Please enter password');
+            setLoading(false);
+            return;
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
+        }
+
+        if (formData.password.length < 6) {
+            setError('Password must be at least 6 characters');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            // Create account with password
+            const { data, error: signUpError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        full_name: formData.fullName,
+                        phone: formData.phone,
+                    },
+                    emailRedirectTo: `${window.location.origin}/auth/callback`
+                }
+            });
+
+            if (signUpError) {
+                setError(signUpError.message);
+                setLoading(false);
+                return;
+            }
+
+            console.log('✅ Account created successfully!');
+            router.push(redirectTo);
+
+        } catch (err: any) {
+            setError(err.message || 'Failed to create account');
             setLoading(false);
         }
     }
@@ -109,7 +152,87 @@ function RegisterPageContent() {
         await handleSendOTP();
     }
 
-    // OTP Input Screen
+    // Password Setup Screen
+    if (step === 'password') {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="w-full max-w-sm">
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                            <Lock className="text-green-600" size={32} />
+                        </div>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-1">Set Your Password</h1>
+                        <p className="text-sm text-gray-600">
+                            Email verified! Create a password for your account
+                        </p>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2 text-sm">
+                                    Password
+                                </label>
+                                <input
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    placeholder="Min. 6 characters"
+                                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2 text-sm">
+                                    Confirm Password
+                                </label>
+                                <input
+                                    type="password"
+                                    value={formData.confirmPassword}
+                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                    placeholder="Re-enter password"
+                                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                    onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
+                                />
+                            </div>
+
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleCreateAccount}
+                                disabled={loading || !formData.password || !formData.confirmPassword}
+                                className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={16} />
+                                        Creating Account...
+                                    </>
+                                ) : (
+                                    <>
+                                        Create Account
+                                        <ArrowRight size={16} />
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="text-center mt-4">
+                        <Link href="/shop" className="text-gray-500 hover:text-gray-700 transition-colors text-xs">
+                            ← Back to Shop
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // OTP Verification Screen
     if (step === 'otp') {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -118,7 +241,7 @@ function RegisterPageContent() {
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
                             <Mail className="text-emerald-600" size={32} />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-1">Check Your Email</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-1">Verify Your Email</h1>
                         <p className="text-sm text-gray-600">
                             We sent a 6-digit code to:
                         </p>
@@ -165,7 +288,7 @@ function RegisterPageContent() {
                                     </>
                                 ) : (
                                     <>
-                                        Verify & Continue
+                                        Verify Email
                                         <ArrowRight size={16} />
                                     </>
                                 )}
@@ -182,7 +305,7 @@ function RegisterPageContent() {
                             </div>
 
                             <button
-                                onClick={() => setStep('email')}
+                                onClick={() => setStep('details')}
                                 className="w-full text-gray-600 text-sm hover:text-gray-800 transition-colors"
                             >
                                 ← Change Email Address
@@ -200,7 +323,7 @@ function RegisterPageContent() {
         );
     }
 
-    // Email Input Screen
+    // Step 1: Details Input Screen
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
             <div className="w-full max-w-sm">
@@ -247,13 +370,13 @@ function RegisterPageContent() {
 
                         <div>
                             <label className="block text-gray-700 font-medium mb-1.5 text-sm">
-                                Phone Number (Optional)
+                                Mobile Number <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="tel"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                placeholder="+1 (555) 000-0000"
+                                placeholder="+977 9876543210"
                                 className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
                             />
@@ -261,7 +384,7 @@ function RegisterPageContent() {
 
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                             <p className="text-xs text-blue-900">
-                                <strong>📧 Passwordless Login:</strong> We'll send you a secure 6-digit code to your email. No password needed!
+                                <strong>📧 Email Verification:</strong> We'll send a 6-digit verification code to your email to confirm your account.
                             </p>
                         </div>
 
@@ -273,7 +396,7 @@ function RegisterPageContent() {
 
                         <button
                             onClick={handleSendOTP}
-                            disabled={loading || !formData.email || !formData.fullName}
+                            disabled={loading || !formData.email || !formData.fullName || !formData.phone}
                             className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
