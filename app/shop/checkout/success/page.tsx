@@ -92,35 +92,19 @@ export default function CheckoutSuccessPage() {
         // Get the final Y position after table
         const finalY = (doc as any).lastAutoTable.finalY || 75;
 
-        // Price Breakdown
+        // Grand Total (no breakdown needed)
         const summaryStartY = finalY + 10;
         const rightAlign = pageWidth - 14;
         const labelX = pageWidth - 70;
 
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-
-        // Subtotal
-        doc.text('Subtotal:', labelX, summaryStartY);
-        doc.text(`$${orderDetails.subtotal.toFixed(2)}`, rightAlign, summaryStartY, { align: 'right' });
-
-        // Tax
-        doc.text('Tax (13%):', labelX, summaryStartY + 6);
-        doc.text(`$${orderDetails.tax.toFixed(2)}`, rightAlign, summaryStartY + 6, { align: 'right' });
-
-        // Delivery
-        doc.text('Delivery Charges:', labelX, summaryStartY + 12);
-        doc.text(`$${orderDetails.deliveryCharges.toFixed(2)}`, rightAlign, summaryStartY + 12, { align: 'right' });
-
-        // Total line
-        doc.setLineWidth(0.5);
-        doc.line(labelX, summaryStartY + 16, rightAlign, summaryStartY + 16);
-
-        // Grand Total
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
-        doc.text('TOTAL:', labelX, summaryStartY + 22);
-        doc.text(`$${orderDetails.total.toFixed(2)}`, rightAlign, summaryStartY + 22, { align: 'right' });
+        doc.text('TOTAL:', labelX, summaryStartY);
+        doc.text(`$${orderDetails.total.toFixed(2)}`, rightAlign, summaryStartY, { align: 'right' });
+
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(9);
+        doc.text('(Free Pickup - No Delivery Charges)', labelX, summaryStartY + 6);
 
         // Footer
         doc.setFont('helvetica', 'italic');
@@ -211,21 +195,9 @@ export default function CheckoutSuccessPage() {
                     </div>
 
                     {/* Price Breakdown */}
-                    <div className="border-t pt-4 space-y-2">
-                        <div className="flex justify-between text-sm text-gray-600">
-                            <span>Subtotal</span>
-                            <span>${orderDetails.subtotal.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-gray-600">
-                            <span>Tax (13%)</span>
-                            <span>${orderDetails.tax.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-gray-600">
-                            <span>Delivery Charges</span>
-                            <span>${orderDetails.deliveryCharges.toFixed(2)}</span>
-                        </div>
-                        <div className="border-t pt-2 flex justify-between text-xl font-bold text-gray-900">
-                            <span>Total Paid</span>
+                    <div className="border-t pt-4">
+                        <div className="flex justify-between text-xl font-bold text-gray-900">
+                            <span>Total Paid (Free Pickup)</span>
                             <span>${orderDetails.total.toFixed(2)}</span>
                         </div>
                     </div>

@@ -230,9 +230,9 @@ export default function CheckoutPage() {
     }
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.13; // 13% tax
-    const deliveryCharges = 5.00;
-    const total = subtotal + tax + deliveryCharges;
+    const tax = 0; // No tax
+    const deliveryCharges = 0; // Free pickup
+    const total = subtotal; // Total = Subtotal only
 
     const handlePaymentSuccess = () => {
         // Save order details for success page
@@ -391,22 +391,10 @@ export default function CheckoutPage() {
                         </div>
 
                         {/* Price Breakdown */}
-                        <div className="border-t pt-4 space-y-2">
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Subtotal</span>
+                        <div className="border-t pt-4">
+                            <div className="flex justify-between text-xl font-bold text-gray-900">
+                                <span>Total (Free Pickup)</span>
                                 <span>${total.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Tax (13%)</span>
-                                <span>${(total * 0.13).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Delivery Charges</span>
-                                <span>$5.00</span>
-                            </div>
-                            <div className="border-t pt-2 flex justify-between text-xl font-bold text-gray-900">
-                                <span>Total</span>
-                                <span>${(total + (total * 0.13) + 5).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
