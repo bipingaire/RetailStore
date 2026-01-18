@@ -32,14 +32,12 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'Payment configuration not found' }, { status: 400 });
             }
 
-            const secretKey = paymentConfig['stripe-secret-key'];
+            const secretKey = (paymentConfig as any)['stripe-secret-key'];
             if (!secretKey) {
                 return NextResponse.json({ error: 'Stripe secret key not configured' }, { status: 400 });
             }
 
-            const stripe = new Stripe(secretKey, {
-                apiVersion: '2024-12-18.acacia'
-            });
+            const stripe = new Stripe(secretKey);
 
             console.log('Creating payment intent for amount:', total);
 
@@ -61,7 +59,7 @@ export async function POST(req: Request) {
             console.log('Stripe payment successful:', paymentIntent.id);
 
             // Create order in database
-            const orderId = `ORD-${Date.now()}`;
+            const orderId = crypto.randomUUID();
 
             const { error: orderError } = await supabase
                 .from('customer-order-header')
@@ -134,7 +132,7 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'Customer not found' }, { status: 400 });
             }
 
-            const walletBalance = customer['wallet-balance'] || 0;
+            const walletBalance = (customer as any)['wallet-balance'] || 0;
 
             if (walletBalance < total) {
                 return NextResponse.json({
@@ -147,7 +145,7 @@ export async function POST(req: Request) {
             const { error: updateError } = await supabase
                 .from('retail-store-customer')
                 .update({ 'wallet-balance': newBalance })
-                .eq('customer-id', customer['customer-id']);
+                .eq('customer-id', (customer as any)['customer-id']);
 
             if (updateError) {
                 console.error('Wallet update error:', updateError);
@@ -157,7 +155,7 @@ export async function POST(req: Request) {
             console.log('Wallet payment successful. New balance:', newBalance);
 
             // Create order in database
-            const orderId = `ORD-${Date.now()}`;
+            const orderId = crypto.randomUUID();
 
             const { error: orderError } = await supabase
                 .from('customer-order-header')
@@ -222,7 +220,7 @@ export async function POST(req: Request) {
             console.log('Cash on delivery order placed');
 
             // Create order in database with 'pending' status (using correct enum value)
-            const orderId = `ORD-${Date.now()}`;
+            const orderId = crypto.randomUUID();
 
             const { error: orderError } = await supabase
                 .from('customer-order-header')
