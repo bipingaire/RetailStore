@@ -10,9 +10,9 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { paymentMethod, paymentMethodId, cart, total, tenantId, userId } = body;
+        const { paymentMethod, paymentMethodId, cart, total, tenantId, userId, customerName, customerEmail } = body;
 
-        console.log('Processing payment:', { method: paymentMethod, tenant: tenantId });
+        console.log('Processing payment:', { method: paymentMethod, tenant: tenantId, user: userId });
 
         if (!tenantId) {
             return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
@@ -67,36 +67,49 @@ export async function POST(req: Request) {
                 .from('customer-order-header')
                 .insert({
                     'order-id': orderId,
+                    'tenant-id': tenantId,
                     'customer-id': userId,
-                    'order-date': new Date().toISOString(),
-                    'order-status': 'paid',
+                    'customer-name': customerName,
+                    'customer-email': customerEmail,
+                    'order-date-time': new Date().toISOString(),
+                    'order-status-code': 'paid',
+                    'payment-status': 'paid',
                     'payment-method': 'stripe',
-                    'payment-reference': paymentIntent.id,
-                    'total-amount': total
+                    'stripe-payment-intent-id': paymentIntent.id,
+                    'total-amount-value': total,
+                    'final-amount': total,
+                    'tax-amount': 0,
+                    'discount-amount': 0
                 });
 
             if (orderError) {
                 console.error('Order creation error:', orderError);
-            } else {
-                // Insert line items
-                const lineItems = cart.map((item: any) => ({
-                    'order-id': orderId,
-                    'inventory-id': item.id,
-                    'quantity-ordered': item.quantity,
-                    'unit-price': item.price,
-                    'line-total': item.price * item.quantity
-                }));
-
-                const { error: lineItemsError } = await supabase
-                    .from('order-line-item-detail')
-                    .insert(lineItems);
-
-                if (lineItemsError) {
-                    console.error('Line items error:', lineItemsError);
-                }
-
-                console.log('Order created successfully:', orderId);
+                return NextResponse.json({
+                    error: `Database error: ${orderError.message}`
+                }, { status: 500 });
             }
+
+            // Insert line items
+            const lineItems = cart.map((item: any) => ({
+                'order-id': orderId,
+                'inventory-id': item.id,
+                'product-name': item.name || 'Unknown Product',
+                'quantity-ordered': item.quantity,
+                'unit-price-amount': item.price,
+                'total-amount': item.price * item.quantity
+            }));
+
+            const { error: lineItemsError } = await supabase
+                .from('order-line-item-detail')
+                .insert(lineItems);
+
+            if (lineItemsError) {
+                console.error('Line items error:', lineItemsError);
+                // Don't fail the request if line items fail, but log it critical
+            }
+
+            console.log('Order created successfully:', orderId);
+
 
             return NextResponse.json({
                 success: true,
@@ -150,36 +163,48 @@ export async function POST(req: Request) {
                 .from('customer-order-header')
                 .insert({
                     'order-id': orderId,
+                    'tenant-id': tenantId,
                     'customer-id': userId,
-                    'order-date': new Date().toISOString(),
-                    'order-status': 'paid',
+                    'customer-name': customerName,
+                    'customer-email': customerEmail,
+                    'order-date-time': new Date().toISOString(),
+                    'order-status-code': 'paid',
+                    'payment-status': 'paid',
                     'payment-method': 'wallet',
-                    'payment-reference': `WALLET-${Date.now()}`,
-                    'total-amount': total
+                    'stripe-payment-intent-id': `WALLET-${Date.now()}`, // Using this field for reference
+                    'total-amount-value': total,
+                    'final-amount': total,
+                    'tax-amount': 0,
+                    'discount-amount': 0
                 });
 
             if (orderError) {
                 console.error('Order creation error:', orderError);
-            } else {
-                // Insert line items
-                const lineItems = cart.map((item: any) => ({
-                    'order-id': orderId,
-                    'inventory-id': item.id,
-                    'quantity-ordered': item.quantity,
-                    'unit-price': item.price,
-                    'line-total': item.price * item.quantity
-                }));
-
-                const { error: lineItemsError } = await supabase
-                    .from('order-line-item-detail')
-                    .insert(lineItems);
-
-                if (lineItemsError) {
-                    console.error('Line items error:', lineItemsError);
-                }
-
-                console.log('Order created successfully:', orderId);
+                return NextResponse.json({
+                    error: `Database error: ${orderError.message}`
+                }, { status: 500 });
             }
+
+            // Insert line items
+            const lineItems = cart.map((item: any) => ({
+                'order-id': orderId,
+                'inventory-id': item.id,
+                'product-name': item.name || 'Unknown Product',
+                'quantity-ordered': item.quantity,
+                'unit-price-amount': item.price,
+                'total-amount': item.price * item.quantity
+            }));
+
+            const { error: lineItemsError } = await supabase
+                .from('order-line-item-detail')
+                .insert(lineItems);
+
+            if (lineItemsError) {
+                console.error('Line items error:', lineItemsError);
+            }
+
+            console.log('Order created successfully:', orderId);
+
 
             return NextResponse.json({
                 success: true,
@@ -196,25 +221,32 @@ export async function POST(req: Request) {
 
             console.log('Cash on delivery order placed');
 
-            // Create order in database with 'pending_payment' status
+            // Create order in database with 'pending' status (using correct enum value)
             const orderId = `ORD-${Date.now()}`;
 
             const { error: orderError } = await supabase
                 .from('customer-order-header')
                 .insert({
                     'order-id': orderId,
+                    'tenant-id': tenantId,
                     'customer-id': userId,
-                    'order-date': new Date().toISOString(),
-                    'order-status': 'pending_payment',
+                    'customer-name': customerName,
+                    'customer-email': customerEmail,
+                    'order-date-time': new Date().toISOString(),
+                    'order-status-code': 'pending', // Enum: pending, confirmed, etc.
+                    'payment-status': 'pending',    // Enum: pending, paid, etc.
                     'payment-method': 'cash',
-                    'payment-reference': `COD-${Date.now()}`,
-                    'total-amount': total
+                    'stripe-payment-intent-id': `COD-${Date.now()}`,
+                    'total-amount-value': total,
+                    'final-amount': total,
+                    'tax-amount': 0,
+                    'discount-amount': 0
                 });
 
             if (orderError) {
                 console.error('Order creation error:', orderError);
                 return NextResponse.json({
-                    error: 'Failed to create order'
+                    error: `Database error: ${orderError.message}`
                 }, { status: 500 });
             }
 
@@ -222,9 +254,10 @@ export async function POST(req: Request) {
             const lineItems = cart.map((item: any) => ({
                 'order-id': orderId,
                 'inventory-id': item.id,
+                'product-name': item.name || 'Unknown Product',
                 'quantity-ordered': item.quantity,
-                'unit-price': item.price,
-                'line-total': item.price * item.quantity
+                'unit-price-amount': item.price,
+                'total-amount': item.price * item.quantity
             }));
 
             const { error: lineItemsError } = await supabase
