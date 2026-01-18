@@ -38,80 +38,116 @@ export default function CheckoutSuccessPage() {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
 
-        // Company/Store Header
-        doc.setFontSize(24);
+        // Add logo image
+        const logoImg = new Image();
+        logoImg.src = '/indumart-logo.png';
+
+        // Add logo (centered)
+        const logoWidth = 15;
+        const logoHeight = 15;
+        const logoX = (pageWidth - logoWidth) / 2;
+        doc.addImage(logoImg, 'PNG', logoX, 12, logoWidth, logoHeight);
+
+        // InduMart Title (green)
+        doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('PAYMENT RECEIPT', pageWidth / 2, 20, { align: 'center' });
+        doc.setTextColor(34, 139, 34); // Green
+        doc.text('InduMart', pageWidth / 2, 32, { align: 'center' });
 
-        doc.setFontSize(10);
+        // Payment Receipt Title
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0); // Black
+        doc.text('Payment Receipt', pageWidth / 2, 40, { align: 'center' });
+
+        // Left side - Receipt Details
+        doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text('InduMart', pageWidth / 2, 28, { align: 'center' });
-        doc.text('Your Trusted Retail Store', pageWidth / 2, 33, { align: 'center' });
+        const leftX = 14;
+        let yPos = 50;
+        doc.text(`Receipt ID: ${orderDetails.orderId}`, leftX, yPos);
+        yPos += 5;
+        doc.text(`Date: ${orderDetails.orderDate}`, leftX, yPos);
+        yPos += 5;
+        doc.text('Payment: CASH', leftX, yPos);
 
-        // Order Information
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Order Details:', 14, 45);
+        // Right side - Customer Details
+        const rightX = 120;
+        yPos = 50;
+        doc.text('Customer: Walk-in Customer', rightX, yPos);
+        yPos += 5;
+        doc.text('Email: -', rightX, yPos);
+        yPos += 5;
+        doc.text('Phone: -', rightX, yPos);
 
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Order ID: ${orderDetails.orderId}`, 14, 52);
-        doc.text(`Date: ${orderDetails.orderDate}`, 14, 58);
-        doc.text(`Payment Status: PAID`, 14, 64);
-
-        // Products Table
-        const tableData = orderDetails.items.map(item => [
+        // Products Table with GREEN header
+        const tableData = orderDetails.items.map((item, index) => [
             item.name,
+            `ITEM-${String(index + 1).padStart(3, '0')}`,
             item.quantity.toString(),
             `$${item.price.toFixed(2)}`,
             `$${(item.price * item.quantity).toFixed(2)}`
         ]);
 
         autoTable(doc, {
-            startY: 75,
-            head: [['Product', 'Qty', 'Unit Price', 'Total']],
+            startY: 65,
+            head: [['Product Name', 'Item ID', 'Qty', 'Unit Price', 'Total']],
             body: tableData,
             theme: 'grid',
             headStyles: {
-                fillColor: [37, 99, 235], // Blue
+                fillColor: [34, 139, 34], // Green
                 textColor: [255, 255, 255],
                 fontStyle: 'bold',
-                halign: 'left'
+                halign: 'center',
+                fontSize: 9
+            },
+            bodyStyles: {
+                fontSize: 9
             },
             columnStyles: {
-                0: { cellWidth: 80 },
-                1: { halign: 'center', cellWidth: 25 },
-                2: { halign: 'right', cellWidth: 35 },
-                3: { halign: 'right', cellWidth: 40 }
+                0: { cellWidth: 70, halign: 'left' },
+                1: { cellWidth: 30, halign: 'center' },
+                2: { cellWidth: 20, halign: 'center' },
+                3: { cellWidth: 30, halign: 'right' },
+                4: { cellWidth: 30, halign: 'right' }
             },
             styles: {
-                fontSize: 10,
-                cellPadding: 5
+                lineColor: [200, 200, 200],
+                lineWidth: 0.1
             }
         });
 
         // Get the final Y position after table
         const finalY = (doc as any).lastAutoTable.finalY || 75;
 
-        // Grand Total (no breakdown needed)
-        const summaryStartY = finalY + 10;
-        const rightAlign = pageWidth - 14;
-        const labelX = pageWidth - 70;
+        // Summary section (right-aligned)
+        const summaryX = 150;
+        const labelX = 120;
+        let summaryY = finalY + 8;
 
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text('TOTAL:', labelX, summaryStartY);
-        doc.text(`$${orderDetails.total.toFixed(2)}`, rightAlign, summaryStartY, { align: 'right' });
-
-        doc.setFont('helvetica', 'italic');
         doc.setFontSize(9);
-        doc.text('(Free Pickup - No Delivery Charges)', labelX, summaryStartY + 6);
+        doc.setFont('helvetica', 'normal');
+
+        // Subtotal
+        doc.text('Subtotal:', labelX, summaryY);
+        doc.text(`$${orderDetails.total.toFixed(2)}`, summaryX, summaryY, { align: 'right' });
+        summaryY += 5;
+
+        // Tax
+        doc.text('Tax:', labelX, summaryY);
+        doc.text('$0.00', summaryX, summaryY, { align: 'right' });
+        summaryY += 6;
+
+        // Grand Total (bold)
+        doc.setFont('helvetica', 'bold');
+        doc.text('Grand Total:', labelX, summaryY);
+        doc.text(`$${orderDetails.total.toFixed(2)}`, summaryX, summaryY, { align: 'right' });
 
         // Footer
         doc.setFont('helvetica', 'italic');
-        doc.setFontSize(9);
-        const footerY = doc.internal.pageSize.getHeight() - 20;
-        doc.text('Thank you for your purchase!', pageWidth / 2, footerY, { align: 'center' });
-        doc.text('For inquiries, contact: support@indumart.com', pageWidth / 2, footerY + 5, { align: 'center' });
+        doc.setFontSize(8);
+        const footerY = doc.internal.pageSize.getHeight() - 15;
+        doc.text('(Free Pickup - No Delivery Charges)', pageWidth / 2, footerY, { align: 'center' });
+        doc.text('Thank you for shopping with InduMart!', pageWidth / 2, footerY + 5, { align: 'center' });
 
         // Save the PDF
         doc.save(`Receipt-${orderDetails.orderId}.pdf`);
@@ -165,10 +201,14 @@ export default function CheckoutSuccessPage() {
 
                 {/* Order Summary */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <FileText size={20} />
-                        Order Summary
-                    </h2>
+                    {/* Header with Logo */}
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <img src="/indumart-logo.png" alt="InduMart" className="h-10 w-10 object-contain" />
+                        <div>
+                            <h2 className="text-lg font-bold text-gray-900">Order Summary</h2>
+                            <p className="text-xs text-gray-500">InduMart - Your Trusted Store</p>
+                        </div>
+                    </div>
 
                     {/* Products Table */}
                     <div className="overflow-x-auto mb-6">

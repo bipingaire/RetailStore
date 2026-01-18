@@ -350,10 +350,14 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Order Summary */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                            <ShoppingBag size={20} />
-                            Order Summary
-                        </h2>
+                        {/* Header with Logo */}
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <img src="/indumart-logo.png" alt="InduMart" className="h-10 w-10 object-contain" />
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-900">Order Summary</h2>
+                                <p className="text-xs text-gray-500">InduMart - Your Trusted Store</p>
+                            </div>
+                        </div>
 
                         {/* Product Table */}
                         <div className="overflow-x-auto mb-6">
