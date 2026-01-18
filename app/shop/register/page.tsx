@@ -12,95 +12,26 @@ function RegisterPageContent() {
     const searchParams = useSearchParams();
     const supabase = createClientComponentClient();
 
-    const [step, setStep] = useState<'details' | 'otp' | 'password'>('details');
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
         phone: '',
-        otp: '',
         password: '',
         confirmPassword: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [emailSent, setEmailSent] = useState(false);
 
     const redirectTo = searchParams?.get('redirect') || '/shop';
 
-    async function handleSendOTP() {
+    async function handleRegister() {
         setLoading(true);
         setError('');
 
-        if (!formData.email || !formData.fullName) {
+        // Validation
+        if (!formData.email || !formData.fullName || !formData.password) {
             setError('Please fill in all required fields');
-            setLoading(false);
-            return;
-        }
-
-        try {
-            // Send OTP for email verification
-            const { error: otpError } = await supabase.auth.signInWithOtp({
-                email: formData.email,
-                options: {
-                    shouldCreateUser: false, // Don't create user yet
-                }
-            });
-
-            if (otpError) {
-                setError(otpError.message);
-                setLoading(false);
-                return;
-            }
-
-            console.log('✅ OTP sent to:', formData.email);
-            setStep('otp');
-            setLoading(false);
-
-        } catch (err: any) {
-            setError(err.message || 'Failed to send OTP');
-            setLoading(false);
-        }
-    }
-
-    async function handleVerifyOTP() {
-        setLoading(true);
-        setError('');
-
-        if (!formData.otp || formData.otp.length !== 6) {
-            setError('Please enter a valid 6-digit code');
-            setLoading(false);
-            return;
-        }
-
-        try {
-            // Verify OTP
-            const { error: verifyError } = await supabase.auth.verifyOtp({
-                email: formData.email,
-                token: formData.otp,
-                type: 'email'
-            });
-
-            if (verifyError) {
-                setError(verifyError.message);
-                setLoading(false);
-                return;
-            }
-
-            console.log('✅ Email verified! Now set password');
-            setStep('password');
-            setLoading(false);
-
-        } catch (err: any) {
-            setError(err.message || 'Invalid OTP code');
-            setLoading(false);
-        }
-    }
-
-    async function handleCreateAccount() {
-        setLoading(true);
-        setError('');
-
-        if (!formData.password || !formData.confirmPassword) {
-            setError('Please enter password');
             setLoading(false);
             return;
         }
@@ -118,7 +49,7 @@ function RegisterPageContent() {
         }
 
         try {
-            // Create account with password
+            // Create account with email confirmation
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
@@ -127,7 +58,7 @@ function RegisterPageContent() {
                         full_name: formData.fullName,
                         phone: formData.phone,
                     },
-                    emailRedirectTo: `${window.location.origin}/auth/callback`
+                    emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`
                 }
             });
 
@@ -137,8 +68,9 @@ function RegisterPageContent() {
                 return;
             }
 
-            console.log('✅ Account created successfully!');
-            router.push(redirectTo);
+            console.log('✅ Registration successful! Confirmation email sent.');
+            setEmailSent(true);
+            setLoading(false);
 
         } catch (err: any) {
             setError(err.message || 'Failed to create account');
@@ -146,184 +78,75 @@ function RegisterPageContent() {
         }
     }
 
-    async function handleResendOTP() {
-        setFormData({ ...formData, otp: '' });
-        setError('');
-        await handleSendOTP();
-    }
-
-    // Password Setup Screen
-    if (step === 'password') {
+    // Email Sent Confirmation Screen
+    if (emailSent) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-sm">
+                <div className="w-full max-w-md">
                     <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                            <Lock className="text-green-600" size={32} />
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
+                            <Mail className="text-green-600" size={40} />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-1">Set Your Password</h1>
-                        <p className="text-sm text-gray-600">
-                            Email verified! Create a password for your account
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h1>
+                        <p className="text-gray-600">
+                            We sent a confirmation link to:
                         </p>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-2 text-sm">
-                                    Password
-                                </label>
-                                <input
-                                    type="password"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    placeholder="Min. 6 characters"
-                                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-2 text-sm">
-                                    Confirm Password
-                                </label>
-                                <input
-                                    type="password"
-                                    value={formData.confirmPassword}
-                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    placeholder="Re-enter password"
-                                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleCreateAccount()}
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs">
-                                    {error}
-                                </div>
-                            )}
-
-                            <button
-                                onClick={handleCreateAccount}
-                                disabled={loading || !formData.password || !formData.confirmPassword}
-                                className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="animate-spin" size={16} />
-                                        Creating Account...
-                                    </>
-                                ) : (
-                                    <>
-                                        Create Account
-                                        <ArrowRight size={16} />
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="text-center mt-4">
-                        <Link href="/shop" className="text-gray-500 hover:text-gray-700 transition-colors text-xs">
-                            ← Back to Shop
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // OTP Verification Screen
-    if (step === 'otp') {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-sm">
-                    <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
-                            <Mail className="text-emerald-600" size={32} />
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-1">Verify Your Email</h1>
-                        <p className="text-sm text-gray-600">
-                            We sent a 6-digit code to:
-                        </p>
-                        <p className="text-emerald-600 font-semibold mt-2">
+                        <p className="text-emerald-600 font-semibold text-lg mt-2">
                             {formData.email}
                         </p>
                     </div>
 
                     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-2 text-sm">
-                                    Enter 6-Digit Code
-                                </label>
-                                <input
-                                    type="text"
-                                    maxLength={6}
-                                    value={formData.otp}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/[^0-9]/g, '');
-                                        setFormData({ ...formData, otp: value });
-                                    }}
-                                    placeholder="000000"
-                                    className="w-full bg-white border border-gray-300 text-gray-900 text-center text-2xl tracking-widest font-bold rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                                    onKeyDown={(e) => e.key === 'Enter' && formData.otp.length === 6 && handleVerifyOTP()}
-                                />
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                                    <Mail size={18} />
+                                    Next Steps:
+                                </h3>
+                                <ol className="text-sm text-blue-900 space-y-2 list-decimal list-inside">
+                                    <li>Open your email inbox</li>
+                                    <li>Find the email from Supabase Auth</li>
+                                    <li>Click the "Confirm your email" link</li>
+                                    <li>You'll be automatically logged in</li>
+                                </ol>
                             </div>
 
-                            {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs">
-                                    {error}
-                                </div>
-                            )}
-
-                            <button
-                                onClick={handleVerifyOTP}
-                                disabled={loading || formData.otp.length !== 6}
-                                className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="animate-spin" size={16} />
-                                        Verifying...
-                                    </>
-                                ) : (
-                                    <>
-                                        Verify Email
-                                        <ArrowRight size={16} />
-                                    </>
-                                )}
-                            </button>
-
-                            <div className="text-center">
+                            <div className="text-center text-xs text-gray-500">
+                                <p>Didn't receive the email? Check your spam folder.</p>
                                 <button
-                                    onClick={handleResendOTP}
-                                    disabled={loading}
-                                    className="text-emerald-600 text-sm font-semibold hover:text-emerald-700 transition-colors disabled:opacity-50"
+                                    onClick={() => setEmailSent(false)}
+                                    className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors mt-2"
                                 >
-                                    Resend Code
+                                    Try a different email
                                 </button>
                             </div>
 
-                            <button
-                                onClick={() => setStep('details')}
-                                className="w-full text-gray-600 text-sm hover:text-gray-800 transition-colors"
+                            <Link
+                                href="/shop"
+                                className="block w-full text-center bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition"
                             >
-                                ← Change Email Address
-                            </button>
+                                Back to Shop
+                            </Link>
                         </div>
                     </div>
 
                     <div className="text-center mt-4">
-                        <Link href="/shop" className="text-gray-500 hover:text-gray-700 transition-colors text-xs">
-                            ← Back to Shop
-                        </Link>
+                        <p className="text-gray-600 text-xs">
+                            Already verified?{' '}
+                            <Link
+                                href={`/shop/login?redirect=${redirectTo}`}
+                                className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
+                            >
+                                Sign in
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>
         );
     }
 
-    // Step 1: Details Input Screen
+    // Registration Form
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
             <div className="w-full max-w-sm">
@@ -370,7 +193,7 @@ function RegisterPageContent() {
 
                         <div>
                             <label className="block text-gray-700 font-medium mb-1.5 text-sm">
-                                Mobile Number <span className="text-red-500">*</span>
+                                Mobile Number
                             </label>
                             <input
                                 type="tel"
@@ -378,13 +201,39 @@ function RegisterPageContent() {
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                 placeholder="+977 9876543210"
                                 className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                                onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-1.5 text-sm">
+                                Password <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="password"
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                placeholder="Min. 6 characters"
+                                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-1.5 text-sm">
+                                Confirm Password <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="password"
+                                value={formData.confirmPassword}
+                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                placeholder="Re-enter password"
+                                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
                             />
                         </div>
 
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                             <p className="text-xs text-blue-900">
-                                <strong>📧 Email Verification:</strong> We'll send a 6-digit verification code to your email to confirm your account.
+                                <strong>📧 Email Verification:</strong> We'll send a confirmation link to your email. Click it to activate your account.
                             </p>
                         </div>
 
@@ -395,18 +244,18 @@ function RegisterPageContent() {
                         )}
 
                         <button
-                            onClick={handleSendOTP}
-                            disabled={loading || !formData.email || !formData.fullName || !formData.phone}
+                            onClick={handleRegister}
+                            disabled={loading || !formData.email || !formData.fullName || !formData.password || !formData.confirmPassword}
                             className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
                                     <Loader2 className="animate-spin" size={16} />
-                                    Sending code...
+                                    Creating account...
                                 </>
                             ) : (
                                 <>
-                                    Send Verification Code
+                                    Create Account
                                     <ArrowRight size={16} />
                                 </>
                             )}
