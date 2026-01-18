@@ -60,10 +60,48 @@ export async function POST(req: Request) {
 
             console.log('Stripe payment successful:', paymentIntent.id);
 
-            // TODO: Create order in database
+            // Create order in database
+            const orderId = `ORD-${Date.now()}`;
+
+            const { error: orderError } = await supabase
+                .from('customer-order-header')
+                .insert({
+                    'order-id': orderId,
+                    'customer-id': userId,
+                    'order-date': new Date().toISOString(),
+                    'order-status': 'paid',
+                    'payment-method': 'stripe',
+                    'payment-reference': paymentIntent.id,
+                    'total-amount': total
+                });
+
+            if (orderError) {
+                console.error('Order creation error:', orderError);
+            } else {
+                // Insert line items
+                const lineItems = cart.map((item: any) => ({
+                    'order-id': orderId,
+                    'inventory-id': item.id,
+                    'quantity-ordered': item.quantity,
+                    'unit-price': item.price,
+                    'line-total': item.price * item.quantity
+                }));
+
+                const { error: lineItemsError } = await supabase
+                    .from('order-line-item-detail')
+                    .insert(lineItems);
+
+                if (lineItemsError) {
+                    console.error('Line items error:', lineItemsError);
+                }
+
+                console.log('Order created successfully:', orderId);
+            }
+
             return NextResponse.json({
                 success: true,
                 paymentIntentId: paymentIntent.id,
+                orderId,
                 method: 'stripe'
             });
 
@@ -73,7 +111,6 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'User ID required' }, { status: 400 });
             }
 
-            // Get customer wallet balance
             const { data: customer, error: customerError } = await supabase
                 .from('retail-store-customer')
                 .select('wallet-balance, customer-id')
@@ -106,9 +143,47 @@ export async function POST(req: Request) {
 
             console.log('Wallet payment successful. New balance:', newBalance);
 
-            // TODO: Create order in database
+            // Create order in database
+            const orderId = `ORD-${Date.now()}`;
+
+            const { error: orderError } = await supabase
+                .from('customer-order-header')
+                .insert({
+                    'order-id': orderId,
+                    'customer-id': userId,
+                    'order-date': new Date().toISOString(),
+                    'order-status': 'paid',
+                    'payment-method': 'wallet',
+                    'payment-reference': `WALLET-${Date.now()}`,
+                    'total-amount': total
+                });
+
+            if (orderError) {
+                console.error('Order creation error:', orderError);
+            } else {
+                // Insert line items
+                const lineItems = cart.map((item: any) => ({
+                    'order-id': orderId,
+                    'inventory-id': item.id,
+                    'quantity-ordered': item.quantity,
+                    'unit-price': item.price,
+                    'line-total': item.price * item.quantity
+                }));
+
+                const { error: lineItemsError } = await supabase
+                    .from('order-line-item-detail')
+                    .insert(lineItems);
+
+                if (lineItemsError) {
+                    console.error('Line items error:', lineItemsError);
+                }
+
+                console.log('Order created successfully:', orderId);
+            }
+
             return NextResponse.json({
                 success: true,
+                orderId,
                 method: 'wallet',
                 newBalance
             });
@@ -121,9 +196,50 @@ export async function POST(req: Request) {
 
             console.log('Cash on delivery order placed');
 
-            // TODO: Create order in database with status 'pending' or 'COD'
+            // Create order in database with 'pending_payment' status
+            const orderId = `ORD-${Date.now()}`;
+
+            const { error: orderError } = await supabase
+                .from('customer-order-header')
+                .insert({
+                    'order-id': orderId,
+                    'customer-id': userId,
+                    'order-date': new Date().toISOString(),
+                    'order-status': 'pending_payment',
+                    'payment-method': 'cash',
+                    'payment-reference': `COD-${Date.now()}`,
+                    'total-amount': total
+                });
+
+            if (orderError) {
+                console.error('Order creation error:', orderError);
+                return NextResponse.json({
+                    error: 'Failed to create order'
+                }, { status: 500 });
+            }
+
+            // Insert line items
+            const lineItems = cart.map((item: any) => ({
+                'order-id': orderId,
+                'inventory-id': item.id,
+                'quantity-ordered': item.quantity,
+                'unit-price': item.price,
+                'line-total': item.price * item.quantity
+            }));
+
+            const { error: lineItemsError } = await supabase
+                .from('order-line-item-detail')
+                .insert(lineItems);
+
+            if (lineItemsError) {
+                console.error('Line items error:', lineItemsError);
+            }
+
+            console.log('COD order created successfully:', orderId);
+
             return NextResponse.json({
                 success: true,
+                orderId,
                 method: 'cash',
                 message: 'Order placed successfully. Pay on delivery.'
             });
