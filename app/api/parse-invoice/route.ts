@@ -4,17 +4,33 @@ import OpenAI from 'openai';
 // Initialize lazily inside handler
 // const openai = ...
 
-export async function POST(req: Request) {
-  try {
-    const { fileData, fileType } = await req.json();
+// Prevent API route timeout on serverless deployments
+export const maxDuration = 60; // 60 seconds max for serverless
+export const dynamic = 'force-dynamic';
 
-    if (!fileData) {
+export async function POST(req: Request) {
+  const startTime = Date.now();
+  console.log('[parse-invoice] Starting request at', new Date().toISOString());
+
+  try {
+    console.log('[parse-invoice] Parsing JSON body...');
+    const body = await req.json();
+    const { fileData, fileType, imageUrl } = body;
+
+    // Support both 'fileData' and 'imageUrl' (legacy) parameter names
+    const actualFileData = fileData || imageUrl;
+    const actualFileType = fileType || 'image';
+
+    if (!actualFileData) {
+      console.log('[parse-invoice] No file data provided');
       return NextResponse.json({ error: 'No file data provided' }, { status: 400 });
     }
 
+    console.log('[parse-invoice] Building prompt for file type:', actualFileType);
+
     const prompt = `
       You are a Forensic Invoice Analyst.
-      Analyze the provided ${fileType}.
+      Analyze the provided ${actualFileType}.
       
       Extract TWO sections:
       1. **EXTENDED VENDOR DATA**: Look for every scrap of contact info.
@@ -64,19 +80,21 @@ export async function POST(req: Request) {
       }
     `;
 
-    const contentPayload = fileType === 'pdf_text'
-      ? [{ type: "text", text: fileData.substring(0, 15000) }]
+    const contentPayload = actualFileType === 'pdf_text'
+      ? [{ type: "text", text: actualFileData.substring(0, 15000) }]
       : [
         { type: "text", text: "Extract detailed vendor and product data." },
-        { type: "image_url", image_url: { url: fileData } }
+        { type: "image_url", image_url: { url: actualFileData } }
       ];
 
+    console.log('[parse-invoice] Checking for OpenAI API key...');
     const openaiKey = process.env.OPENAI_API_KEY;
     const openai = openaiKey
       ? new OpenAI({ apiKey: openaiKey })
       : null;
 
     if (!openai) {
+      console.log('[parse-invoice] No OpenAI key found, using DEMO MODE');
       // --- DEMO MODE: SMART RANDOM MOCK ---
       // This ensures the features are testable even without an API key.
 
@@ -133,8 +151,11 @@ export async function POST(req: Request) {
       const grandTotal = parseFloat((total + tax + shipping).toFixed(2));
 
       // Simulate network delay for realism
+      console.log('[parse-invoice] Simulating network delay (1.5s)...');
       await new Promise(resolve => setTimeout(resolve, 1500));
 
+      const elapsedMs = Date.now() - startTime;
+      console.log(`[parse-invoice] Demo mode completed in ${elapsedMs}ms, returning mock data`);
       return NextResponse.json({
         success: true,
         data: {
@@ -199,7 +220,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data: parsedData });
 
   } catch (error: any) {
-    console.error("Invoice Parse Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const elapsedMs = Date.now() - startTime;
+    console.error(`[parse-invoice] ERROR at ${elapsedMs}ms:`, error.message);
+    console.error('[parse-invoice] Full error:', error);
+    return NextResponse.json({
+      error: error.message || 'Failed to process invoice',
+      timestamp: new Date().toISOString(),
+      elapsedMs
+    }, { status: 500 });
   }
 }

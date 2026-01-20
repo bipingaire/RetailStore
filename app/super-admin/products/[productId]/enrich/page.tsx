@@ -31,7 +31,11 @@ export default function EnrichProductPage() {
         'description-text': '',
         'image-url': '',
         'package-size': '',
-        'package-unit': ''
+        'package-unit': '',
+        // UOM fields
+        'base-unit-name': 'piece',
+        'pack-size': 1,
+        'pack-unit-name': ''
     });
 
     useEffect(() => {
@@ -61,7 +65,11 @@ export default function EnrichProductPage() {
                 'description-text': data['description-text'] || '',
                 'image-url': data['image-url'] || '',
                 'package-size': data['package-size'] || '',
-                'package-unit': data['package-unit'] || ''
+                'package-unit': data['package-unit'] || '',
+                // UOM fields
+                'base-unit-name': data['base-unit-name'] || 'piece',
+                'pack-size': data['pack-size'] || 1,
+                'pack-unit-name': data['pack-unit-name'] || ''
             });
         }
         setLoading(false);
@@ -237,6 +245,67 @@ export default function EnrichProductPage() {
                             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="g, ml, oz, etc."
                         />
+                    </div>
+
+                    {/* UOM Fields Section */}
+                    <div className="md:col-span-2 pt-4 border-t border-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-4">Unit of Measurement (UOM)</h3>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Pack Size</label>
+                        <input
+                            type="number"
+                            min="1"
+                            value={formData['pack-size']}
+                            onChange={e => setFormData({ ...formData, 'pack-size': parseInt(e.target.value) || 1 })}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Number of base units in one pack</p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Base Unit</label>
+                        <select
+                            value={formData['base-unit-name']}
+                            onChange={e => setFormData({ ...formData, 'base-unit-name': e.target.value })}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="piece">piece</option>
+                            <option value="each">each</option>
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="lb">lb</option>
+                            <option value="oz">oz</option>
+                            <option value="liter">liter</option>
+                            <option value="ml">ml</option>
+                            <option value="gallon">gallon</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Pack Unit Name (Optional)</label>
+                        <select
+                            value={formData['pack-unit-name']}
+                            onChange={e => setFormData({ ...formData, 'pack-unit-name': e.target.value })}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">-- None --</option>
+                            <option value="box">box</option>
+                            <option value="case">case</option>
+                            <option value="carton">carton</option>
+                            <option value="dozen">dozen</option>
+                            <option value="pack">pack</option>
+                            <option value="bundle">bundle</option>
+                            <option value="pallet">pallet</option>
+                        </select>
+                    </div>
+
+                    <div className="md:col-span-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Calculation</label>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 font-mono text-sm text-blue-900">
+                            {formData['pack-size']} {formData['pack-unit-name'] || 'unit'}{formData['pack-size'] > 1 ? 's' : ''} = {formData['pack-size']} {formData['base-unit-name']}{formData['pack-size'] > 1 ? 's' : ''}
+                        </div>
                     </div>
 
                     <div className="md:col-span-2">

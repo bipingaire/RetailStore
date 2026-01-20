@@ -147,7 +147,7 @@ export default function MasterCatalogPage() {
                             key={product['product-id']}
                             className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden group relative"
                         >
-                            <Link href={`/superadmin/products/${product['product-id']}/edit`} legacyBehavior>
+                            <Link href={`/super-admin/products/${product['product-id']}/edit`} legacyBehavior>
                                 <a className="peer block aspect-square bg-gray-100 relative overflow-hidden">
                                     {product['image-url'] ? (
                                         <img
@@ -163,6 +163,12 @@ export default function MasterCatalogPage() {
                                     {product['enriched-by-superadmin'] && (
                                         <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
                                             Enriched
+                                        </div>
+                                    )}
+                                    {/* UOM Badge */}
+                                    {product['pack-size'] && product['pack-size'] > 1 && (
+                                        <div className="absolute bottom-2 left-2 bg-indigo-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                            {product['pack-size']}-{product['pack-unit-name'] || 'pack'}
                                         </div>
                                     )}
                                 </a>
@@ -233,6 +239,13 @@ export default function MasterCatalogPage() {
                                 )}
                                 {product['upc-ean-code'] && (
                                     <p className="text-xs text-gray-400 mt-2">UPC: {product['upc-ean-code']}</p>
+                                )}
+                                {/* UOM Info */}
+                                {product['base-unit-name'] && (
+                                    <p className="text-xs text-indigo-600 mt-1 font-medium">
+                                        {product['pack-size'] || 1} {product['base-unit-name']}{(product['pack-size'] || 1) > 1 ? 's' : ''}
+                                        {product['pack-unit-name'] && ` per ${product['pack-unit-name']}`}
+                                    </p>
                                 )}
                             </div>
                         </div>

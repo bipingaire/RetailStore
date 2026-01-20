@@ -163,6 +163,19 @@ export default function InvoicePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fileData: imagesToProcess[i], fileType: 'image' }),
         });
+
+        if (!res.ok) {
+          const contentType = res.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const error = await res.json();
+            throw new Error(error.error || `API error: ${res.status}`);
+          } else {
+            const text = await res.text();
+            console.error('Non-JSON response from parse-invoice:', text.substring(0, 500));
+            throw new Error(`Server error: ${res.status} ${res.statusText}. The server may be timing out.`);
+          }
+        }
+
         const json = await res.json();
 
         if (json.success) {

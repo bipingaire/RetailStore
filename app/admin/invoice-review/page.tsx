@@ -33,8 +33,23 @@ export default function InvoiceReview() {
       try {
         const res = await fetch('/api/parse-invoice', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ imageUrl: base64 }),
         });
+
+        if (!res.ok) {
+          const contentType = res.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const error = await res.json();
+            throw new Error(error.error || `API error: ${res.status}`);
+          } else {
+            // Likely an HTML error page from the server
+            const text = await res.text();
+            console.error('Non-JSON response:', text.substring(0, 500));
+            throw new Error(`Server error: ${res.status} ${res.statusText}`);
+          }
+        }
+
         const data = await res.json();
 
         // 2. THE "DUMB" MATCHER LOGIC
@@ -48,8 +63,9 @@ export default function InvoiceReview() {
         }));
 
         setItems(processedItems);
-      } catch (err) {
-        toast.error("Scan failed");
+      } catch (err: any) {
+        console.error('Invoice scan error:', err);
+        toast.error(`Scan failed: ${err.message || 'Unknown error'}`);
       }
       setLoading(false);
     };
