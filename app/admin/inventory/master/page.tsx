@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { Package, Search, Plus, Filter, Globe } from 'lucide-react';
+import { Package, Search, Plus, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function MasterInventoryPage() {
@@ -11,8 +11,8 @@ export default function MasterInventoryPage() {
   useEffect(() => {
     async function loadProducts() {
       try {
-        const data = await apiClient.getProducts({});
-        setProducts(data);
+        const data = await apiClient.getProducts({ limit: 100 });
+        setProducts(data as any[]);
       } catch (error) {
         toast.error('Failed to load global catalog');
       } finally {
