@@ -92,6 +92,9 @@ class GlobalProduct(MasterBase):
     enrichment_source = Column("enrichment-source", String(50))
     metadata_json = Column("metadata-json", JSON)
     
+    # Status: active, pending, rejected
+    status = Column(String(20), default="active", index=True)
+    
     # Timestamps
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated-at", DateTime(timezone=True), onupdate=func.now())
