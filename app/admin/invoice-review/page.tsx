@@ -1,6 +1,6 @@
 'use client';
 import { useState, ChangeEvent } from 'react';
-import { supabase } from '@/lib/supabase'; // Import the client we just made
+import { apiClient } from '@/lib/api-client';
 import { Loader2, Check, AlertTriangle, Save, Search } from 'lucide-react'; // Icons
 import { toast } from 'sonner';
 
@@ -76,26 +76,25 @@ export default function InvoiceReview() {
   const saveBatch = async () => {
     setUploading(true);
 
-    // This connects to your REAL Supabase Database
-    // Note: You need a 'tenant_id' in your table. We are using a dummy UUID for now.
-    const dummyTenantId = "00000000-0000-0000-0000-000000000000";
-
     try {
       // Loop through items and insert them
       for (const item of items) {
         // In a real app, you would first create the 'store_inventory' record
         // For this prototype, we will just log the success
         console.log("Saving to DB:", item);
+
+        // TODO: Implement actual inventory update API call
+        // await apiClient.createInventoryItem({...});
       }
 
       // Simulate network delay
       await new Promise(r => setTimeout(r, 1000));
 
-      alert("✅ Inventory Updated Successfully!");
+      toast.success("Inventory Updated Successfully!");
       setItems([]); // Clear screen
     } catch (err) {
       console.error(err);
-      alert("Failed to save to database");
+      toast.error("Failed to save to database");
     }
     setUploading(false);
   };
