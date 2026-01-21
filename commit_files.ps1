@@ -1,11 +1,11 @@
-$status = git status --porcelain
-foreach ($line in $status) {
-    if ([string]::IsNullOrWhiteSpace($line)) { continue }
-    # Skip the first 3 characters (status flags) and trim potential quotes
-    $file = $line.Substring(3).Trim('"')
-    
-    # Check if file exists (handling potential renames or deletes logic if needed, but simple add works for most)
-    Write-Host "Committing: $file"
-    git add "$file"
-    git commit -m "Update/Refactor $file"
+$files = git status --porcelain | ForEach-Object { $_.Substring(3) }
+
+foreach ($file in $files) {
+    if ($file -ne "") {
+        Write-Host "Committing $file..."
+        git add "$file"
+        $filename = Split-Path $file -Leaf
+        git commit -m "Update $filename"
+    }
 }
+Write-Host "All files committed."
