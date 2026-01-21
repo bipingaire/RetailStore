@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { apiClient } from '@/lib/api-client';
 import { AlertTriangle, TrendingDown, Calendar, Package, ChevronRight, Sparkles, Zap, ShoppingBag } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface HealthMetrics {
     total_items: number;
@@ -9,22 +10,15 @@ interface HealthMetrics {
     out_of_stock_count: number;
     expiring_soon_count: number;
     slow_moving_count: number;
-    overstock_count: number;
-}
-
-interface SlowMovingProduct {
-    inventory_id: string;
-    product_name: string;
-    current_stock: number;
-    cost_value: number;
-    days_since_last_sale: number;
-    suggested_action: string;
+    overstocked_count: number;
+    health_score: number;
+    low_stock: any[];
+    overstocked: any[];
+    out_of_stock: any[];
 }
 
 export default function InventoryHealthPage() {
-    const supabase = createClientComponentClient();
     const [metrics, setMetrics] = useState<HealthMetrics | null>(null);
-    const [slowMoving, setSlowMoving] = useState<SlowMovingProduct[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -33,54 +27,15 @@ export default function InventoryHealthPage() {
 
     async function loadHealthData() {
         setLoading(true);
-
-        const { data: inventory } = await supabase
-            .from('store_inventory')
-            .select(`
-        inventory_id,
-        current_stock_quantity,
-        reorder_point_value,
-        cost_price_amount,
-        global_products (product_name)
-      `)
-            .eq('is_active', true);
-
-        const { data: batches } = await supabase
-            .from('inventory_batches')
-            .select('expiry_date_timestamp, batch_quantity_count')
-            .gte('expiry_date_timestamp', new Date().toISOString().split('T')[0])
-            .lte('expiry_date_timestamp', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-
-        const total = inventory?.length || 0;
-        const lowStock = inventory?.filter((i: any) =>
-            i.current_stock_quantity <= i.reorder_point_value && i.current_stock_quantity > 0
-        ).length || 0;
-        const outOfStock = inventory?.filter((i: any) => i.current_stock_quantity === 0).length || 0;
-        const expiringSoon = batches?.length || 0;
-
-        const slowMovingItems: SlowMovingProduct[] = inventory
-            ?.filter((i: any) => i.current_stock_quantity > i.reorder_point_value * 3)
-            .map((i: any) => ({
-                inventory_id: i.inventory_id,
-                product_name: i.global_products?.product_name || 'Unknown',
-                current_stock: i.current_stock_quantity,
-                cost_value: i.current_stock_quantity * (i.cost_price_amount || 0),
-                days_since_last_sale: Math.floor(Math.random() * 90) + 30,
-                suggested_action: i.current_stock_quantity > i.reorder_point_value * 5 ? 'Create Campaign' : 'Monitor'
-            }))
-            .slice(0, 20) || [];
-
-        setMetrics({
-            total_items: total,
-            low_stock_count: lowStock,
-            out_of_stock_count: outOfStock,
-            expiring_soon_count: expiringSoon,
-            slow_moving_count: slowMovingItems.length,
-            overstock_count: slowMovingItems.filter(i => i.current_stock > 100).length
-        });
-
-        setSlowMoving(slowMovingItems);
-        setLoading(false);
+        try {
+            const data: any = await apiClient.getInventoryHealth();
+            setMetrics(data);
+        } catch (error: any) {
+            console.error('Error loading inventory health:', error);
+            toast.error('Failed to load inventory health data');
+        } finally {
+            setLoading(false);
+        }
     }
 
     if (loading || !metrics) {
@@ -93,10 +48,6 @@ export default function InventoryHealthPage() {
             </div>
         );
     }
-
-    const healthScore = Math.round(
-        ((metrics.total_items - metrics.out_of_stock_count - metrics.slow_moving_count) / metrics.total_items) * 100
-    );
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-8">
@@ -127,11 +78,11 @@ export default function InventoryHealthPage() {
                                     <Zap className="text-yellow-300 animate-pulse" size={28} />
                                     <span className="text-lg font-semibold text-emerald-100">Overall Health Score</span>
                                 </div>
-                                <div className="text-8xl font-black text-white mb-2 tracking-tight">{healthScore}%</div>
+                                <div className="text-8xl font-black text-white mb-2 tracking-tight">{metrics.health_score}%</div>
                                 <div className="flex items-center gap-2 text-emerald-200 text-lg">
-                                    {healthScore >= 80 ? (
+                                    {metrics.health_score >= 80 ? (
                                         <><span className="text-2xl">✓</span> Excellent Health</>
-                                    ) : healthScore >= 60 ? (
+                                    ) : metrics.health_score >= 60 ? (
                                         <><AlertTriangle size={20} /> Needs Attention</>
                                     ) : (
                                         <><AlertTriangle size={20} /> Critical</>
@@ -150,21 +101,21 @@ export default function InventoryHealthPage() {
                 {/* Alert Metrics - Premium Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-                    {/* Slow Moving */}
+                    {/* Overstocked */}
                     <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
                         <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 h-full">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg">
                                     <TrendingDown className="text-white" size={24} />
                                 </div>
-                                <span className="text-sm font-bold text-amber-900 uppercase tracking-wide">Slow Moving</span>
+                                <span className="text-sm font-bold text-amber-900 uppercase tracking-wide">Overstocked</span>
                             </div>
-                            <div className="text-5xl font-black text-amber-900 mb-2">{metrics.slow_moving_count}</div>
-                            <div className="text-amber-700 font-semibold">Create promotions</div>
+                            <div className="text-5xl font-black text-amber-900 mb-2">{metrics.overstocked_count}</div>
+                            <div className="text-amber-700 font-semibold">Consider promotion</div>
                         </div>
                     </div>
 
-                    {/* Expiring Soon */}
+                    {/* Expiring Soon (Placeholder - Backend support pending) */}
                     <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
                         <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6 h-full">
                             <div className="flex items-center gap-3 mb-4">
@@ -173,7 +124,7 @@ export default function InventoryHealthPage() {
                                 </div>
                                 <span className="text-sm font-bold text-rose-900 uppercase tracking-wide">Expiring Soon</span>
                             </div>
-                            <div className="text-5xl font-black text-rose-900 mb-2">{metrics.expiring_soon_count}</div>
+                            <div className="text-5xl font-black text-rose-900 mb-2">{metrics.expiring_soon_count || 0}</div>
                             <div className="text-rose-700 font-semibold">Within 30 days</div>
                         </div>
                     </div>
@@ -207,15 +158,15 @@ export default function InventoryHealthPage() {
                     </div>
                 </div>
 
-                {/* Slow Moving Products - Premium Table */}
+                {/* Overstocked Products Table */}
                 <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
                     <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-6 border-b border-white/10">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <ShoppingBag className="text-white" size={28} />
-                                <h3 className="text-2xl font-bold text-white">Slow-Moving Inventory</h3>
+                                <h3 className="text-2xl font-bold text-white">Overstocked Items</h3>
                             </div>
-                            <span className="px-4 py-2 bg-white/20 rounded-full text-white font-semibold">{slowMoving.length} items</span>
+                            <span className="px-4 py-2 bg-white/20 rounded-full text-white font-semibold">{metrics.overstocked.length} items</span>
                         </div>
                     </div>
 
@@ -223,35 +174,24 @@ export default function InventoryHealthPage() {
                         <table className="w-full">
                             <thead className="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th className="text-left px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Product</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Stock</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Value Tied</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Days Idle</th>
+                                    <th className="text-left px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Product ID</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Current Stock</th>
+                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Reorder Level</th>
                                     <th className="text-center px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10">
-                                {slowMoving.map((item) => (
+                                {metrics.overstocked.map((item: any) => (
                                     <tr key={item.inventory_id} className="hover:bg-white/5 transition-colors duration-150">
-                                        <td className="px-6 py-4 text-sm font-semibold text-white">{item.product_name}</td>
-                                        <td className="px-6 py-4 text-sm text-right text-blue-200">{item.current_stock}</td>
-                                        <td className="px-6 py-4 text-sm text-right">
-                                            <span className="font-bold text-red-400">${item.cost_value.toFixed(2)}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-right">
-                                            <span className={`px-3 py-1 rounded-full font-bold ${item.days_since_last_sale > 60
-                                                    ? 'bg-red-500/20 text-red-300'
-                                                    : 'bg-yellow-500/20 text-yellow-300'
-                                                }`}>
-                                                {item.days_since_last_sale}d
-                                            </span>
-                                        </td>
+                                        <td className="px-6 py-4 text-sm font-semibold text-white">{item.product_id?.substring(0, 8)}...</td>
+                                        <td className="px-6 py-4 text-sm text-right text-blue-200">{item.quantity}</td>
+                                        <td className="px-6 py-4 text-sm text-right text-blue-200">{item.reorder_level}</td>
                                         <td className="px-6 py-4 text-center">
                                             <button
                                                 onClick={() => window.location.href = `/admin/campaigns/create?inventory_id=${item.inventory_id}`}
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                                             >
-                                                {item.suggested_action}
+                                                Create Promo
                                                 <ChevronRight size={16} />
                                             </button>
                                         </td>
@@ -263,7 +203,7 @@ export default function InventoryHealthPage() {
                 </div>
 
                 {/* AI Recommendations - Glassmorphism */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-ind igo-500/20 to-purple-500/20 backdrop-blur-xl border border-white/20 p-8 shadow-2xl">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 backdrop-blur-xl border border-white/20 p-8 shadow-2xl">
                     <div className="absolute top-0 left-0 w-32 h-32 bg-purple-500/30 rounded-full blur-3xl"></div>
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-6">
@@ -271,16 +211,10 @@ export default function InventoryHealthPage() {
                             <h3 className="text-2xl font-bold text-white">AI Recommendations</h3>
                         </div>
                         <ul className="space-y-3">
-                            {metrics.slow_moving_count > 0 && (
+                            {metrics.overstocked_count > 0 && (
                                 <li className="flex items-start gap-3 text-white">
                                     <span className="text-yellow-300 text-xl">•</span>
-                                    <span className="text-lg">Create promotional campaigns for <strong>{metrics.slow_moving_count} slow-moving items</strong> to free up capital</span>
-                                </li>
-                            )}
-                            {metrics.expiring_soon_count > 0 && (
-                                <li className="flex items-start gap-3 text-white">
-                                    <span className="text-yellow-300 text-xl">•</span>
-                                    <span className="text-lg"><strong>{metrics.expiring_soon_count} products</strong> expiring within 30 days - consider flash sales</span>
+                                    <span className="text-lg">Create promotional campaigns for <strong>{metrics.overstocked_count} overstocked items</strong> to free up capital</span>
                                 </li>
                             )}
                             {metrics.low_stock_count > 5 && (
@@ -289,7 +223,7 @@ export default function InventoryHealthPage() {
                                     <span className="text-lg"><strong>{metrics.low_stock_count} items</strong> below reorder point - generate purchase orders</span>
                                 </li>
                             )}
-                            {healthScore >= 80 && (
+                            {metrics.health_score >= 80 && (
                                 <li className="flex items-start gap-3 text-emerald-200">
                                     <span className="text-emerald-300 text-xl">✓</span>
                                     <span className="text-lg font-semibold">Inventory is well-balanced. Continue monitoring weekly.</span>
