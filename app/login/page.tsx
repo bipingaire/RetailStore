@@ -1,15 +1,11 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 import {
   Store, Truck, Lock, Mail, User, ArrowRight, Loader2, CheckCircle
 } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,66 +28,53 @@ export default function LoginPage() {
 
     try {
       if (mode === 'signup') {
-        // 1. Sign Up
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
 
-        if (authError) throw authError;
+        // Prepare registration data
+        // Note: The simple landing page form doesn't ask for subdomain/fullname
+        // We will generate them for now to satisfy the API contract
+        const registrationData = {
+          storeName: companyName,
+          email: email,
+          password: password,
+          fullName: email.split('@')[0], // derived
+          // Generate a simple subdomain from company name
+          subdomain: companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + Math.floor(Math.random() * 1000)
+        };
 
-        if (authData.user) {
-          // 2. Create Tenant Record
-          const { error: tenantError } = await supabase
-            .from('retail-store-tenant')
-            .insert({
-              name: companyName,
-              type: role,
-              owner_id: authData.user.id,
-              status: 'active'
-            });
+        await apiClient.registerTenant(registrationData);
+        setMessage('Account created! Logging you in...');
 
-          if (tenantError) throw tenantError;
+        // Auto login after signup
+        const loginData = await apiClient.login(email, password);
+        handleLoginSuccess(loginData);
 
-          // 3. Redirect based on Role
-          if (role === 'retailer') {
-            router.push('/admin');
-          } else {
-            router.push('/supplier');
-          }
-        }
       } else {
-        // 1. Log In
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (authError) throw authError;
-
-        // 2. Determine Destination
-        // Fetch tenant profile to know if they are retailer or supplier
-        if (authData.user) {
-          const { data: tenant } = await supabase
-            .from('retail-store-tenant')
-            .select('type')
-            .eq('owner_id', authData.user.id)
-            .single();
-
-          if (tenant) {
-            if (tenant.type === 'retailer') router.push('/admin');
-            else router.push('/supplier');
-          } else {
-            // Fallback: If no tenant found, assume customer
-            router.push('/');
-          }
-        }
+        // Log In
+        const loginData = await apiClient.login(email, password);
+        handleLoginSuccess(loginData);
       }
     } catch (error: any) {
       console.error(error);
-      setMessage(error.message || 'Authentication failed');
+      const msg = error.message || 'Authentication failed';
+      setMessage(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLoginSuccess = (loginData: any) => {
+    // Redirect based on role
+    // In a real app, the token stores the role, but for this UI we check the user_role returned
+    if (loginData.user_role === 'retailer' || loginData.user_role === 'admin') {
+      router.push('/admin');
+    } else if (loginData.user_role === 'supplier') {
+      router.push('/supplier');
+    } else if (loginData.user_role === 'superadmin') {
+      router.push('/super-admin');
+    } else {
+      // Default/Customer
+      router.push('/shop');
     }
   };
 
