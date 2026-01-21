@@ -284,3 +284,43 @@ class TenantPaymentConfig(TenantBase):
     stripe_secret_key = Column("stripe-secret-key", Text)
     is_active = Column("is-active", Boolean, default=True)
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
+
+
+# ==================== CAMPAIGNS (ISOLATED) ====================
+
+class MarketingCampaign(TenantBase):
+    """Marketing campaigns."""
+    __tablename__ = "marketing-campaign-master"
+    
+    campaign_id = Column("campaign-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # tenant_id is implicit via database isolation, but we can keep it if needed for broader queries
+    
+    title = Column("title-text", String(255), nullable=False)
+    subtitle = Column("subtitle-text", String(255))
+    badge_label = Column("badge-label", String(50))
+    badge_color = Column("badge-color", String(50))
+    tagline = Column("tagline-text", String(255))
+    campaign_type = Column("campaign-type", String(50))
+    sort_order = Column("sort-order", Integer)
+    is_active = Column("is-active-flag", Boolean, default=False)
+    start_date = Column("start-date-time", DateTime(timezone=True))
+    end_date = Column("end-date-time", DateTime(timezone=True))
+    campaign_slug = Column("campaign-slug", String(255))
+    
+    created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    products = relationship("CampaignProduct", back_populates="campaign", cascade="all, delete-orphan")
+
+
+class CampaignProduct(TenantBase):
+    """Products linked to a campaign."""
+    __tablename__ = "campaign-product-segment-group"
+    
+    link_id = Column("link-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    campaign_id = Column("campaign-id", UUID(as_uuid=True), ForeignKey("marketing-campaign-master.campaign-id"))
+    inventory_id = Column("inventory-id", UUID(as_uuid=True), ForeignKey("inventory-items.inventory-id"))
+    
+    # Relationships
+    campaign = relationship("MarketingCampaign", back_populates="products")
+    inventory_item = relationship("InventoryItem")
