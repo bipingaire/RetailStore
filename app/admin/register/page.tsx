@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Store, User, Lock, ArrowRight, Loader2, CheckCircle, XCircle, Globe } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
+import { Store, User, Lock, ArrowRight, Loader2, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminRegisterPage() {
@@ -22,7 +23,6 @@ export default function AdminRegisterPage() {
     // Auto-generate subdomain from store name
     const handleStoreNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.value;
-        // Simple slugify: lowercase, remove special chars, replace spaces with hyphens
         const suggestedSubdomain = name.toLowerCase()
             .replace(/[^a-z0-9\s-]/g, '')
             .replace(/\s+/g, '-');
@@ -41,28 +41,14 @@ export default function AdminRegisterPage() {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/admin/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Registration failed');
-            }
-
+            await apiClient.registerTenant(formData);
             toast.success('Store created successfully! Redirecting...');
-
-            // Allow toast to show before redirect
             setTimeout(() => {
                 router.push('/admin/login?registered=true');
             }, 1500);
-
         } catch (error: any) {
             console.error('Registration error:', error);
-            toast.error(error.message);
+            toast.error(error.message || 'Registration failed');
         } finally {
             setLoading(false);
         }
