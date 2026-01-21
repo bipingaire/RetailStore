@@ -1,280 +1,147 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { ClipboardCheck, Search, Save, RefreshCcw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { apiClient } from '@/lib/api-client';
+import { ClipboardCheck, Package, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
-const supabase = createClientComponentClient();
-
-type AuditItem = {
-  id: string;
-  name: string;
-  image: string;
-  category: string;
-  expected: number;
-  actual: number;
-  price: number;
-};
-
 export default function AuditPage() {
-  const [items, setItems] = useState<AuditItem[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [auditItems, setAuditItems] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     async function loadInventory() {
-      // 1. Get Tenant
-      let currentTenantId: string | null = null;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: role } = await supabase.from('tenant-user-role').select('tenant-id').eq('user-id', user.id).maybeSingle();
-        if (role) currentTenantId = role['tenant-id'];
-        else {
-          const subdomain = window.location.hostname.split('.')[0];
-          if (subdomain && subdomain !== 'localhost') {
-            const { data: map } = await supabase.from('subdomain-tenant-mapping').select('tenant-id').eq('subdomain', subdomain).maybeSingle();
-            if (map) currentTenantId = map['tenant-id'];
-          }
-        }
-      }
+      try {
+        const data = await apiClient.getInventory();
+        setInventory(data);
 
-      // Hard fallback for development if still null
-      if (!currentTenantId) {
-        console.warn('Audit: No tenant ID found for user.');
-        // Do NOT use a hardcoded fallback in production strict mode.
-        // const FALLBACK_TENANT = '...';
-        toast.error("Could not determine store context.");
+        // Initialize audit counts with current quantities
+        const initial: Record<string, number> = {};
+        data.forEach((item: any) => {
+          initial[item.inventory_id] = item.quantity_on_hand || 0;
+        });
+        setAuditItems(initial);
+      } catch (error: any) {
+        console.error('Error loading inventory:', error);
+        toast.error('Failed to load inventory');
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const { data, error } = await supabase
-        .from('retail-store-inventory-item')
-        .select(`
-          inventory-id, 
-          selling-price-amount,
-          product:global-product-master-catalog!global-product-id ( 
-            name:product-name, 
-            image-url, 
-            category:category-name 
-          ),
-          batches:inventory-batch-tracking-record!inventory-id ( batch-quantity:batch-quantity-count )
-        `)
-        .eq('is-active', true)
-        .eq('tenant-id', currentTenantId);
-
-      if (error) {
-        console.error("Audit load error:", error);
-        toast.error(`Audit load failed: ${error.message}`);
-        setLoading(false);
-        return;
-      }
-
-      const loadedItems = (data || []).map((i: any) => {
-        const batches = i.batches || [];
-        // Map batch-quantity alias back to number
-        const totalQty = batches.reduce((sum: number, b: any) => sum + (b['batch-quantity'] || 0), 0);
-        return {
-          id: i['inventory-id'],
-          name: i.product?.name || 'Unknown Item',
-          image: i.product?.['image-url'] || '',
-          category: i.product?.category || 'Uncategorized',
-          price: i['selling-price-amount'] || 0,
-          expected: totalQty,
-          actual: totalQty,
-        };
-      });
-
-      const cats = Array.from(new Set(loadedItems.map((i: any) => i.category || 'Uncategorized'))) as string[];
-      setCategories(['All', ...cats]);
-      setItems(loadedItems);
-      setLoading(false);
     }
     loadInventory();
   }, []);
 
-  const handleCountChange = (id: string, value: string | number) => {
-    const newCount = value === '' ? 0 : parseInt(String(value));
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, actual: isNaN(newCount) ? 0 : Math.max(0, newCount) } : item
-    ));
-  };
-
-  const handleSubmit = async () => {
+  async function handleSubmitAudit() {
     setSubmitting(true);
-    // Use the tenant ID from the currently loaded items or context
-    // Ideally we use useTenant hook, but for now let's grab it from the session check we did earlier
-    // For this quick fix, we'll need to re-fetch or use state. 
-    // Let's adding useTenant hook is better.
-    // For now, I will comment out the hardcoded and put a TODO or better: use the hook.
-    // I will modify the file to import useTenant as a separate step or just assume it is context.
-    // Wait, I can't easily add import in this step as it's far away.
-    // I'll leave the hardcode for a second and come back? No, I should fix it.
-    // I will replace this block with `toast.error` if I haven't implemented it.
-    // Actually, I can use the supabase user session to get it.
-
-    // TEMPORARY FIX: Get tenant from session again (safe)
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data: role } = await supabase.from('tenant-user-role').select('tenant-id').eq('user-id', user.id).maybeSingle();
-    const TENANT_ID = role?.['tenant-id'];
-
-    if (!TENANT_ID) return toast.error("Tenant ID missing.");
     try {
-      const res = await fetch('/api/audit/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantId: TENANT_ID, category: selectedCategory, items: items })
+      // Start audit
+      const audit = await apiClient.startAudit({
+        audit_type: 'shelf_count',
       });
-      const json = await res.json();
-      if (json.success) {
-        toast.success(`Audit Complete! Adjusted ${json.varianceFound} items.`);
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        toast.error("Error: " + (json.error || 'Unknown error'));
-      }
-    } catch (e) { toast.error("Network failed."); }
-    setSubmitting(false);
-  };
 
-  const filteredItems = items.filter(item => {
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+      // Submit audit items
+      const items = Object.entries(auditItems).map(([id, counted]) => ({
+        inventory_id: id,
+        counted_quantity: counted,
+      }));
 
-  const discrepancies = filteredItems.filter(i => i.actual !== i.expected).length;
+      await apiClient.completeAudit(audit.audit_id, items);
+      toast.success('Audit submitted successfully!');
+    } catch (error: any) {
+      console.error('Error submitting audit:', error);
+      toast.error('Failed to submit audit');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-400 text-sm">
-      <RefreshCcw className="animate-spin mb-2" size={24} />
-      Loading Inventory Data...
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-32 font-sans relative">
-
-      {/* HEADER */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 px-8 py-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <ClipboardCheck className="text-blue-600" />
-            Shelf Audit
-          </h1>
-          <p className="text-sm text-gray-500">Physical count verification.</p>
-        </div>
-        <div className="flex items-center gap-4">
-          {discrepancies > 0 ? (
-            <div className="bg-red-50 text-red-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-              <AlertTriangle size={16} /> {discrepancies} Variance{discrepancies !== 1 ? 's' : ''} Found
-            </div>
-          ) : (
-            <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-              <CheckCircle2 size={16} /> All Matches
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* CONTROLS */}
-      <div className="max-w-4xl mx-auto px-6 pt-6 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm shadow-sm"
-          />
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${selectedCategory === cat
-                ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* LIST */}
-      <div className="max-w-4xl mx-auto px-6 py-4 space-y-3">
-        {filteredItems.map(item => {
-          const diff = item.actual - item.expected;
-          return (
-            <div key={item.id} className={`bg-white rounded-xl p-4 shadow-sm border flex items-center gap-4 transition-all ${diff !== 0 ? 'border-l-4 border-l-orange-500' : 'border-gray-200 border-l-4 border-l-transparent'}`}>
-
-              <div className="w-12 h-12 bg-gray-100 rounded-lg shrink-0 overflow-hidden border border-gray-100 flex items-center justify-center">
-                {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="text-[9px] text-gray-400">IMG</div>}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-gray-900 truncate text-sm">{item.name}</div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  Expected: <span className="font-mono font-medium">{item.expected}</span>
-                </div>
-              </div>
-
-              {/* Counter */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleCountChange(item.id, item.actual - 1)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center transition-colors"
-                >
-                  -
-                </button>
-                <div className="text-center w-12">
-                  <input
-                    type="number"
-                    value={item.actual}
-                    onChange={(e) => handleCountChange(item.id, e.target.value)}
-                    className={`w-full text-center font-bold text-lg bg-transparent border-none focus:ring-0 p-0 ${diff !== 0 ? 'text-orange-600' : 'text-gray-900'}`}
-                  />
-                </div>
-                <button
-                  onClick={() => handleCountChange(item.id, item.actual + 1)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center transition-colors"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          );
-        })}
-        {filteredItems.length === 0 && <div className="text-center py-12 text-gray-400 text-sm">No items found matching filter.</div>}
-      </div>
-
-      {/* FOOTER ACTIONS */}
-      {discrepancies > 0 && (
-        <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-40">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-full p-2 pl-6 flex items-center gap-4 animate-in slide-in-from-bottom-6">
-            <div className="text-sm font-semibold text-gray-700">
-              <span className="text-orange-600 font-bold">{discrepancies}</span> variance(s) recorded
-            </div>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="bg-gray-900 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-md hover:bg-gray-800 transition-colors flex items-center gap-2"
-            >
-              {submitting ? <RefreshCcw className="animate-spin" size={16} /> : <Save size={16} />}
-              {submitting ? 'Syncing...' : 'Submit Audit'}
-            </button>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900">Shelf Audit</h1>
+            <p className="text-gray-500 mt-1">Count physical inventory</p>
           </div>
+          <button
+            onClick={handleSubmitAudit}
+            disabled={submitting}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50"
+          >
+            {submitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Save size={20} />
+                Submit Audit
+              </>
+            )}
+          </button>
         </div>
-      )}
 
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">Product</th>
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">System Count</th>
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">Physical Count</th>
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">Variance</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {inventory.map((item) => {
+                const systemCount = item.quantity_on_hand || 0;
+                const physicalCount = auditItems[item.inventory_id] || 0;
+                const variance = physicalCount - systemCount;
+
+                return (
+                  <tr key={item.inventory_id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <Package size={20} className="text-gray-400" />
+                        <span className="font-semibold text-gray-900">{item.product_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600">{systemCount}</td>
+                    <td className="px-6 py-4">
+                      <input
+                        type="number"
+                        value={physicalCount}
+                        onChange={(e) => setAuditItems({
+                          ...auditItems,
+                          [item.inventory_id]: parseInt(e.target.value) || 0
+                        })}
+                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`font-bold ${variance === 0 ? 'text-gray-500' :
+                          variance > 0 ? 'text-green-600' :
+                            'text-red-600'
+                        }`}>
+                        {variance > 0 ? '+' : ''}{variance}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
