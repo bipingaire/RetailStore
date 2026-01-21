@@ -37,6 +37,14 @@ class ProductCreate(BaseModel):
     upc_ean_code: Optional[str] = None
     image_url: Optional[str] = None
     description_text: Optional[str] = None
+    
+    # UOM Fields
+    base_unit_name: Optional[str] = "piece"
+    pack_size: Optional[int] = 1
+    pack_unit_name: Optional[str] = None
+    bulk_pack_product_id: Optional[uuid.UUID] = None
+    is_bulk_pack: Optional[bool] = False
+    
     status: Optional[str] = "active"
 
 
