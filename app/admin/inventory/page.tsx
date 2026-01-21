@@ -1,22 +1,21 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal, Save } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, SlidersHorizontal, Save } from 'lucide-react';
 import PromotionModal from './promotion-modal';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 
-const supabase = createClientComponentClient();
-
-// 1. Types
+// Types
 type ProductRow = {
-  id: string; // store_inventory_id
+  id: string;
   name: string;
   sku: string;
   image: string;
   total_qty: number;
   price: number;
   batches: Batch[];
-  isDirty?: boolean; // Track if the row has been modified
+  isDirty?: boolean;
 };
 
 type Batch = {
@@ -32,95 +31,40 @@ export default function InventoryDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-
-  // State to manage the Promotion Pop-up
   const [promoTarget, setPromoTarget] = useState<{ product: ProductRow, batch?: Batch } | null>(null);
 
-  // 2. Fetch Data (The Complex Join)
+  // Fetch Data using FastAPI
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        // Get inventory from FastAPI
+        const data = await apiClient.getInventory();
 
-        // 1. Get Me (Tenant ID)
-        const { data: roleData } = await supabase
-          .from('tenant-user-role')
-          .select('tenant-id')
-          .eq('user-id', user.id)
-          .single();
-
-        const myTenantId = roleData ? (roleData as any)['tenant-id'] : null;
-
-        const { data, error } = await supabase
-          .from('retail-store-inventory-item')
-          .select(`
-            inventory-id,
-            tenant-id,
-            selling-price-amount,
-            current-stock-quantity,
-            global-product-master-catalog!global-product-id (
-              product-name,
-              upc-ean-code,
-              image-url
-            ),
-            inventory-batch-tracking-record!inventory-id (
-              batch-id,
-              batch-quantity-count,
-              expiry-date-timestamp
-            )
-          `);
-
-        if (error) {
-          console.error("Error fetching inventory:", error);
-          setError(`Database Error: ${error.message}. Table or column names may have changed.`);
-          setLoading(false);
-          return;
-        }
-
-        // 2. FORCE FILTER ON FRONTEND (Safety Net)
-        const filteredData = (data || []).filter((item: any) => item['tenant-id'] === myTenantId);
-
-        // 3. Transform Data & Calculate Expiry Logic
-        const processed: ProductRow[] = filteredData.map((item: any) => {
-          const batches = (item['inventory-batch-tracking-record'] || []).map((b: any) => {
-            const daysLeft = Math.ceil((new Date(b['expiry-date-timestamp']).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-            return {
-              id: b['batch-id'],
-              qty: b['batch-quantity-count'],
-              expiry: b['expiry-date-timestamp'],
-              days_left: daysLeft,
-              status: daysLeft < 7 ? 'CRITICAL' : daysLeft < 30 ? 'WARNING' : 'GOOD'
-            };
-          });
-
-          // Sum total quantity
-          const totalQty = batches.reduce((acc: number, b: any) => acc + b.qty, 0);
-
-          return {
-            id: item['inventory-id'],
-            name: item['global-product-master-catalog']?.['product-name'] || 'Unknown',
-            sku: item['global-product-master-catalog']?.['upc-ean-code'] || 'N/A',
-            image: item['global-product-master-catalog']?.['image-url'],
-            total_qty: item['current-stock-quantity'] || totalQty,
-            price: item['selling-price-amount'] || 0,
-            batches: batches.sort((a: any, b: any) => a.days_left - b.days_left)
-          };
-        });
+        // Transform to match UI structure
+        const processed: ProductRow[] = (data as any[]).map((item: any) => ({
+          id: item.inventory_id,
+          name: item.product_name || 'Unknown',
+          sku: item.upc_ean_code || 'N/A',
+          image: item.image_url,
+          total_qty: item.quantity_on_hand || 0,
+          price: item.selling_price || 0,
+          batches: [], // TODO: Fetch batches if needed
+        }));
 
         setProducts(processed);
         setError(null);
       } catch (err: any) {
-        console.error("Exception fetching inventory:", err);
+        console.error("Error fetching inventory:", err);
         setError(`Error: ${err.message || 'Unknown error occurred'}`);
+        toast.error('Failed to load inventory');
       } finally {
         setLoading(false);
       }
     }
+
     fetchData();
   }, []);
 
-  // 4. Helper for Colors
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CRITICAL': return 'bg-red-50 text-red-700 border-red-200';
@@ -129,7 +73,6 @@ export default function InventoryDashboard() {
     }
   };
 
-  // 5. Handlers for Editing
   const handleLocalChange = (id: string, field: 'price' | 'total_qty', value: string) => {
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return;
@@ -143,26 +86,20 @@ export default function InventoryDashboard() {
   };
 
   const saveProduct = async (e: React.MouseEvent, product: ProductRow) => {
-    e.stopPropagation(); // Prevent row expand
+    e.stopPropagation();
     if (!product.isDirty) return;
 
     try {
-      const { error } = await supabase
-        .from('retail-store-inventory-item')
-        .update({
-          'current-stock-quantity': product.total_qty,
-          'selling-price-amount': product.price
-        })
-        .eq('inventory-id', product.id);
+      await apiClient.updateInventory(product.id, {
+        quantity_on_hand: product.total_qty,
+        selling_price: product.price,
+      });
 
-      if (error) throw error;
-
-      // Reset dirty flag
       setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isDirty: false } : p));
-      alert("Product updated successfully!");
+      toast.success('Product updated successfully!');
     } catch (err: any) {
       console.error("Error updating product:", err);
-      alert(`Failed to update: ${err.message}`);
+      toast.error(`Failed to update: ${err.message}`);
     }
   };
 
@@ -218,7 +155,7 @@ export default function InventoryDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {products.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-12 text-center text-gray-400">
+                    <td colSpan={5} className="p-12 text-center text-gray-400">
                       <div className="flex flex-col items-center gap-2">
                         <Package size={32} className="text-gray-300" />
                         <span>No inventory found. Try scanning an invoice.</span>
@@ -227,14 +164,12 @@ export default function InventoryDashboard() {
                   </tr>
                 )}
                 {products.map((product) => {
-                  const worstBatch = product.batches[0]; // The one expiring soonest
+                  const worstBatch = product.batches[0];
                   const isExpanded = expandedRow === product.id;
 
                   return (
                     <React.Fragment key={product.id}>
-                      {/* MAIN ROW */}
                       <tr
-                        key={product.id}
                         className={`hover:bg-gray-50 transition-colors cursor-pointer group ${isExpanded ? 'bg-gray-50' : ''}`}
                         onClick={() => setExpandedRow(isExpanded ? null : product.id)}
                       >
@@ -295,65 +230,6 @@ export default function InventoryDashboard() {
                           </button>
                         </td>
                       </tr>
-
-                      {/* EXPANDED DETAILS (BATCH VIEW) */}
-                      {isExpanded && (
-                        <tr className="bg-gray-50/50">
-                          <td colSpan={5} className="px-6 py-4">
-                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden p-4 ml-14">
-                              <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                                  <Calendar size={14} /> Batch Breakdown
-                                </h4>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setPromoTarget({ product }); // Promote entire product
-                                  }}
-                                  className="text-xs text-blue-600 font-semibold hover:text-blue-700 hover:underline"
-                                >
-                                  + Create Store Offer
-                                </button>
-                              </div>
-
-                              {product.batches.length === 0 ? (
-                                <p className="text-sm text-gray-400 italic">No specific batch data available.</p>
-                              ) : (
-                                <div className="space-y-3">
-                                  {product.batches.map((batch) => (
-                                    <div key={batch.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border border-gray-100 rounded-lg hover:border-gray-200 transition-colors bg-gray-50/30">
-                                      <div className="flex items-center gap-6">
-                                        <div>
-                                          <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Quantity</span>
-                                          <span className="font-mono font-semibold text-gray-900">{batch.qty}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Expiry Date</span>
-                                          <span className={`text-sm font-medium ${batch.days_left < 7 ? 'text-red-600' : 'text-gray-700'}`}>
-                                            {new Date(batch.expiry).toLocaleDateString()}
-                                            <span className="text-gray-400 font-normal ml-1">({batch.days_left}d)</span>
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setPromoTarget({ product, batch });
-                                        }}
-                                        className="mt-3 sm:mt-0 text-xs bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
-                                      >
-                                        <Tag size={12} />
-                                        {batch.status === 'CRITICAL' ? 'Clearance' : 'Promote'}
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
                     </React.Fragment>
                   );
                 })}
@@ -362,7 +238,6 @@ export default function InventoryDashboard() {
           </div>
         )}
 
-        {/* PROMOTION MODAL RENDERED HERE */}
         {promoTarget && (
           <PromotionModal
             product={promoTarget.product}
