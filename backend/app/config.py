@@ -6,15 +6,15 @@ from typing import List
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
-    # Master Database (Global data: tenants, users, global catalog)
+    # Master Database (Global product catalog - shared)
     master_database_url: str = Field(..., env="MASTER_DATABASE_URL")
     
-    # Tenant Databases (Per-tenant data: inventory, orders, etc.)
-    tenant_db_host: str = Field(default="localhost", env="TENANT_DB_HOST")
-    tenant_db_port: int = Field(default=5432, env="TENANT_DB_PORT")
-    tenant_db_user: str = Field(default="postgres", env="TENANT_DB_USER")
-    tenant_db_password: str = Field(..., env="TENANT_DB_PASSWORD")
-    tenant_db_prefix: str = Field(default="retailstore_tenant_", env="TENANT_DB_PREFIX")
+    # Tenant Databases (Isolated per tenant)
+    db_host: str = Field(default="localhost", env="DB_HOST")
+    db_port: int = Field(default=5432, env="DB_PORT")
+    db_user: str = Field(default="postgres", env="DB_USER")
+    db_password: str = Field(..., env="DB_PASSWORD")
+    tenant_db_prefix: str = Field(default="retailstore_", env="TENANT_DB_PREFIX")
     
     # Connection Pool Settings
     db_pool_size: int = Field(default=20, env="DB_POOL_SIZE")
@@ -53,7 +53,6 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = False
         
-        # Allow parsing comma-separated values for CORS_ORIGINS
         @staticmethod
         def parse_env_var(field_name: str, raw_val: str):
             if field_name == "CORS_ORIGINS":
