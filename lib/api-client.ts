@@ -604,6 +604,68 @@ export class APIClient {
             body: JSON.stringify({ prompt, apiKey }),
         });
     }
+
+    // --- EXPENSES ---
+
+    async getExpenses(params?: {
+        skip?: number;
+        limit?: number;
+        start_date?: string;
+        end_date?: string;
+        category?: string;
+    }) {
+        const queryParams = new URLSearchParams();
+        if (params?.skip) queryParams.append('skip', params.skip.toString());
+        if (params?.limit) queryParams.append('limit', params.limit.toString());
+        if (params?.start_date) queryParams.append('start_date', params.start_date);
+        if (params?.end_date) queryParams.append('end_date', params.end_date);
+        if (params?.category) queryParams.append('category', params.category);
+
+        return this.request(`/api/expenses?${queryParams.toString()}`);
+    }
+
+    async createExpense(data: {
+        expense_date: string;
+        category: string;
+        amount: number;
+        description?: string;
+        payment_method?: string;
+    }) {
+        return this.request('/api/expenses', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async getExpenseCategories() {
+        return this.request('/api/expenses/categories');
+    }
+
+    // --- PROFITS ---
+
+    // --- AUDITS (Extended) ---
+
+    async applyAudit(id: string) {
+        return this.request(`/api/audits/${id}/apply`, {
+            method: 'POST'
+        });
+    }
+
+    async rejectAudit(id: string) {
+        return this.request(`/api/audits/${id}/reject`, {
+            method: 'POST'
+        });
+    }
+
+    async getAuditDetails(id: string) {
+        return this.request(`/api/audits/${id}/details`);
+    }
+
+    // --- ANALYTICS ---
+
+    async getInventoryHealth() {
+        return this.request('/api/analytics/health');
+    }
 }
 
 // Export singleton instance
