@@ -1,21 +1,28 @@
 'use client';
-import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 import { Lock, CheckCircle, Loader2 } from 'lucide-react';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { toast } from 'sonner';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
+    const [token, setToken] = useState('');
+
+    useEffect(() => {
+        const tokenParam = searchParams?.get('token');
+        if (tokenParam) {
+            setToken(tokenParam);
+        } else {
+            setError('No reset token provided');
+        }
+    }, [searchParams]);
 
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,18 +41,16 @@ export default function ResetPasswordPage() {
         setLoading(true);
 
         try {
-            const { error } = await supabase.auth.updateUser({
-                password: password,
-            });
-
-            if (error) throw error;
-
+            await apiClient.resetPassword(token, password);
             setSuccess(true);
+            toast.success('Password reset successfully!');
             setTimeout(() => {
                 router.push('/login');
             }, 2000);
         } catch (err: any) {
-            setError(err.message || 'Failed to reset password');
+            const errorMsg = err.message || 'Failed to reset password';
+            setError(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -99,7 +104,7 @@ export default function ResetPasswordPage() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             minLength={8}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                             placeholder="At least 8 characters"
                         />
                     </div>
@@ -112,15 +117,15 @@ export default function ResetPasswordPage() {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                             minLength={8}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                             placeholder="Confirm your password"
                         />
                     </div>
 
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2"
+                        disabled={loading || !token}
+                        className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {loading ? (
                             <>
