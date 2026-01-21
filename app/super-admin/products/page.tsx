@@ -1,255 +1,120 @@
 'use client';
-
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Package, Plus, Edit, Image, Search, Filter } from 'lucide-react';
-import Link from 'next/link';
+import { apiClient } from '@/lib/api-client';
+import { Package, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function MasterCatalogPage() {
-    const supabase = createClientComponentClient();
+export default function SuperAdminProductsPage() {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterCategory, setFilterCategory] = useState('all');
-    const [categories, setCategories] = useState<string[]>([]);
-
-    // DEBUG STATE
-    const [debugInfo, setDebugInfo] = useState<{ email: string | null, rawCount: number | null, error: string | null }>({
-        email: null, rawCount: null, error: null
-    });
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        loadProducts();
-        loadCategories();
-        // Load Debug Info
-        const loadDebug = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            const { count, error } = await supabase.from('global-product-master-catalog').select('*', { count: 'exact', head: true });
-            setDebugInfo({
-                email: user?.email || 'No User',
-                rawCount: count,
-                error: error ? error.message : null
-            });
-        };
-        loadDebug();
+        fetchProducts();
     }, []);
 
-    async function loadProducts() {
-        const { data, error } = await supabase
-            .from('global-product-master-catalog')
-            .select('*')
-            .order('created-at', { ascending: false });
-
-        if (error) {
+    async function fetchProducts() {
+        try {
+            const data = await apiClient.getProducts({ search: searchTerm });
+            setProducts(data);
+        } catch (error: any) {
+            console.error('Error fetching products:', error);
             toast.error('Failed to load products');
-            console.error(error);
-        } else {
-            console.log("LOADED PRODUCTS:", data?.length); // Console log for good measure
-            setProducts(data || []);
-        }
-        setLoading(false);
-    }
-
-    async function loadCategories() {
-        const { data } = await supabase
-            .from('global-product-master-catalog')
-            .select('category-name')
-            .not('category-name', 'is', null);
-
-        if (data) {
-            const uniqueCategories = [...new Set(data.map((p: any) => p['category-name']).filter(Boolean))];
-            setCategories(uniqueCategories);
+        } finally {
+            setLoading(false);
         }
     }
 
-    const filteredProducts = products.filter(product => {
-        const matchesSearch = searchQuery === '' ||
-            (product['product-name'] || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (product['brand-name'] || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (product['upc-ean-code'] || '').includes(searchQuery);
-
-        const matchesCategory = filterCategory === 'all' ||
-            product['category-name'] === filterCategory;
-
-        return matchesSearch && matchesCategory;
-    });
-
-    if (loading) {
-        return <div className="p-8 text-center text-gray-500">Loading products...</div>;
-    }
+    const filteredProducts = searchTerm
+        ? products.filter(p => p.product_name?.toLowerCase().includes(searchTerm.toLowerCase()))
+        : products;
 
     return (
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
-            {/* DEBUG BANNER */}
-            <div className="bg-red-50 border border-red-200 p-4 rounded-lg flex flex-col gap-1 text-xs font-mono text-red-800">
-                <strong>DEBUG MODE ACTIVE</strong>
-                <div>User Email: {debugInfo.email}</div>
-                <div>Frontend Fetched: {products.length} items</div>
-                <div>Database Exact Count: {debugInfo.rawCount} items</div>
-                {debugInfo.error && <div className="font-bold">Error: {debugInfo.error}</div>}
-            </div>
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Master Product Catalog</h1>
-                    <p className="text-gray-600 mt-1">{products.length} products • Available to all stores</p>
+        <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-900 p-6">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 className="text-3xl font-black text-white">Global Product Catalog</h1>
+                        <p className="text-purple-200 mt-1">Manage all products across all stores</p>
+                    </div>
+                    <button className="bg-yellow-400 text-purple-900 px-6 py-3 rounded-lg font-bold hover:bg-yellow-300 transition flex items-center gap-2">
+                        <Plus size={20} />
+                        Add Product
+                    </button>
                 </div>
-                <Link
-                    href="/superadmin/products/new"
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    <Plus className="w-4 h-4" />
-                    Add Product
-                </Link>
-            </div>
 
-            {/* Filters */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/20">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-3 text-white/50" size={20} />
                         <input
                             type="text"
-                            placeholder="Search by name, brand, or UPC..."
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/50 focus:ring-2 focus:ring-yellow-400 outline-none"
                         />
                     </div>
-
-                    <div className="relative">
-                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <select
-                            value={filterCategory}
-                            onChange={e => setFilterCategory(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="all">All Categories</option>
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-                    </div>
                 </div>
-            </div>
 
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProducts.length === 0 ? (
-                    <div className="col-span-full p-12 text-center bg-white rounded-xl border border-gray-200">
-                        <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500">No products found</p>
+                {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-yellow-400"></div>
                     </div>
                 ) : (
-                    filteredProducts.map(product => (
-                        <div
-                            key={product['product-id']}
-                            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden group relative"
-                        >
-                            <Link href={`/super-admin/products/${product['product-id']}/edit`} legacyBehavior>
-                                <a className="peer block aspect-square bg-gray-100 relative overflow-hidden">
-                                    {product['image-url'] ? (
-                                        <img
-                                            src={product['image-url']}
-                                            alt={product['product-name']}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Package className="w-16 h-16 text-gray-300" />
-                                        </div>
-                                    )}
-                                    {product['enriched-by-superadmin'] && (
-                                        <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                                            Enriched
-                                        </div>
-                                    )}
-                                    {/* UOM Badge */}
-                                    {product['pack-size'] && product['pack-size'] > 1 && (
-                                        <div className="absolute bottom-2 left-2 bg-indigo-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                                            {product['pack-size']}-{product['pack-unit-name'] || 'pack'}
-                                        </div>
-                                    )}
-                                </a>
-                            </Link>
+                    <div className="bg-white rounded-xl overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">Product</th>
+                                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">Brand</th>
+                                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">Category</th>
+                                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">UPC</th>
+                                    <th className="px-6 py-4 text-right text-sm font-bold text-gray-700">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {filteredProducts.map((product) => (
+                                    <tr key={product.product_id} className="hover:bg-gray-50 transition">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                                    {product.image_url ? (
+                                                        <img src={product.image_url} className="w-full h-full object-cover" alt={product.product_name} />
+                                                    ) : (
+                                                        <Package size={20} className="text-gray-400" />
+                                                    )}
+                                                </div>
+                                                <span className="font-semibold text-gray-900">{product.product_name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-600">{product.brand_name || '—'}</td>
+                                        <td className="px-6 py-4 text-gray-600">{product.category_name || '—'}</td>
+                                        <td className="px-6 py-4 font-mono text-sm text-gray-600">{product.upc_ean_code || '—'}</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                                                    <Eye size={16} />
+                                                </button>
+                                                <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
 
-                            {/* UPLOAD OVERLAY */}
-                            <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                <label className="cursor-pointer bg-black/60 hover:bg-black/80 text-white p-2 rounded-lg flex items-center gap-2 backdrop-blur-sm text-xs font-bold shadow-sm">
-                                    <Image className="w-4 h-4" />
-                                    <span>Upload</span>
-                                    <input
-                                        type="file"
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={async (e) => {
-                                            const file = e.target.files?.[0];
-                                            if (!file) return;
-
-                                            const toastId = toast.loading("Uploading image...");
-                                            try {
-                                                const fileName = `${product['product-id']}-${Date.now()}.jpg`;
-                                                const { data: uploadData, error: uploadError } = await supabase.storage
-                                                    .from('product-images')
-                                                    .upload(fileName, file);
-
-                                                if (uploadError) throw uploadError;
-
-                                                const { data: { publicUrl } } = supabase.storage
-                                                    .from('product-images')
-                                                    .getPublicUrl(fileName);
-
-                                                const { error: updateError } = await supabase
-                                                    .from('global-product-master-catalog')
-                                                    .update({ 'image-url': publicUrl })
-                                                    .eq('product-id', product['product-id']);
-
-                                                if (updateError) throw updateError;
-
-                                                toast.success("Image updated!", { id: toastId });
-
-                                                // Refresh local state without full reload
-                                                setProducts(prev => prev.map(p =>
-                                                    p['product-id'] === product['product-id']
-                                                        ? { ...p, 'image-url': publicUrl }
-                                                        : p
-                                                ));
-
-                                            } catch (err: any) {
-                                                console.error(err);
-                                                toast.error("Upload failed: " + err.message, { id: toastId });
-                                            }
-                                        }}
-                                    />
-                                </label>
+                        {filteredProducts.length === 0 && (
+                            <div className="text-center py-12 text-gray-500">
+                                <Package size={64} className="mx-auto mb-4 text-gray-300" />
+                                <p>No products found</p>
                             </div>
-
-                            <div className="p-4">
-                                <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
-                                    {product['product-name']}
-                                </h3>
-                                {product['brand-name'] && (
-                                    <p className="text-sm text-gray-600 mb-2">{product['brand-name']}</p>
-                                )}
-                                {product['category-name'] && (
-                                    <span className="inline-block text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                        {product['category-name']}
-                                    </span>
-                                )}
-                                {product['upc-ean-code'] && (
-                                    <p className="text-xs text-gray-400 mt-2">UPC: {product['upc-ean-code']}</p>
-                                )}
-                                {/* UOM Info */}
-                                {product['base-unit-name'] && (
-                                    <p className="text-xs text-indigo-600 mt-1 font-medium">
-                                        {product['pack-size'] || 1} {product['base-unit-name']}{(product['pack-size'] || 1) > 1 ? 's' : ''}
-                                        {product['pack-unit-name'] && ` per ${product['pack-unit-name']}`}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    ))
+                        )}
+                    </div>
                 )}
             </div>
         </div>
