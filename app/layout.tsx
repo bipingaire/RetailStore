@@ -1,27 +1,17 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { ToastProvider } from "@/components/toast-provider";
-
-// Use the standard Inter font
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "RetailOs",
-  description: "SaaS for Grocery Store Digitization",
-  icons: '/favicon.ico',
-};
+'use client';
+import { AuthProvider } from '@/lib/auth-context';
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {children}
-        <ToastProvider />
+      <body className="font-sans antialiased text-gray-900 bg-gray-50">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
