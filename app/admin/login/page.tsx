@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Store, Lock, Mail, Eye, EyeOff, Loader2, Factory } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 type LoginRole = 'retailer' | 'supplier';
 
@@ -16,7 +16,6 @@ export default function AdminLoginPage() {
     const [showPassword, setShowPassword] = useState(false);
 
     const router = useRouter();
-    const supabase = createClientComponentClient();
 
     async function handleLogin(e: React.FormEvent) {
         e.preventDefault();
@@ -29,56 +28,20 @@ export default function AdminLoginPage() {
         setLoading(true);
 
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+            // Use FastAPI backend instead of Supabase
+            const data = await apiClient.login(email, password, 'admin');
 
-            if (error) throw error;
+            if (data) {
+                toast.success('Retailer Login successful!');
 
-            if (data.user) {
-                // If Retailer, check permissions
-                if (role === 'retailer') {
-                    // Use limit(1) and maybeSingle to prevent errors if user has multiple roles
-                    const { data: roleData, error: roleError } = await supabase
-                        .from('tenant-user-role')
-                        .select('role-type')
-                        .eq('user-id', data.user.id)
-                        .limit(1)
-                        .maybeSingle();
-
-                    if (roleError) console.error('Role check warning:', roleError);
-
-                    // If NO role found, or role is not owner/manager
-                    if (!roleData || !['owner', 'manager'].includes(roleData['role-type'] as string)) {
-                        // Temporarily ALLOW for dev purposes if on localhost to avoid "stuck" feeling
-                        // But strictly speakng should be:
-                        // throw new Error('Access denied. You do not have an admin role.');
-
-                        // For now, let's just Log it and Allow pass-through IF it's localhost
-                        // otherwise throw
-                        if (window.location.hostname !== 'localhost') {
-                            // throw new Error('Access denied. No Store Manager privileges found.');
-                        }
-                    }
-
-                    toast.success('Retailer Login successful!');
-
-                    // Force a hard navigation to ensure fresh state and middleware check
-                    // preventing any client-side router cache issues
-                    window.location.href = '/admin';
-                } else {
-                    // Supplier placeholder
-                    toast.success('Supplier Login successful!');
-                    router.push('/supplier/dashboard');
-                }
+                // Redirect to admin dashboard
+                window.location.href = '/admin';
             }
         } catch (error: any) {
             console.error('Login error:', error);
             toast.error(error.message || 'Invalid email or password');
-            setLoading(false); // Make sure to stop spinner
-            // Force sign out if login failed partially
-            await supabase.auth.signOut();
+        } finally {
+            setLoading(false);
         }
     }
 
