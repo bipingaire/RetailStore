@@ -540,16 +540,10 @@ export class APIClient {
 
     // ==================== SETTINGS ====================
 
-    /**
-     * Get payment settings
-     */
     async getPaymentSettings() {
         return this.request('/api/settings/payment');
     }
 
-    /**
-     * Update payment settings
-     */
     async updatePaymentSettings(data: any) {
         return this.request('/api/settings/payment', {
             method: 'PUT',
@@ -559,16 +553,10 @@ export class APIClient {
 
     // ==================== CAMPAIGNS ====================
 
-    /**
-     * Get all campaigns
-     */
     async getCampaigns() {
         return this.request('/api/campaigns');
     }
 
-    /**
-     * Create campaign
-     */
     async createCampaign(data: any) {
         return this.request('/api/campaigns', {
             method: 'POST',
@@ -576,32 +564,44 @@ export class APIClient {
         });
     }
 
-    /**
-     * Update campaign
-     */
-    async updateCampaign(id: string, data: any) {
-        return this.request(`/api/campaigns/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        });
-    }
-
-    /**
-     * Delete campaign
-     */
-    async deleteCampaign(id: string) {
-        return this.request(`/api/campaigns/${id}`, {
-            method: 'DELETE',
-        });
-    }
-
-    /**
-     * Update campaign products
-     */
-    async updateCampaignProducts(id: string, inventoryIds: string[]) {
-        return this.request(`/api/campaigns/${id}/products`, {
+    async updateCampaignProducts(campaignId: string, inventoryIds: string[]) {
+        return this.request(`/api/campaigns/${campaignId}/products`, {
             method: 'PUT',
             body: JSON.stringify({ inventory_ids: inventoryIds }),
+        });
+    }
+
+    async generateCampaignPost(products: any[]) {
+        return this.request('/api/campaigns/generate-post', {
+            method: 'POST',
+            body: JSON.stringify({ products }),
+        });
+    }
+
+    // ==================== SOCIAL ====================
+
+    async getSocialAccounts() {
+        return this.request('/api/social/accounts');
+    }
+
+    async saveSocialSettings(accounts: any) {
+        return this.request('/api/social/save-settings', {
+            method: 'POST',
+            body: JSON.stringify({ accounts }),
+        });
+    }
+
+    async publishSocial(campaignId: string, platforms: string[]) {
+        return this.request('/api/social/publish', {
+            method: 'POST',
+            body: JSON.stringify({ campaignId, platforms }),
+        });
+    }
+
+    async generateSocialImage(prompt: string, apiKey?: string) {
+        return this.request('/api/social/generate-image', {
+            method: 'POST',
+            body: JSON.stringify({ prompt, apiKey }),
         });
     }
 }
