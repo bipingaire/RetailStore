@@ -1,13 +1,12 @@
 'use client';
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 import { DollarSign, Calendar, Tag, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AddExpensePage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
 
     const [formData, setFormData] = useState({
         expense_date: new Date().toISOString().split('T')[0],
@@ -22,21 +21,20 @@ export default function AddExpensePage() {
         e.preventDefault();
         setSaving(true);
 
-        const { error } = await supabase
-            .from('expenses')
-            .insert({
+        try {
+            await apiClient.createExpense({
                 ...formData,
                 amount: parseFloat(formData.amount)
             });
 
-        if (error) {
-            toast.error('Error saving expense: ' + error.message);
-        } else {
             toast.success('Expense added successfully!');
             router.push('/admin/reports/profit-loss');
+        } catch (error: any) {
+            console.error('Error saving expense:', error);
+            toast.error('Error saving expense: ' + (error.message || 'Unknown error'));
+        } finally {
+            setSaving(false);
         }
-
-        setSaving(false);
     }
 
     return (
@@ -79,6 +77,8 @@ export default function AddExpensePage() {
                         <option value="labor">Labor/Wages</option>
                         <option value="supplies">Supplies & Equipment</option>
                         <option value="marketing">Marketing & Advertising</option>
+                        <option value="tax">Tax</option>
+                        <option value="transportation">Transportation</option>
                         <option value="other">Other</option>
                     </select>
                 </div>
