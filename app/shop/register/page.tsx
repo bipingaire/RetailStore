@@ -1,307 +1,153 @@
 'use client';
-import { useState, Suspense } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, ArrowRight, ShoppingBag, Loader2, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
+import { UserPlus, Mail, Lock, Eye, EyeOff, User, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
-
-function RegisterPageContent() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const supabase = createClientComponentClient();
-
+export default function RegisterPage() {
     const [formData, setFormData] = useState({
-        fullName: '',
         email: '',
-        phone: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        fullName: '',
     });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [emailSent, setEmailSent] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();
 
-    const redirectTo = searchParams?.get('redirect') || '/shop';
-
-    async function handleRegister() {
-        setLoading(true);
-        setError('');
-
-        // Validation
-        if (!formData.email || !formData.fullName || !formData.password) {
-            setError('Please fill in all required fields');
-            setLoading(false);
-            return;
-        }
+    async function handleRegister(e: React.FormEvent) {
+        e.preventDefault();
 
         if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match');
-            setLoading(false);
+            toast.error('Passwords do not match');
             return;
         }
 
-        if (formData.password.length < 6) {
-            setError('Password must be at least 6 characters');
-            setLoading(false);
-            return;
-        }
-
+        setLoading(true);
         try {
-            // Create account WITHOUT email confirmation (instant signup)
-            const { data, error: signUpError } = await supabase.auth.signUp({
-                email: formData.email,
-                password: formData.password,
-                options: {
-                    data: {
-                        full_name: formData.fullName,
-                        phone: formData.phone,
-                    },
-                    emailRedirectTo: undefined // Disable email verification
-                }
+            await apiClient.register(formData.email, formData.password, 'customer', {
+                full_name: formData.fullName,
             });
 
-            if (signUpError) {
-                setError(signUpError.message);
-                setLoading(false);
-                return;
-            }
-
-            // Check if user is actually logged in (auto-confirmed) or needs email verification
-            if (data.session) {
-                // SUCCESS: User is logged in immediately
-                console.log('✅ Account created and logged in!', data.session);
-                router.push(redirectTo);
-            } else if (data.user && !data.user.confirmed_at) {
-                // User created but needs email confirmation
-                console.log('⚠️ Email confirmation required');
-                setEmailSent(true);
-                setLoading(false);
-            } else {
-                // Fallback - try to get session
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    console.log('✅ Session found, logging in');
-                    router.push(redirectTo);
-                } else {
-                    setError('Account created but login failed. Please try logging in.');
-                    setLoading(false);
-                }
-            }
-
-        } catch (err: any) {
-            setError(err.message || 'Failed to create account');
+            toast.success('Account created! Please login.');
+            router.push('/shop/login');
+        } catch (error: any) {
+            console.error('Registration error:', error);
+            toast.error(error.message || 'Registration failed');
+        } finally {
             setLoading(false);
         }
     }
 
-    // Email Sent Confirmation Screen (if Supabase requires confirmation)
-    if (emailSent) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-md">
-                    <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-4">
-                            <Mail className="text-yellow-600" size={40} />
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Email Verification Required</h1>
-                        <p className="text-gray-600">
-                            Please check your email:
-                        </p>
-                        <p className="text-emerald-600 font-semibold text-lg mt-2">
-                            {formData.email}
-                        </p>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                        <div className="space-y-4">
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                <p className="text-sm text-yellow-900">
-                                    <strong>⚠️ Note:</strong> Your Supabase project requires email confirmation.
-                                    To enable instant signup, disable "Email Confirmation" in your Supabase Dashboard under Authentication → Settings.
-                                </p>
-                            </div>
-
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="font-semibold text-blue-900 mb-2">Next Steps:</h3>
-                                <ol className="text-sm text-blue-900 space-y-1 list-decimal list-inside">
-                                    <li>Open your email inbox</li>
-                                    <li>Click the confirmation link</li>
-                                    <li>You'll be logged in automatically</li>
-                                </ol>
-                            </div>
-
-                            <Link
-                                href="/shop"
-                                className="block w-full text-center bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition"
-                            >
-                                Back to Shop
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="text-center mt-4">
-                        <p className="text-gray-600 text-xs">
-                            Already verified?{' '}
-                            <Link
-                                href={`/shop/login?redirect=${redirectTo}`}
-                                className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
-                            >
-                                Sign in
-                            </Link>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // Registration Form
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-sm">
-                {/* Header */}
-                <div className="text-center mb-6">
-                    <Link href="/shop" className="inline-flex items-center gap-2 mb-4 group">
-                        <div className="p-2 bg-emerald-600 rounded-lg shadow group-hover:bg-emerald-700 transition-colors">
-                            <ShoppingBag className="text-white" size={24} />
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+                <div className="text-center mb-8">
+                    <div className="flex justify-center mb-4">
+                        <div className="bg-green-600 p-3 rounded-full">
+                            <UserPlus size={32} className="text-white" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900">InduMart</span>
-                    </Link>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">Create Account</h1>
-                    <p className="text-sm text-gray-600">Join us and start shopping</p>
+                    </div>
+                    <h1 className="text-3xl font-black">Create Account</h1>
+                    <p className="text-gray-500 mt-2">Join us and start shopping!</p>
                 </div>
 
-                {/* Register Card */}
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                    <div className="space-y-3">
-                        <div>
-                            <label className="block text-gray-700 font-medium mb-1.5 text-sm">
-                                Full Name <span className="text-red-500">*</span>
-                            </label>
+                <form onSubmit={handleRegister} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-3 text-gray-400" size={20} />
                             <input
                                 type="text"
+                                required
                                 value={formData.fullName}
                                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                 placeholder="John Doe"
-                                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
                             />
                         </div>
+                    </div>
 
-                        <div>
-                            <label className="block text-gray-700 font-medium mb-1.5 text-sm">
-                                Email <span className="text-red-500">*</span>
-                            </label>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
                             <input
                                 type="email"
+                                required
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="your@email.com"
-                                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                placeholder="you@example.com"
+                                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
                             />
                         </div>
+                    </div>
 
-                        <div>
-                            <label className="block text-gray-700 font-medium mb-1.5 text-sm">
-                                Mobile Number
-                            </label>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
                             <input
-                                type="tel"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                placeholder="+977 9876543210"
-                                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-700 font-medium mb-1.5 text-sm">
-                                Password <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
+                                required
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                placeholder="Min. 6 characters"
-                                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                placeholder="••••••••"
+                                className="w-full pl-11 pr-11 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-3 text-gray-400"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
+                    </div>
 
-                        <div>
-                            <label className="block text-gray-700 font-medium mb-1.5 text-sm">
-                                Confirm Password <span className="text-red-500">*</span>
-                            </label>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Confirm Password</label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
                             <input
                                 type="password"
+                                required
                                 value={formData.confirmPassword}
                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                placeholder="Re-enter password"
-                                className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                                onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                                placeholder="••••••••"
+                                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
                             />
                         </div>
+                    </div>
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <p className="text-xs text-blue-900">
-                                <strong>🚀 Instant Signup:</strong> Create your account and start shopping immediately - no email verification needed!
-                            </p>
-                        </div>
-
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs">
-                                {error}
-                            </div>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className="animate-spin" size={20} />
+                                Creating Account...
+                            </>
+                        ) : (
+                            <>
+                                <UserPlus size={20} />
+                                Create Account
+                            </>
                         )}
+                    </button>
 
-                        <button
-                            onClick={handleRegister}
-                            disabled={loading || !formData.email || !formData.fullName || !formData.password || !formData.confirmPassword}
-                            className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition-all duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="animate-spin" size={16} />
-                                    Creating account...
-                                </>
-                            ) : (
-                                <>
-                                    Create Account
-                                    <ArrowRight size={16} />
-                                </>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Login Link */}
-                    <div className="mt-4 text-center">
-                        <p className="text-gray-600 text-xs">
-                            Already have an account?{' '}
-                            <Link
-                                href={`/shop/login?redirect=${redirectTo}`}
-                                className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
-                            >
-                                Sign in
-                            </Link>
-                        </p>
-                    </div>
-                </div>
-
-                {/* Back to Shop */}
-                <div className="text-center mt-4">
-                    <Link href="/shop" className="text-gray-500 hover:text-gray-700 transition-colors text-xs">
-                        ← Back to Shop
-                    </Link>
-                </div>
+                    <p className="text-center text-sm text-gray-600">
+                        Already have an account?{' '}
+                        <Link href="/shop/login" className="text-green-600 font-bold hover:underline">
+                            Sign In
+                        </Link>
+                    </p>
+                </form>
             </div>
         </div>
-    );
-}
-
-export default function RegisterPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-gray-500">Loading...</div></div>}>
-            <RegisterPageContent />
-        </Suspense>
     );
 }
