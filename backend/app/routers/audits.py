@@ -217,5 +217,49 @@ async def get_audit_details(
         "total_loss": float(total_loss),
         "total_gain": float(total_gain),
         "notes": audit.notes,
+        "status": audit.status,
         "items": items_detail
     }
+
+
+@router.post("/{audit_id}/apply")
+async def apply_audit_adjustment(
+    audit_id: uuid.UUID,
+    tenant_filter: TenantFilter = Depends(),
+    db: Session = Depends(get_db)
+):
+    """
+    Apply inventory adjustments from a pending audit.
+    """
+    return InventoryService.process_shelf_audit(
+        db=db,
+        tenant_id=tenant_filter.tenant_id,
+        audit_id=audit_id,
+        auto_adjust=True
+    )
+
+
+@router.post("/{audit_id}/reject")
+async def reject_audit(
+    audit_id: uuid.UUID,
+    tenant_filter: TenantFilter = Depends(),
+    db: Session = Depends(get_db)
+):
+    """
+    Reject an audit (no inventory changes).
+    """
+    audit = db.query(ShelfAuditRecord).filter(
+        ShelfAuditRecord.audit_id == audit_id,
+        ShelfAuditRecord.tenant_id == tenant_filter.tenant_id
+    ).first()
+
+    if not audit:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Audit not found"
+        )
+
+    audit.status = "rejected"
+    db.commit()
+    
+    return {"message": "Audit rejected", "status": "rejected"}
