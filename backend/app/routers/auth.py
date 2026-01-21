@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 import uuid
+import datetime
 
 from ..dependencies import get_db, get_subdomain
 from ..models import User, Customer
@@ -221,3 +222,105 @@ async def refresh_token(
         "user_id": str(user.id),
         "subdomain": subdomain
     }
+
+
+# ==================== PASSWORD MANAGEMENT ====================
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+class UpdatePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    subdomain: str = Depends(get_subdomain),
+    db: Session = Depends(get_db)
+):
+    """
+    Initiate password reset.
+    
+    **Note:** In a real production app, this would send an email.
+    For this demo/migration, we will return the reset token in the response
+    so it can be used immediately (since we don't have an email server).
+    """
+    user = db.query(User).filter(User.email == request.email).first()
+    
+    if not user:
+        # Don't reveal if user exists
+        return {"message": "If this email exists, a reset link has been sent."}
+    
+    # Create a short-lived reset token
+    reset_token = create_access_token(
+        data={
+            "sub": str(user.id),
+            "type": "reset",
+            "subdomain": subdomain
+        },
+        expires_delta=datetime.timedelta(minutes=15)
+    )
+    
+    # In production: send_email(user.email, reset_token)
+    
+    return {
+        "message": "Reset link sent (simulated)",
+        "debug_token": reset_token  # For dev/demo only
+    }
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(
+    request: ResetPasswordRequest,
+    subdomain: str = Depends(get_subdomain),
+    db: Session = Depends(get_db)
+):
+    """Reset password using a valid reset token."""
+    from ..utils.auth import decode_token
+    
+    payload = decode_token(request.token)
+    if payload is None or payload.get("type") != "reset":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+        
+    user_id = payload.get("sub")
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Update password
+    user.encrypted_password = get_password_hash(request.new_password)
+    db.commit()
+    
+    return {"message": "Password successfully reset"}
+
+
+@router.put("/update-password", status_code=status.HTTP_200_OK)
+async def update_password(
+    request: UpdatePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update password for currently logged in user."""
+    
+    if not verify_password(request.old_password, current_user.encrypted_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect old password"
+        )
+        
+    current_user.encrypted_password = get_password_hash(request.new_password)
+    db.commit()
+    
+    return {"message": "Password updated successfully"}
