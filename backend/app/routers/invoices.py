@@ -145,3 +145,33 @@ async def get_invoice_history(
         ],
         "count": len(invoices)
     }
+
+
+@router.get("/{invoice_id}")
+async def get_invoice_details(
+    invoice_id: uuid.UUID,
+    tenant_filter: TenantFilter = Depends(),
+    db: Session = Depends(get_db)
+):
+    """Get invoice details."""
+    invoice = db.query(UploadedInvoice).filter(
+        UploadedInvoice.invoice_id == invoice_id,
+        UploadedInvoice.tenant_id == tenant_filter.tenant_id
+    ).first()
+    
+    if not invoice:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invoice not found"
+        )
+    
+    return {
+        "id": str(invoice.invoice_id),
+        "vendor_name": invoice.supplier_name,
+        "invoice_number": invoice.invoice_number,
+        "invoice_date": invoice.invoice_date.isoformat() if invoice.invoice_date else None,
+        "total_amount": float(invoice.total_amount_value) if invoice.total_amount_value else 0,
+        "status": invoice.processing_status,
+        "line_items_json": invoice.ai_extracted_data_json.get("items", []) if invoice.ai_extracted_data_json else [],
+        "created_at": invoice.created_at.isoformat() if invoice.created_at else None
+    }
