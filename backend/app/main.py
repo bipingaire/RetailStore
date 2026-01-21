@@ -11,7 +11,7 @@ from .models.master_models import MasterBase
 from .models.tenant_models import TenantBase
 from .routers import (
     auth, products, inventory, orders, customers, vendors, files,
-    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings
+    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings, social, tenants
 )
 
 # Create master database tables
@@ -111,7 +111,9 @@ app.include_router(shop.router, prefix="/api/shop", tags=["🛒 Shop"])
 
 # Core functionality
 app.include_router(products.router, prefix="/api/products", tags=["Products"])
-app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+app.include_router(reports.router)
+app.include_router(social.router)
+app.include_router(tenants.router)
 app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory"])
 app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(customers.router, prefix="/api/customers", tags=["Customers"])
