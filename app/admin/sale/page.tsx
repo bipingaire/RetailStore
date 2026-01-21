@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api-client';
 import {
   Sparkles,
   CheckCircle2,
@@ -39,14 +39,12 @@ type Segment = {
 };
 
 type InventoryRow = {
-  id: string;
-  price: number;
-  global_products: {
-    name: string;
-    image_url?: string;
-    category?: string;
-    manufacturer?: string;
-  };
+  inventory_id: string; // Updated from 'id' to match API response
+  selling_price: number; // Updated from 'price'
+  product_name: string;
+  image_url?: string;
+  category_name?: string;
+  manufacturer?: string;
 };
 
 export default function SaleAdmin() {
@@ -61,69 +59,36 @@ export default function SaleAdmin() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const [{ data: segData }, { data: invData }] = await Promise.all([
-        supabase
-          .from('marketing-campaign-master')
-          .select(`
-            id: campaign-id,
-            slug: campaign-slug,
-            title: title-text,
-            subtitle: subtitle-text,
-            badge_label: badge-label,
-            badge_color: badge-color,
-            tagline: tagline-text,
-            segment_type: campaign-type,
-            sort_order: sort-order,
-            is_active: is-active-flag,
-            start_date: start-date-time,
-            end_date: end-date-time,
-            segment_products: campaign-product-segment-group!campaign-id ( store_inventory_id: inventory-id )
-          `)
-          .order('sort-order', { ascending: true }),
-        supabase
-          .from('retail-store-inventory-item')
-          .select(`
-            id: inventory-id,
-            price: selling-price-amount,
-            global_products: global-product-master-catalog!global-product-id (
-              name: product-name,
-              image_url: image-url,
-              category: category-name,
-              manufacturer: manufacturer-name
-            )
-          `)
-          .eq('is-active', true)
-          .limit(120)
-      ]);
+      try {
+        const [segData, invData] = await Promise.all([
+          apiClient.getCampaigns(),
+          apiClient.getInventory({ limit: 120 }) // Assuming limit param works or added
+        ]);
 
-      const normalizedSegments =
-        (segData as any[] | null)?.map((seg) => ({
+        const normalizedSegments = (segData as any[]).map((seg) => ({
           ...seg,
           segment_products: seg.segment_products || [],
-          // Mock missing columns for UI compatibility
           valid_till_stock: false,
           default_discount: 0,
           purchase_mode: 'both'
-        })) || [];
+        }));
 
-      const normalizedInventory =
-        (invData as any[] | null)?.map((row) => ({
-          ...row,
-          price: Number(row.price ?? 0),
-        })) || [];
+        setSegments(normalizedSegments);
+        setInventory(invData as any[]);
 
-      setSegments(normalizedSegments);
-      setInventory(normalizedInventory);
-
-      // Auto select first segment
-      const first = normalizedSegments[0];
-      if (first) {
-        setSelectedSegmentId(first.id);
-        setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
-        setDraft(first);
+        // Auto select first segment
+        const first = normalizedSegments[0];
+        if (first) {
+          setSelectedSegmentId(first.id);
+          setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
+          setDraft(first);
+        }
+      } catch (error) {
+        toast.error('Failed to load campaigns data');
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     loadData();
@@ -161,105 +126,68 @@ export default function SaleAdmin() {
 
   const handleNewCampaign = async () => {
     setSaving(true);
-
-    // Get current user's tenant ID
-    const { data: roleData } = await supabase
-      .from('tenant-user-role')
-      .select('tenant-id')
-      .eq('user-id', (await supabase.auth.getUser()).data.user?.id)
-      .single();
-
-    if (!roleData) {
-      toast.error('Unable to determine your tenant. Please refresh the page.');
-      setSaving(false);
-      return;
-    }
-
     const now = Date.now();
     const slug = `campaign-${now}`;
-    // Mapped inserts
-    const { data: rawData, error } = await supabase
-      .from('marketing-campaign-master')
-      .insert({
-        'tenant-id': roleData['tenant-id'], // ✅ Include tenant-id
-        'title-text': 'New Campaign',
-        'campaign-name': 'New Campaign', // required in DB
-        'campaign-slug': slug,
-        'badge-label': 'New',
-        'badge-color': '#a855f7',
-        'campaign-type': 'flash_sale', // valid enum value
-        'sort-order': segments.length + 1,
-        'is-active-flag': false,
-        'start-date-time': new Date().toISOString(),
-        'end-date-time': new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 days
-      })
-      .select(`
-        id: campaign-id,
-        slug: campaign-slug,
-        title: title-text,
-        subtitle: subtitle-text,
-        badge_label: badge-label,
-        badge_color: badge-color,
-        tagline: tagline-text,
-        segment_type: campaign-type,
-        sort_order: sort-order,
-        is_active: is-active-flag,
-        start_date: start-date-time,
-        end_date: end-date-time
-      `)
-      .single();
 
-    if (error) {
-      toast.error(error.message);
+    try {
+      const newCampaign = await apiClient.createCampaign({
+        title: 'New Campaign',
+        campaign_slug: slug,
+        badge_label: 'New',
+        badge_color: '#a855f7',
+        campaign_type: 'flash_sale',
+        sort_order: segments.length + 1,
+        is_active: false,
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      const normalizedCampaign = {
+        ...newCampaign,
+        segment_products: [],
+        valid_till_stock: false,
+        default_discount: 0,
+        purchase_mode: 'both'
+      };
+
+      setSegments([...segments, normalizedCampaign]);
+      setSelectedSegmentId(normalizedCampaign.id);
+      setSelectedItems(new Set());
+      setDraft(normalizedCampaign);
+      toast.success('New campaign created.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create campaign');
+    } finally {
       setSaving(false);
-      return;
     }
-
-    // Cast rawData to Segment compatible type manually or just assert
-    const data = rawData as unknown as Segment;
-
-    // Add empty array for join
-    data.segment_products = [];
-
-    const refreshed = [...segments, data];
-    setSegments(refreshed);
-    setSelectedSegmentId(data.id);
-    setSelectedItems(new Set());
-    setDraft(data);
-    toast.success('New campaign created.');
-    setSaving(false);
   };
 
   const handleSaveMeta = async () => {
     if (!selectedSegment) return;
     setSaving(true);
 
-    // Map draft fields to DB columns
-    const payload: any = {
-      'title-text': draft.title,
-      'subtitle-text': draft.subtitle,
-      'badge-label': draft.badge_label,
-      'badge-color': draft.badge_color,
-      'tagline-text': draft.tagline,
-      'start-date-time': draft.start_date || null,
-      'end-date-time': draft.end_date || null,
-      // Removed non-existent columns: stock, discount, purchase_mode
-    };
+    try {
+      const payload: any = {
+        title: draft.title,
+        subtitle: draft.subtitle,
+        badge_label: draft.badge_label,
+        badge_color: draft.badge_color,
+        tagline: draft.tagline,
+        start_date: draft.start_date || null,
+        end_date: draft.end_date || null,
+      };
 
-    const { error } = await supabase
-      .from('marketing-campaign-master')
-      .update(payload)
-      .eq('campaign-id', selectedSegment.id);
+      await apiClient.updateCampaign(selectedSegment.id, payload);
 
-    if (error) {
-      toast.error(error.message);
-    } else {
       setSegments((prev) =>
         prev.map((s) => (s.id === selectedSegment.id ? { ...s, ...draft } : s))
       );
       toast.success('Campaign details saved.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleDelete = async () => {
@@ -267,40 +195,37 @@ export default function SaleAdmin() {
     if (!confirm("Are you sure you want to delete this campaign?")) return;
 
     setSaving(true);
-    // segment_products has cascade delete usually, but we check
-    await supabase.from('campaign-product-segment-group').delete().eq('campaign-id', selectedSegment.id);
-    const { error } = await supabase.from('marketing-campaign-master').delete().eq('campaign-id', selectedSegment.id);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await apiClient.deleteCampaign(selectedSegment.id);
+
+      const remaining = segments.filter((s) => s.id !== selectedSegment.id);
+      setSegments(remaining);
+      setSelectedSegmentId(remaining[0]?.id || null);
+      setSelectedItems(new Set(remaining[0]?.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
+      setDraft(remaining[0] || {});
+      toast.success('Campaign removed.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete');
+    } finally {
       setSaving(false);
-      return;
     }
-    const remaining = segments.filter((s) => s.id !== selectedSegment.id);
-    setSegments(remaining);
-    setSelectedSegmentId(remaining[0]?.id || null);
-    setSelectedItems(new Set(remaining[0]?.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
-    setDraft(remaining[0] || {});
-    toast.success('Campaign removed.');
-    setSaving(false);
   };
 
   const handleSetActive = async (value: boolean) => {
     if (!selectedSegment) return;
     setSaving(true);
-    const { error } = await supabase
-      .from('marketing-campaign-master')
-      .update({ 'is-active-flag': value })
-      .eq('campaign-id', selectedSegment.id);
+    try {
+      await apiClient.updateCampaign(selectedSegment.id, { is_active: value });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
       setSegments((prev) =>
         prev.map((s) => (s.id === selectedSegment.id ? { ...s, is_active: value } : s))
       );
       toast.success(`Campaign ${value ? 'activated' : 'paused'}.`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update status');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handlePushLive = async () => {
@@ -310,53 +235,26 @@ export default function SaleAdmin() {
     }
 
     setSaving(true);
-
-    // Replace goods for this segment and mark active
     const ids = Array.from(selectedItems);
 
-    const { error: delErr } = await supabase
-      .from('campaign-product-segment-group')
-      .delete()
-      .eq('campaign-id', selectedSegment.id);
+    try {
+      // 1. Update products
+      await apiClient.updateCampaignProducts(selectedSegment.id, ids);
 
-    if (delErr) {
-      toast.error(delErr.message);
+      // 2. Activate campaign
+      await apiClient.updateCampaign(selectedSegment.id, { is_active: true });
+
+      // Refresh local state to reflect 'live' status
+      setSegments((prev) =>
+        prev.map((s) => (s.id === selectedSegment.id ? { ...s, is_active: true } : s))
+      );
+
+      toast.success('Pushed live and published to shop.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to go live');
+    } finally {
       setSaving(false);
-      return;
     }
-
-    if (ids.length > 0) {
-      const insertPayload = ids.map((id) => ({
-        'campaign-id': selectedSegment.id,
-        'inventory-id': id,
-      }));
-      const { error: insErr } = await supabase.from('campaign-product-segment-group').upsert(insertPayload);
-      if (insErr) {
-        toast.error(insErr.message);
-        setSaving(false);
-        return;
-      }
-    }
-
-    const { error: actErr } = await supabase
-      .from('marketing-campaign-master')
-      .update({ 'is-active-flag': true })
-      .eq('campaign-id', selectedSegment.id);
-
-    if (actErr) {
-      toast.error(actErr.message);
-      setSaving(false);
-      return;
-    }
-
-    // Refresh segments to reflect latest
-    // (Simplified refresh for now, purely updating local state for speed)
-    setSegments((prev) =>
-      prev.map((s) => (s.id === selectedSegment.id ? { ...s, is_active: true } : s))
-    );
-
-    toast.success('Pushed live and published to shop.');
-    setSaving(false);
   };
 
   const handleCopyLink = async (link: string) => {
@@ -588,25 +486,25 @@ export default function SaleAdmin() {
                       ) : (
                         <div className="divide-y divide-gray-100">
                           {inventory.map((item) => {
-                            const checked = selectedItems.has(item.id);
+                            const checked = selectedItems.has(item.inventory_id);
                             return (
                               <div
-                                key={item.id}
-                                onClick={() => toggleItem(item.id)}
+                                key={item.inventory_id}
+                                onClick={() => toggleItem(item.inventory_id)}
                                 className={`p-3 flex items-center gap-3 cursor-pointer transition-colors ${checked ? 'bg-blue-50/50' : 'hover:bg-gray-50'}`}
                               >
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'}`}>
                                   {checked && <Plus size={10} className="text-white rotate-45 transform" />}
                                 </div>
                                 <div className="h-10 w-10 bg-white border border-gray-200 rounded-lg overflow-hidden shrink-0">
-                                  <img src={item.global_products.image_url || '/placeholder.png'} className="w-full h-full object-cover" alt="img" />
+                                  <img src={item.image_url || '/placeholder.png'} className="w-full h-full object-cover" alt="img" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="text-sm font-medium text-gray-900 truncate">{item.global_products.name}</div>
+                                  <div className="text-sm font-medium text-gray-900 truncate">{item.product_name}</div>
                                   <div className="text-xs text-gray-500 flex items-center gap-2">
-                                    <span>{item.global_products.manufacturer || 'Generic'}</span>
+                                    <span>{item.manufacturer || 'Generic'}</span>
                                     <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                    <span>${item.price.toFixed(2)}</span>
+                                    <span>${(Number(item.selling_price) || 0).toFixed(2)}</span>
                                   </div>
                                 </div>
                               </div>
