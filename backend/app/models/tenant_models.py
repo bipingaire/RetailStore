@@ -324,3 +324,23 @@ class CampaignProduct(TenantBase):
     # Relationships
     campaign = relationship("MarketingCampaign", back_populates="products")
     inventory_item = relationship("InventoryItem")
+
+
+# ==================== EXPENSES (ISOLATED) ====================
+
+class Expense(TenantBase):
+    """Business expenses tracker."""
+    __tablename__ = "expenses"
+    
+    expense_id = Column("expense-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    expense_date = Column("expense-date", DateTime(timezone=True), nullable=False)
+    category = Column(String(100), nullable=False)
+    description = Column(Text)
+    amount = Column(Numeric(10, 2), nullable=False)
+    payment_method = Column("payment-method", String(50))
+    receipt_url = Column("receipt-url", Text)
+    created_by = Column("created-by", UUID(as_uuid=True), ForeignKey("users.id"))
+    created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
+    
+    # Relationship
+    user = relationship("User")
