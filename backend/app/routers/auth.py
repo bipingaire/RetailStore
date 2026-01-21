@@ -1,17 +1,18 @@
 """
-Authentication router - Updated for database-per-tenant architecture.
+Authentication router for fully isolated tenant databases.
+
+Each tenant has its own users table with login credentials.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 import uuid
 
-from ..database_manager import get_master_db, db_manager
-from ..models.master_models import User, TenantUser, SuperadminUser, Tenant
-from ..models.tenant_models import Customer
+from ..dependencies import get_db, get_subdomain
+from ..models import User, Customer
 from ..utils.auth import verify_password, get_password_hash, create_access_token, create_refresh_token
 from ..dependencies import get_current_user
 
@@ -19,19 +20,11 @@ router = APIRouter()
 
 
 # Pydantic schemas
-class CustomerRegister(BaseModel):
-    email: EmailStr
-    password: str
-    full_name: str
-    phone: Optional[str] = None
-    subdomain: str
-
-
-class AdminRegister(BaseModel):
+class UserRegister(BaseModel):
     email: EmailStr
     password: str
     full_name: Optional[str] = None
-    subdomain: str
+    role: str = "customer"  # customer or admin
 
 
 class UserResponse(BaseModel):
@@ -39,7 +32,6 @@ class UserResponse(BaseModel):
     email: str
     role: str
     is_active: bool
-    created_at: str
 
 
 class TokenResponse(BaseModel):
@@ -48,211 +40,84 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user_role: str
     user_id: str
+    subdomain: str
 
 
-# ==================== CUSTOMER AUTHENTICATION ====================
+# ==================== REGISTRATION ====================
 
-@router.post("/customer/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_customer(
-    customer_data: CustomerRegister,
-    master_db: Session = Depends(get_master_db)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register(
+    user_data: UserRegister,
+    subdomain: str = Depends(get_subdomain),
+    db: Session = Depends(get_db)
 ):
-    """Register a new customer for a specific store."""
+    """
+    Register a new user in this tenant's database.
+    
+    **Role can be:**
+    - `customer` - Regular customer account
+    - `admin` - Store administrator (requires approval)
+    """
     # Check if user exists
-    existing_user = master_db.query(User).filter(User.email == customer_data.email).first()
-    if existing_user:
+    existing = db.query(User).filter(User.email == user_data.email).first()
+    if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            detail="Email already registered in this store"
         )
     
-    # Find tenant
-    tenant = master_db.query(Tenant).filter(Tenant.subdomain == customer_data.subdomain).first()
-    if not tenant:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Store '{customer_data.subdomain}' not found"
-        )
-    
-    # Create user in master DB
+    # Create user in THIS tenant's database
     new_user = User(
-        email=customer_data.email,
-        encrypted_password=get_password_hash(customer_data.password),
+        email=user_data.email,
+        encrypted_password=get_password_hash(user_data.password),
+        role=user_data.role,
         is_active=True
     )
-    master_db.add(new_user)
-    master_db.flush()
+    db.add(new_user)
+    db.flush()
     
-    # Create customer in tenant DB
-    tenant_db = db_manager.get_tenant_session(tenant.database_name)
-    try:
+    # If customer, create customer profile
+    if user_data.role == "customer":
         customer = Customer(
             user_id=new_user.id,
-            full_name=customer_data.full_name,
-            email=customer_data.email,
-            phone=customer_data.phone
+            full_name=user_data.full_name,
+            email=user_data.email
         )
-        tenant_db.add(customer)
-        tenant_db.commit()
-        
-        # Store customer_id in master DB commit
-        master_db.commit()
-        master_db.refresh(new_user)
-        
-        return {
-            "id": new_user.id,
-            "email": new_user.email,
-            "role": "customer",
-            "is_active": new_user.is_active,
-            "created_at": new_user.created_at.isoformat()
-        }
-    finally:
-        tenant_db.close()
-
-
-@router.post("/customer/login", response_model=TokenResponse)
-async def login_customer(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    master_db: Session = Depends(get_master_db)
-):
-    """Customer login endpoint."""
-    user = master_db.query(User).filter(User.email == form_data.username).first()
+        db.add(customer)
     
-    if not user or not verify_password(form_data.password, user.encrypted_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive account"
-        )
-    
-    # Find customer in any tenant DB (search all tenants)
-    tenants = master_db.query(Tenant).filter(Tenant.is_active == True).all()
-    customer = None
-    tenant_id = None
-    customer_id = None
-    
-    for tenant in tenants:
-        tenant_db = db_manager.get_tenant_session(tenant.database_name)
-        try:
-            customer = tenant_db.query(Customer).filter(Customer.user_id == user.id).first()
-            if customer:
-                tenant_id = tenant.tenant_id
-                customer_id = customer.customer_id
-                break
-        finally:
-            tenant_db.close()
-    
-    if not customer:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a customer account. Use appropriate login endpoint."
-        )
-    
-    # Create tokens
-    access_token = create_access_token(data={
-        "sub": str(user.id),
-        "role": "customer",
-        "customer_id": str(customer_id),
-        "tenant_id": str(tenant_id)
-    })
-    refresh_token = create_refresh_token(data={
-        "sub": str(user.id),
-        "role": "customer"
-    })
-    
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "user_role": "customer",
-        "user_id": str(user.id)
-    }
-
-
-# ==================== ADMIN AUTHENTICATION ====================
-
-@router.post("/admin/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_admin(
-    admin_data: AdminRegister,
-    master_db: Session = Depends(get_master_db)
-):
-    """Register a new store admin."""
-    # Check if user exists
-    existing_user = master_db.query(User).filter(User.email == admin_data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-    
-    # Find tenant
-    tenant = master_db.query(Tenant).filter(Tenant.subdomain == admin_data.subdomain).first()
-    if not tenant:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Store '{admin_data.subdomain}' not found"
-        )
-    
-    # Create user
-    new_user = User(
-        email=admin_data.email,
-        encrypted_password=get_password_hash(admin_data.password),
-        is_active=True
-    )
-    master_db.add(new_user)
-    master_db.flush()
-    
-    # Link to tenant
-    tenant_user = TenantUser(
-        tenant_id=tenant.tenant_id,
-        user_id=new_user.id,
-        role_name="admin",
-        is_active=True
-    )
-    master_db.add(tenant_user)
-    master_db.commit()
-    master_db.refresh(new_user)
+    db.commit()
+    db.refresh(new_user)
     
     return {
         "id": new_user.id,
         "email": new_user.email,
-        "role": "admin",
-        "is_active": new_user.is_active,
-        "created_at": new_user.created_at.isoformat()
+        "role": new_user.role,
+        "is_active": new_user.is_active
     }
 
 
-@router.post("/admin/login", response_model=TokenResponse)
-async def login_admin(
+# ==================== LOGIN ====================
+
+@router.post("/login", response_model=TokenResponse)
+async def login(
+    subdomain: str = Depends(get_subdomain),
     form_data: OAuth2PasswordRequestForm = Depends(),
-    master_db: Session = Depends(get_master_db)
+    db: Session = Depends(get_db)
 ):
-    """Admin login endpoint."""
-    user = master_db.query(User).filter(User.email == form_data.username).first()
+    """
+    Login to this tenant's database.
+    
+    **Credentials are isolated per store.**
+    Each store has completely separate user accounts.
+    """
+    # Find user in THIS tenant's database
+    user = db.query(User).filter(User.email == form_data.username).first()
     
     if not user or not verify_password(form_data.password, user.encrypted_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Verify admin
-    tenant_user = master_db.query(TenantUser).filter(
-        TenantUser.user_id == user.id,
-        TenantUser.is_active == True
-    ).first()
-    
-    if not tenant_user:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not an admin account. Use appropriate login endpoint."
         )
     
     if not user.is_active:
@@ -264,111 +129,95 @@ async def login_admin(
     # Create tokens
     access_token = create_access_token(data={
         "sub": str(user.id),
-        "role": "admin",
-        "tenant_id": str(tenant_user.tenant_id)
+        "role": user.role,
+        "subdomain": subdomain
     })
     refresh_token = create_refresh_token(data={
         "sub": str(user.id),
-        "role": "admin"
+        "role": user.role,
+        "subdomain": subdomain
     })
     
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "user_role": "admin",
-        "user_id": str(user.id)
+        "user_role": user.role,
+        "user_id": str(user.id),
+        "subdomain": subdomain
     }
 
 
-# ==================== SUPERADMIN AUTHENTICATION ====================
-
-@router.post("/superadmin/login", response_model=TokenResponse)
-async def login_superadmin(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    master_db: Session = Depends(get_master_db)
-):
-    """SuperAdmin login endpoint."""
-    user = master_db.query(User).filter(User.email == form_data.username).first()
-    
-    if not user or not verify_password(form_data.password, user.encrypted_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Verify superadmin
-    superadmin = master_db.query(SuperadminUser).filter(
-        SuperadminUser.user_id == user.id,
-        SuperadminUser.is_active == True
-    ).first()
-    
-    if not superadmin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a superadmin account."
-        )
-    
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive account"
-        )
-    
-    # Create tokens
-    access_token = create_access_token(data={
-        "sub": str(user.id),
-        "role": "superadmin",
-        "superadmin_id": str(superadmin.superadmin_id)
-    })
-    refresh_token = create_refresh_token(data={
-        "sub": str(user.id),
-        "role": "superadmin"
-    })
-    
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "user_role": "superadmin",
-        "user_id": str(user.id)
-    }
-
-
-# ==================== COMMON ENDPOINTS ====================
+# ==================== CURRENT USER ====================
 
 @router.get("/me")
-async def get_current_user_info(
+async def get_me(
     current_user: User = Depends(get_current_user),
-    master_db: Session = Depends(get_master_db)
+    subdomain: str = Depends(get_subdomain),
+    db: Session = Depends(get_db)
 ):
-    """Get current user information with role details."""
-    role = "user"
-    role_details = {}
+    """Get current user information."""
     
-    # Check roles
-    superadmin = master_db.query(SuperadminUser).filter(SuperadminUser.user_id == current_user.id).first()
-    if superadmin:
-        role = "superadmin"
-        role_details = {
-            "superadmin_id": str(superadmin.superadmin_id),
-            "permissions": superadmin.permissions_json
-        }
-    
-    tenant_user = master_db.query(TenantUser).filter(TenantUser.user_id == current_user.id).first()
-    if tenant_user:
-        role = "admin"
-        role_details = {
-            "tenant_id": str(tenant_user.tenant_id),
-            "role_name": tenant_user.role_name
-        }
+    # Check if user is also a customer
+    customer = None
+    if current_user.role == "customer":
+        customer = db.query(Customer).filter(Customer.user_id == current_user.id).first()
     
     return {
         "user_id": str(current_user.id),
         "email": current_user.email,
-        "role": role,
+        "role": current_user.role,
         "is_active": current_user.is_active,
-        "created_at": current_user.created_at.isoformat(),
-        "role_details": role_details
+        "subdomain": subdomain,
+        "customer_id": str(customer.customer_id) if customer else None,
+        "full_name": customer.full_name if customer else None
+    }
+
+
+# ==================== TOKEN REFRESH ====================
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    refresh_token: str,
+    subdomain: str = Depends(get_subdomain),
+    db: Session = Depends(get_db)
+):
+    """Refresh access token."""
+    from ..utils.auth import decode_token
+    
+    payload = decode_token(refresh_token)
+    if payload is None or payload.get("type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token"
+        )
+    
+    user_id = payload.get("sub")
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive"
+        )
+    
+    # Create new tokens
+    new_access_token = create_access_token(data={
+        "sub": str(user.id),
+        "role": user.role,
+        "subdomain": subdomain
+    })
+    new_refresh_token = create_refresh_token(data={
+        "sub": str(user.id),
+        "role": user.role,
+        "subdomain": subdomain
+    })
+    
+    return {
+        "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer",
+        "user_role": user.role,
+        "user_id": str(user.id),
+        "subdomain": subdomain
     }
