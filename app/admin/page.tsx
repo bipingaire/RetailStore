@@ -1,337 +1,124 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import {
-  TrendingUp, Package, AlertCircle, ArrowUpRight, ArrowRight, MoreHorizontal
-} from 'lucide-react';
-import Link from 'next/link';
+import { apiClient } from '@/lib/api-client';
+import { Package, TrendingUp, AlertCircle, DollarSign, Users, ShoppingCart, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminDashboard() {
-  const supabase = createClientComponentClient();
-  const [stats, setStats] = useState({
-    revenue: 0,
-    orders: 0,
-    lowStock: 0,
-    activeCampaigns: 0
-  });
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [chartData, setChartData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
-
-  const [storeName, setStoreName] = useState('My Store');
 
   useEffect(() => {
-    async function fetchDashboardData() {
+    async function loadDashboard() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const [inventory, orders, analytics] = await Promise.all([
+          apiClient.getInventory({ low_stock: false }),
+          apiClient.getOrders({}),
+          apiClient.getInventoryHealth(),
+        ]);
 
-        if (user) {
-          // 1. Try to get tenant ID from Role
-          const { data: roleData } = await supabase
-            .from('tenant-user-role')
-            .select('tenant-id')
-            .eq('user-id', user.id)
-            .limit(1)
-            .maybeSingle();
-
-          let tenantId = roleData?.['tenant-id'];
-
-          // 2. Fallback: Resolve from Subdomain or Hardcoded Dev Fallback
-          if (!tenantId) {
-            const hostname = window.location.hostname;
-            const subdomain = hostname.split('.')[0];
-
-            if (subdomain && subdomain !== 'localhost' && !hostname.includes('vercel.app')) {
-              const { data: mapData } = await supabase
-                .from('subdomain-tenant-mapping')
-                .select('tenant-id')
-                .eq('subdomain', subdomain)
-                .single();
-
-              if (mapData) tenantId = mapData['tenant-id'];
-            }
-          }
-
-          if (tenantId) {
-            // 3. Get Store Name
-            const { data: storeData } = await supabase
-              .from('retail-store-tenant')
-              .select('store-name')
-              .eq('tenant-id', tenantId)
-              .single();
-
-            if (storeData) {
-              setStoreName(storeData['store-name']);
-            }
-
-            // Load stats filtered by tenant
-            // Low Stock for this tenant
-            const { count: lowStock } = await supabase
-              .from('retail-store-inventory-item')
-              .select('reorder-point-value', { count: 'exact', head: true })
-              .eq('tenant-id', tenantId)
-              .eq('is-active', true)
-              .lt('current-stock-quantity', 10);
-
-            // Pending Orders for this tenant
-            const { count: pendingOrders } = await supabase
-              .from('customer-order-header')
-              .select('*', { count: 'exact', head: true })
-              .eq('tenant-id', tenantId)
-              .eq('order-status-code', 'pending');
-
-            // Active Campaigns for this tenant
-            const { count: activeCampaigns } = await supabase
-              .from('marketing-campaign-master')
-              .select('*', { count: 'exact', head: true })
-              .eq('tenant-id', tenantId)
-              .eq('is-active-flag', true);
-
-            // Recent Orders for this tenant
-            const { data: orders } = await supabase
-              .from('customer-order-header')
-              .select('*')
-              .eq('tenant-id', tenantId)
-              .order('order-date-time', { ascending: false })
-              .limit(5);
-
-            // Calculate Total Revenue from paid orders
-            const { data: revenueData } = await supabase
-              .from('customer-order-header')
-              .select('final-amount')
-              .eq('tenant-id', tenantId)
-              .eq('payment-status', 'paid');
-
-            const totalRevenue = revenueData?.reduce((sum, order) => sum + (order['final-amount'] || 0), 0) || 0;
-
-            // Weekly Sales Trend (Last 7 Days)
-            const weeklyData: number[] = [0, 0, 0, 0, 0, 0, 0];
-            const today = new Date();
-
-            for (let i = 0; i < 7; i++) {
-              const date = new Date(today);
-              date.setDate(today.getDate() - (6 - i));
-              const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-              const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
-
-              const { data: daySales } = await supabase
-                .from('customer-order-header')
-                .select('final-amount')
-                .eq('tenant-id', tenantId)
-                .gte('order-date-time', startOfDay)
-                .lte('order-date-time', endOfDay);
-
-              weeklyData[i] = daySales?.reduce((sum, order) => sum + (order['final-amount'] || 0), 0) || 0;
-            }
-
-            setStats({
-              revenue: totalRevenue,
-              orders: pendingOrders || 0,
-              lowStock: lowStock || 0,
-              activeCampaigns: activeCampaigns || 0
-            });
-
-            setChartData(weeklyData);
-            setRecentOrders(orders || []);
-          }
-        }
-      } catch (err) {
-        console.error('Dashboard load error', err);
-        toast.error('Failed to load dashboard data');
+        setStats({
+          totalProducts: inventory.length,
+          lowStock: inventory.filter((i: any) => i.quantity_on_hand < 10).length,
+          totalOrders: orders.length,
+          pendingOrders: orders.filter((o: any) => o.order_status === 'pending').length,
+          inventoryHealth: analytics,
+        });
+      } catch (error: any) {
+        console.error('Error loading dashboard:', error);
+        toast.error('Failed to load dashboard');
       } finally {
         setLoading(false);
       }
     }
-
-    fetchDashboardData();
+    loadDashboard();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const statCards = [
+    { title: 'Total Products', value: stats.totalProducts, icon: Package, color: 'bg-blue-500', change: '+12%' },
+    { title: 'Low Stock', value: stats.lowStock, icon: AlertCircle, color: 'bg-red-500', change: '-5%' },
+    { title: 'Total Orders', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-green-500', change: '+23%' },
+    { title: 'Pending Orders', value: stats.pendingOrders, icon: Activity, color: 'bg-yellow-500', change: '+8%' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
-
-        {/* 1. HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{storeName} Dashboard</h1>
-            <p className="text-sm text-gray-500">Overview of your retail performance.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/invoices"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
-            >
-              Scan Invoice
-            </Link>
-            <Link
-              href="/admin/sale"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
-            >
-              <ArrowUpRight size={16} />
-              New Campaign
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-black text-gray-900">Dashboard</h1>
+          <p className="text-gray-500 mt-1">Overview of your store performance</p>
         </div>
 
-        {/* 2. KPI CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          {/* Revenue */}
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
-            <div className="flex justify-between items-start">
-              <span className="text-sm font-medium text-gray-500">Total Revenue</span>
-              <span className="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">+12.5%</span>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statCards.map((stat, i) => (
+            <div key={i} className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10`}>
+                  <stat.icon className={`${stat.color.replace('bg-', 'text-')}`} size={24} />
+                </div>
+                <span className="text-sm font-semibold text-green-600">{stat.change}</span>
+              </div>
+              <h3 className="text-gray-600 text-sm font-medium mb-1">{stat.title}</h3>
+              <p className="text-3xl font-black text-gray-900">{stat.value}</p>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">${stats.revenue.toLocaleString()}</div>
-            </div>
-          </div>
-
-          {/* Orders */}
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
-            <div className="flex justify-between items-start">
-              <span className="text-sm font-medium text-gray-500">Pending Orders</span>
-              {stats.orders > 0 && <span className="w-2 h-2 bg-blue-500 rounded-full"></span>}
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.orders}</div>
-              <div className="text-xs text-gray-500 mt-1">Orders to fulfill</div>
-            </div>
-          </div>
-
-          {/* Low Stock */}
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
-            <div className="flex justify-between items-start">
-              <span className="text-sm font-medium text-gray-500">Low Stock Items</span>
-              <AlertCircle size={16} className={stats.lowStock > 0 ? "text-amber-500" : "text-gray-300"} />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.lowStock}</div>
-              <div className="text-xs text-gray-500 mt-1">Requires attention</div>
-            </div>
-          </div>
-
-          {/* Active Campaigns */}
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-32">
-            <div className="flex justify-between items-start">
-              <span className="text-sm font-medium text-gray-500">Active Campaigns</span>
-              <span className="text-purple-600 bg-purple-50 p-1 rounded-md"><TrendingUp size={14} /></span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.activeCampaigns}</div>
-              <div className="text-xs text-gray-500 mt-1">Live promotions</div>
-            </div>
-          </div>
-
+          ))}
         </div>
 
-        {/* 3. MAIN CONTENT GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* LEFT: Recent Orders Table */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Recent Orders</h3>
-              <Link href="/admin/orders" className="text-sm text-blue-600 hover:text-blue-700 font-medium">View all</Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-3">Order #</th>
-                    <th className="px-6 py-3">Customer</th>
-                    <th className="px-6 py-3">Date</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {loading ? (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Loading orders...</td></tr>
-                  ) : recentOrders.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">No recent orders found.</td></tr>
-                  ) : (
-                    recentOrders.map((order) => (
-                      <tr key={order['order-id']} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-gray-900">
-                          #{order['order-id'].substring(0, 8)}...
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">
-                          {order['customer-phone'] || 'Guest'}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500">
-                          {new Date(order['order-date-time']).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-50 text-green-700' :
-                            order.status === 'pending' ? 'bg-blue-50 text-blue-700' :
-                              'bg-gray-100 text-gray-600'
-                            }`}>
-                            {order.status || 'Pending'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right font-medium text-gray-900">
-                          ${order['final-amount']?.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* RIGHT: Sales Chart & Actions */}
-          <div className="space-y-6">
-
-            {/* Sales Chart (CSS-only) */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-6">Weekly Sales Trend</h3>
-
-              <div className="h-48 flex items-end justify-between gap-2">
-                {chartData.map((val, i) => {
-                  const maxVal = Math.max(...chartData, 1);
-                  return (
-                    <div key={i} className="w-full flex flex-col justify-end group relative">
-                      <div
-                        className="w-full bg-blue-100 rounded-t-sm hover:bg-blue-500 transition-colors duration-300 relative group-hover:shadow-lg"
-                        style={{ height: `${(val / maxVal) * 100}%` }}
-                      >
-                        {/* Tooltip */}
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                          ${val.toFixed(0)}
-                        </div>
-                      </div>
-                      <span className="text-xs text-center text-gray-400 mt-2">
-                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
-                      </span>
-                    </div>
-                  );
-                })}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <h2 className="text-xl font-bold mb-4">Inventory Health</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <span className="font-medium text-green-900">Healthy Stock</span>
+                <span className="text-2xl font-bold text-green-600">
+                  {stats.inventoryHealth?.healthy || 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                <span className="font-medium text-yellow-900">Low Stock</span>
+                <span className="text-2xl font-bold text-yellow-600">
+                  {stats.inventoryHealth?.low || stats.lowStock}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <span className="font-medium text-red-900">Out of Stock</span>
+                <span className="text-2xl font-bold text-red-600">
+                  {stats.inventoryHealth?.out_of_stock || 0}
+                </span>
               </div>
             </div>
-
-            {/* Quick Links */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">Quick Links</h3>
-              <div className="space-y-2">
-                <Link href="/admin/inventory" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors">
-                  <span className="flex items-center gap-2"><Package size={16} /> Inventory</span>
-                  <ArrowRight size={14} className="text-gray-400" />
-                </Link>
-                <Link href="/admin/settings" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors">
-                  <span className="flex items-center gap-2"><MoreHorizontal size={16} /> Settings</span>
-                  <ArrowRight size={14} className="text-gray-400" />
-                </Link>
-              </div>
-            </div>
-
           </div>
 
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <a href="/admin/inventory" className="p-4 bg-blue-50 rounded-lg text-center hover:bg-blue-100 transition">
+                <Package className="mx-auto mb-2 text-blue-600" size={32} />
+                <span className="font-semibold text-blue-900">Inventory</span>
+              </a>
+              <a href="/admin/orders" className="p-4 bg-green-50 rounded-lg text-center hover:bg-green-100 transition">
+                <ShoppingCart className="mx-auto mb-2 text-green-600" size={32} />
+                <span className="font-semibold text-green-900">Orders</span>
+              </a>
+              <a href="/admin/vendors" className="p-4 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition">
+                <Users className="mx-auto mb-2 text-purple-600" size={32} />
+                <span className="font-semibold text-purple-900">Vendors</span>
+              </a>
+              <a href="/admin/invoices" className="p-4 bg-orange-50 rounded-lg text-center hover:bg-orange-100 transition">
+                <DollarSign className="mx-auto mb-2 text-orange-600" size={32} />
+                <span className="font-semibold text-orange-900">Invoices</span>
+              </a>
+            </div>
+          </div>
         </div>
-
       </div>
     </div>
   );
