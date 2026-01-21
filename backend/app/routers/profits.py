@@ -22,8 +22,12 @@ class ProfitReport(BaseModel):
     revenue: float
     cost_of_goods_sold: float
     gross_profit: float
-    profit_margin_percent: float
+    total_expenses: float
+    net_profit: float
+    gross_margin_percent: float
+    net_margin_percent: float
     order_count: int
+    expense_count: int
 
 
 @router.get("/summary", response_model=ProfitReport)
@@ -36,15 +40,7 @@ async def get_profit_summary(
     Get profit summary for specified period.
     
     **Bottom Line** - Track store profitability.
-    
-    - **days**: Number of days to analyze (default: 30)
-    
-    Returns:
-    - Total revenue
-    - Cost of goods sold (COGS)
-    - Gross profit
-    - Profit margin %
-    - Number of orders
+    Calculates Revenue - COGS - Expenses = Net Profit.
     """
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=days)
@@ -62,8 +58,12 @@ async def get_profit_summary(
         revenue=result['revenue'],
         cost_of_goods_sold=result['cost_of_goods_sold'],
         gross_profit=result['gross_profit'],
-        profit_margin_percent=result['profit_margin_percent'],
-        order_count=result['order_count']
+        total_expenses=result['total_expenses'],
+        net_profit=result['net_profit'],
+        gross_margin_percent=result['gross_margin_percent'],
+        net_margin_percent=result['net_margin_percent'],
+        order_count=result['order_count'],
+        expense_count=result['expense_count']
     )
 
 
