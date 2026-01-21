@@ -1,29 +1,91 @@
 version: '3.8'
 
 services:
-  db:
+  # Master PostgreSQL Database (Global Product Catalog)
+  master-db:
     image: postgres:15
+    container_name: retailstore-master-db
     environment:
-      POSTGRES_DB: retailstore
+      POSTGRES_DB: retailstore_master
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - master_db_data:/var/lib/postgresql/data
+      - ./init-master.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d retailstore_master" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - retailstore-network
 
+  # Backend API
   backend:
     build: .
+    container_name: retailstore-backend
     depends_on:
-      - db
+      master-db:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/retailstore
-      SECRET_KEY: your-secret-key-change-in-production
-      CORS_ORIGINS: http://localhost:3000
+      # Master Database (Global Catalog)
+      MASTER_DATABASE_URL: postgresql://postgres:password@master-db:5432/retailstore_master
+
+      # Tenant Database Connection
+      DB_HOST: master-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      TENANT_DB_PREFIX: retailstore_
+
+      # Connection Pool
+      DB_POOL_SIZE: 20
+      DB_MAX_OVERFLOW: 10
+
+      # JWT
+      SECRET_KEY: your-secret-key-change-in-production-use-openssl-rand-hex-32
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+
+      # CORS
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8000
+
+      # File Storage
+      UPLOAD_DIR: /app/uploads
+      MAX_UPLOAD_SIZE_MB: 10
+
+      # Environment
+      ENVIRONMENT: development
+      DEBUG: "true"
     ports:
       - "8000:8000"
     volumes:
       - ./uploads:/app/uploads
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - retailstore-network
+
+  # Redis (Optional - for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: retailstore-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - retailstore-network
+
+networks:
+  retailstore-network:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  master_db_data:
+    driver: local
+  redis_data:
+    driver: local
