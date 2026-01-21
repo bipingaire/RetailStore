@@ -199,3 +199,17 @@ def update_campaign_products(campaign_id: UUID, data: CampaignProductsUpdate, db
     db.commit()
     
     return {"message": "Campaign products updated"}
+
+class GeneratePostRequest(BaseModel):
+    products: List[dict]
+
+@router.post("/generate-post")
+def generate_campaign_post(data: GeneratePostRequest, db: Session = Depends(get_db)):
+    """Generate AI social media post (Mock)."""
+    # In real app: call OpenAI
+    product_names = [p.get('global_products', {}).get('product_name', 'Product') for p in data.products]
+    names_str = ", ".join(product_names)
+    
+    return {
+        "post": f"🔥 FLASH SALE ALERT! 🔥\n\nGet amazing deals on {names_str}! Limited time only. \n\nShop now at our store! 🛍️ #sale #deal #{names_str.split(',')[0].replace(' ', '')}"
+    }
