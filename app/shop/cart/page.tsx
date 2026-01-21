@@ -1,231 +1,228 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { MapPin, Truck, CreditCard, Banknote, Store, AlertTriangle, ArrowRight, Loader2, Minus, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
+import { ShoppingBag, Trash2, Plus, Minus, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+type CartItem = {
+  inventory_id: string;
+  product_name: string;
+  price: number;
+  quantity: number;
+  image_url?: string;
+};
 
-const TENANT_ID = 'PASTE_YOUR_REAL_TENANT_UUID_HERE'; // Replace with real ID
-
-export default function CheckoutPage() {
-  const router = useRouter();
-  const [method, setMethod] = useState<'pickup' | 'delivery'>('pickup');
-  const [payment, setPayment] = useState<'cod' | 'online' | 'store'>('store');
-  const [address, setAddress] = useState('');
+export default function CartPage() {
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [placingOrder, setPlacingOrder] = useState(false);
-
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const [cartCounts, setCartCounts] = useState<Record<string, number>>({});
+  const [checkingOut, setCheckingOut] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    async function initCart() {
-      // 1. Read Storage
-      const stored = localStorage.getItem('retail_cart');
-      const counts = stored ? JSON.parse(stored) : {};
-      setCartCounts(counts);
+    loadCart();
+  }, []);
 
-      const ids = Object.keys(counts);
-      if (ids.length === 0) {
+  async function loadCart() {
+    try {
+      // Load cart from localStorage
+      const savedCart = localStorage.getItem('retail_cart');
+      if (!savedCart) {
         setLoading(false);
         return;
       }
 
-      // 2. Fetch Details for IDs
-      const { data } = await supabase
-        .from('retail-store-inventory-item')
-        .select(`
-          id:inventory-id, 
-          price:selling-price-amount, 
-          global_product:global-product-master-catalog ( name:product-name, image:image-url )
-        `)
-        .in('inventory-id', ids);
+      const cartData: Record<string, number> = JSON.parse(savedCart);
 
-      if (data) {
-        // Merge DB data with LocalStorage counts
-        const merged = data.map((item: any) => ({
-          id: item.id,
-          name: item.global_product?.name || 'Unknown Item',
-          image: item.global_product?.image,
-          price: item.price,
-          qty: counts[item.id],
-          restriction: 'all' // In real app, fetch this from DB
-        }));
-        setCartItems(merged);
-      }
+      // Fetch product details for cart items
+      const products = await apiClient.request('/api/shop/products', {});
+
+      const cartItems: CartItem[] = Object.entries(cartData).map(([id, qty]) => {
+        const product = (products as any[]).find(p => p.inventory_id === id);
+        return {
+          inventory_id: id,
+          product_name: product?.product_name || 'Unknown',
+          price: product?.price || 0,
+          quantity: qty,
+          image_url: product?.image_url,
+        };
+      });
+
+      setCart(cartItems);
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      toast.error('Failed to load cart');
+    } finally {
       setLoading(false);
     }
-    initCart();
-  }, []);
+  }
 
-  // Sync back to local storage when counts change in this page
-  useEffect(() => {
-    if (!loading) {
-      const validCounts: Record<string, number> = {};
-      cartItems.forEach(i => validCounts[i.id] = i.qty);
-      localStorage.setItem('retail_cart', JSON.stringify(validCounts));
+  function updateQuantity(id: string, delta: number) {
+    const savedCart = JSON.parse(localStorage.getItem('retail_cart') || '{}');
+    const current = savedCart[id] || 0;
+    const newQty = Math.max(0, current + delta);
+
+    if (newQty === 0) {
+      delete savedCart[id];
+    } else {
+      savedCart[id] = newQty;
     }
-  }, [cartItems, loading]);
 
-  const updateItemQty = (id: string, delta: number) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.id === id) {
-        return { ...item, qty: Math.max(0, item.qty + delta) };
-      }
-      return item;
-    }).filter(i => i.qty > 0));
-  };
+    localStorage.setItem('retail_cart', JSON.stringify(savedCart));
+    loadCart();
+  }
 
-  const hasStoreOnlyItems = cartItems.some(i => i.restriction === 'store_only');
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
-  const deliveryFee = method === 'delivery' ? 5.00 : 0;
-  const total = subtotal + deliveryFee;
+  function removeItem(id: string) {
+    const savedCart = JSON.parse(localStorage.getItem('retail_cart') || '{}');
+    delete savedCart[id];
+    localStorage.setItem('retail_cart', JSON.stringify(savedCart));
+    loadCart();
+    toast.success('Item removed from cart');
+  }
 
-  const handlePlaceOrder = async () => {
-    setPlacingOrder(true);
+  async function handleCheckout() {
+    if (!apiClient.isAuthenticated()) {
+      toast.error('Please login to checkout');
+      sessionStorage.setItem('checkout_redirect', 'true');
+      router.push('/shop/login');
+      return;
+    }
+
+    setCheckingOut(true);
     try {
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          tenant_id: TENANT_ID,
-          customer_phone: '555-0101',
-          fulfillment_method: method,
-          payment_method: payment,
-          total_amount: total,
-          status: 'pending',
-          delivery_address: method === 'delivery' ? address : null
-        })
-        .select()
-        .single();
+      const checkoutData = {
+        items: cart.map(item => ({
+          inventory_id: item.inventory_id,
+          quantity: item.quantity,
+        })),
+      };
 
-      if (orderError) throw orderError;
+      const result = await apiClient.request('/api/shop/checkout', {
+        method: 'POST',
+        body: JSON.stringify(checkoutData),
+      });
 
-      const orderItems = cartItems.map(item => ({
-        order_id: orderData.id,
-        store_inventory_id: item.id,
-        qty: item.qty,
-        unit_price: item.price
-      }));
-
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-      if (itemsError) throw itemsError;
-
-      // Clear Cart
+      // Clear cart
       localStorage.removeItem('retail_cart');
-      alert("✅ Order Placed Successfully!");
-      router.push('/shop/orders'); // Go to history
-
+      toast.success('Order placed successfully!');
+      router.push(`/shop/orders`);
     } catch (error: any) {
-      console.error(error);
-      alert("Failed to place order: " + error.message);
+      console.error('Checkout error:', error);
+      toast.error(error.message || 'Checkout failed');
     } finally {
-      setPlacingOrder(false);
+      setCheckingOut(false);
     }
-  };
+  }
 
-  if (loading) return <div className="p-10 text-center">Loading Cart...</div>;
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  if (cartItems.length === 0) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
-        <div className="bg-white p-6 rounded-full shadow-lg mb-6">
-          <Store size={48} className="text-gray-300" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Your Cart is Empty</h1>
-        <p className="text-gray-500 mb-8">Looks like you haven't added anything yet.</p>
-        <Link href="/shop" className="bg-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition">
-          Start Shopping
-        </Link>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-green-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32 font-sans">
-      <div className="bg-white p-4 border-b sticky top-0 z-10 flex items-center gap-4">
-        <Link href="/shop" className="p-2 hover:bg-gray-100 rounded-full"><ArrowRight className="rotate-180" size={20} /></Link>
-        <h1 className="text-xl font-bold">Checkout</h1>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-black">Shopping Cart</h1>
+          <Link href="/shop" className="text-green-600 font-bold hover:underline">
+            Continue Shopping
+          </Link>
+        </div>
 
-      <div className="p-4 space-y-6 max-w-lg mx-auto">
-
-        {/* ITEMS LIST */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <h2 className="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider">Items ({cartItems.length})</h2>
-          <div className="space-y-4">
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex gap-4 border-b pb-4 last:border-0 last:pb-0">
-                <div className="w-20 h-20 bg-gray-100 rounded-lg shrink-0 overflow-hidden border">
-                  {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-300">IMG</div>}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex justify-between items-start">
-                    <div className="font-bold text-gray-900 line-clamp-2">{item.name}</div>
-                    <button onClick={() => updateItemQty(item.id, -item.qty)} className="text-gray-300 hover:text-red-500 p-1"><Trash2 size={16} /></button>
+        {cart.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 text-center">
+            <ShoppingBag size={64} className="text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+            <p className="text-gray-500 mb-6">Add some products to get started!</p>
+            <Link href="/shop" className="inline-block bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition">
+              Browse Products
+            </Link>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              {cart.map((item) => (
+                <div key={item.inventory_id} className="bg-white rounded-xl p-6 flex items-center gap-6">
+                  <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    {item.image_url ? (
+                      <img src={item.image_url} className="w-full h-full object-cover" alt={item.product_name} />
+                    ) : (
+                      <ShoppingBag className="text-gray-300" size={32} />
+                    )}
                   </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 mb-1">{item.product_name}</h3>
+                    <p className="text-green-600 font-black text-xl">${item.price.toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => updateQuantity(item.inventory_id, -1)}
+                      className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="font-bold text-lg w-8 text-center">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.inventory_id, 1)}
+                      className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => removeItem(item.inventory_id)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                    <div className="text-gray-500">Unit Price:</div>
-                    <div className="text-right font-medium">${item.price}</div>
-
-                    <div className="text-gray-500">Qty:</div>
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => updateItemQty(item.id, -1)} className="w-5 h-5 flex items-center justify-center bg-gray-100 rounded hover:bg-gray-200"><Minus size={10} /></button>
-                      <span className="font-bold w-4 text-center">{item.qty}</span>
-                      <button onClick={() => updateItemQty(item.id, 1)} className="w-5 h-5 flex items-center justify-center bg-gray-100 rounded hover:bg-gray-200"><Plus size={10} /></button>
-                    </div>
-
-                    <div className="text-gray-900 font-bold pt-1 border-t">Total Price:</div>
-                    <div className="text-right font-bold text-emerald-600 pt-1 border-t transition-colors underline decoration-emerald-200 decoration-2 underline-offset-2">
-                      ${(item.price * item.qty).toFixed(2)}
-                    </div>
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl p-6 sticky top-6">
+                <h2 className="font-bold text-xl mb-4">Order Summary</h2>
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal ({cart.length} items)</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span className="text-green-600 font-semibold">FREE</span>
+                  </div>
+                  <hr />
+                  <div className="flex justify-between text-xl font-black">
+                    <span>Total</span>
+                    <span className="text-green-600">${total.toFixed(2)}</span>
                   </div>
                 </div>
+                <button
+                  onClick={handleCheckout}
+                  disabled={checkingOut}
+                  className="w-full bg-green-600 text-white font-bold py-4 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                >
+                  {checkingOut ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Proceed to Checkout
+                    </>
+                  )}
+                </button>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-
-        {/* FULFILLMENT */}
-        <div>
-          <h3 className="font-bold text-gray-500 text-xs uppercase tracking-wider mb-2">Delivery Method</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setMethod('pickup')} className={`p-4 rounded-xl border-2 flex flex-col items-center transition-all ${method === 'pickup' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white'}`}>
-              <Store className="mb-2" />
-              <span className="font-bold text-sm">Pickup</span>
-              <span className="text-xs mt-1 text-green-600">Free</span>
-            </button>
-            <button onClick={() => !hasStoreOnlyItems && setMethod('delivery')} className={`p-4 rounded-xl border-2 flex flex-col items-center transition-all relative ${hasStoreOnlyItems ? 'opacity-50 cursor-not-allowed bg-gray-100' : method === 'delivery' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white'}`}>
-              <Truck className="mb-2" />
-              <span className="font-bold text-sm">Delivery</span>
-              <span className="text-xs mt-1">$5.00</span>
-              {hasStoreOnlyItems && <div className="absolute top-2 right-2 text-red-500"><AlertTriangle size={12} /></div>}
-            </button>
-          </div>
-          {method === 'delivery' && (
-            <textarea className="w-full border rounded-lg p-3 mt-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" rows={2} placeholder="Delivery Address..." value={address} onChange={(e) => setAddress(e.target.value)} />
-          )}
-        </div>
-
-        {/* TOTALS */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border space-y-2">
-          <div className="flex justify-between text-sm text-gray-500"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-          <div className="flex justify-between text-sm text-gray-500"><span>Delivery</span><span>${deliveryFee.toFixed(2)}</span></div>
-          <div className="flex justify-between text-xl font-black text-gray-900 border-t pt-2 mt-2"><span>Total</span><span>${total.toFixed(2)}</span></div>
-        </div>
-
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50 safe-area-bottom">
-        <Link href={`/shop/checkout?fulfillment=${method}`} className="w-full bg-black text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-between px-6 hover:bg-gray-800 transition-all">
-          <span>Proceed to Checkout</span>
-          <ArrowRight />
-        </Link>
+        )}
       </div>
     </div>
   );
