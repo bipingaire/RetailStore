@@ -2,25 +2,32 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { ArrowLeft, Save, Package, Link as LinkIcon, Search } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
+import { ArrowLeft, Save, Package, Link as LinkIcon, Search, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
+// Define Product type matching Backend Response (snake_case)
+// But wait, the previous code used kebab-case matching the DB column names directly.
+// The new API returns snake_case (Pydantic default).
+// I will transform the data to use local state with my preferred structure or stick to one.
+// Let's stick to matching the API response structure locally to avoid confusion.
+
 type Product = {
-    'product-id': string;
-    'product-name': string;
-    'brand-name'?: string;
-    'manufacturer-name'?: string;
-    'category-name'?: string;
-    'upc-ean-code'?: string;
-    'image-url'?: string;
-    'description-text'?: string;
-    'base-unit-name'?: string;
-    'pack-size'?: number;
-    'pack-unit-name'?: string;
-    'bulk-pack-product-id'?: string;
-    'is-bulk-pack'?: boolean;
+    product_id: string;
+    product_name: string;
+    brand_name?: string;
+    manufacturer_name?: string;
+    category_name?: string;
+    upc_ean_code?: string;
+    image_url?: string;
+    description_text?: string;
+    base_unit_name?: string;
+    pack_size?: number;
+    pack_unit_name?: string;
+    bulk_pack_product_id?: string;
+    is_bulk_pack?: boolean;
+    status: string;
 };
 
 const COMMON_BASE_UNITS = ['piece', 'each', 'kg', 'g', 'lb', 'oz', 'liter', 'ml', 'gallon'];
@@ -30,7 +37,6 @@ export default function EditProductPage() {
     const router = useRouter();
     const params = useParams();
     const productId = params?.productId as string;
-    const supabase = createClientComponentClient();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -45,30 +51,28 @@ export default function EditProductPage() {
     }, [productId]);
 
     async function loadProduct() {
-        const { data, error } = await supabase
-            .from('global-product-master-catalog')
-            .select('*')
-            .eq('product-id', productId)
-            .single();
-
-        if (error) {
-            toast.error('Failed to load product');
-            console.error(error);
-        } else {
+        try {
+            const data: any = await apiClient.getProduct(productId);
+            // Transform response if necessary? 
+            // The API returns snake_case as per `ProductResponse` schema (implicitly by Pydantic).
+            // Let's assume data is already correct.
             setProduct(data);
 
             // Load linked bulk pack if exists
-            if (data['bulk-pack-product-id']) {
-                const { data: bulkData } = await supabase
-                    .from('global-product-master-catalog')
-                    .select('*')
-                    .eq('product-id', data['bulk-pack-product-id'])
-                    .single();
-
-                if (bulkData) setLinkedBulkPack(bulkData);
+            if (data.bulk_pack_product_id) {
+                try {
+                    const bulkData: any = await apiClient.getProduct(data.bulk_pack_product_id);
+                    setLinkedBulkPack(bulkData);
+                } catch (err) {
+                    console.warn('Failed to load linked bulk pack details', err);
+                }
             }
+        } catch (error) {
+            console.error('Failed to load product:', error);
+            toast.error('Failed to load product');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     async function searchBulkPacks() {
@@ -78,53 +82,64 @@ export default function EditProductPage() {
         }
 
         setSearchingBulkPack(true);
-        const { data } = await supabase
-            .from('global-product-master-catalog')
-            .select('*')
-            .or(`product-name.ilike.%${bulkPackSearchQuery}%,upc-ean-code.ilike.%${bulkPackSearchQuery}%`)
-            .neq('product-id', productId)
-            .limit(10);
+        try {
+            // Use getProducts with search param
+            const data: any = await apiClient.getProducts({
+                search: bulkPackSearchQuery,
+                limit: 10
+            });
 
-        setBulkPackResults(data || []);
-        setSearchingBulkPack(false);
+            // Filter out current product to avoid self-reference
+            const filtered = (data || []).filter((p: any) => p.product_id !== productId);
+            setBulkPackResults(filtered);
+        } catch (error) {
+            console.error('Search failed:', error);
+            toast.error('Product search failed');
+        } finally {
+            setSearchingBulkPack(false);
+        }
     }
 
     async function handleSave() {
         if (!product) return;
 
         setSaving(true);
-        const { error } = await supabase
-            .from('global-product-master-catalog')
-            .update({
-                'product-name': product['product-name'],
-                'brand-name': product['brand-name'],
-                'manufacturer-name': product['manufacturer-name'],
-                'category-name': product['category-name'],
-                'upc-ean-code': product['upc-ean-code'],
-                'description-text': product['description-text'],
-                'base-unit-name': product['base-unit-name'] || 'piece',
-                'pack-size': product['pack-size'] || 1,
-                'pack-unit-name': product['pack-unit-name'],
-                'bulk-pack-product-id': product['bulk-pack-product-id'],
-                'is-bulk-pack': product['is-bulk-pack'] || false,
-            })
-            .eq('product-id', productId);
+        try {
+            // Prepare payload matching ProductCreate schema (snake_case)
+            const payload = {
+                product_name: product.product_name,
+                brand_name: product.brand_name,
+                manufacturer_name: product.manufacturer_name,
+                category_name: product.category_name,
+                upc_ean_code: product.upc_ean_code,
+                description_text: product.description_text,
+                base_unit_name: product.base_unit_name || 'piece',
+                pack_size: product.pack_size || 1,
+                pack_unit_name: product.pack_unit_name,
+                bulk_pack_product_id: product.bulk_pack_product_id,
+                is_bulk_pack: product.is_bulk_pack || false,
+                status: product.status
+            };
 
-        setSaving(false);
-
-        if (error) {
-            toast.error('Failed to save product');
-            console.error(error);
-        } else {
+            await apiClient.updateProduct(productId, payload);
             toast.success('Product updated successfully!');
             router.push('/super-admin/products');
+        } catch (error: any) {
+            console.error('Save failed:', error);
+            toast.error('Failed to save product: ' + (error.message || 'Unknown error'));
+        } finally {
+            setSaving(false);
         }
     }
 
-    const packCalculation = `${product?.['pack-size'] || 1} ${product?.['pack-unit-name'] || 'Unit'}${(product?.['pack-size'] || 1) > 1 ? 's' : ''} = ${product?.['pack-size'] || 1} ${product?.['base-unit-name'] || 'piece'}${(product?.['pack-size'] || 1) > 1 ? 's' : ''}`;
+    const packCalculation = `${product?.pack_size || 1} ${product?.pack_unit_name || 'Unit'}${(product?.pack_size || 1) > 1 ? 's' : ''} = ${product?.pack_size || 1} ${product?.base_unit_name || 'piece'}${(product?.pack_size || 1) > 1 ? 's' : ''}`;
 
     if (loading) {
-        return <div className="p-8 text-center text-gray-500">Loading product...</div>;
+        return (
+            <div className="flex justify-center items-center h-screen bg-gray-50">
+                <Loader2 className="animate-spin text-blue-600" size={48} />
+            </div>
+        );
     }
 
     if (!product) {
@@ -136,7 +151,7 @@ export default function EditProductPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Link href="/super-admin/products" className="text-gray-600 hover:text-gray-900">
+                    <Link href="/super-admin/products" className="text-gray-600 hover:text-gray-900 transition-colors">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div>
@@ -147,9 +162,9 @@ export default function EditProductPage() {
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-md"
                 >
-                    <Save className="w-4 h-4" />
+                    {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                     {saving ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
@@ -166,9 +181,9 @@ export default function EditProductPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                         <input
                             type="text"
-                            value={product['product-name'] || ''}
-                            onChange={e => setProduct({ ...product, 'product-name': e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={product.product_name || ''}
+                            onChange={e => setProduct({ ...product, product_name: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                     </div>
 
@@ -176,9 +191,9 @@ export default function EditProductPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
                         <input
                             type="text"
-                            value={product['brand-name'] || ''}
-                            onChange={e => setProduct({ ...product, 'brand-name': e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={product.brand_name || ''}
+                            onChange={e => setProduct({ ...product, brand_name: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                     </div>
 
@@ -186,9 +201,9 @@ export default function EditProductPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Manufacturer</label>
                         <input
                             type="text"
-                            value={product['manufacturer-name'] || ''}
-                            onChange={e => setProduct({ ...product, 'manufacturer-name': e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={product.manufacturer_name || ''}
+                            onChange={e => setProduct({ ...product, manufacturer_name: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                     </div>
 
@@ -196,9 +211,9 @@ export default function EditProductPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                         <input
                             type="text"
-                            value={product['category-name'] || ''}
-                            onChange={e => setProduct({ ...product, 'category-name': e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            value={product.category_name || ''}
+                            onChange={e => setProduct({ ...product, category_name: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                     </div>
 
@@ -206,19 +221,19 @@ export default function EditProductPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">UPC/EAN Code</label>
                         <input
                             type="text"
-                            value={product['upc-ean-code'] || ''}
-                            onChange={e => setProduct({ ...product, 'upc-ean-code': e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                            value={product.upc_ean_code || ''}
+                            onChange={e => setProduct({ ...product, upc_ean_code: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono transition-all"
                         />
                     </div>
 
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                         <textarea
-                            value={product['description-text'] || ''}
-                            onChange={e => setProduct({ ...product, 'description-text': e.target.value })}
+                            value={product.description_text || ''}
+                            onChange={e => setProduct({ ...product, description_text: e.target.value })}
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                     </div>
                 </div>
@@ -231,7 +246,7 @@ export default function EditProductPage() {
                     Unit Relationship Engine
                 </h2>
 
-                <div className="bg-white rounded-lg p-4 space-y-4">
+                <div className="bg-white rounded-lg p-4 space-y-4 shadow-sm">
                     <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Pack Configuration</div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -240,9 +255,9 @@ export default function EditProductPage() {
                             <input
                                 type="number"
                                 min="1"
-                                value={product['pack-size'] || 1}
-                                onChange={e => setProduct({ ...product, 'pack-size': parseInt(e.target.value) || 1 })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value={product.pack_size || 1}
+                                onChange={e => setProduct({ ...product, pack_size: parseInt(e.target.value) || 1 })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             />
                         </div>
 
@@ -250,9 +265,9 @@ export default function EditProductPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Base Unit</label>
                             <div className="flex gap-2">
                                 <select
-                                    value={product['base-unit-name'] || 'piece'}
-                                    onChange={e => setProduct({ ...product, 'base-unit-name': e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value={product.base_unit_name || 'piece'}
+                                    onChange={e => setProduct({ ...product, base_unit_name: e.target.value })}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 >
                                     {COMMON_BASE_UNITS.map(unit => (
                                         <option key={unit} value={unit}>{unit}</option>
@@ -266,9 +281,9 @@ export default function EditProductPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Pack Unit Name (Optional)</label>
                         <div className="flex gap-2">
                             <select
-                                value={product['pack-unit-name'] || ''}
-                                onChange={e => setProduct({ ...product, 'pack-unit-name': e.target.value })}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value={product.pack_unit_name || ''}
+                                onChange={e => setProduct({ ...product, pack_unit_name: e.target.value })}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             >
                                 <option value="">-- Select or leave empty --</option>
                                 {COMMON_PACK_UNITS.map(unit => (
@@ -291,10 +306,10 @@ export default function EditProductPage() {
                             {linkedBulkPack && (
                                 <button
                                     onClick={() => {
-                                        setProduct({ ...product, 'bulk-pack-product-id': undefined });
+                                        setProduct({ ...product, bulk_pack_product_id: undefined });
                                         setLinkedBulkPack(null);
                                     }}
-                                    className="text-xs text-red-600 hover:text-red-800"
+                                    className="text-xs text-red-600 hover:text-red-800 transition-colors"
                                 >
                                     Unlink
                                 </button>
@@ -304,8 +319,8 @@ export default function EditProductPage() {
                         {linkedBulkPack ? (
                             <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between">
                                 <div>
-                                    <div className="font-medium text-green-900">{linkedBulkPack['product-name']}</div>
-                                    <div className="text-xs text-green-600">{linkedBulkPack['upc-ean-code'] || 'No UPC'}</div>
+                                    <div className="font-medium text-green-900">{linkedBulkPack.product_name}</div>
+                                    <div className="text-xs text-green-600">{linkedBulkPack.upc_ean_code || 'No UPC'}</div>
                                 </div>
                             </div>
                         ) : (
@@ -317,32 +332,32 @@ export default function EditProductPage() {
                                         value={bulkPackSearchQuery}
                                         onChange={e => setBulkPackSearchQuery(e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && searchBulkPacks()}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
                                     />
                                     <button
                                         onClick={searchBulkPacks}
                                         disabled={searchingBulkPack}
                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                                     >
-                                        <Search className="w-4 h-4" />
+                                        {searchingBulkPack ? <Loader2 className="animate-spin w-4 h-4" /> : <Search className="w-4 h-4" />}
                                     </button>
                                 </div>
 
                                 {bulkPackResults.length > 0 && (
-                                    <div className="border border-gray-200 rounded-lg divide-y max-h-48 overflow-y-auto">
+                                    <div className="border border-gray-200 rounded-lg divide-y max-h-48 overflow-y-auto bg-white shadow-lg">
                                         {bulkPackResults.map(result => (
                                             <button
-                                                key={result['product-id']}
+                                                key={result.product_id}
                                                 onClick={() => {
-                                                    setProduct({ ...product, 'bulk-pack-product-id': result['product-id'] });
+                                                    setProduct({ ...product, bulk_pack_product_id: result.product_id });
                                                     setLinkedBulkPack(result);
                                                     setBulkPackResults([]);
                                                     setBulkPackSearchQuery('');
                                                 }}
                                                 className="w-full p-3 hover:bg-gray-50 text-left transition-colors"
                                             >
-                                                <div className="font-medium text-gray-900 text-sm">{result['product-name']}</div>
-                                                <div className="text-xs text-gray-500">{result['upc-ean-code'] || 'No UPC'}</div>
+                                                <div className="font-medium text-gray-900 text-sm">{result.product_name}</div>
+                                                <div className="text-xs text-gray-500">{result.upc_ean_code || 'No UPC'}</div>
                                             </button>
                                         ))}
                                     </div>
