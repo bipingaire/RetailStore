@@ -1,91 +1,109 @@
+"""
+Products router - Updated with missing endpoints.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 import uuid
-from decimal import Decimal
 
-from ..database import get_db
-from ..models import GlobalProduct, User
-from ..dependencies import get_current_user, require_superadmin, TenantFilter
+from ..dependencies import get_master_db, require_admin_or_superadmin
+from ..models.master_models import GlobalProduct
 
 router = APIRouter()
 
 
 # Pydantic schemas
-class ProductBase(BaseModel):
+class ProductResponse(BaseModel):
+    product_id: uuid.UUID
     product_name: str
     brand_name: Optional[str] = None
-    manufacturer_name: Optional[str] = None
     category_name: Optional[str] = None
     upc_ean_code: Optional[str] = None
     image_url: Optional[str] = None
-    description_text: Optional[str] = None
-    base_unit_name: str = "piece"
-    pack_size: int = 1
-    pack_unit_name: Optional[str] = None
-
-
-class ProductCreate(ProductBase):
-    pass
-
-
-class ProductUpdate(ProductBase):
-    pass
-
-
-class ProductResponse(ProductBase):
-    product_id: uuid.UUID
-    enriched_by_superadmin: bool
-    created_at: str
+    status: str = "active"
     
     class Config:
         from_attributes = True
 
 
+class ProductCreate(BaseModel):
+    product_name: str
+    brand_name: Optional[str] = None
+    manufacturer_name: Optional[str] = None
+    category_name: Optional[str] = None
+    subcategory_name: Optional[str] = None
+    upc_ean_code: Optional[str] = None
+    image_url: Optional[str] = None
+    description_text: Optional[str] = None
+    status: Optional[str] = "active"
+
+
 @router.get("/", response_model=List[ProductResponse])
 async def list_products(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    search: Optional[str] = None,
-    category: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    search: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    status: Optional[str] = Query("active"),
+    limit: int = Query(100, le=1000),
+    master_db: Session = Depends(get_master_db)
 ):
     """
-    List all products from the global catalog.
+    List products from global catalog.
     
-    - **skip**: Number of records to skip (pagination)
-    - **limit**: Maximum number of records to return
-    - **search**: Search in product name, brand, or UPC
-    - **category**: Filter by category
+    **Status Filter:**
+    - `active` (default) - Only verified products
+    - `pending` - Products awaiting approval
+    - `rejected` - Rejected products
+    - `all` - All products
     """
-    query = db.query(GlobalProduct)
+    query = master_db.query(GlobalProduct)
     
-    # Apply filters
     if search:
-        search_filter = f"%{search}%"
         query = query.filter(
-            (GlobalProduct.product_name.ilike(search_filter)) |
-            (GlobalProduct.brand_name.ilike(search_filter)) |
-            (GlobalProduct.upc_ean_code.ilike(search_filter))
+            GlobalProduct.product_name.ilike(f"%{search}%") |
+            GlobalProduct.brand_name.ilike(f"%{search}%") |
+            GlobalProduct.upc_ean_code.ilike(f"%{search}%")
         )
     
     if category:
         query = query.filter(GlobalProduct.category_name == category)
+        
+    if status and status != "all":
+        query = query.filter(GlobalProduct.status == status)
     
-    products = query.offset(skip).limit(limit).all()
+    products = query.limit(limit).all()
     return products
+
+
+@router.get("/upc/{upc}", response_model=ProductResponse)
+async def get_product_by_upc(
+    upc: str,
+    master_db: Session = Depends(get_master_db)
+):
+    """Get product by UPC code."""
+    product = master_db.query(GlobalProduct).filter(
+        GlobalProduct.upc_ean_code == upc
+    ).first()
+    
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product with UPC '{upc}' not found"
+        )
+    
+    return product
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(
     product_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    master_db: Session = Depends(get_master_db)
 ):
-    """Get a specific product by ID."""
-    product = db.query(GlobalProduct).filter(GlobalProduct.product_id == product_id).first()
+    """Get product details by ID."""
+    product = master_db.query(GlobalProduct).filter(
+        GlobalProduct.product_id == product_id
+    ).first()
     
     if not product:
         raise HTTPException(
@@ -99,40 +117,42 @@ async def get_product(
 @router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 async def create_product(
     product_data: ProductCreate,
-    db: Session = Depends(get_db),
-    superadmin = Depends(require_superadmin)
+    master_db: Session = Depends(get_master_db),
+    _=Depends(require_admin_or_superadmin)
 ):
-    """
-    Create a new product in the global catalog.
+    """Create new product in global catalog (Admin/SuperAdmin only)."""
     
-    **Requires superadmin access.**
-    """
-    new_product = GlobalProduct(
-        **product_data.model_dump(),
-        enriched_by_superadmin=True,
-        last_enriched_by=superadmin.user_id
-    )
+    # Check if UPC already exists
+    if product_data.upc_ean_code:
+        existing = master_db.query(GlobalProduct).filter(
+            GlobalProduct.upc_ean_code == product_data.upc_ean_code
+        ).first()
+        
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Product with this UPC already exists"
+            )
     
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
+    product = GlobalProduct(**product_data.model_dump())
+    master_db.add(product)
+    master_db.commit()
+    master_db.refresh(product)
     
-    return new_product
+    return product
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
 async def update_product(
     product_id: uuid.UUID,
-    product_data: ProductUpdate,
-    db: Session = Depends(get_db),
-    superadmin = Depends(require_superadmin)
+    product_data: ProductCreate,
+    master_db: Session = Depends(get_master_db),
+    _=Depends(require_admin_or_superadmin)
 ):
-    """
-    Update a product in the global catalog.
-    
-    **Requires superadmin access.**
-    """
-    product = db.query(GlobalProduct).filter(GlobalProduct.product_id == product_id).first()
+    """Update product in global catalog (Admin/SuperAdmin only)."""
+    product = master_db.query(GlobalProduct).filter(
+        GlobalProduct.product_id == product_id
+    ).first()
     
     if not product:
         raise HTTPException(
@@ -140,39 +160,10 @@ async def update_product(
             detail="Product not found"
         )
     
-    # Update fields
     for field, value in product_data.model_dump(exclude_unset=True).items():
         setattr(product, field, value)
     
-    product.enriched_by_superadmin = True
-    product.last_enriched_by = superadmin.user_id
-    
-    db.commit()
-    db.refresh(product)
+    master_db.commit()
+    master_db.refresh(product)
     
     return product
-
-
-@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_product(
-    product_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    superadmin = Depends(require_superadmin)
-):
-    """
-    Delete a product from the global catalog.
-    
-    **Requires superadmin access.** 
-    """
-    product = db.query(GlobalProduct).filter(GlobalProduct.product_id == product_id).first()
-    
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found"
-        )
-    
-    db.delete(product)
-    db.commit()
-    
-    return None
