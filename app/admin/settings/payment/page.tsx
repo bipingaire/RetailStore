@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { apiClient } from '@/lib/api-client';
 import { CreditCard, Eye, EyeOff, Save, Edit2, CheckCircle, AlertCircle, DollarSign, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
@@ -16,8 +16,7 @@ type PaymentStatement = {
 };
 
 export default function PaymentSettingsPage() {
-    const supabase = createClientComponentClient();
-    const { tenantId } = useTenant();
+    const { tenantId } = useTenant(); // Kept for context if needed, but API handles routing via headers now
 
     const [activeTab, setActiveTab] = useState<'settings' | 'statements'>('settings');
     const [loading, setLoading] = useState(true);
@@ -40,40 +39,31 @@ export default function PaymentSettingsPage() {
     const [loadingStatements, setLoadingStatements] = useState(false);
 
     useEffect(() => {
-        if (tenantId) {
-            fetchPaymentConfig();
-        }
-    }, [tenantId]);
+        fetchPaymentConfig();
+    }, []);
 
     useEffect(() => {
-        if (activeTab === 'statements' && tenantId && config.paymentEnabled) {
+        if (activeTab === 'statements' && config.paymentEnabled) {
             fetchStatements();
         }
-    }, [activeTab, tenantId, config.paymentEnabled]);
+    }, [activeTab, config.paymentEnabled]);
 
     async function fetchPaymentConfig() {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('tenant-payment-config')
-                .select('*')
-                .eq('tenant-id', tenantId)
-                .maybeSingle();
-
-            if (error && error.code !== 'PGRST116') throw error;
+            const data = await apiClient.getPaymentSettings();
 
             if (data) {
                 setConfig({
-                    publishableKey: data['stripe-publishable-key'] || '',
-                    secretKey: data['stripe-secret-key'] || '',
-                    paymentEnabled: data['payment-enabled'] || false
+                    publishableKey: data.publishable_key || '',
+                    secretKey: data.secret_key || '',
+                    paymentEnabled: data.payment_enabled || false
                 });
                 setFormData({
-                    publishableKey: data['stripe-publishable-key'] || '',
-                    secretKey: data['stripe-secret-key'] || ''
+                    publishableKey: data.publishable_key || '',
+                    secretKey: data.secret_key || ''
                 });
             } else {
-                // No config found, enable edit mode by default
                 setEditMode(true);
             }
         } catch (err: any) {
@@ -87,13 +77,8 @@ export default function PaymentSettingsPage() {
     async function fetchStatements() {
         setLoadingStatements(true);
         try {
-            const response = await fetch(`/api/payment-statements?tenantId=${tenantId}`);
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch statements');
-            }
-
+            // Using direct request if not in main client wrapper yet or add to client
+            const data = await apiClient.request('/api/settings/payment/statements');
             setStatements(data.statements || []);
         } catch (err: any) {
             console.error('Error fetching statements:', err);
@@ -104,8 +89,6 @@ export default function PaymentSettingsPage() {
     }
 
     const handleSave = async () => {
-        if (!tenantId) return toast.error('Tenant ID not found');
-
         // Validate keys
         if (!formData.publishableKey.startsWith('pk_')) {
             return toast.error('Invalid publishable key format. Must start with pk_');
@@ -115,38 +98,10 @@ export default function PaymentSettingsPage() {
         }
 
         try {
-            const { data: existing } = await supabase
-                .from('tenant-payment-config')
-                .select('config-id')
-                .eq('tenant-id', tenantId)
-                .maybeSingle();
-
-            if (existing) {
-                // Update
-                const { error } = await supabase
-                    .from('tenant-payment-config')
-                    .update({
-                        'stripe-publishable-key': formData.publishableKey,
-                        'stripe-secret-key': formData.secretKey,
-                        'payment-enabled': true,
-                        'updated-at': new Date().toISOString()
-                    })
-                    .eq('config-id', existing['config-id']);
-
-                if (error) throw error;
-            } else {
-                // Insert
-                const { error } = await supabase
-                    .from('tenant-payment-config')
-                    .insert({
-                        'tenant-id': tenantId,
-                        'stripe-publishable-key': formData.publishableKey,
-                        'stripe-secret-key': formData.secretKey,
-                        'payment-enabled': true
-                    });
-
-                if (error) throw error;
-            }
+            await apiClient.updatePaymentSettings({
+                stripe_publishable_key: formData.publishableKey,
+                stripe_secret_key: formData.secretKey
+            });
 
             toast.success('Payment settings saved successfully!');
             setEditMode(false);
