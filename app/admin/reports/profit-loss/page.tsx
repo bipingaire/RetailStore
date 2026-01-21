@@ -1,11 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { apiClient } from '@/lib/api-client';
 import { DollarSign, TrendingUp, TrendingDown, Package, Sparkles, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { calculateProfitMetrics, ProfitMetrics } from '@/lib/analytics/profit-calculator';
+import { toast } from 'sonner';
+
+interface ProfitMetrics {
+    revenue: number;
+    cogs: number;
+    grossProfit: number;
+    expenses: number;
+    netProfit: number;
+    grossMargin: number;
+    netMargin: number;
+}
 
 export default function ProfitLossPage() {
-    const supabase = createClientComponentClient();
     const [metrics, setMetrics] = useState<ProfitMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30');
@@ -17,18 +26,25 @@ export default function ProfitLossPage() {
     async function loadMetrics() {
         setLoading(true);
 
-        const endDate = new Date().toISOString();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - parseInt(dateRange));
+        try {
+            const data: any = await apiClient.getProfitSummary(parseInt(dateRange));
 
-        const data = await calculateProfitMetrics(
-            supabase,
-            startDate.toISOString(),
-            endDate
-        );
-
-        setMetrics(data);
-        setLoading(false);
+            // Map API response to UI model
+            setMetrics({
+                revenue: data.revenue,
+                cogs: data.cost_of_goods_sold,
+                grossProfit: data.gross_profit,
+                expenses: data.total_expenses,
+                netProfit: data.net_profit,
+                grossMargin: data.gross_margin_percent,
+                netMargin: data.net_margin_percent
+            });
+        } catch (error: any) {
+            console.error('Error loading profit metrics:', error);
+            toast.error('Failed to load profit data');
+        } finally {
+            setLoading(false);
+        }
     }
 
     if (loading || !metrics) {
@@ -65,10 +81,10 @@ export default function ProfitLossPage() {
                             onChange={(e) => setDateRange(e.target.value)}
                             className="px-6 py-3 bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl text-white font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
                         >
-                            <option value="7" className="bg-slate-800">Last 7 Days</option>
-                            <option value="30" className="bg-slate-800">Last 30 Days</option>
-                            <option value="90" className="bg-slate-800">Last 90 Days</option>
-                            <option value="365" className="bg-slate-800">Last Year</option>
+                            <option value="7" className="text-black">Last 7 Days</option>
+                            <option value="30" className="text-black">Last 30 Days</option>
+                            <option value="90" className="text-black">Last 90 Days</option>
+                            <option value="365" className="text-black">Last Year</option>
                         </select>
                     </div>
                 </div>
@@ -133,19 +149,19 @@ export default function ProfitLossPage() {
 
                     {/* Net Profit */}
                     <div className={`group relative overflow-hidden rounded-2xl p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 ${metrics.netProfit >= 0
-                            ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                            : 'bg-gradient-to-br from-red-500 to-rose-600'
+                        ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                        : 'bg-gradient-to-br from-red-500 to-rose-600'
                         }`}>
                         <div className={`rounded-2xl p-6 h-full ${metrics.netProfit >= 0
-                                ? 'bg-gradient-to-br from-purple-50 to-pink-50'
-                                : 'bg-gradient-to-br from-red-50 to-rose-50'
+                            ? 'bg-gradient-to-br from-purple-50 to-pink-50'
+                            : 'bg-gradient-to-br from-red-50 to-rose-50'
                             }`}>
                             <div className="flex items-center justify-between mb-4">
                                 <span className={`text-sm font-bold uppercase tracking-wide ${metrics.netProfit >= 0 ? 'text-purple-900' : 'text-red-900'
                                     }`}>Net Profit</span>
                                 <div className={`p-2 rounded-lg ${metrics.netProfit >= 0
-                                        ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                                        : 'bg-gradient-to-br from-red-500 to-rose-600'
+                                    ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                                    : 'bg-gradient-to-br from-red-500 to-rose-600'
                                     }`}>
                                     {metrics.netProfit >= 0 ? (
                                         <TrendingUp className="text-white" size={20} />
@@ -199,8 +215,8 @@ export default function ProfitLossPage() {
                             </div>
 
                             <div className={`flex justify-between py-5 rounded-xl px-4 border-2 ${metrics.netProfit >= 0
-                                    ? 'bg-purple-500/20 border-purple-400/50'
-                                    : 'bg-red-500/20 border-red-400/50'
+                                ? 'bg-purple-500/20 border-purple-400/50'
+                                : 'bg-red-500/20 border-red-400/50'
                                 }`}>
                                 <span className="font-bold text-white text-lg">Net Profit</span>
                                 <span className={`font-black text-2xl ${metrics.netProfit >= 0 ? 'text-purple-300' : 'text-red-300'
@@ -247,8 +263,8 @@ export default function ProfitLossPage() {
                                 <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden">
                                     <div
                                         className={`h-4 rounded-full transition-all duration-1000 ease-out shadow-lg ${metrics.netMargin >= 0
-                                                ? 'bg-gradient-to-r from-purple-400 to-pink-500'
-                                                : 'bg-gradient-to-r from-red-400 to-rose-500'
+                                            ? 'bg-gradient-to-r from-purple-400 to-pink-500'
+                                            : 'bg-gradient-to-r from-red-400 to-rose-500'
                                             }`}
                                         style={{ width: `${Math.min(Math.abs(metrics.netMargin), 100)}%` }}
                                     ></div>
