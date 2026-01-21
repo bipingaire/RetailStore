@@ -193,8 +193,10 @@ class InventoryService:
         Calculate profits for a given period.
         
         Returns:
-            Profit metrics
+            Profit metrics including expenses.
         """
+        from ..models.tenant_models import Expense  # Import here to avoid circular dependency
+        
         # Default to last 30 days
         if not end_date:
             end_date = datetime.utcnow()
@@ -226,8 +228,19 @@ class InventoryService:
                 if inventory and inventory.unit_cost:
                     total_cost += (line_item.quantity * inventory.unit_cost)
         
+        # Calculate Expenses
+        expenses = db.query(Expense).filter(
+            Expense.expense_date >= start_date,
+            Expense.expense_date <= end_date
+        ).all()
+        
+        total_expenses = sum(e.amount for e in expenses) if expenses else Decimal(0)
+        
         gross_profit = total_revenue - total_cost
-        profit_margin = (gross_profit / total_revenue * 100) if total_revenue > 0 else 0
+        net_profit = gross_profit - total_expenses
+        
+        gross_margin = (gross_profit / total_revenue * 100) if total_revenue > 0 else 0
+        net_margin = (net_profit / total_revenue * 100) if total_revenue > 0 else 0
         
         return {
             "period": {
@@ -237,8 +250,12 @@ class InventoryService:
             "revenue": float(total_revenue),
             "cost_of_goods_sold": float(total_cost),
             "gross_profit": float(gross_profit),
-            "profit_margin_percent": float(profit_margin),
-            "order_count": len(orders)
+            "total_expenses": float(total_expenses),
+            "net_profit": float(net_profit),
+            "gross_margin_percent": float(gross_margin),
+            "net_margin_percent": float(net_margin),
+            "order_count": len(orders),
+            "expense_count": len(expenses)
         }
     
     @staticmethod
