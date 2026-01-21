@@ -605,6 +605,16 @@ export class APIClient {
         });
     }
 
+    // --- STORES (Tenants) ---
+
+    async getStores() {
+        return this.request('/api/tenants');
+    }
+
+    async getNearestStore(lat: number, lng: number) {
+        return this.request(`/api/tenants/nearest?lat=${lat}&lng=${lng}`);
+    }
+
     // --- EXPENSES ---
 
     async getExpenses(params?: {
@@ -663,9 +673,8 @@ export class APIClient {
 
     // --- ANALYTICS ---
 
-    async getInventoryHealth() {
-        return this.request('/api/analytics/health');
-    }
+
+    // Wrapper method removed (duplicate)
 }
 
 // Export singleton instance
