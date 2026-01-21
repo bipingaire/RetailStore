@@ -1,13 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { toast } from 'sonner';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
@@ -21,15 +17,19 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/reset-password`,
-            });
+            const response: any = await apiClient.forgotPassword(email);
 
-            if (error) throw error;
+            // Save debug token for demo mode
+            if (response.debug_token) {
+                (window as any).debugToken = response.debug_token;
+            }
 
             setSent(true);
+            toast.success('Reset link sent!');
         } catch (err: any) {
-            setError(err.message || 'Failed to send reset email');
+            const errorMsg = err.message || 'Failed to send reset email';
+            setError(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -46,6 +46,23 @@ export default function ForgotPasswordPage() {
                     <p className="text-gray-600 mb-6">
                         We've sent a password reset link to <strong>{email}</strong>
                     </p>
+
+                    {/* Demo mode link */}
+                    {(window as any).debugToken && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4 text-left">
+                            <p className="text-xs font-bold text-yellow-800 mb-1 uppercase">Demo Mode</p>
+                            <p className="text-sm text-yellow-700 mb-2">
+                                Since we don't have an email server, click below:
+                            </p>
+                            <Link
+                                href={`/auth/reset-password?token=${(window as any).debugToken}`}
+                                className="text-blue-600 hover:underline text-sm"
+                            >
+                                Reset Your Password
+                            </Link>
+                        </div>
+                    )}
+
                     <p className="text-sm text-gray-500 mb-8">
                         Didn't receive the email? Check your spam folder or try again.
                     </p>
@@ -89,7 +106,7 @@ export default function ForgotPasswordPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                             placeholder="your@email.com"
                         />
                     </div>
