@@ -232,10 +232,11 @@ export class APIClient {
     /**
      * Get inventory items
      */
-    async getInventory(params?: { search?: string; low_stock?: boolean }) {
+    async getInventory(params?: { search?: string; low_stock?: boolean; limit?: number }) {
         const query = new URLSearchParams();
         if (params?.search) query.append('search', params.search);
         if (params?.low_stock) query.append('low_stock', 'true');
+        if (params?.limit) query.append('limit', params.limit.toString());
 
         const queryString = query.toString();
         return this.request(`/api/inventory${queryString ? '?' + queryString : ''}`);
@@ -413,6 +414,13 @@ export class APIClient {
         return this.request('/api/invoices/history');
     }
 
+    /**
+     * Get invoice details
+     */
+    async getInvoice(id: string) {
+        return this.request(`/api/invoices/${id}`);
+    }
+
     // ==================== SALES & POS ====================
 
     /**
@@ -528,6 +536,73 @@ export class APIClient {
         }
 
         return response.json();
+    }
+
+    // ==================== SETTINGS ====================
+
+    /**
+     * Get payment settings
+     */
+    async getPaymentSettings() {
+        return this.request('/api/settings/payment');
+    }
+
+    /**
+     * Update payment settings
+     */
+    async updatePaymentSettings(data: any) {
+        return this.request('/api/settings/payment', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    // ==================== CAMPAIGNS ====================
+
+    /**
+     * Get all campaigns
+     */
+    async getCampaigns() {
+        return this.request('/api/campaigns');
+    }
+
+    /**
+     * Create campaign
+     */
+    async createCampaign(data: any) {
+        return this.request('/api/campaigns', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    /**
+     * Update campaign
+     */
+    async updateCampaign(id: string, data: any) {
+        return this.request(`/api/campaigns/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    /**
+     * Delete campaign
+     */
+    async deleteCampaign(id: string) {
+        return this.request(`/api/campaigns/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    /**
+     * Update campaign products
+     */
+    async updateCampaignProducts(id: string, inventoryIds: string[]) {
+        return this.request(`/api/campaigns/${id}/products`, {
+            method: 'PUT',
+            body: JSON.stringify({ inventory_ids: inventoryIds }),
+        });
     }
 }
 
