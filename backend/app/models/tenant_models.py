@@ -1,14 +1,13 @@
 """
-Tenant database models - Stored in per-tenant databases.
+Tenant database models - Isolated per tenant.
 
-Each tenant gets their own database with these tables:
-- Inventory
-- Orders
-- Customers
-- Vendors
-- Invoices
-- Audits
-- Analytics data
+Each tenant has their own database containing:
+- Users (login credentials - ISOLATED)
+- Customers (ISOLATED)
+- Inventory (references global catalog)
+- Orders (ISOLATED)
+- Vendors (ISOLATED)
+- Everything else (ISOLATED)
 """
 
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, Text, ForeignKey, Numeric, JSON
@@ -17,27 +16,69 @@ from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 import uuid
 
-# Base for tenant database models  
+# Base for tenant databases
 TenantBase = declarative_base()
 
 
-# ==================== INVENTORY MODELS ====================
+# ==================== AUTH & USERS (ISOLATED) ====================
+
+class User(TenantBase):
+    """
+    User model - ISOLATED per tenant.
+    
+    Each tenant stores their own users and login credentials.
+    """
+    __tablename__ = "users"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    encrypted_password = Column(String(255), nullable=False)
+    role = Column(String(50), default="customer")  # admin, customer, staff
+    email_confirmed_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    is_active = Column(Boolean, default=True)
+
+
+# ==================== STORE INFO ====================
+
+class StoreInfo(TenantBase):
+    """Store information - one record per tenant database."""
+    __tablename__ = "store-info"
+    
+    store_id = Column("store-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    store_name = Column("store-name", String(255))
+    subdomain = Column(String(100))
+    store_address = Column("store-address", Text)
+    store_phone = Column("store-phone", String(50))
+    store_email = Column("store-email", String(255))
+    created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
+
+
+# ==================== INVENTORY (References Global Catalog) ====================
 
 class InventoryItem(TenantBase):
-    """Store-specific inventory - stored in tenant DB."""
+    """
+    Store inventory - ISOLATED per tenant.
+    
+    References global product catalog via global_product_id.
+    Each tenant manages their own inventory quantities and pricing.
+    """
     __tablename__ = "inventory-items"
     
     inventory_id = Column("inventory-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    global_product_id = Column("global-product-id", UUID(as_uuid=True), nullable=False)  # Reference to master DB
     
+    # References global product catalog (from master DB)
+    global_product_id = Column("global-product-id", UUID(as_uuid=True), nullable=False, index=True)
+    
+    # Tenant-specific inventory data
     quantity_on_hand = Column("quantity-on-hand", Numeric(10, 2), default=0)
     reorder_level = Column("reorder-level", Numeric(10, 2))
     unit_cost = Column("unit-cost", Numeric(10, 2))
     selling_price = Column("selling-price", Numeric(10, 2))
     
-    # Local enrichment
+    # Local customization (override global data if needed)
     local_enrichment_json = Column("local-enrichment-json", JSON)
-    has_local_override = Column("has-local-override", Boolean, default=False)
     override_image_url = Column("override-image-url", Text)
     override_description = Column("override-description", Text)
     
@@ -45,10 +86,29 @@ class InventoryItem(TenantBase):
     updated_at = Column("updated-at", DateTime(timezone=True), onupdate=func.now())
 
 
-# ==================== ORDER MODELS ====================
+# ==================== CUSTOMERS (ISOLATED) ====================
+
+class Customer(TenantBase):
+    """Customer profiles - ISOLATED per tenant."""
+    __tablename__ = "customers"
+    
+    customer_id = Column("customer-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column("user-id", UUID(as_uuid=True), ForeignKey("users.id"))
+    
+    full_name = Column("full-name", String(255))
+    email = Column(String(255))
+    phone = Column(String(50))
+    
+    created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
+    
+    # Relationship
+    user = relationship("User")
+
+
+# ==================== ORDERS (ISOLATED) ====================
 
 class CustomerOrder(TenantBase):
-    """Customer orders."""
+    """Customer orders - ISOLATED per tenant."""
     __tablename__ = "customer-orders"
     
     order_id = Column("order-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -63,6 +123,7 @@ class CustomerOrder(TenantBase):
     
     # Relationships
     line_items = relationship("OrderLineItem", back_populates="order")
+    customer = relationship("Customer")
 
 
 class OrderLineItem(TenantBase):
@@ -70,29 +131,17 @@ class OrderLineItem(TenantBase):
     __tablename__ = "order-line-items"
     
     line_id = Column("line-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column("order-id", UUID(as_uuid=True), ForeignKey("customer-orders.order-id"), nullable=False)
+    order_id = Column("order-id", UUID(as_uuid=True), ForeignKey("customer-orders.order-id"))
+    
+    # References global product catalog
     global_product_id = Column("global-product-id", UUID(as_uuid=True), nullable=False)
     
     quantity = Column(Numeric(10, 2), nullable=False)
     unit_price = Column("unit-price", Numeric(10, 2))
     line_total = Column("line-total", Numeric(10, 2))
     
-    # Relationships
+    # Relationship
     order = relationship("CustomerOrder", back_populates="line_items")
-
-
-class Customer(TenantBase):
-    """Store customers."""
-    __tablename__ = "customers"
-    
-    customer_id = Column("customer-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column("user-id", UUID(as_uuid=True))  # Reference to master DB
-    
-    full_name = Column("full-name", String(255))
-    email = Column(String(255))
-    phone = Column(String(50))
-    
-    created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
 
 
 class DeliveryAddress(TenantBase):
@@ -113,10 +162,10 @@ class DeliveryAddress(TenantBase):
     phone = Column(String(50))
 
 
-# ==================== VENDOR MODELS ====================
+# ==================== VENDORS (ISOLATED) ====================
 
 class Vendor(TenantBase):
-    """Vendors for inventory."""
+    """Vendors - ISOLATED per tenant."""
     __tablename__ = "vendors"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -130,6 +179,8 @@ class Vendor(TenantBase):
     poc_name = Column("poc-name", String(255))
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
 
+
+# ==================== INVOICES (ISOLATED) ====================
 
 class UploadedInvoice(TenantBase):
     """Uploaded vendor invoices."""
@@ -146,19 +197,20 @@ class UploadedInvoice(TenantBase):
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
 
 
-# ==================== AUDIT MODELS ====================
+# ==================== AUDITS (ISOLATED) ====================
 
 class ShelfAuditRecord(TenantBase):
     """Shelf audit records."""
     __tablename__ = "shelf-audit-records"
     
     audit_id = Column("audit-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    audited_by = Column("audited-by", UUID(as_uuid=True))  # User ID from master DB
+    audited_by = Column("audited-by", UUID(as_uuid=True), ForeignKey("users.id"))
     audit_date = Column("audit-date", DateTime(timezone=True), server_default=func.now())
     notes = Column(Text)
     
-    # Relationship
+    # Relationships
     items = relationship("ShelfAuditItem", back_populates="audit")
+    user = relationship("User")
 
 
 class ShelfAuditItem(TenantBase):
@@ -166,7 +218,9 @@ class ShelfAuditItem(TenantBase):
     __tablename__ = "shelf-audit-items"
     
     item_id = Column("item-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    audit_id = Column("audit-id", UUID(as_uuid=True), ForeignKey("shelf-audit-records.audit-id"), nullable=False)
+    audit_id = Column("audit-id", UUID(as_uuid=True), ForeignKey("shelf-audit-records.audit-id"))
+    
+    # References global product catalog
     global_product_id = Column("global-product-id", UUID(as_uuid=True), nullable=False)
     
     expected_quantity = Column("expected-quantity", Numeric(10, 2))
@@ -177,7 +231,7 @@ class ShelfAuditItem(TenantBase):
     audit = relationship("ShelfAuditRecord", back_populates="items")
 
 
-# ==================== POS & MAPPING ====================
+# ==================== POS & SOCIAL (ISOLATED) ====================
 
 class PosItemMapping(TenantBase):
     """POS system item mapping."""
@@ -186,22 +240,12 @@ class PosItemMapping(TenantBase):
     mapping_id = Column("mapping-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     pos_item_code = Column("pos-item-code", String(100))
     pos_item_name = Column("pos-item-name", String(500))
+    
+    # References global product catalog
     global_product_id = Column("global-product-id", UUID(as_uuid=True), nullable=False)
+    
     confidence_score = Column("confidence-score", Numeric(3, 2))
     is_verified = Column("is-verified", Boolean, default=False)
-    created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
-
-
-# ==================== ENRICHMENT & SOCIAL ====================
-
-class TenantPaymentConfig(TenantBase):
-    """Tenant payment configuration."""
-    __tablename__ = "payment-config"
-    
-    config_id = Column("config-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    stripe_publishable_key = Column("stripe-publishable-key", Text)
-    stripe_secret_key = Column("stripe-secret-key", Text)
-    is_active = Column("is-active", Boolean, default=True)
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
 
 
@@ -227,5 +271,16 @@ class SocialMediaAccount(TenantBase):
     platform = Column(String(50))
     account_name = Column("account-name", String(255))
     access_token = Column("access-token", Text)
+    is_active = Column("is-active", Boolean, default=True)
+    created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
+
+
+class TenantPaymentConfig(TenantBase):
+    """Tenant payment configuration."""
+    __tablename__ = "payment-config"
+    
+    config_id = Column("config-id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    stripe_publishable_key = Column("stripe-publishable-key", Text)
+    stripe_secret_key = Column("stripe-secret-key", Text)
     is_active = Column("is-active", Boolean, default=True)
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
