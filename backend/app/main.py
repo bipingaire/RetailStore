@@ -11,7 +11,7 @@ from .models.master_models import MasterBase
 from .models.tenant_models import TenantBase
 from .routers import (
     auth, products, inventory, orders, customers, vendors, files,
-    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports
+    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings
 )
 
 # Create master database tables
@@ -125,6 +125,8 @@ app.include_router(analytics.router, prefix="/api/analytics", tags=["📊 Health
 app.include_router(audits.router, prefix="/api/audits", tags=["✅ Shelf Audits"])
 app.include_router(restock.router, prefix="/api/restock", tags=["🔄 Restock Automation"])
 app.include_router(profits.router, prefix="/api/profits", tags=["💰 Profit Tracking"])
+app.include_router(campaigns.router, prefix="/api/campaigns", tags=["📣 Campaigns"])
+app.include_router(settings.router, prefix="/api/settings", tags=["⚙️ Settings"])
 
 
 # Shutdown event
