@@ -1,15 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { 
-  Package, Search, RefreshCw, AlertTriangle, 
-  CheckCircle, ArrowUpRight, Edit2, Save, X, Warehouse, MapPin 
+// Supabase dependency removed
+import {
+  Package, Search, RefreshCw, AlertTriangle,
+  CheckCircle, ArrowUpRight, Edit2, Save, X, Warehouse, MapPin
 } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 type WarehouseLocation = {
   id: string;
@@ -34,12 +29,12 @@ export default function SupplierInventoryPage() {
   const [inventory, setInventory] = useState<SupplierProduct[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseLocation[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  
+
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const [editingItem, setEditingItem] = useState<string | null>(null); 
+
+  const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<SupplierProduct>>({});
 
   useEffect(() => {
@@ -53,35 +48,35 @@ export default function SupplierInventoryPage() {
 
     // 2. Mock Inventory Data with Location Splits
     const mockData: SupplierProduct[] = [
-      { 
-        id: '1', name: "Heinz Tomato Ketchup (24x20oz)", sku: "HJZ-9982", category: "Condiments", 
-        wholesale_price: 45.00, moq: 5, 
-        stock_by_location: { 'wh-nj': 800, 'wh-ca': 400, 'wh-tx': 0 }, 
-        last_synced: new Date().toISOString(), status: 'synced' 
+      {
+        id: '1', name: "Heinz Tomato Ketchup (24x20oz)", sku: "HJZ-9982", category: "Condiments",
+        wholesale_price: 45.00, moq: 5,
+        stock_by_location: { 'wh-nj': 800, 'wh-ca': 400, 'wh-tx': 0 },
+        last_synced: new Date().toISOString(), status: 'synced'
       },
-      { 
-        id: '2', name: "Coca-Cola Classic (12x2L)", sku: "CCE-1120", category: "Beverages", 
-        wholesale_price: 18.50, moq: 10, 
-        stock_by_location: { 'wh-nj': 200, 'wh-ca': 150, 'wh-tx': 100 }, 
-        last_synced: new Date().toISOString(), status: 'synced' 
+      {
+        id: '2', name: "Coca-Cola Classic (12x2L)", sku: "CCE-1120", category: "Beverages",
+        wholesale_price: 18.50, moq: 10,
+        stock_by_location: { 'wh-nj': 200, 'wh-ca': 150, 'wh-tx': 100 },
+        last_synced: new Date().toISOString(), status: 'synced'
       },
-      { 
-        id: '3', name: "Chobani Greek Yogurt Variety", sku: "CHB-3341", category: "Dairy", 
-        wholesale_price: 32.00, moq: 2, 
-        stock_by_location: { 'wh-nj': 40, 'wh-ca': 45, 'wh-tx': 0 }, 
-        last_synced: new Date(Date.now() - 86400000).toISOString(), status: 'low_stock' 
+      {
+        id: '3', name: "Chobani Greek Yogurt Variety", sku: "CHB-3341", category: "Dairy",
+        wholesale_price: 32.00, moq: 2,
+        stock_by_location: { 'wh-nj': 40, 'wh-ca': 45, 'wh-tx': 0 },
+        last_synced: new Date(Date.now() - 86400000).toISOString(), status: 'low_stock'
       },
-      { 
-        id: '4', name: "Doritos Nacho Cheese (Case)", sku: "FRT-5521", category: "Snacks", 
-        wholesale_price: 24.00, moq: 5, 
-        stock_by_location: { 'wh-nj': 1000, 'wh-ca': 800, 'wh-tx': 200 }, 
-        last_synced: new Date().toISOString(), status: 'synced' 
+      {
+        id: '4', name: "Doritos Nacho Cheese (Case)", sku: "FRT-5521", category: "Snacks",
+        wholesale_price: 24.00, moq: 5,
+        stock_by_location: { 'wh-nj': 1000, 'wh-ca': 800, 'wh-tx': 200 },
+        last_synced: new Date().toISOString(), status: 'synced'
       },
-      { 
-        id: '5', name: "Generic Paper Towels (Bulk)", sku: "GEN-8822", category: "Household", 
-        wholesale_price: 15.00, moq: 20, 
-        stock_by_location: { 'wh-nj': 0, 'wh-ca': 0, 'wh-tx': 0 }, 
-        last_synced: new Date().toISOString(), status: 'manual_override' 
+      {
+        id: '5', name: "Generic Paper Towels (Bulk)", sku: "GEN-8822", category: "Household",
+        wholesale_price: 15.00, moq: 20,
+        stock_by_location: { 'wh-nj': 0, 'wh-ca': 0, 'wh-tx': 0 },
+        last_synced: new Date().toISOString(), status: 'manual_override'
       },
     ];
     setInventory(mockData);
@@ -99,9 +94,9 @@ export default function SupplierInventoryPage() {
   const startEdit = (item: SupplierProduct) => {
     setEditingItem(item.id);
     // Deep copy the stock map to avoid direct mutation issues
-    setEditForm({ 
+    setEditForm({
       wholesale_price: item.wholesale_price,
-      stock_by_location: { ...item.stock_by_location } 
+      stock_by_location: { ...item.stock_by_location }
     });
   };
 
@@ -116,12 +111,12 @@ export default function SupplierInventoryPage() {
   };
 
   const saveEdit = (id: string) => {
-    setInventory(prev => prev.map(item => 
-      item.id === id ? { 
-        ...item, 
-        ...editForm, 
-        status: 'manual_override', 
-        last_synced: new Date().toISOString() 
+    setInventory(prev => prev.map(item =>
+      item.id === id ? {
+        ...item,
+        ...editForm,
+        status: 'manual_override',
+        last_synced: new Date().toISOString()
       } : item
     ));
     setEditingItem(null);
@@ -136,14 +131,14 @@ export default function SupplierInventoryPage() {
     return item.stock_by_location[selectedLocation] || 0;
   };
 
-  const filteredInventory = inventory.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredInventory = inventory.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="p-8 max-w-7xl mx-auto font-sans">
-      
+
       {/* Header */}
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
@@ -153,13 +148,13 @@ export default function SupplierInventoryPage() {
           </h1>
           <p className="text-gray-500 mt-1">Manage stock across {warehouses.length} locations.</p>
         </div>
-        
+
         <div className="flex flex-wrap gap-3 items-center">
-          
+
           {/* Warehouse Selector */}
           <div className="relative">
             <Warehouse className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
-            <select 
+            <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
               className="pl-10 pr-8 py-2 border rounded-lg bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-purple-500 outline-none appearance-none cursor-pointer"
@@ -173,16 +168,16 @@ export default function SupplierInventoryPage() {
 
           <div className="relative">
             <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
-            <input 
-              type="text" 
-              placeholder="Search SKU..." 
+            <input
+              type="text"
+              placeholder="Search SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border rounded-lg text-sm w-48 focus:ring-2 focus:ring-purple-500 outline-none"
             />
           </div>
 
-          <button 
+          <button
             onClick={handleSync}
             disabled={syncing}
             className="bg-black text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-800 transition disabled:opacity-70 text-sm"
@@ -216,7 +211,7 @@ export default function SupplierInventoryPage() {
 
               return (
                 <tr key={item.id} className="hover:bg-gray-50 transition group">
-                  
+
                   {/* Product Info */}
                   <td className="p-4">
                     <div className="font-bold text-gray-900">{item.name}</div>
@@ -233,11 +228,11 @@ export default function SupplierInventoryPage() {
                   {/* Price */}
                   <td className="p-4 text-right font-mono">
                     {isEditing ? (
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         className="w-20 border rounded p-1 text-right focus:ring-2 focus:ring-purple-500 outline-none"
                         value={editForm.wholesale_price}
-                        onChange={(e) => setEditForm({...editForm, wholesale_price: parseFloat(e.target.value)})}
+                        onChange={(e) => setEditForm({ ...editForm, wholesale_price: parseFloat(e.target.value) })}
                       />
                     ) : (
                       <span className="text-gray-900 font-medium">${item.wholesale_price.toFixed(2)}</span>
@@ -252,8 +247,8 @@ export default function SupplierInventoryPage() {
                         {warehouses.map(w => (
                           <div key={w.id} className="flex justify-between items-center text-xs">
                             <span className="text-gray-600 truncate max-w-[100px]" title={w.name}>{w.name}</span>
-                            <input 
-                              type="number" 
+                            <input
+                              type="number"
                               className="w-20 border rounded p-1 text-right bg-white focus:ring-1 focus:ring-purple-500"
                               value={editForm.stock_by_location?.[w.id] || 0}
                               onChange={(e) => updateEditStock(w.id, parseInt(e.target.value) || 0)}
@@ -263,32 +258,32 @@ export default function SupplierInventoryPage() {
                         <div className="pt-1 mt-1 border-t flex justify-between font-bold text-xs">
                           <span>Total:</span>
                           <span>
-                            {editForm.stock_by_location 
-                              ? Object.values(editForm.stock_by_location).reduce((a:number, b:number) => a + b, 0) 
+                            {editForm.stock_by_location
+                              ? Object.values(editForm.stock_by_location).reduce((a: number, b: number) => a + b, 0)
                               : 0}
                           </span>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                         <span className={`font-bold text-lg ${currentStock < 50 ? 'text-red-600' : 'text-gray-900'}`}>
-                           {currentStock.toLocaleString()}
-                         </span>
-                         
-                         {/* Utilization Bar */}
-                         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-[80px]">
-                           <div 
-                             className={`h-full rounded-full ${currentStock < 100 ? 'bg-red-500' : 'bg-green-500'}`} 
-                             style={{ width: `${Math.min(100, (currentStock / 1000) * 100)}%` }}
-                           />
-                         </div>
+                        <span className={`font-bold text-lg ${currentStock < 50 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {currentStock.toLocaleString()}
+                        </span>
 
-                         {/* Tooltip hint if global view */}
-                         {selectedLocation === 'all' && (
-                           <div className="text-[10px] text-gray-400">
-                             across {Object.keys(item.stock_by_location).length} sites
-                           </div>
-                         )}
+                        {/* Utilization Bar */}
+                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-[80px]">
+                          <div
+                            className={`h-full rounded-full ${currentStock < 100 ? 'bg-red-500' : 'bg-green-500'}`}
+                            style={{ width: `${Math.min(100, (currentStock / 1000) * 100)}%` }}
+                          />
+                        </div>
+
+                        {/* Tooltip hint if global view */}
+                        {selectedLocation === 'all' && (
+                          <div className="text-[10px] text-gray-400">
+                            across {Object.keys(item.stock_by_location).length} sites
+                          </div>
+                        )}
                       </div>
                     )}
                   </td>
@@ -309,7 +304,7 @@ export default function SupplierInventoryPage() {
                       </div>
                     )}
                     <div className="text-[10px] text-gray-400 mt-1">
-                      {new Date(item.last_synced).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {new Date(item.last_synced).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </td>
 
@@ -317,11 +312,11 @@ export default function SupplierInventoryPage() {
                   <td className="p-4 text-right">
                     {isEditing ? (
                       <div className="flex flex-col gap-2">
-                        <button onClick={() => saveEdit(item.id)} className="bg-green-600 hover:bg-green-700 text-white p-1.5 rounded shadow"><Save size={14}/></button>
-                        <button onClick={() => setEditingItem(null)} className="bg-gray-200 hover:bg-gray-300 text-gray-600 p-1.5 rounded"><X size={14}/></button>
+                        <button onClick={() => saveEdit(item.id)} className="bg-green-600 hover:bg-green-700 text-white p-1.5 rounded shadow"><Save size={14} /></button>
+                        <button onClick={() => setEditingItem(null)} className="bg-gray-200 hover:bg-gray-300 text-gray-600 p-1.5 rounded"><X size={14} /></button>
                       </div>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => startEdit(item)}
                         className="text-gray-400 hover:text-purple-600 hover:bg-purple-50 p-2 rounded transition"
                       >
@@ -335,7 +330,7 @@ export default function SupplierInventoryPage() {
             })}
           </tbody>
         </table>
-        
+
         {filteredInventory.length === 0 && (
           <div className="p-12 text-center text-gray-400">
             No products found matching "{searchTerm}".
