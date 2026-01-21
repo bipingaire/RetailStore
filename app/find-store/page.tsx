@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Loader2, Navigation, Store, AlertCircle, ArrowRight } from 'lucide-react';
 import { buildDomainUrl } from '@/lib/domain-utils';
 import { requestUserLocation } from '@/lib/geolocation/browser-location';
+import { apiClient } from '@/lib/api-client';
 
 interface StoreData {
     subdomain: string;
@@ -28,6 +29,8 @@ export default function FindStorePage() {
         handleFindNearestStore();
     }, []);
 
+
+
     const handleFindNearestStore = async () => {
         setStatus('requesting');
         setErrorMessage('');
@@ -38,15 +41,7 @@ export default function FindStorePage() {
             setStatus('locating');
 
             // Call API to find nearest store
-            const response = await fetch(
-                `/api/stores/nearest?lat=${position.latitude}&lng=${position.longitude}`
-            );
-
-            if (!response.ok) {
-                throw new Error('Failed to find nearest store');
-            }
-
-            const data = await response.json();
+            const data = await apiClient.getNearestStore(position.latitude, position.longitude);
 
             if (!data.success || !data.nearest) {
                 throw new Error('No stores found nearby');
@@ -77,9 +72,8 @@ export default function FindStorePage() {
 
     const loadAllStores = async () => {
         try {
-            const response = await fetch('/api/stores/list');
-            if (response.ok) {
-                const data = await response.json();
+            const data: any = await apiClient.getStores();
+            if (data.stores) {
                 setAllStores(data.stores || []);
                 setShowManualSelection(true);
             }
