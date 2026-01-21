@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { apiClient } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
 import { Plus, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
@@ -15,7 +15,6 @@ interface Reconciliation {
 
 export default function ReconciliationPage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
     const [reconciliations, setReconciliations] = useState<Reconciliation[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -24,23 +23,33 @@ export default function ReconciliationPage() {
     }, []);
 
     async function loadReconciliations() {
-        const { data, error } = await supabase
-            .from('inventory_reconciliation')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(20);
-
-        if (data) setReconciliations(data);
-        setLoading(false);
+        try {
+            const data = await apiClient.getAudits();
+            // Map Audit history to Reconciliation UI model
+            const mapped: Reconciliation[] = (data.audits || []).map((a: any) => ({
+                id: a.audit_id,
+                reconciliation_date: a.audit_date || new Date().toISOString(),
+                status: 'completed', // Default for now as history implies completion
+                total_variance_value: 0, // Not provided in summary list
+                initiated_by: 'Admin', // Not provided
+                created_at: a.audit_date || new Date().toISOString()
+            }));
+            setReconciliations(mapped);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     }
 
     function getStatusIcon(status: string) {
         switch (status) {
             case 'in_progress': return <Clock className="text-blue-500" size={20} />;
             case 'pending_approval': return <AlertTriangle className="text-yellow-500" size={20} />;
+            case 'completed': return <CheckCircle className="text-green-500" size={20} />;
             case 'approved': return <CheckCircle className="text-green-500" size={20} />;
             case 'rejected': return <XCircle className="text-red-500" size={20} />;
-            default: return null;
+            default: return <CheckCircle className="text-gray-500" size={20} />;
         }
     }
 
@@ -48,6 +57,7 @@ export default function ReconciliationPage() {
         switch (status) {
             case 'in_progress': return 'bg-blue-50 text-blue-700 border-blue-200';
             case 'pending_approval': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+            case 'completed': return 'bg-green-50 text-green-700 border-green-200';
             case 'approved': return 'bg-green-50 text-green-700 border-green-200';
             case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
             default: return 'bg-gray-50 text-gray-700';
@@ -102,7 +112,7 @@ export default function ReconciliationPage() {
                                             {new Date(recon.reconciliation_date).toLocaleDateString()}
                                         </div>
                                         <div className="text-xs text-gray-500">
-                                            {new Date(recon.created_at).toLocaleString()}
+                                            {new Date(recon.created_at).toLocaleTimeString()}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -113,7 +123,7 @@ export default function ReconciliationPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <span className={`text-sm font-bold ${recon.total_variance_value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            ${Math.abs(recon.total_variance_value || 0).toFixed(2)}
+                                            --
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-center">
