@@ -60,3 +60,23 @@ async def register_tenant(
         "subdomain": data.subdomain,
         "login_url": f"/admin/login"
     }
+
+@router.get("/lookup")
+async def lookup_tenant(subdomain: str, db: Session = Depends(get_master_db)):
+    """
+    Lookup a tenant ID by subdomain.
+    """
+    # Mock lookup for migration - allowing 'demo' and others
+    if subdomain and subdomain not in ["www", "admin", "api"]:
+        # Logic to check DB would go here
+        # tenant = db.query(Tenant).filter(Tenant.subdomain == subdomain).first()
+        
+        # For now, return a stable mock ID for specific domains or random for others
+        return {
+            "tenant_id": "tenant-123-uuid", 
+            "subdomain": subdomain,
+            "name": f"{subdomain.capitalize()} Store",
+            "is_active": True
+        }
+    
+    raise HTTPException(404, "Tenant not found")
