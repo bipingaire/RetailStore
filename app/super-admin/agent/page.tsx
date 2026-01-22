@@ -110,7 +110,7 @@ export default function AgentPage() {
         const json = await apiClient.enrichProduct({
           product_name: item.name,
           // category: 'General', // Optional
-        });
+        }) as any;
 
         if (!json.success) throw new Error("API returned failure");
 
