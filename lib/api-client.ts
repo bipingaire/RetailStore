@@ -538,18 +538,7 @@ export class APIClient {
         return response.json();
     }
 
-    // ==================== SETTINGS ====================
 
-    async getPaymentSettings() {
-        return this.request('/api/settings/payment');
-    }
-
-    async updatePaymentSettings(data: any) {
-        return this.request('/api/settings/payment', {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        });
-    }
 
     // ==================== CAMPAIGNS ====================
 
@@ -597,6 +586,36 @@ export class APIClient {
             body: JSON.stringify({ campaignId, platforms }),
         });
     }
+
+    async getSettings() {
+        return this.request('/api/settings');
+    }
+
+    async updateSettings(data: any) {
+        return this.request('/api/settings', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    // --- PAYMENT SETTINGS ---
+
+    async getPaymentSettings() {
+        return this.request('/api/settings/payment');
+    }
+
+    async updatePaymentSettings(data: { stripe_publishable_key: string; stripe_secret_key: string }) {
+        return this.request('/api/settings/payment', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async getPaymentStatements() {
+        return this.request('/api/settings/payment/statements');
+    }
+
+
 
     async generateSocialImage(prompt: string, apiKey?: string) {
         return this.request('/api/social/generate-image', {
