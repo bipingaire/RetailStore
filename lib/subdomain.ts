@@ -2,12 +2,9 @@
  * Subdomain utilities for multi-tenant routing
  */
 
-import { createClient } from '@supabase/supabase-js';
+// NOTE: Using direct fetch to FastAPI instead of Supabase
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
  * Extract subdomain from hostname
@@ -69,37 +66,33 @@ export function isSuperadminDomain(host: string): boolean {
 export async function getTenantFromSubdomain(subdomain: string): Promise<string | null> {
     if (!subdomain) return null;
 
-    const { data, error } = await supabase
-        .from('subdomain-tenant-mapping')
-        .select('tenant-id')
-        .eq('subdomain', subdomain)
-        .eq('is-active', true)
-        .single();
+    try {
+        const res = await fetch(`${API_URL}/api/tenants/lookup?subdomain=${subdomain}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            cache: 'no-store' // Don't cache for dynamic lookups
+        });
 
-    if (error || !data) {
+        if (!res.ok) {
+            return null;
+        }
+
+        const data = await res.json();
+        return data.tenant_id;
+    } catch (error) {
         console.error('Error fetching tenant from subdomain:', error);
         return null;
     }
-
-    return data['tenant-id'];
 }
 
 /**
  * Get subdomain from tenant ID
  */
 export async function getSubdomainFromTenant(tenantId: string): Promise<string | null> {
-    const { data, error } = await supabase
-        .from('subdomain-tenant-mapping')
-        .select('subdomain')
-        .eq('tenant-id', tenantId)
-        .eq('is-active', true)
-        .single();
-
-    if (error || !data) {
-        return null;
-    }
-
-    return data.subdomain;
+    // Reverse lookup not yet implemented in backend/mocked
+    return null;
 }
 
 /**
@@ -151,11 +144,7 @@ export async function isSubdomainAvailable(subdomain: string): Promise<boolean> 
         return false;
     }
 
-    const { data } = await supabase
-        .from('subdomain-tenant-mapping')
-        .select('subdomain')
-        .eq('subdomain', subdomain)
-        .single();
-
-    return !data; // Available if no data found
+    const existingId = await getTenantFromSubdomain(subdomain);
+    return !existingId; // Available if no ID found
 }
+
