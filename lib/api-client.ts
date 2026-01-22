@@ -85,11 +85,18 @@ export class APIClient {
 
         // Store tokens
         if (typeof window !== 'undefined') {
+            // LocalStorage for Client Components
             localStorage.setItem('access_token', data.access_token);
             localStorage.setItem('refresh_token', data.refresh_token);
             localStorage.setItem('user_role', data.user_role);
             localStorage.setItem('user_id', data.user_id);
             localStorage.setItem('subdomain', this.subdomain);
+
+            // Cookies for Middleware (Server Side)
+            // Set cookie for 7 days
+            const expires = new Date();
+            expires.setDate(expires.getDate() + 7);
+            document.cookie = `access_token=${data.access_token}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
         }
 
         return data;
@@ -117,10 +124,14 @@ export class APIClient {
      */
     async logout() {
         if (typeof window !== 'undefined') {
+            // Clear LocalStorage
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user_role');
             localStorage.removeItem('user_id');
+
+            // Clear Cookie
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
     }
 
