@@ -28,6 +28,7 @@ app.include_router(restock.router, prefix="/api/restock", tags=["🔄 Restock Au
 app.include_router(profits.router, prefix="/api/profits", tags=["💰 Profit Tracking"])
 app.include_router(campaigns.router, prefix="/api/campaigns", tags=["📣 Campaigns"])
 app.include_router(settings.router, prefix="/api/settings", tags=["⚙️ Settings"])
+app.include_router(ai.router, prefix="/api/ai", tags=["🧠 AI Features"])
 
 
 # Shutdown event
