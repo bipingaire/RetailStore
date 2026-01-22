@@ -1,4 +1,3 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse, type NextRequest } from 'next/server';
 import { extractSubdomain, getTenantFromSubdomain } from '@/lib/subdomain';
 import { getDomainType } from '@/lib/domain-utils';
@@ -7,7 +6,6 @@ const PROTECTED_PREFIXES = ['/admin', '/superadmin', '/super-admin', '/supplier'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
 
   // Get host and pathname
   const host = req.headers.get('host') || '';
@@ -21,10 +19,9 @@ export async function middleware(req: NextRequest) {
   const domainType = getDomainType(host, queryDomain, querySubdomain);
   const subdomain = querySubdomain || extractSubdomain(host);
 
-  // Refresh session
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Check for auth cookie (simple check, validation happens in API/Client)
+  const hasAuthToken = req.cookies.has('access_token');
+  const session = hasAuthToken ? { user: true } : null; // Mock session existence
 
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
