@@ -31,26 +31,25 @@ export default function InvoiceReview() {
       const base64 = reader.result as string;
 
       try {
-        const res = await fetch('/api/parse-invoice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: base64 }),
-        });
 
-        if (!res.ok) {
-          const contentType = res.headers.get('content-type');
-          if (contentType?.includes('application/json')) {
-            const error = await res.json();
-            throw new Error(error.error || `API error: ${res.status}`);
-          } else {
-            // Likely an HTML error page from the server
-            const text = await res.text();
-            console.error('Non-JSON response:', text.substring(0, 500));
-            throw new Error(`Server error: ${res.status} ${res.statusText}`);
-          }
+        // Parse invoice using apiClient
+        const data = await apiClient.parseInvoice(file);
+
+        if (data.data) {
+          // Flatten items if necessary or map them
+          const processedItems = data.data.items.map((item: any) => ({
+            ...item,
+            raw_name: item.product_name, // Map backend 'product_name' to frontend 'raw_name'
+            status: item.product_name.toLowerCase().includes('milk') ? 'matched' : 'review',
+            matched_product: item.product_name.toLowerCase().includes('milk') ? 'Whole Milk 1 Gallon' : '',
+          }));
+          setItems(processedItems);
+          // Skip the manual "DUMB MATCHING" block below as we did it here
+          setLoading(false);
+          return;
+        } else {
+          throw new Error("No data returned");
         }
-
-        const data = await res.json();
 
         // 2. THE "DUMB" MATCHER LOGIC
         // In the real app, this would query Supabase for 'Global_Products'
