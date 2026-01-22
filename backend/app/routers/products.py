@@ -15,15 +15,29 @@ router = APIRouter()
 
 
 # Pydantic schemas
+    class Config:
+        from_attributes = True
+
 class ProductResponse(BaseModel):
     product_id: uuid.UUID
     product_name: str
     brand_name: Optional[str] = None
+    manufacturer_name: Optional[str] = None
     category_name: Optional[str] = None
+    subcategory_name: Optional[str] = None
     upc_ean_code: Optional[str] = None
     image_url: Optional[str] = None
-    status: str = "active"
+    description_text: Optional[str] = None
     
+    # UOM Fields
+    base_unit_name: Optional[str] = None
+    pack_size: Optional[int] = 1
+    pack_unit_name: Optional[str] = None
+    bulk_pack_product_id: Optional[uuid.UUID] = None
+    is_bulk_pack: Optional[bool] = False
+    
+    status: str = "active"
+
     class Config:
         from_attributes = True
 
