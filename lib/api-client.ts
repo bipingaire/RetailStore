@@ -605,6 +605,38 @@ export class APIClient {
         });
     }
 
+    // ==================== AI ====================
+
+    async enrichProduct(data: { product_name: string; category?: string; brand?: string; description?: string }) {
+        return this.request('/api/ai/enrich-product', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async parseInvoice(file: File) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
+        const response = await fetch(`${API_URL}/api/ai/parse-invoice`, {
+            method: 'POST',
+            headers: {
+                // Content-Type is set automatically for FormData
+                'Authorization': `Bearer ${token}`,
+                'X-Subdomain': this.subdomain,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Invoice parsing failed');
+        }
+
+        return response.json();
+    }
+
     // --- STORES (Tenants) ---
 
     async getStores() {
