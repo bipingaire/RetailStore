@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { ArrowLeft, Save, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { generateProductEnrichment } from '@/lib/ai/product-matcher';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Removed Supabase client initialization
 
 export default function EnrichProductPage() {
     const params = useParams();
@@ -45,32 +41,28 @@ export default function EnrichProductPage() {
     }, [productId]);
 
     async function loadProduct() {
-        const { data, error } = await supabase
-            .from('global-product-master-catalog')
-            .select('*')
-            .eq('product-id', productId)
-            .single();
-
-        if (error) {
-            toast.error('Product not found');
-            router.push('/superadmin/products');
-        } else {
+        try {
+            const data = await apiClient.getProduct(productId);
             setProduct(data);
             setFormData({
-                'product-name': data['product-name'] || '',
-                'brand-name': data['brand-name'] || '',
-                'manufacturer-name': data['manufacturer-name'] || '',
-                'category-name': data['category-name'] || '',
-                'subcategory-name': data['subcategory-name'] || '',
-                'description-text': data['description-text'] || '',
-                'image-url': data['image-url'] || '',
-                'package-size': data['package-size'] || '',
-                'package-unit': data['package-unit'] || '',
+                'product-name': data.product_name || '',
+                'brand-name': data.brand_name || '',
+                'manufacturer-name': data.manufacturer_name || '',
+                'category-name': data.category_name || '',
+                'subcategory-name': data.subcategory_name || '',
+                'description-text': data.description_text || '',
+                'image-url': data.image_url || '',
+                'package-size': '', // Not in backend schema explicitly
+                'package-unit': '',
+
                 // UOM fields
-                'base-unit-name': data['base-unit-name'] || 'piece',
-                'pack-size': data['pack-size'] || 1,
-                'pack-unit-name': data['pack-unit-name'] || ''
+                'base-unit-name': data.base_unit_name || 'piece',
+                'pack-size': data.pack_size || 1,
+                'pack-unit-name': data.pack_unit_name || ''
             });
+        } catch (error) {
+            toast.error('Product not found or error loading');
+            router.push('/superadmin/products');
         }
         setLoading(false);
     }
@@ -78,24 +70,26 @@ export default function EnrichProductPage() {
     async function handleAIEnrich() {
         setEnriching(true);
         try {
-            const suggestions = await generateProductEnrichment({
-                name: formData['product-name'],
+            // Use backend AI enrichment
+            const response = await apiClient.enrichProduct({
+                product_name: formData['product-name'],
                 brand: formData['brand-name'],
                 category: formData['category-name'],
                 description: formData['description-text']
             });
 
-            if (suggestions.suggestedDescription) {
-                setFormData(prev => ({ ...prev, 'description-text': suggestions.suggestedDescription! }));
+            if (response.success && response.data) {
+                const suggestions = response.data;
+                setFormData(prev => ({
+                    ...prev,
+                    'description-text': suggestions.description || prev['description-text'],
+                    'category-name': suggestions.category || prev['category-name'],
+                    'brand-name': formData['brand-name'] || '', // Backend doesn't return brand usually, keeping existing.
+                    'manufacturer-name': suggestions.manufacturer || prev['manufacturer-name'],
+                    // Backend might suggest fields not yet in form?
+                }));
+                toast.success('AI suggestions applied!');
             }
-            if (suggestions.suggestedCategory) {
-                setFormData(prev => ({ ...prev, 'category-name': suggestions.suggestedCategory! }));
-            }
-            if (suggestions.suggestedBrand) {
-                setFormData(prev => ({ ...prev, 'brand-name': suggestions.suggestedBrand! }));
-            }
-
-            toast.success('AI suggestions applied!');
         } catch (error) {
             toast.error('Failed to generate AI suggestions');
         }
@@ -106,29 +100,21 @@ export default function EnrichProductPage() {
         setSaving(true);
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            // Map form data to backend schema (snake_case)
+            const updateData = {
+                product_name: formData['product-name'],
+                brand_name: formData['brand-name'],
+                manufacturer_name: formData['manufacturer-name'],
+                category_name: formData['category-name'],
+                subcategory_name: formData['subcategory-name'],
+                description_text: formData['description-text'],
+                image_url: formData['image-url'],
+                base_unit_name: formData['base-unit-name'],
+                pack_size: formData['pack-size'],
+                pack_unit_name: formData['pack-unit-name']
+            };
 
-            // Update product
-            const { error: updateError } = await supabase
-                .from('global-product-master-catalog')
-                .update({
-                    ...formData,
-                    'enriched-by-superadmin': true,
-                    'last-enriched-at': new Date().toISOString(),
-                    'last-enriched-by': user?.id
-                })
-                .eq('product-id', productId);
-
-            if (updateError) throw updateError;
-
-            // Log enrichment history
-            await supabase.from('product-enrichment-history').insert({
-                'product-id': productId,
-                'enriched-by-user-id': user?.id,
-                'enrichment-type': 'superadmin',
-                'changes-json': formData,
-                'previous-data-json': product
-            });
+            await apiClient.updateProduct(productId, updateData);
 
             toast.success('Product enriched successfully!');
             router.push('/superadmin/products');
