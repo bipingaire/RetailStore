@@ -147,25 +147,32 @@ async def parse_invoice(
     
     return {
         "success": True,
-        "data": {
-            "vendor": {
-                "name": vendor["name"],
-                "ein": "12-3456789",
-                "website": f"www.{vendor['name'].replace(' ', '').lower()}.com",
-                "email": f"support@{vendor['name'].replace(' ', '').lower()}.com",
-                "phone": "(555) 123-4567",
-                "fax": "(555) 123-4568",
-                "address": "123 Business Park Dr, Commerce City, CA 90210",
-                "warehouse_address": None,
-                "poc_name": "Demo Agent"
-            },
-            "metadata": {
-                "invoice_number": f"INV-{random.randint(1000, 9999)}",
-                "invoice_date": datetime.now().date().isoformat(),
-                "total_tax": tax,
-                "total_transport": shipping,
-                "total_amount": grand_total
-            },
-            "items": selected_items
-        }
+        "data": result
+    }
+
+class GenerateImageRequest(BaseModel):
+    prompt: str
+    apiKey: Optional[str] = None
+
+@router.post("/generate-image")
+async def generate_image(request: GenerateImageRequest):
+    """
+    Generate an AI image based on prompt.
+    Mock implementation for demo.
+    """
+    # Simulate processing
+    time.sleep(2.0)
+    
+    # Return a high-quality mock image from Unsplash based on simple keywords in prompt
+    # Fallback to a generic tech/business image
+    image_url = "https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=1000&auto=format&fit=crop"
+    
+    if "food" in request.prompt.lower():
+         image_url = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop"
+    elif "tech" in request.prompt.lower():
+         image_url = "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1000&auto=format&fit=crop"
+    
+    return {
+        "success": True,
+        "imageUrl": image_url
     }
