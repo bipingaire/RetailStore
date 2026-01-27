@@ -6,7 +6,7 @@ from .config import settings
 
 # Create SQLAlchemy engine
 engine = create_engine(
-    settings.database_url,
+    settings.master_database_url,
     pool_pre_ping=True,  # Verify connections before using them
     echo=settings.debug,  # Log SQL queries in debug mode
 )

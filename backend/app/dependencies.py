@@ -174,3 +174,31 @@ class TenantContext:
     def is_customer(self) -> bool:
         """Check if user is customer."""
         return self.role == "customer"
+
+
+# Master Database Access (for global catalog)
+def get_master_db() -> Session:
+    """
+    Get database session for the master database (global product catalog).
+    
+    This is used for endpoints that need to access the global product catalog
+    shared across all tenants.
+    """
+    db = db_manager.get_master_session()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# Superadmin Authorization
+async def require_admin_or_superadmin(
+    user: User = Depends(get_current_user)
+) -> User:
+    """Require admin or superadmin role."""
+    if user.role not in ["admin", "superadmin"] and user.token_role not in ["admin", "superadmin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin or Superadmin access required"
+        )
+    return user

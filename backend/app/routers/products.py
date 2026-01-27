@@ -15,9 +15,6 @@ router = APIRouter()
 
 
 # Pydantic schemas
-    class Config:
-        from_attributes = True
-
 class ProductResponse(BaseModel):
     product_id: uuid.UUID
     product_name: str

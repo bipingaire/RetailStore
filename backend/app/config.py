@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 from typing import List
 
@@ -49,16 +49,13 @@ class Settings(BaseSettings):
     environment: str = Field(default="development", env="ENVIRONMENT")
     debug: bool = Field(default=True, env="DEBUG")
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-        
-        @staticmethod
-        def parse_env_var(field_name: str, raw_val: str):
-            if field_name == "CORS_ORIGINS":
-                return [origin.strip() for origin in raw_val.split(",")]
-            return raw_val
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore"
+    )
 
 
 # Global settings instance
 settings = Settings()
+
