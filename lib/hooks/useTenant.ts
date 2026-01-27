@@ -1,45 +1,34 @@
 'use client';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { getTenantFromSubdomain } from '../subdomain';
 
 export function useTenant() {
     const [tenantId, setTenantId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const supabase = createClientComponentClient();
-    const router = useRouter();
 
     useEffect(() => {
         async function getTenant() {
             try {
-                // Get current user session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                // In the new architecture, tenant is determined by subdomain
+                // logic handled by our subdomain utility which now uses apiClient
+                if (typeof window !== 'undefined') {
+                    const hostname = window.location.hostname;
+                    const subdomain = hostname.split('.')[0];
 
-                if (sessionError || !session) {
-                    // console.warn("useTenant: No session found");
-                    setLoading(false);
-                    return;
-                }
+                    // Skip for localhost if not using subdomain param
+                    if (hostname.includes('localhost') && subdomain === 'localhost') {
+                        setLoading(false);
+                        return;
+                    }
 
-                // Get tenant ID from user role mapping
-                const { data, error: roleError } = await supabase
-                    .from('tenant-user-role')
-                    .select('tenant-id')
-                    .eq('user-id', session.user.id)
-                    .maybeSingle();
-
-                if (roleError) {
-                    console.error('Error fetching tenant:', roleError);
-                    setError('Error fetching tenant');
-                } else if (data) {
-                    setTenantId(data['tenant-id']);
-                } else {
-                    // Fallback for subdomain if needed, but role is safer
-                    console.warn("No tenant role found for user");
+                    const tid = await getTenantFromSubdomain(subdomain);
+                    if (tid) {
+                        setTenantId(tid);
+                    }
                 }
             } catch (err: any) {
-                console.error("useTenant crash:", err);
+                console.error("useTenant error:", err);
                 setError(err.message);
             } finally {
                 setLoading(false);

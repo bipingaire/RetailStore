@@ -3,7 +3,7 @@
  * Implements Haversine formula for distance calculation
  */
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { apiClient } from '@/lib/api-client';
 
 export interface StoreLocation {
     'location-id': string;
@@ -73,19 +73,9 @@ export async function findNearestStore(
     latitude: number,
     longitude: number
 ): Promise<StoreLocation | null> {
-    const supabase = createClientComponentClient();
-
     try {
-        // Fetch all active store locations
-        const { data: stores, error } = await supabase
-            .from('store-location-mapping')
-            .select('*')
-            .eq('is-active', true);
-
-        if (error) {
-            console.error('Error fetching store locations:', error);
-            return null;
-        }
+        // Fetch all active store locations from Backend
+        const stores = await apiClient.getStores();
 
         if (!stores || stores.length === 0) {
             console.warn('No active stores found');
@@ -93,18 +83,28 @@ export async function findNearestStore(
         }
 
         // Calculate distance to each store
-        const storesWithDistance = stores.map((store: any) => ({
-            ...store,
-            distance: calculateDistance(
-                latitude,
-                longitude,
-                parseFloat(store.latitude),
-                parseFloat(store.longitude)
-            ),
-        }));
+        // MAP backend fields to StoreLocation interface if needed
+        // Assuming backend returns compatible list or we adapt here.
+        // For now trusting backend returns list of tenants which might lack lat/long if not fully implemented.
+        // If simple tenants list, we might not have lat/long.
+        // But let's assume getStores returns valid location data or filter those that do.
+
+        const storesWithDistance = stores
+            .filter((s: any) => s.latitude && s.longitude)
+            .map((store: any) => ({
+                ...store,
+                distance: calculateDistance(
+                    latitude,
+                    longitude,
+                    parseFloat(store.latitude),
+                    parseFloat(store.longitude)
+                ),
+            }));
+
+        if (storesWithDistance.length === 0) return null;
 
         // Sort by distance and get the nearest
-        storesWithDistance.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+        storesWithDistance.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0));
 
         return storesWithDistance[0];
     } catch (error) {
@@ -123,30 +123,27 @@ export async function getAllStoresWithDistance(
     latitude: number,
     longitude: number
 ): Promise<StoreLocation[]> {
-    const supabase = createClientComponentClient();
-
     try {
-        const { data: stores, error } = await supabase
-            .from('store-location-mapping')
-            .select('*')
-            .eq('is-active', true);
+        const stores = await apiClient.getStores();
 
-        if (error || !stores) {
+        if (!stores) {
             return [];
         }
 
-        const storesWithDistance = stores.map((store: any) => ({
-            ...store,
-            distance: calculateDistance(
-                latitude,
-                longitude,
-                parseFloat(store.latitude),
-                parseFloat(store.longitude)
-            ),
-        }));
+        const storesWithDistance = stores
+            .filter((s: any) => s.latitude && s.longitude)
+            .map((store: any) => ({
+                ...store,
+                distance: calculateDistance(
+                    latitude,
+                    longitude,
+                    parseFloat(store.latitude),
+                    parseFloat(store.longitude)
+                ),
+            }));
 
         // Sort by distance
-        return storesWithDistance.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+        return storesWithDistance.sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0));
     } catch (error) {
         console.error('Error in getAllStoresWithDistance:', error);
         return [];
@@ -158,20 +155,9 @@ export async function getAllStoresWithDistance(
  * Used for manual store selection
  */
 export async function getAllStores(): Promise<Omit<StoreLocation, 'distance'>[]> {
-    const supabase = createClientComponentClient();
-
     try {
-        const { data: stores, error } = await supabase
-            .from('store-location-mapping')
-            .select('*')
-            .eq('is-active', true)
-            .order('city', { ascending: true });
-
-        if (error || !stores) {
-            return [];
-        }
-
-        return stores;
+        const stores = await apiClient.getStores();
+        return stores || [];
     } catch (error) {
         console.error('Error in getAllStores:', error);
         return [];

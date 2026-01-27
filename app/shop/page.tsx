@@ -1,9 +1,10 @@
 ﻿'use client';
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { Search, ShoppingBag, Plus, Minus, Package, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Heart, ArrowRight, Package, Croissant, Coffee, Candy, Beef, UtensilsCrossed } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type Product = {
   inventory_id: string;
@@ -17,41 +18,29 @@ type Product = {
   in_stock: boolean;
 };
 
+// Category Mock Data (for UI matching - ensuring icons match reference)
+const CATEGORIES = [
+  { id: 'all', name: 'All Products', icon: ShoppingBag },
+  { id: 'bakery', name: 'Bakery', icon: Croissant },
+  { id: 'beverages', name: 'Beverages', icon: Coffee },
+  { id: 'confectionery', name: 'Confectionery', icon: Candy },
+  { id: 'food', name: 'Food & Beverage', icon: Beef },
+  { id: 'snacks', name: 'Snacks', icon: UtensilsCrossed },
+];
+
 export default function ShopHome() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useState<Record<string, number>>({});
-  const [isCartLoaded, setIsCartLoaded] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // Load cart from localStorage
-  useEffect(() => {
-    const savedCart = localStorage.getItem('retail_cart');
-    if (savedCart) setCart(JSON.parse(savedCart));
-    setIsCartLoaded(true);
-  }, []);
-
-  // Save cart to localStorage
-  useEffect(() => {
-    if (isCartLoaded) localStorage.setItem('retail_cart', JSON.stringify(cart));
-  }, [cart, isCartLoaded]);
-
-  // Fetch products and categories
   useEffect(() => {
     async function loadData() {
       try {
-        // Fetch products from FastAPI
         const productsData = await apiClient.request('/api/shop/products', {});
         setProducts(productsData);
-
-        // Fetch categories
-        const categoriesData = await apiClient.request('/api/shop/categories', {});
-        setCategories(categoriesData.map((c: any) => c.name));
       } catch (err: any) {
         console.error('Error loading shop data:', err);
-        toast.error('Failed to load products');
+        // Don't show toast on initial load error to avoid clutter
       } finally {
         setLoading(false);
       }
@@ -59,152 +48,164 @@ export default function ShopHome() {
     loadData();
   }, []);
 
-  const updateQty = (id: string, delta: number) => {
-    setCart(prev => {
-      const current = prev[id] || 0;
-      const newQty = Math.max(0, current + delta);
-      const copy = { ...prev };
-      if (newQty === 0) delete copy[id];
-      else copy[id] = newQty;
-      return copy;
-    });
-  };
-
-  const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
-
-  const filteredProducts = products.filter(prod => {
-    const matchesSearch = prod.product_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory ? prod.category === selectedCategory : true;
-    return matchesSearch && matchesCategory && prod.in_stock;
-  });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[80vh] bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-green-600 mb-4"></div>
-        <p className="text-gray-400 font-medium ml-4">Loading Store...</p>
-      </div>
-    );
-  }
+  const filteredProducts = selectedCategory === 'all'
+    ? products
+    : products.filter(p => p.category?.toLowerCase() === selectedCategory.toLowerCase());
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-32">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
-          <Link href="/shop" className="flex items-center gap-2 group">
-            <div className="bg-green-600 text-white p-2 rounded-lg group-hover:scale-105 transition-transform">
-              <ShoppingBag size={24} />
-            </div>
-            <span className="text-2xl font-black text-gray-900 tracking-tight">
-              Retail<span className="text-green-600">Store</span>
-            </span>
-          </Link>
+    <div className="pb-32">
+      {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[420px]">
 
-          {/* Search */}
-          <div className="flex-1 max-w-2xl relative hidden md:block">
-            <input
-              type="text"
-              placeholder="Search for products..."
-              className="w-full bg-gray-100 border-none rounded-full py-3 pl-6 pr-14 text-sm font-medium focus:ring-2 focus:ring-green-500 transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="absolute right-2 top-2 bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 transition">
-              <Search size={18} />
+          {/* Main Banner */}
+          <div className="lg:col-span-2 relative bg-[#F0FDF4] rounded-3xl overflow-hidden p-8 lg:p-12 flex flex-col justify-center">
+            <span className="inline-block bg-[#EF4444] text-white text-xs font-bold px-3 py-1 rounded-full w-fit mb-4">
+              WEEKEND DEAL
+            </span>
+            <h2 className="text-4xl lg:text-6xl font-black text-[#0F172A] leading-tight mb-4">
+              Fresh Organic <br />
+              <span className="text-[#16A34A]">Vegetables</span>
+            </h2>
+            <p className="text-gray-500 mb-8 text-lg max-w-md">
+              Get 20% off on all seasonal farm produce this week.
+            </p>
+            <button className="bg-[#16A34A] hover:bg-[#15803D] text-white font-bold py-3 px-8 rounded-full w-fit flex items-center gap-2 transition-transform hover:scale-105 shadow-lg shadow-green-600/20">
+              Shop Now <ArrowRight size={18} />
             </button>
+
+            {/* Decorative Emoji Placeholder (simulates image) */}
+            <div className="absolute right-[-20px] bottom-[-40px] w-[300px] h-[300px] lg:w-[450px] lg:h-[450px]">
+              <div className="w-full h-full flex items-center justify-center text-[200px] lg:text-[300px] drop-shadow-2xl filter saturate-150 animate-fade-in">
+                🍒
+              </div>
+            </div>
           </div>
 
-          {/* Cart */}
-          <Link href="/shop/cart" className="relative group">
-            <div className="w-12 h-12 bg-green-50 text-green-700 rounded-full flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-              <ShoppingBag size={22} />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white">
-                  {totalItems}
-                </span>
-              )}
+          {/* Right Column Banners */}
+          <div className="flex flex-col gap-6 h-full">
+
+            {/* Top Right */}
+            <div className="flex-1 bg-[#FFFBEB] rounded-3xl p-8 relative overflow-hidden flex flex-col justify-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Premium Honey</h3>
+              <p className="text-gray-500 text-sm mb-4">100% Pure & Raw</p>
+              <button className="text-[#D97706] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+                Buy Now <ArrowRight size={14} />
+              </button>
+              <div className="absolute right-[-10px] bottom-[-10px] w-32 h-32 text-[80px] opacity-90">
+                🍯
+              </div>
             </div>
-          </Link>
+
+            {/* Bottom Right */}
+            <div className="flex-1 bg-[#EFF6FF] rounded-3xl p-8 relative overflow-hidden flex flex-col justify-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Daily Hygiene</h3>
+              <p className="text-gray-500 text-sm mb-4">Soaps & Sanitizers</p>
+              <span className="bg-[#3B82F6] text-white text-xs font-bold px-3 py-1 rounded-full w-fit">
+                15% OFF
+              </span>
+              <div className="absolute right-[-10px] bottom-[-10px] w-32 h-32 text-[80px] opacity-90">
+                🧼
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* Categories */}
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-8">
-        <h3 className="font-bold text-lg text-gray-900 mb-4">Shop by Category</h3>
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-6 py-2 rounded-full font-medium transition ${selectedCategory === null
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-          >
-            All Products
-          </button>
-          {categories.map((cat) => (
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-16">
+        <h3 className="text-xl font-bold text-gray-900 mb-8">Shop by Category</h3>
+        <div className="flex gap-8 overflow-x-auto pb-4 scrollbar-hide">
+          {CATEGORIES.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
-              className={`px-6 py-2 rounded-full font-medium transition whitespace-nowrap ${selectedCategory === cat
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className="flex flex-col items-center gap-3 group min-w-[100px]"
             >
-              {cat}
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl border-2 transition-all duration-300
+                ${selectedCategory === cat.id
+                  ? 'border-[#16A34A] bg-green-50 text-green-600 scale-110 shadow-lg shadow-green-100'
+                  : 'border-white bg-white hover:border-gray-200 hover:shadow-md'
+                }`}>
+                <cat.icon size={28} strokeWidth={1.5} />
+              </div>
+              <span className={`text-sm font-medium transition-colors ${selectedCategory === cat.id ? 'text-[#16A34A]' : 'text-gray-600'}`}>
+                {cat.name}
+              </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => {
-            const qty = cart[product.inventory_id] || 0;
-            return (
-              <div key={product.inventory_id} className="bg-white rounded-2xl p-4 border border-gray-100 hover:shadow-lg transition">
-                <div className="aspect-square bg-gray-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-                  {product.image_url ? (
-                    <img src={product.image_url} className="w-full h-full object-cover" alt={product.product_name} />
-                  ) : (
-                    <Package size={48} className="text-gray-300" />
-                  )}
-                </div>
-                <div className="text-xs text-gray-400 uppercase font-bold mb-1">{product.category || 'Product'}</div>
-                <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{product.product_name}</h4>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xl font-black text-green-600">${product.price.toFixed(2)}</span>
-                  <span className="text-xs text-gray-500">{product.stock} in stock</span>
-                </div>
-
-                {qty === 0 ? (
-                  <button
-                    onClick={() => updateQty(product.inventory_id, 1)}
-                    className="w-full bg-green-600 text-white font-bold py-2.5 rounded-lg hover:bg-green-700 transition"
-                  >
-                    Add to Cart
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 bg-white border-2 border-green-200 rounded-full px-2 py-1">
-                    <button onClick={() => updateQty(product.inventory_id, -1)} className="p-1 text-gray-500 hover:text-red-500">
-                      <Minus size={14} />
-                    </button>
-                    <span className="text-sm font-bold w-6 text-center">{qty}</span>
-                    <button onClick={() => updateQty(product.inventory_id, 1)} className="p-1 text-gray-500 hover:text-green-600">
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      {/* Featured Products */}
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-16">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-2xl font-bold text-gray-900">Featured Products</h3>
+          <div className="flex gap-4 text-sm font-medium text-gray-500 hidden sm:flex">
+            <button className="text-gray-900 font-bold">All</button>
+            <button className="hover:text-gray-900 hover:font-bold transition-all">Best Sellers</button>
+            <button className="hover:text-gray-900 hover:font-bold transition-all">New Arrivals</button>
+          </div>
         </div>
 
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <Package size={64} className="text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No products found</p>
+        {loading ? (
+          <div className="flex items-center justify-center p-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-green-600"></div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+            <Package size={48} className="mx-auto text-gray-300 mb-4" />
+            <p className="text-gray-500">No products found in this category</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => (
+              <div key={product.inventory_id} className="group bg-white rounded-2xl border border-gray-100 hover:border-green-100 hover:shadow-xl hover:shadow-green-900/5 transition-all duration-300 p-4 relative">
+                {/* Out Of Stock Badge */}
+                {product.stock === 0 && (
+                  <span className="absolute top-4 left-4 z-10 bg-[#DC2626] text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                    OUT OF STOCK
+                  </span>
+                )}
+
+                {/* Wishlist Button */}
+                <button className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-100 transition-colors">
+                  <Heart size={16} />
+                </button>
+
+                {/* Image Area */}
+                <div className="aspect-[4/5] bg-gray-50 rounded-xl mb-4 relative overflow-hidden flex items-center justify-center">
+                  {product.image_url ? (
+                    <Image
+                      src={product.image_url}
+                      alt={product.product_name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <Package size={48} className="text-gray-200" />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div>
+                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    {product.category || 'Groceries'}
+                  </div>
+                  <h4 className="font-bold text-gray-900 mb-2 line-clamp-1 group-hover:text-green-600 transition-colors">
+                    {product.product_name}
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-black text-gray-900">
+                      ${product.price.toFixed(2)}
+                    </span>
+                    <button className="bg-gray-900 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-green-600 transition-colors">
+                      <ShoppingBag size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

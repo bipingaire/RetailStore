@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
 // This endpoint is called by Caddy to verify if a domain is allowed to have an SSL certificate.
 // Caddy sends a GET request with ?domain=example.com
@@ -34,22 +33,16 @@ export async function GET(req: NextRequest) {
     // e.g. "store2.indumart.us" -> "store2"
     const subdomain = domain.replace(`.${matchedRoot}`, "");
 
-    // 4. Check DB for valid active subdomain
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+    // 4. Check Backend for valid active subdomain
     try {
-        // Query the NEW mapping table
-        const { data, error } = await supabase
-            .from("subdomain-tenant-mapping")
-            .select("tenant-id")
-            .eq("subdomain", subdomain)
-            .eq("is-active", true)
-            .single();
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${API_URL}/api/tenants/lookup?subdomain=${subdomain}`, {
+            method: 'GET',
+            cache: 'no-store'
+        });
 
-        if (error || !data) {
-            console.log(`Domain check failed for ${domain}: Subdomain '${subdomain}' not found in mapping`);
+        if (!res.ok) {
+            console.log(`Domain check failed for ${domain}: Subdomain '${subdomain}' not found in backend`);
             return new NextResponse("Subdomain not found", { status: 404 });
         }
 

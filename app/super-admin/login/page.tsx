@@ -25,7 +25,7 @@ export default function SuperAdminLoginPage() {
         setLoading(true);
 
         try {
-            const data = await apiClient.login(email, password, 'superadmin');
+            const data = await apiClient.login(email, password, 'superadmin', 'system');
 
             if (data) {
                 toast.success('SuperAdmin Login successful!');

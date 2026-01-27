@@ -29,7 +29,8 @@ export default function AdminLoginPage() {
 
         try {
             // Use FastAPI backend instead of Supabase
-            const data = await apiClient.login(email, password, 'admin');
+            // Hardcode 'demo1' for local testing since we don't have subdomain routing setup locally yet
+            const data = await apiClient.login(email, password, 'admin', 'demo1');
 
             if (data) {
                 toast.success('Retailer Login successful!');

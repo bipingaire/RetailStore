@@ -61,17 +61,21 @@ export class APIClient {
     /**
      * Login as admin or customer
      */
-    async login(email: string, password: string, role: 'admin' | 'customer' | 'superadmin') {
+    async login(email: string, password: string, role: 'admin' | 'customer' | 'superadmin', subdomain?: string) {
         const formData = new URLSearchParams({
             username: email,
             password: password,
         });
 
-        const response = await fetch(`${API_URL}/api/auth/${role}/login`, {
+        // Use the override subdomain if provided, otherwise fallback to instance default
+        const targetSubdomain = subdomain || this.subdomain;
+
+        // NOTE: The backend endpoint is /api/auth/login (role is in payload/user record, not path)
+        const response = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Subdomain': this.subdomain,
+                'X-Subdomain': targetSubdomain,
             },
             body: formData,
         });
@@ -90,7 +94,7 @@ export class APIClient {
             localStorage.setItem('refresh_token', data.refresh_token);
             localStorage.setItem('user_role', data.user_role);
             localStorage.setItem('user_id', data.user_id);
-            localStorage.setItem('subdomain', this.subdomain);
+            localStorage.setItem('subdomain', targetSubdomain);
 
             // Cookies for Middleware (Server Side)
             // Set cookie for 7 days
@@ -596,6 +600,21 @@ export class APIClient {
             method: 'POST',
             body: JSON.stringify({ campaignId, platforms }),
         });
+    }
+
+    // ==================== PROMOTIONS ====================
+
+    async createPromotion(data: any) {
+        return this.request('/api/promotions', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async getUnenrichedProducts(limit: number = 50) {
+        // This endpoint needs to be implemented in backend, 
+        // for now allow it to fail or return empty if 404
+        return this.request(`/api/products/unenriched?limit=${limit}`);
     }
 
     async getSettings() {

@@ -19,7 +19,7 @@ type User = {
 type AuthContextType = {
     user: User | null;
     loading: boolean;
-    login: (email: string, password: string, role: 'admin' | 'customer' | 'superadmin') => Promise<void>;
+    login: (email: string, password: string, role: 'admin' | 'customer' | 'superadmin', subdomain?: string) => Promise<void>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
 };
@@ -51,8 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         checkAuth();
     }, []);
 
-    const login = async (email: string, password: string, role: 'admin' | 'customer' | 'superadmin') => {
-        const data = await apiClient.login(email, password, role);
+    const login = async (email: string, password: string, role: 'admin' | 'customer' | 'superadmin', subdomain?: string) => {
+        const data = await apiClient.login(email, password, role, subdomain);
         setUser({
             id: data.user_id,
             email,
