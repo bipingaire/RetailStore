@@ -66,6 +66,19 @@ routers_to_import = [
     ("auth", "/api/auth", "🔐 Authentication"),
     ("tenants", "/api/tenants", "🏢 Tenants"),
     ("products", "/api/products", "📦 Products"),
+    ("shop", "/api/shop", "🛒 Shop"),
+    ("inventory", "/api/inventory", "📦 Inventory"),
+    ("orders", "/api/orders", "🛍️ Orders"),
+    ("analytics", "/api/analytics", "📊 Analytics"),
+    ("vendors", "/api/vendors", "🤝 Vendors"),
+    ("invoices", "/api/invoices", "📄 Invoices"),
+    ("sales", "/api/sales", "💰 Sales"),
+    ("superadmin", "/api/superadmin", "👑 SuperAdmin"),
+    ("audits", "/api/audits", "📋 Audits"),
+    ("campaigns", "/api/campaigns", "📣 Campaigns"),
+    ("social", "/api/social", "🌐 Social"),
+    ("settings", "/api/settings", "⚙️ Settings"),
+    ("ai", "/api/ai", "🤖 AI"),
 ]
 
 for router_name, prefix, tag in routers_to_import:

@@ -10,26 +10,27 @@ import sys
 from pathlib import Path
 
 # Add parent directory to path to import app
+# Add parent directory to path to import app
 sys.path.append(str(Path(__file__).parent.parent))
 
 from app.config import settings
-from app.database import Base
-# Import all models to ensure they're registered with Base
-from app.models import *
-from app.models.additional import *
+# Import MasterBase for metadata
+from app.models.master_models import MasterBase
+# Ensure models are imported so they are registered
+from app.models.master_models import *
 
 # this is the Alembic Config object
 config = context.config
 
 # Set the SQLAlchemy URL from our settings
-config.set_main_option('sqlalchemy.url', settings.database_url)
+config.set_main_option('sqlalchemy.url', settings.master_database_url)
 
 # Interpret the config file for Python logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Add your model's MetaData object here for 'autogenerate' support
-target_metadata = Base.metadata
+target_metadata = MasterBase.metadata
 
 
 def run_migrations_offline() -> None:
