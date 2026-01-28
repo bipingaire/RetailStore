@@ -37,17 +37,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
                 if (apiClient.isAuthenticated()) {
                     const userData = await apiClient.getCurrentUser();
-                    setUser(userData);
+                    setUser(userData as unknown as User);
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
-                // Clear invalid token
-                await apiClient.logout();
+                // Don't block the app if auth check fails
+                // Just clear the auth state
+                setUser(null);
             } finally {
+                // Always set loading to false, even if check fails
                 setLoading(false);
             }
         }
-
         checkAuth();
     }, []);
 

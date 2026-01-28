@@ -696,6 +696,18 @@ export class APIClient {
         return this.request(`/api/tenants/nearest?lat=${lat}&lng=${lng}`);
     }
 
+    async createTenant(data: {
+        subdomain: string;
+        store_name: string;
+        admin_email: string;
+        admin_password: string;
+    }) {
+        return this.request('/api/tenants/register', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
     // --- EXPENSES ---
 
     async getExpenses(params?: {

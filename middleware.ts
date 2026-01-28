@@ -143,6 +143,11 @@ export async function middleware(req: NextRequest) {
 
   // Handle legacy subdomain routing for localhost
   if (subdomain && !queryDomain) {
+    // Allow login pages to load without tenant lookup
+    if (pathname === '/admin/login' || pathname === '/admin/register' || pathname === '/super-admin/login') {
+      return res;
+    }
+
     const tenantId = await getTenantFromSubdomain(subdomain);
 
     if (!tenantId) {

@@ -4,16 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
-    Package,
-    ShoppingCart,
+    ScanLine,
+    RefreshCw,
+    Megaphone,
+    ClipboardCheck,
+    Truck,
+    Activity,
+    Database,
+    Share2,
+    RotateCw,
     Users,
-    FileText,
-    Settings,
-    BarChart,
-    ClipboardList,
+    MapPin,
+    CreditCard,
     Store,
-    LogOut,
-    MapPin
+    LogOut
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
@@ -29,14 +33,18 @@ export function Sidebar() {
 
     const menuItems = [
         { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/admin/inventory', label: 'Inventory', icon: Package },
-        { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-        { href: '/admin/vendors', label: 'Vendors', icon: Users },
-        { href: '/admin/invoices', label: 'Invoices', icon: FileText },
-        { href: '/admin/audit', label: 'Audits', icon: ClipboardList },
-        { href: '/admin/reports', label: 'Reports', icon: BarChart },
+        { href: '/admin/invoices', label: 'Scan Invoices', icon: ScanLine },
+        { href: '/admin/sales/sync', label: 'Daily Sales Sync', icon: RefreshCw },
+        { href: '/admin/campaigns', label: 'Sale Campaigns', icon: Megaphone, badge: 'NEW' },
+        { href: '/admin/audit', label: 'Daily Shelf Audit', icon: ClipboardCheck },
+        { href: '/admin/orders', label: 'Order Fulfillment', icon: Truck, badge: 'LIVE' },
+        { href: '/admin/inventory', label: 'Inventory Pulse', icon: Activity },
+        { href: '/admin/inventory/master', label: 'Master Inventory', icon: Database },
+        { href: '/admin/social', label: 'Social Media', icon: Share2 },
+        { href: '/admin/restock', label: 'Restock', icon: RotateCw, badge: 'ACTION' },
+        { href: '/admin/vendors', label: 'Vendor Relations', icon: Users },
         { href: '/admin/pos-mapping', label: 'POS Mapping', icon: MapPin },
-        { href: '/admin/settings', label: 'Settings', icon: Settings },
+        { href: '/admin/settings/payment', label: 'Payment Settings', icon: CreditCard, badge: 'NEW' },
     ];
 
     return (
@@ -59,13 +67,23 @@ export function Sidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                            className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isActive
+                                ? 'bg-blue-600 text-white'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
                                 }`}
                         >
-                            <Icon size={20} />
-                            <span className="font-medium">{item.label}</span>
+                            <div className="flex items-center gap-3">
+                                <Icon size={20} />
+                                <span className="font-medium text-sm">{item.label}</span>
+                            </div>
+                            {/* @ts-ignore */}
+                            {item.badge && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                                    }`}>
+                                    {/* @ts-ignore */}
+                                    {item.badge}
+                                </span>
+                            )}
                         </Link>
                     );
                 })}
