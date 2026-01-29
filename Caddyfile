@@ -1,0 +1,102 @@
+# Caddyfile - Production Multi-Domain Configuration
+# Automatic HTTPS with Let's Encrypt - No manual SSL setup needed!
+
+# Global options
+{
+    email {$CERTBOT_EMAIL:admin@retailos.cloud}
+    # Uncomment for staging/testing to avoid rate limits
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# RetailOS Domain - Admin Platform
+retailos.cloud, www.retailos.cloud {
+    # Reverse proxy to Next.js app
+    reverse_proxy web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # API routes to FastAPI backend
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+    }
+
+    # Gzip compression
+    encode gzip
+
+    # Logs
+    log {
+        output file /var/log/caddy/retailos.log
+        format json
+    }
+}
+
+# Indumart Parent Domain - Store Finder
+indumart.us, www.indumart.us {
+    reverse_proxy web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # API routes to FastAPI backend
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+    }
+
+    encode gzip
+
+    log {
+        output file /var/log/caddy/indumart.log
+        format json
+    }
+}
+
+# Wildcard for all store subdomains (*.indumart.us)
+*.indumart.us {
+    reverse_proxy web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # API routes to FastAPI backend
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+    }
+
+    encode gzip
+
+    log {
+        output file /var/log/caddy/stores.log
+        format json
+    }
+}

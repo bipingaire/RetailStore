@@ -55,6 +55,9 @@ export function parseHost(host: string): { domain: string | null; subdomain: str
  * Determine the domain type for routing decisions
  */
 export function getDomainType(host: string, queryDomain?: string, querySubdomain?: string): DomainType {
+    const retailosDomain = process.env.NEXT_PUBLIC_RETAILOS_DOMAIN || 'retailos.cloud';
+    const indumartDomain = process.env.NEXT_PUBLIC_INDUMART_DOMAIN || 'indumart.us';
+
     // In development with query params
     if (queryDomain) {
         if (queryDomain.includes('retailos')) {
@@ -69,13 +72,13 @@ export function getDomainType(host: string, queryDomain?: string, querySubdomain
 
     if (!domain) return 'unknown';
 
-    // RetailOS domain
-    if (domain.includes('retailos')) {
+    // RetailOS domain (supports both .com and .cloud or custom)
+    if (domain.includes(retailosDomain.split('.')[0])) {
         return 'retailos';
     }
 
     // Indumart domain
-    if (domain.includes('indumart')) {
+    if (domain.includes(indumartDomain.split('.')[0])) {
         // Has subdomain = tenant site (e.g., highpoint.indumart.us)
         if (subdomain) {
             return 'indumart-tenant';
