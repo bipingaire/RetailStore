@@ -37,6 +37,17 @@ Access your application:
 - https://retailos.cloud/super-admin  
 - https://indumart.us
 
+**Database migrations run automatically on startup!**
+
+## Database Migrations
+
+Migrations run **automatically** when backend starts:
+- ✅ Waits for database to be ready
+- ✅ Runs `alembic upgrade head`
+- ✅ Starts FastAPI application
+
+See `backend/MIGRATIONS.md` for details.
+
 ## Useful Commands
 
 ```bash

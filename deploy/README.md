@@ -127,6 +127,48 @@ The `deploy.sh` script automatically:
 
 ---
 
+## 🗄️ Database Migrations
+
+### Automatic on Startup
+
+Database migrations run **automatically** when the backend container starts:
+
+1. Waits for PostgreSQL to be ready (up to 60 seconds)
+2. Runs `alembic upgrade head` to apply pending migrations
+3. Starts the FastAPI application
+
+**No manual migration commands needed!**
+
+### Creating Migrations
+
+```bash
+# Enter backend container
+docker-compose exec backend bash
+
+# Create new migration
+alembic revision --autogenerate -m "add new table"
+
+# Restart backend to apply (or it auto-applies on next deploy)
+docker-compose restart backend
+```
+
+### Manual Migration Commands
+
+```bash
+# View migration status
+docker-compose exec backend alembic current
+
+# View history
+docker-compose exec backend alembic history
+
+# Rollback one migration
+docker-compose exec backend alembic downgrade -1
+```
+
+See [backend/MIGRATIONS.md](../backend/MIGRATIONS.md) for complete guide.
+
+---
+
 ## 🔍 Management Commands
 
 ### View Logs
