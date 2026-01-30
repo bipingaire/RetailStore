@@ -1,11 +1,14 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { Lock, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function ResetPasswordPage() {
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
+
+function ResetPasswordForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [password, setPassword] = useState('');
@@ -140,5 +143,13 @@ export default function ResetPasswordPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <ResetPasswordForm />
+        </Suspense>
     );
 }

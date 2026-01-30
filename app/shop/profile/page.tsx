@@ -5,14 +5,18 @@ import { useAuth } from '@/lib/auth-context';
 import { User, Mail, Phone, MapPin, Edit, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
+
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  if (!user) {
-    router.push('/shop/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      router.push('/shop/login');
+    }
+  }, [user, router]);
 
   const handleLogout = async () => {
     await logout();
