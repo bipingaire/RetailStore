@@ -5,7 +5,7 @@ Shelf audit router - Inventory reconciliation and theft/loss tracking
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
 import uuid
 from decimal import Decimal
 
