@@ -66,7 +66,7 @@ services:
       - "8010:8000" # Backend API -> port 8010
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
-      - CORS_ORIGINS=https://retailos.cloud,https://www.retailos.cloud,https://indumart.us,https://www.indumart.us
+      - CORS_ORIGINS=["https://retailos.cloud","https://www.retailos.cloud","https://indumart.us","https://www.indumart.us"]
     env_file:
       - .env.production
     depends_on:
