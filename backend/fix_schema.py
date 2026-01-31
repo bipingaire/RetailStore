@@ -25,9 +25,14 @@ def fix_schema():
             cur.execute("ALTER TABLE users RENAME COLUMN hashed_password TO encrypted_password;")
             print("✅ Rename successful!")
         elif 'encrypted_password' in columns:
-            print("✅ 'encrypted_password' already exists. Schema is correct.")
+            print("✅ 'encrypted_password' already exists.")
+            
+        if 'email_confirmed_at' not in columns:
+            print("🛠️  Missing 'email_confirmed_at'. Adding column...")
+            cur.execute("ALTER TABLE users ADD COLUMN email_confirmed_at TIMESTAMP WITH TIME ZONE;")
+            print("✅ Column added successful!")
         else:
-            print("⚠️  Neither 'hashed_password' nor 'encrypted_password' found! Table might be empty or wrong.")
+            print("✅ 'email_confirmed_at' already exists.")
             
         cur.close()
         conn.close()

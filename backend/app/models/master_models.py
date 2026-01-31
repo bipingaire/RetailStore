@@ -114,6 +114,7 @@ class User(MasterBase):
     encrypted_password = Column(String(255), nullable=False)
     full_name = Column(String(255))
     role = Column(String(50), default="superadmin")
+    email_confirmed_at = Column(DateTime(timezone=True))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
