@@ -7,6 +7,8 @@ from ..services.tenant_service import TenantService
 from ..models.master_models import Tenant
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
+router = APIRouter()
+
 class TenantRegister(BaseModel):
     subdomain: str
     store_name: str
