@@ -1,6 +1,6 @@
 from app.database_manager import db_manager
 from app.models.master_models import User
-from app.utils.auth import hash_password
+from app.utils.auth import get_password_hash
 from sqlalchemy.orm import Session
 import sys
 
@@ -29,7 +29,7 @@ try:
         # Create superadmin user
         superadmin = User(
             email=SUPERADMIN_EMAIL,
-            encrypted_password=hash_password(SUPERADMIN_PASSWORD),
+            encrypted_password=get_password_hash(SUPERADMIN_PASSWORD),
             name="Super Administrator",
             role="superadmin",
             is_active=True
