@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from ..database_manager import get_master_db
 from ..services.tenant_service import TenantService
-
-router = APIRouter()
+from ..models.master_models import Tenant
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 
 class TenantRegister(BaseModel):
     subdomain: str
@@ -22,6 +22,26 @@ async def list_public_tenants():
 @router.get("/nearest")
 async def get_nearest_store(lat: float, lng: float):
     return []
+
+@router.get("/lookup")
+async def lookup_tenant(
+    subdomain: str = Query(..., description="Subdomain to lookup"),
+    master_db: Session = Depends(get_master_db)
+):
+    """
+    Lookup tenant ID by subdomain.
+    Used by frontend middleware for routing.
+    """
+    tenant = master_db.query(Tenant).filter(Tenant.subdomain == subdomain).first()
+    
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found"
+        )
+            
+    return {"tenant_id": str(tenant.tenant_id), "is_active": tenant.is_active}
+
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_tenant(
