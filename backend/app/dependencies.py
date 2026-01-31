@@ -141,6 +141,16 @@ async def require_admin_or_customer(
     return user
 
 
+
+class TenantFilter:
+    """
+    Dependency to filter queries by current tenant.
+    """
+    def __init__(self, subdomain: str = Depends(get_subdomain)):
+        self.tenant_id = subdomain
+        self.subdomain = subdomain
+
+
 # TenantContext for accessing both user and database
 class TenantContext:
     """
