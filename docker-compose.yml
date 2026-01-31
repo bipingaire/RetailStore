@@ -66,6 +66,12 @@ services:
       - "8010:8000" # Backend API -> port 8010
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
+      - MASTER_DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER:-retailstore}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-retailstore}
+      - SECRET_KEY=${JWT_SECRET:-changeme_dev_secret}
       - CORS_ORIGINS=["https://retailos.cloud","https://www.retailos.cloud","https://indumart.us","https://www.indumart.us"]
     env_file:
       - .env.production
