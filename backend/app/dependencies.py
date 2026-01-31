@@ -202,6 +202,18 @@ def get_master_db() -> Session:
 
 
 # Superadmin Authorization
+async def require_superadmin(
+    user: User = Depends(get_current_user)
+) -> User:
+    """Require superadmin role."""
+    if user.role != "superadmin" and user.token_role != "superadmin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superadmin access required"
+        )
+    return user
+
+
 async def require_admin_or_superadmin(
     user: User = Depends(get_current_user)
 ) -> User:
