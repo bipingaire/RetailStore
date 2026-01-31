@@ -30,7 +30,7 @@ services:
       args:
         - NEXT_PUBLIC_RETAILOS_DOMAIN=${NEXT_PUBLIC_RETAILOS_DOMAIN:-retailos.cloud}
         - NEXT_PUBLIC_INDUMART_DOMAIN=${NEXT_PUBLIC_INDUMART_DOMAIN:-indumart.us}
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:8000}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
         - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
         - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     container_name: retailstore_web
@@ -41,7 +41,7 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_RETAILOS_DOMAIN=${NEXT_PUBLIC_RETAILOS_DOMAIN:-retailos.cloud}
       - NEXT_PUBLIC_INDUMART_DOMAIN=${NEXT_PUBLIC_INDUMART_DOMAIN:-indumart.us}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     env_file:
@@ -81,7 +81,7 @@ services:
     networks:
       - retailstore-network
     healthcheck:
-      test: [ "CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')" ]
+      test: [ "CMD", "python3", "-c", "import requests; requests.get('http://localhost:8000/health')" ]
       interval: 30s
       timeout: 10s
       retries: 3
