@@ -11,7 +11,7 @@ from .models.master_models import MasterBase
 from .models.tenant_models import TenantBase
 from .routers import (
     auth, products, inventory, orders, customers, vendors, files,
-    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, tenants, expenses
+    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, expenses
 )
 
 # Create FastAPI app
@@ -74,7 +74,7 @@ async def root():
 # Register routers
 # Core Features
 app.include_router(auth.router, prefix="/api/auth", tags=["🔐 Authentication"])
-app.include_router(tenants.router, prefix="/api/tenants", tags=["🏢 Tenants"])
+
 app.include_router(products.router, prefix="/api/products", tags=["📦 Products"])
 app.include_router(inventory.router, prefix="/api/inventory", tags=["📊 Inventory"])
 app.include_router(orders.router, prefix="/api/orders", tags=["🛒 Orders"])
