@@ -50,6 +50,10 @@ class DatabaseManager:
         
         logger.info("DatabaseManager initialized: Master + Tenant DBs")
     
+    def get_master_engine(self):
+        """Get master database engine."""
+        return self.master_engine
+
     def get_master_session(self) -> Session:
         """Get session for master database (global catalog)."""
         return self.MasterSession()
