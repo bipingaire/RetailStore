@@ -2,6 +2,21 @@
     auto_https off
 }
 
+# Redirect HTTP to HTTPS for known domains
 :80 {
+    redir https://{host}{uri}
+}
+
+# Main Domains (If certs exist, add them here too)
+# retailos.cloud, indumart.us {
+#     tls ...
+#     reverse_proxy web:3000
+# }
+
+# Tenant Subdomains
+greensboro.indumart.us, highpoint.indumart.us {
+    # Assuming certs were generated together using 'greensboro' as the first domain
+    tls /etc/letsencrypt/live/greensboro.indumart.us/fullchain.pem /etc/letsencrypt/live/greensboro.indumart.us/privkey.pem
+    
     reverse_proxy web:3000
 }
