@@ -29,7 +29,7 @@ try:
         # Create superadmin user
         superadmin = User(
             email=SUPERADMIN_EMAIL,
-            hashed_password=hash_password(SUPERADMIN_PASSWORD),
+            encrypted_password=hash_password(SUPERADMIN_PASSWORD),
             name="Super Administrator",
             role="superadmin",
             is_active=True

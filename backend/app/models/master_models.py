@@ -111,7 +111,7 @@ class User(MasterBase):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    hashed_password = Column(String(255), nullable=False)
+    encrypted_password = Column(String(255), nullable=False)
     full_name = Column(String(255))
     role = Column(String(50), default="superadmin")
     is_active = Column(Boolean, default=True)
