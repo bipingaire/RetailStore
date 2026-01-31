@@ -1,18 +1,23 @@
-"""
-Create SuperAdmin User
-"""
 from app.database_manager import db_manager
 from app.models.master_models import User
 from app.utils.auth import hash_password
 from sqlalchemy.orm import Session
+import sys
 
 # SuperAdmin credentials
 SUPERADMIN_EMAIL = "superadmin@retailos.cloud"
 SUPERADMIN_PASSWORD = "SuperAdmin@2026"
 
+print("Starting SuperAdmin creation script...")
+
 # Get master database session
-engine = db_manager.get_master_engine()
-session = Session(engine)
+try:
+    engine = db_manager.get_master_engine()
+    session = Session(engine)
+    print("Database connection established.")
+except Exception as e:
+    print(f"Error connecting to database: {e}")
+    sys.exit(1)
 
 try:
     # Check if superadmin already exists
@@ -38,5 +43,8 @@ try:
         print(f"   Password: {SUPERADMIN_PASSWORD}")
         print("\n⚠️  IMPORTANT: Change this password after first login!")
         
+except Exception as e:
+    print(f"An error occurred: {e}")
+    session.rollback()
 finally:
     session.close()
