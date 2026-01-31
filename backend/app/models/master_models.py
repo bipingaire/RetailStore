@@ -98,3 +98,26 @@ class GlobalProduct(MasterBase):
     # Timestamps
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated-at", DateTime(timezone=True), onupdate=func.now())
+
+
+class User(MasterBase):
+    """
+    Global Users (SuperAdmins & System Users).
+    
+    Stored in Master Database.
+    Tenants have their own separate User table in their schemas.
+    """
+    __tablename__ = "users"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(255))
+    role = Column(String(50), default="superadmin")
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+# Alias for compatibility with superadmin router
+Tenant = TenantRegistry
