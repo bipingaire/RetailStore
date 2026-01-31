@@ -57,7 +57,18 @@ def get_db(subdomain: str = Depends(get_subdomain)) -> Session:
     Get database session for the tenant.
     
     This automatically routes to the correct tenant database.
+    For system domains (retailos, system, admin), it returns the master database.
     """
+    # System subdomains use the master database
+    if subdomain in ["retailos", "system", "admin", "www", "api"]:
+        db = db_manager.get_master_session()
+        try:
+            yield db
+        finally:
+            db.close()
+        return
+
+    # Tenant subdomains use their isolated database
     database_name = db_manager.get_database_name(subdomain)
     db = db_manager.get_tenant_session(database_name)
     try:
