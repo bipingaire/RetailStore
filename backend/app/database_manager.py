@@ -74,7 +74,7 @@ class DatabaseManager:
                 tenant_url,
                 pool_pre_ping=True,
                 pool_size=settings.db_pool_size,
-                pool_max_overflow=settings.db_max_overflow,
+                max_overflow=settings.db_max_overflow,
                 echo=settings.debug,
                 connect_args={'options': '-csearch_path=public'}
             )
