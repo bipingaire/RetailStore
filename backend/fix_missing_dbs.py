@@ -113,7 +113,6 @@ def create_default_admin(tenant, tenant_db):
     new_admin = User(
         email=admin_email,
         encrypted_password=get_password_hash("Password123!"),
-        full_name=f"{tenant.store_name} Admin",
         role="admin",
         is_active=True
     )
