@@ -8,7 +8,6 @@ from app.dependencies import get_db, require_admin
 from app.models.tenant_models import TenantPaymentConfig
 
 router = APIRouter(
-    prefix="/api/settings",
     tags=["Settings"],
     dependencies=[Depends(require_admin)]
 )

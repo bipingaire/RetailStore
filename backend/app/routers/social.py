@@ -14,7 +14,6 @@ from ..models.tenant_models import SocialMediaAccount, SocialMediaPost
 from ..dependencies import TenantFilter, require_admin
 
 router = APIRouter(
-    prefix="/api/social",
     tags=["Social"],
     dependencies=[Depends(require_admin)]
 )

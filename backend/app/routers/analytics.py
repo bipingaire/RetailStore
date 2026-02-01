@@ -24,6 +24,7 @@ class CampaignCreate(BaseModel):
 
 
 @router.get("/health")
+@router.get("/inventory-health")
 async def get_inventory_health(
     tenant_filter: TenantFilter = Depends(),
     db: Session = Depends(get_db)
