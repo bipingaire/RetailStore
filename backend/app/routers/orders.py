@@ -65,9 +65,7 @@ async def list_orders(
     - **limit**: Maximum results
     - **status**: Filter by order status
     """
-    query = db.query(CustomerOrder).filter(
-        CustomerOrder.tenant_id == tenant_filter.tenant_id
-    )
+    query = db.query(CustomerOrder)
     
     if status:
         query = query.filter(CustomerOrder.order_status == status)
@@ -99,8 +97,7 @@ async def get_order(
 ):
     """Get a specific order by ID."""
     order = db.query(CustomerOrder).filter(
-        CustomerOrder.order_id == order_id,
-        CustomerOrder.tenant_id == tenant_filter.tenant_id
+        CustomerOrder.order_id == order_id
     ).first()
     
     if not order:
@@ -130,7 +127,6 @@ async def create_order(
     
     # Create order
     new_order = CustomerOrder(
-        tenant_id=tenant_filter.tenant_id,
         customer_id=order_data.customer_id,
         order_status="pending",
         payment_status="unpaid",
@@ -176,8 +172,7 @@ async def update_order_status(
 ):
     """Update order status."""
     order = db.query(CustomerOrder).filter(
-        CustomerOrder.order_id == order_id,
-        CustomerOrder.tenant_id == tenant_filter.tenant_id
+        CustomerOrder.order_id == order_id
     ).first()
     
     if not order:
@@ -201,8 +196,7 @@ async def update_payment_status(
 ):
     """Update payment status."""
     order = db.query(CustomerOrder).filter(
-        CustomerOrder.order_id == order_id,
-        CustomerOrder.tenant_id == tenant_filter.tenant_id
+        CustomerOrder.order_id == order_id
     ).first()
     
     if not order:
