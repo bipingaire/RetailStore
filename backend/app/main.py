@@ -32,6 +32,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Proxy Headers Middleware (Critical for HTTPS redirects behind Nginx)
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
 # Request timing middleware
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
