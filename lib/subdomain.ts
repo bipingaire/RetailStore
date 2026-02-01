@@ -4,7 +4,9 @@
 
 // NOTE: Using direct fetch to FastAPI instead of Supabase
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = typeof window === 'undefined'
+    ? (process.env.INTERNAL_API_URL || 'http://backend:8000')
+    : (process.env.NEXT_PUBLIC_API_URL || '');
 
 /**
  * Extract subdomain from hostname
