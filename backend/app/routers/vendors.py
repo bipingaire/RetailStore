@@ -59,6 +59,7 @@ async def list_vendors(
     db: Session = Depends(get_db)
 ):
     """List vendors for the current tenant."""
+    print(f"DEBUG: list_vendors using DB URL: {db.bind.url}")
     query = db.query(Vendor)
     
     if search:
