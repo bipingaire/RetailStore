@@ -12,7 +12,10 @@ from datetime import datetime
 from ..dependencies import get_db
 from ..models import UploadedInvoice
 from ..dependencies import TenantFilter
+from ..dependencies import TenantFilter
 from ..services.inventory_service import InventoryService
+from ..services.invoice_scanner import InvoiceScanner
+from fastapi import BackgroundTasks
 
 router = APIRouter()
 
@@ -67,6 +70,7 @@ class InvoiceProcessResponse(BaseModel):
 
 @router.post("/upload", response_model=Dict)
 async def upload_invoice(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     tenant_filter: TenantFilter = Depends(),
     db: Session = Depends(get_db)
@@ -91,17 +95,27 @@ async def upload_invoice(
         
     invoice = UploadedInvoice(
         file_url_path=f"/uploads/invoices/{file.filename}",
-        processing_status="pending"
+        processing_status="pending",
+        total_pages=0,
+        pages_scanned=0
     )
     
     db.add(invoice)
     db.commit()
     db.refresh(invoice)
     
+    # Trigger background scanning
+    background_tasks.add_task(
+        InvoiceScanner.scan_invoice,
+        subdomain=tenant_filter.subdomain,
+        invoice_id=invoice.invoice_id,
+        file_path=file_location
+    )
+    
     return {
         "invoice_id": str(invoice.invoice_id),
-        "status": "uploaded",
-        "message": "Invoice uploaded successfully. Process with /process endpoint."
+        "status": "processing",
+        "message": "Invoice uploaded. Processing started."
     }
 
 
@@ -228,5 +242,7 @@ async def get_invoice_details(
         "total_amount": float(invoice.total_amount_value) if invoice.total_amount_value else 0,
         "status": invoice.processing_status,
         "line_items_json": invoice.ai_extracted_data_json.get("items", []) if invoice.ai_extracted_data_json else [],
+        "total_pages": invoice.total_pages or 0,
+        "pages_scanned": invoice.pages_scanned or 0,
         "created_at": invoice.created_at.isoformat() if invoice.created_at else None
     }

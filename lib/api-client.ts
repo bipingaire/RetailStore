@@ -399,10 +399,9 @@ export class APIClient {
 
         const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
-        const response = await fetch(`${API_URL}/api/ai/parse-invoice`, {
+        const response = await fetch(`${API_URL}/api/invoices/upload`, {
             method: 'POST',
             headers: {
-                // 'Content-Type': 'multipart/form-data', // Browser sets this automatically
                 'Authorization': `Bearer ${token}`,
                 'X-Subdomain': this.subdomain,
             },
@@ -414,6 +413,13 @@ export class APIClient {
         }
 
         return response.json();
+    }
+
+    async commitInvoice(invoiceData: any) {
+        return this.request('/api/invoices/process', {
+            method: 'POST',
+            body: JSON.stringify(invoiceData),
+        });
     }
 
     /**
@@ -665,26 +671,7 @@ export class APIClient {
     }
 
     async parseInvoice(file: File) {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-
-        const response = await fetch(`${API_URL}/api/ai/parse-invoice`, {
-            method: 'POST',
-            headers: {
-                // Content-Type is set automatically for FormData
-                'Authorization': `Bearer ${token}`,
-                'X-Subdomain': this.subdomain,
-            },
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error('Invoice parsing failed');
-        }
-
-        return response.json();
+        return this.uploadInvoice(file);
     }
 
     // --- STORES (Tenants) ---

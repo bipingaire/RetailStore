@@ -194,6 +194,11 @@ class UploadedInvoice(TenantBase):
     invoice_date = Column("invoice-date", DateTime(timezone=True))
     total_amount_value = Column("total-amount-value", Numeric(10, 2))
     ai_extracted_data_json = Column("ai-extracted-data-json", JSON)
+    
+    # Progress tracking
+    total_pages = Column("total-pages", Integer, default=0)
+    pages_scanned = Column("pages-scanned", Integer, default=0)
+    
     created_at = Column("created-at", DateTime(timezone=True), server_default=func.now())
 
 
