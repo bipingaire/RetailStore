@@ -55,6 +55,16 @@ async def upload_invoice(
     Returns the invoice ID for later processing.
     """
     # Save invoice record
+    import os
+    
+    upload_path = f"uploads/invoices"
+    os.makedirs(upload_path, exist_ok=True)
+    
+    file_location = f"{upload_path}/{file.filename}"
+    
+    with open(file_location, "wb+") as file_object:
+        file_object.write(await file.read())
+        
     invoice = UploadedInvoice(
         tenant_id=tenant_filter.tenant_id,
         file_url_path=f"/uploads/invoices/{file.filename}",
