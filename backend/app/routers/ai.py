@@ -85,70 +85,117 @@ async def parse_invoice(
     imageUrl: Optional[str] = Form(None)
 ):
     """
-    Parse an invoice file or image URL to extract vendor and product data.
-    Mocked implementation for demo.
+    Parse an invoice file or image URL to extract vendor and product data using OpenAI GPT-4o.
     """
-    # Simulate processing delay
-    time.sleep(2.0)
-    
-    # Mock Data Groups
-    mock_vendors = [
-        {"name": "Global Foods Distributors", "type": "food"},
-        {"name": "TechParts Solutions", "type": "tech"},
-        {"name": "FreshFarm Supply", "type": "food"},
-        {"name": "Office Basics Inc.", "type": "office"}
-    ]
-    
-    mock_items_map = {
-        "food": [
-            {"name": "Organic Bananas", "sku": "BAN-ORG-001", "cost": 0.85},
-            {"name": "Almond Milk", "sku": "ALM-US-32", "cost": 2.10},
-            {"name": "Whole Wheat Bread", "sku": "BRD-WW-05", "cost": 1.50},
-            {"name": "Avocados (Case)", "sku": "AVO-MX-20", "cost": 45.00},
-        ],
-        "tech": [
-            {"name": "USB-C Cable 6ft", "sku": "CB-USC-6", "cost": 3.50},
-            {"name": "Wireless Mouse", "sku": "MS-WL-01", "cost": 12.00},
-            {"name": "Monitor Stand", "sku": "ST-MN-02", "cost": 25.00},
-        ],
-        "office": [
-            {"name": "Printer Paper (Box)", "sku": "PPR-A4-500", "cost": 32.00},
-            {"name": "Ballpoint Pens (Blue)", "sku": "PN-BL-12", "cost": 4.50},
-        ]
-    }
-    
-    # Select random vendor
-    vendor = random.choice(mock_vendors)
-    items_pool = mock_items_map.get(vendor["type"], mock_items_map["food"])
-    
-    # Generate random items
-    num_items = random.randint(2, 5)
-    selected_items = []
-    total_goods = 0.0
-    
-    for i in range(num_items):
-        item_template = random.choice(items_pool)
-        qty = random.randint(5, 25)
-        # Add some randomness to usage of template
-        line_item = {
-            "product_name": item_template["name"],
-            "vendor_code": item_template["sku"],
-            "upc": f"000{random.randint(1000,9999)}",
-            "qty": qty,
-            "unit_cost": item_template["cost"],
-            "notes": "Demo: Extracted from image" if i == 0 else ""
+    from ..config import settings
+    import openai
+    import base64
+    import io
+    from pdf2image import convert_from_bytes
+
+    if not settings.openai_api_key:
+        # Fallback to mock if no key
+        return {
+            "success": False,
+            "data": {"error": "OpenAI API Key not configured"}
         }
-        selected_items.append(line_item)
-        total_goods += (qty * item_template["cost"])
-        
-    tax = round(total_goods * 0.08, 2)
-    shipping = 15.00
-    grand_total = round(total_goods + tax + shipping, 2)
+
+    client = openai.OpenAI(api_key=settings.openai_api_key)
     
-    return {
-        "success": True,
-        "data": result
-    }
+    encoded_images = []
+    
+    try:
+        if file:
+            content = await file.read()
+            
+            # Handle PDF
+            if file.content_type == "application/pdf" or file.filename.lower().endswith(".pdf"):
+                # Convert first page of PDF to image
+                try:
+                    images = convert_from_bytes(content, first_page=1, last_page=1)
+                    if images:
+                        # Convert PIL image to bytes
+                        img_byte_arr = io.BytesIO()
+                        images[0].save(img_byte_arr, format='JPEG')
+                        encoded_images.append(base64.b64encode(img_byte_arr.getvalue()).decode('utf-8'))
+                except Exception as e:
+                    print(f"PDF Conversion Error: {e}")
+                    raise HTTPException(status_code=400, detail="Failed to convert PDF invoice")
+            else:
+                # Handle Image directly
+                encoded_images.append(base64.b64encode(content).decode('utf-8'))
+                
+        elif imageUrl:
+            # Simplified: just pass URL to OpenAI if supported or download/encode here
+            # For now, let's assume we need a file upload for best results
+            pass
+
+        if not encoded_images:
+             return {
+                "success": False,
+                "data": {"error": "No valid invoice image provided"}
+            }
+
+        # Prompt for OpenAI
+        prompt = """
+        Extract the following data from this invoice image:
+        1. Vendor Name
+        2. Invoice Date (YYYY-MM-DD)
+        3. Total Amount
+        4. Line Items (Product Name, Quantity, Unit Cost, UPC/SKU if available)
+
+        Return ONLY raw JSON with this structure:
+        {
+            "vendor_name": "string",
+            "invoice_date": "YYYY-MM-DD",
+            "total_amount": number,
+            "items": [
+                {
+                    "product_name": "string",
+                    "quantity": number,
+                    "unit_cost": number,
+                    "upc": "string" (or null),
+                    "notes": "string" (optional)
+                }
+            ]
+        }
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{encoded_images[0]}"
+                            }
+                        },
+                    ],
+                }
+            ],
+            max_tokens=1000,
+            temperature=0,
+            response_format={"type": "json_object"}
+        )
+        
+        result_text = response.choices[0].message.content
+        extracted_data = json.loads(result_text)
+        
+        return {
+            "success": True,
+            "data": extracted_data
+        }
+
+    except Exception as e:
+        print(f"AI Parse Error: {e}")
+        return {
+            "success": False,
+            "data": {"error": f"Failed to parse invoice: {str(e)}"}
+        }
 
 class GenerateImageRequest(BaseModel):
     prompt: str
