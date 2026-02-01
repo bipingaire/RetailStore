@@ -58,6 +58,7 @@ class TenantService:
             except Exception as e:
                 print(f"❌ Error creating admin user for {subdomain}: {e}")
                 tenant_db.rollback()
+                # Force cache invalidation
                 raise e
             finally:
                 tenant_db.close()
