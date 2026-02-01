@@ -63,7 +63,7 @@ services:
     container_name: retailstore_backend
     restart: always
     ports:
-      - "8010:8000" # Backend API -> port 8010
+      - "8000:8000" # Backend API -> port 8000
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
       - MASTER_DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
