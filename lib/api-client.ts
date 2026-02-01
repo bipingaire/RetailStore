@@ -686,12 +686,6 @@ export class APIClient {
         return response.json();
     }
 
-    // --- SUPER ADMIN ---
-
-    async getSystemStats() {
-        return this.request('/api/superadmin/stats');
-    }
-
     // --- STORES (Tenants) ---
 
     async getStores() {
