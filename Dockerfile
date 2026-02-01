@@ -31,7 +31,9 @@ ENV NEXT_PUBLIC_RETAILOS_DOMAIN=$NEXT_PUBLIC_RETAILOS_DOMAIN
 ENV NEXT_PUBLIC_INDUMART_DOMAIN=$NEXT_PUBLIC_INDUMART_DOMAIN
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
+RUN ls -la .next
 
 # Production image, copy all the files and run next
 FROM base AS runner
