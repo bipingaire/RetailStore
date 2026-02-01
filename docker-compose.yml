@@ -30,7 +30,7 @@ services:
       args:
         - NEXT_PUBLIC_RETAILOS_DOMAIN=${NEXT_PUBLIC_RETAILOS_DOMAIN:-retailos.cloud}
         - NEXT_PUBLIC_INDUMART_DOMAIN=${NEXT_PUBLIC_INDUMART_DOMAIN:-indumart.us}
-        - NEXT_PUBLIC_API_URL=
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
         - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
         - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     container_name: retailstore_web
@@ -63,7 +63,7 @@ services:
     container_name: retailstore_backend
     restart: always
     ports:
-      - "8000:8000" # Backend API -> port 8000
+      - "8010:8000" # Backend API -> port 8010
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
       - MASTER_DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
