@@ -5,8 +5,7 @@
  * Handles authentication, tenant routing, and all API operations.
  */
 
-// Use same origin if no API URL specified (defaults to relative paths like /api/...)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export class APIClient {
     private subdomain: string;
@@ -687,10 +686,16 @@ export class APIClient {
         return response.json();
     }
 
+    // --- SUPER ADMIN ---
+
+    async getSystemStats() {
+        return this.request('/api/superadmin/stats');
+    }
+
     // --- STORES (Tenants) ---
 
     async getStores() {
-        return this.request('/api/superadmin/tenants');
+        return this.request('/api/tenants');
     }
 
     async getNearestStore(lat: number, lng: number) {
@@ -703,7 +708,7 @@ export class APIClient {
         admin_email: string;
         admin_password: string;
     }) {
-        return this.request('/api/superadmin/tenants', {
+        return this.request('/api/tenants/register', {
             method: 'POST',
             body: JSON.stringify(data),
         });

@@ -12,13 +12,12 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const products = await apiClient.getProducts({}) as any[];
-        // Mocking other stats for now as backend endpoints might not exist
+        const statsData = await apiClient.getSystemStats() as any;
         setStats({
-          totalProducts: products.length || 0,
-          totalTenants: 12, // Mock
-          totalRevenue: 154200, // Mock
-          activeUsers: 892 // Mock
+          totalProducts: statsData.global_products || 0,
+          totalTenants: statsData.active_tenants || 0,
+          totalRevenue: 0, // Not yet implemented in backend
+          activeUsers: statsData.total_users || 0
         });
       } catch (error: any) {
         console.error('Error loading stats:', error);
@@ -159,7 +158,7 @@ export default function SuperAdminDashboard() {
             ].map((item, i) => (
               <div key={i} className="relative pl-10">
                 <div className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 ${item.type === 'create' ? 'bg-green-100 text-green-600' :
-                    item.type === 'update' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'
+                  item.type === 'update' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'
                   }`}>
                   <div className="w-2 h-2 rounded-full bg-current" />
                 </div>
