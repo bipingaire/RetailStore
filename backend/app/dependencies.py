@@ -77,6 +77,21 @@ def get_db(subdomain: str = Depends(get_subdomain)) -> Session:
         db.close()
 
 
+# Master Database Access (for global catalog)
+def get_master_db() -> Session:
+    """
+    Get database session for the master database (global product catalog).
+    
+    This is used for endpoints that need to access the global product catalog
+    shared across all tenants.
+    """
+    db = db_manager.get_master_session()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -200,19 +215,7 @@ class TenantContext:
         return self.role == "customer"
 
 
-# Master Database Access (for global catalog)
-def get_master_db() -> Session:
-    """
-    Get database session for the master database (global product catalog).
-    
-    This is used for endpoints that need to access the global product catalog
-    shared across all tenants.
-    """
-    db = db_manager.get_master_session()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 
 # Superadmin Authorization
