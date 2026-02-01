@@ -66,7 +66,6 @@ async def upload_invoice(
         file_object.write(await file.read())
         
     invoice = UploadedInvoice(
-        tenant_id=tenant_filter.tenant_id,
         file_url_path=f"/uploads/invoices/{file.filename}",
         processing_status="pending"
     )
@@ -98,7 +97,6 @@ async def process_invoice(
     """
     # Create invoice record
     invoice = UploadedInvoice(
-        tenant_id=tenant_filter.tenant_id,
         supplier_name=invoice_data.supplier_name,
         invoice_number=invoice_data.invoice_number,
         invoice_date=datetime.fromisoformat(invoice_data.invoice_date),
@@ -135,9 +133,7 @@ async def get_invoice_history(
 ):
     """Get invoice processing history."""
     
-    invoices = db.query(UploadedInvoice).filter(
-        UploadedInvoice.tenant_id == tenant_filter.tenant_id
-    ).order_by(
+    invoices = db.query(UploadedInvoice).order_by(
         UploadedInvoice.created_at.desc()
     ).offset(skip).limit(limit).all()
     
@@ -164,7 +160,24 @@ async def list_invoices_root(
     db: Session = Depends(get_db)
 ):
     """Alias for getting invoice history (fixes frontend calling /api/invoices)."""
-    return await get_invoice_history(skip, limit, tenant_filter, db)
+    invoices = db.query(UploadedInvoice).order_by(
+        UploadedInvoice.created_at.desc()
+    ).offset(skip).limit(limit).all()
+    
+    return {
+        "invoices": [
+            {
+                "invoice_id": str(inv.invoice_id),
+                "supplier": inv.supplier_name,
+                "invoice_number": inv.invoice_number,
+                "total_amount": float(inv.total_amount_value) if inv.total_amount_value else 0,
+                "status": inv.processing_status,
+                "created_at": inv.created_at.isoformat() if inv.created_at else None
+            }
+            for inv in invoices
+        ],
+        "count": len(invoices)
+    }
 
 
 @router.get("/{invoice_id}")
@@ -175,8 +188,7 @@ async def get_invoice_details(
 ):
     """Get invoice details."""
     invoice = db.query(UploadedInvoice).filter(
-        UploadedInvoice.invoice_id == invoice_id,
-        UploadedInvoice.tenant_id == tenant_filter.tenant_id
+        UploadedInvoice.invoice_id == invoice_id
     ).first()
     
     if not invoice:
