@@ -13,7 +13,6 @@ from ..dependencies import get_db
 from ..models import UploadedInvoice
 from ..dependencies import TenantFilter
 from ..services.inventory_service import InventoryService
-from ..services.invoice_parser import InvoiceParserService
 
 router = APIRouter()
 
@@ -86,25 +85,13 @@ async def upload_invoice(
     os.makedirs(upload_path, exist_ok=True)
     
     file_location = f"{upload_path}/{file.filename}"
-    content = await file.read()
     
-    # Save to disk
     with open(file_location, "wb+") as file_object:
-        file_object.write(content)
+        file_object.write(await file.read())
         
-    # Process with AI (Auto-Extract)
-    try:
-        extracted_data = await InvoiceParserService.parse_invoice_file(content, file.filename)
-        status_msg = "processed_pending_review"
-    except Exception as e:
-        print(f"Auto-extraction failed: {e}")
-        extracted_data = {}
-        status_msg = "upload_only_extraction_failed"
-
     invoice = UploadedInvoice(
         file_url_path=f"/uploads/invoices/{file.filename}",
-        processing_status=status_msg,
-        ai_extracted_data_json=extracted_data
+        processing_status="pending"
     )
     
     db.add(invoice)
@@ -113,9 +100,8 @@ async def upload_invoice(
     
     return {
         "invoice_id": str(invoice.invoice_id),
-        "status": status_msg,
-        "message": "Invoice uploaded and processed. Please review.",
-        "extracted_data": extracted_data
+        "status": "uploaded",
+        "message": "Invoice uploaded successfully. Process with /process endpoint."
     }
 
 
