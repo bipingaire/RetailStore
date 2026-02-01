@@ -57,7 +57,6 @@ async def get_restock_recommendations(
     """
     # Get inventory items below reorder level
     low_stock_items = db.query(InventoryItem).join(GlobalProduct).filter(
-    low_stock_items = db.query(InventoryItem).join(GlobalProduct).filter(
         InventoryItem.quantity_on_hand < InventoryItem.reorder_level
     ).all()
     
