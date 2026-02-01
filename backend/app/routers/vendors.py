@@ -4,9 +4,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 
-from ..database import get_db
+from ..dependencies import get_db, TenantFilter
 from ..models import Vendor
-from ..dependencies import TenantFilter
 
 router = APIRouter()
 
