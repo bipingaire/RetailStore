@@ -12,23 +12,19 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const products = await apiClient.getProducts({}) as any[];
-        // Mocking other stats for now as backend endpoints might not exist
+        const [statsData] = await Promise.all([
+          apiClient.getSystemStats()
+        ]);
+
         setStats({
-          totalProducts: products.length || 0,
-          totalTenants: 12, // Mock
-          totalRevenue: 154200, // Mock
-          activeUsers: 892 // Mock
+          totalProducts: statsData.global_products || 0,
+          totalTenants: statsData.active_tenants || 0,
+          totalRevenue: 0, // Revenue calculation requires aggregation currently not in stats API
+          activeUsers: statsData.total_users || 0
         });
       } catch (error: any) {
         console.error('Error loading stats:', error);
-        toast.error('Failed to load dashboard');
-        setStats({
-          totalProducts: 0,
-          totalTenants: 0,
-          totalRevenue: 0,
-          activeUsers: 0
-        });
+        toast.error('Failed to load dashboard statistics');
       } finally {
         setLoading(false);
       }
@@ -66,7 +62,7 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="mt-4 flex items-center gap-2 text-xs font-medium text-green-600">
             <TrendingUp size={14} />
-            <span>+2 this week</span>
+            <span>Real-time</span>
           </div>
         </div>
 
@@ -97,7 +93,7 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="mt-4 flex items-center gap-2 text-xs font-medium text-green-600">
             <TrendingUp size={14} />
-            <span>+12% growth</span>
+            <span>Active Accounts</span>
           </div>
         </div>
 

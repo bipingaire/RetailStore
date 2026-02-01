@@ -65,8 +65,8 @@ services:
     ports:
       - "8010:8000" # Backend API -> port 8010
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
-      - MASTER_DATABASE_URL=${DATABASE_URL:-postgresql://retailstore:retailstore@db:5432/retailstore}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - MASTER_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - DB_HOST=db
       - DB_PORT=5432
       - DB_USER=${POSTGRES_USER:-retailstore}

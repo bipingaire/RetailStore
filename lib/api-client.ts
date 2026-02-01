@@ -688,6 +688,10 @@ export class APIClient {
 
     // --- STORES (Tenants) ---
 
+    async getSystemStats() {
+        return this.request('/api/superadmin/stats');
+    }
+
     async getStores() {
         return this.request('/api/superadmin/tenants');
     }
