@@ -47,7 +47,6 @@ async def get_profit_summary(
     
     result = InventoryService.calculate_profits(
         db=db,
-        tenant_id=tenant_filter.tenant_id,
         start_date=start_date,
         end_date=end_date
     )
@@ -87,7 +86,6 @@ async def get_daily_profits(
         
         result = InventoryService.calculate_profits(
             db=db,
-            tenant_id=tenant_filter.tenant_id,
             start_date=start,
             end_date=end
         )
@@ -126,10 +124,10 @@ async def get_profit_trends(
     prev_week_start = week_start - timedelta(days=7)
     
     this_week = InventoryService.calculate_profits(
-        db, tenant_filter.tenant_id, week_start, week_end
+        db, week_start, week_end
     )
     last_week = InventoryService.calculate_profits(
-        db, tenant_filter.tenant_id, prev_week_start, prev_week_end
+        db, prev_week_start, prev_week_end
     )
     
     # Last 30 days
@@ -139,10 +137,10 @@ async def get_profit_trends(
     prev_month_start = month_start - timedelta(days=30)
     
     this_month = InventoryService.calculate_profits(
-        db, tenant_filter.tenant_id, month_start, month_end
+        db, month_start, month_end
     )
     last_month = InventoryService.calculate_profits(
-        db, tenant_filter.tenant_id, prev_month_start, prev_month_end
+        db, prev_month_start, prev_month_end
     )
     
     # Calculate changes
@@ -188,8 +186,6 @@ async def get_top_performers(
         OrderLineItem, OrderLineItem.global_product_id == GlobalProduct.product_id
     ).join(
         InventoryItem, InventoryItem.global_product_id == GlobalProduct.product_id
-    ).filter(
-        InventoryItem.tenant_id == tenant_filter.tenant_id
     ).group_by(
         GlobalProduct.product_id,
         GlobalProduct.product_name

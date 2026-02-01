@@ -57,7 +57,7 @@ async def get_restock_recommendations(
     """
     # Get inventory items below reorder level
     low_stock_items = db.query(InventoryItem).join(GlobalProduct).filter(
-        InventoryItem.tenant_id == tenant_filter.tenant_id,
+    low_stock_items = db.query(InventoryItem).join(GlobalProduct).filter(
         InventoryItem.quantity_on_hand < InventoryItem.reorder_level
     ).all()
     
@@ -105,8 +105,7 @@ async def generate_purchase_order(
     """
     # Get vendor info
     vendor = db.query(Vendor).filter(
-        Vendor.id == po_data.vendor_id,
-        Vendor.tenant_id == tenant_filter.tenant_id
+        Vendor.id == po_data.vendor_id
     ).first()
     
     if not vendor:
@@ -121,7 +120,6 @@ async def generate_purchase_order(
     
     for item_data in po_data.items:
         inventory = db.query(InventoryItem).join(GlobalProduct).filter(
-            InventoryItem.tenant_id == tenant_filter.tenant_id,
             InventoryItem.global_product_id == item_data.product_id
         ).first()
         
@@ -189,14 +187,11 @@ async def auto_restock(
     # Get vendor
     if vendor_id:
         vendor = db.query(Vendor).filter(
-            Vendor.id == vendor_id,
-            Vendor.tenant_id == tenant_filter.tenant_id
+            Vendor.id == vendor_id
         ).first()
     else:
         # Get first available vendor
-        vendor = db.query(Vendor).filter(
-            Vendor.tenant_id == tenant_filter.tenant_id
-        ).first()
+        vendor = db.query(Vendor).first()
     
     if not vendor:
         raise HTTPException(
@@ -244,9 +239,7 @@ async def get_stock_levels_report(
     
     - **critical_only**: If true, only show items below reorder level
     """
-    query = db.query(InventoryItem).join(GlobalProduct).filter(
-        InventoryItem.tenant_id == tenant_filter.tenant_id
-    )
+    query = db.query(InventoryItem).join(GlobalProduct)
     
     if critical_only:
         query = query.filter(InventoryItem.quantity_on_hand < InventoryItem.reorder_level)

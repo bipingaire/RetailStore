@@ -51,9 +51,7 @@ def get_social_accounts(
     db: Session = Depends(get_db)
 ):
     """Get all social media accounts for tenant."""
-    accounts = db.query(SocialMediaAccount).filter(
-        SocialMediaAccount.tenant_id == tenant_filter.tenant_id
-    ).all()
+    accounts = db.query(SocialMediaAccount).all()
     
     # Map to frontend structure
     result = {
@@ -96,7 +94,6 @@ def save_social_settings(
             return
             
         acc = db.query(SocialMediaAccount).filter(
-            SocialMediaAccount.tenant_id == tenant_filter.tenant_id,
             SocialMediaAccount.platform == platform
         ).first()
         
@@ -105,7 +102,6 @@ def save_social_settings(
             acc.access_token = token
         else:
             acc = SocialMediaAccount(
-                tenant_id=tenant_filter.tenant_id,
                 platform=platform,
                 account_name=name,
                 access_token=token
@@ -134,7 +130,6 @@ def publish_to_social(
     
     for platform in data.platforms:
         post = SocialMediaPost(
-            tenant_id=tenant_filter.tenant_id,
             platform=platform,
             content=f"Campaign {data.campaignId} published to {platform}",
             status='published',

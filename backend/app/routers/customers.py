@@ -44,9 +44,7 @@ async def list_customers(
     db: Session = Depends(get_db)
 ):
     """List customers for the current tenant."""
-    query = db.query(Customer).filter(
-        Customer.tenant_id == tenant_filter.tenant_id
-    )
+    query = db.query(Customer)
     
     if search:
         search_filter = f"%{search}%"
@@ -68,8 +66,7 @@ async def get_customer(
 ):
     """Get a specific customer."""
     customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id,
-        Customer.tenant_id == tenant_filter.tenant_id
+        Customer.customer_id == customer_id
     ).first()
     
     if not customer:
@@ -89,7 +86,6 @@ async def create_customer(
 ):
     """Create a new customer."""
     new_customer = Customer(
-        tenant_id=tenant_filter.tenant_id,
         **customer_data.model_dump()
     )
     
@@ -109,8 +105,7 @@ async def update_customer(
 ):
     """Update customer information."""
     customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id,
-        Customer.tenant_id == tenant_filter.tenant_id
+        Customer.customer_id == customer_id
     ).first()
     
     if not customer:
@@ -136,8 +131,7 @@ async def delete_customer(
 ):
     """Delete a customer."""
     customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id,
-        Customer.tenant_id == tenant_filter.tenant_id
+        Customer.customer_id == customer_id
     ).first()
     
     if not customer:

@@ -59,9 +59,7 @@ async def list_vendors(
     db: Session = Depends(get_db)
 ):
     """List vendors for the current tenant."""
-    query = db.query(Vendor).filter(
-        Vendor.tenant_id == tenant_filter.tenant_id
-    )
+    query = db.query(Vendor)
     
     if search:
         search_filter = f"%{search}%"
@@ -82,8 +80,7 @@ async def get_vendor(
 ):
     """Get a specific vendor."""
     vendor = db.query(Vendor).filter(
-        Vendor.id == vendor_id,
-        Vendor.tenant_id == tenant_filter.tenant_id
+        Vendor.id == vendor_id
     ).first()
     
     if not vendor:
@@ -103,7 +100,6 @@ async def create_vendor(
 ):
     """Create a new vendor."""
     new_vendor = Vendor(
-        tenant_id=tenant_filter.tenant_id,
         **vendor_data.model_dump()
     )
     
@@ -123,8 +119,7 @@ async def update_vendor(
 ):
     """Update vendor information."""
     vendor = db.query(Vendor).filter(
-        Vendor.id == vendor_id,
-        Vendor.tenant_id == tenant_filter.tenant_id
+        Vendor.id == vendor_id
     ).first()
     
     if not vendor:
@@ -150,8 +145,7 @@ async def delete_vendor(
 ):
     """Delete a vendor."""
     vendor = db.query(Vendor).filter(
-        Vendor.id == vendor_id,
-        Vendor.tenant_id == tenant_filter.tenant_id
+        Vendor.id == vendor_id
     ).first()
     
     if not vendor:

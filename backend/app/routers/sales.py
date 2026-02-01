@@ -64,7 +64,6 @@ async def process_z_report(
     
     result = InventoryService.process_sales(
         db=db,
-        tenant_id=tenant_filter.tenant_id,
         sales_data=sales_data
     )
     
@@ -96,7 +95,6 @@ async def sync_pos_sales(
     
     result = InventoryService.process_sales(
         db=db,
-        tenant_id=tenant_filter.tenant_id,
         sales_data=sales_data
     )
     
@@ -120,7 +118,6 @@ async def get_daily_sales_summary(
     target_date = datetime.fromisoformat(date).date()
     
     orders = db.query(CustomerOrder).filter(
-        CustomerOrder.tenant_id == tenant_filter.tenant_id,
         CustomerOrder.created_at >= target_date,
         CustomerOrder.created_at < target_date.replace(day=target_date.day + 1)
     ).all()

@@ -51,7 +51,6 @@ async def start_shelf_audit(
     Returns audit_id to track the audit session.
     """
     audit = ShelfAuditRecord(
-        tenant_id=tenant_filter.tenant_id,
         audited_by=current_user.id
     )
     
@@ -60,9 +59,7 @@ async def start_shelf_audit(
     db.refresh(audit)
     
     # Get current inventory for reference
-    inventory_items = db.query(InventoryItem).filter(
-        InventoryItem.tenant_id == tenant_filter.tenant_id
-    ).all()
+    inventory_items = db.query(InventoryItem).all()
     
     return {
         "audit_id": str(audit.audit_id),
@@ -95,8 +92,7 @@ async def complete_shelf_audit(
     - Unrecorded additions
     """
     audit = db.query(ShelfAuditRecord).filter(
-        ShelfAuditRecord.audit_id == audit_id,
-        ShelfAuditRecord.tenant_id == tenant_filter.tenant_id
+        ShelfAuditRecord.audit_id == audit_id
     ).first()
     
     if not audit:
@@ -113,7 +109,6 @@ async def complete_shelf_audit(
     for item_data in audit_data.items:
         # Get expected quantity from current inventory
         inventory = db.query(InventoryItem).filter(
-            InventoryItem.tenant_id == tenant_filter.tenant_id,
             InventoryItem.global_product_id == item_data.product_id
         ).first()
         
@@ -134,7 +129,6 @@ async def complete_shelf_audit(
     # Process audit and adjust inventory
     result = InventoryService.process_shelf_audit(
         db=db,
-        tenant_id=tenant_filter.tenant_id,
         audit_id=audit_id,
         auto_adjust=auto_adjust
     )
@@ -151,9 +145,7 @@ async def get_audit_history(
 ):
     """Get shelf audit history."""
     
-    audits = db.query(ShelfAuditRecord).filter(
-        ShelfAuditRecord.tenant_id == tenant_filter.tenant_id
-    ).order_by(
+    audits = db.query(ShelfAuditRecord).order_by(
         ShelfAuditRecord.audit_date.desc()
     ).offset(skip).limit(limit).all()
     
@@ -180,8 +172,7 @@ async def get_audit_details(
     """Get detailed audit report including all discrepancies."""
     
     audit = db.query(ShelfAuditRecord).filter(
-        ShelfAuditRecord.audit_id == audit_id,
-        ShelfAuditRecord.tenant_id == tenant_filter.tenant_id
+        ShelfAuditRecord.audit_id == audit_id
     ).first()
     
     if not audit:
@@ -233,7 +224,6 @@ async def apply_audit_adjustment(
     """
     return InventoryService.process_shelf_audit(
         db=db,
-        tenant_id=tenant_filter.tenant_id,
         audit_id=audit_id,
         auto_adjust=True
     )
@@ -249,8 +239,7 @@ async def reject_audit(
     Reject an audit (no inventory changes).
     """
     audit = db.query(ShelfAuditRecord).filter(
-        ShelfAuditRecord.audit_id == audit_id,
-        ShelfAuditRecord.tenant_id == tenant_filter.tenant_id
+        ShelfAuditRecord.audit_id == audit_id
     ).first()
 
     if not audit:

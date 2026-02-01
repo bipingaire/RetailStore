@@ -70,6 +70,7 @@ def get_db(subdomain: str = Depends(get_subdomain)) -> Session:
 
     # Tenant subdomains use their isolated database
     database_name = db_manager.get_database_name(subdomain)
+    print(f"DEBUG: get_db resolved subdomain '{subdomain}' to database '{database_name}'")
     db = db_manager.get_tenant_session(database_name)
     try:
         yield db

@@ -16,6 +16,30 @@ from ..services.inventory_service import InventoryService
 
 router = APIRouter()
 
+@router.get("/debug-db")
+async def debug_database_connection(
+    tenant_filter: TenantFilter = Depends(),
+    db: Session = Depends(get_db)
+):
+    """Debug endpoint to show current database."""
+    from sqlalchemy import text
+    result = db.execute(text("SELECT current_database();"))
+    db_name = result.scalar()
+    
+    # Also check if table exists
+    try:
+        table_check = db.execute(text("SELECT count(*) FROM \"uploaded-invoices\""))
+        count = table_check.scalar()
+        table_status = f"Exists (Rows: {count})"
+    except Exception as e:
+        table_status = f"Missing ({str(e)})"
+        
+    return {
+        "resolved_tenant_id": tenant_filter.tenant_id,
+        "connected_database": db_name,
+        "table_status": table_status
+    }
+
 
 # Pydantic schemas
 class InvoiceItem(BaseModel):
@@ -113,7 +137,6 @@ async def process_invoice(
     # Process inventory updates
     result = InventoryService.process_invoice(
         db=db,
-        tenant_id=tenant_filter.tenant_id,
         invoice_data={"items": [item.model_dump() for item in invoice_data.items]},
         supplier_name=invoice_data.supplier_name
     )

@@ -21,7 +21,6 @@ class InventoryService:
     @staticmethod
     def process_invoice(
         db: Session,
-        tenant_id: uuid.UUID,
         invoice_data: Dict,
         supplier_name: str
     ) -> Dict:
@@ -30,7 +29,6 @@ class InventoryService:
         
         Args:
             db: Database session
-            tenant_id: Current tenant
             invoice_data: Parsed invoice data from OCR
             supplier_name: Vendor name
             
@@ -53,7 +51,6 @@ class InventoryService:
             if product:
                 # Find or create inventory item
                 inventory = db.query(InventoryItem).filter(
-                    InventoryItem.tenant_id == tenant_id,
                     InventoryItem.global_product_id == product.product_id
                 ).first()
                 
@@ -65,7 +62,6 @@ class InventoryService:
                 else:
                     # Create new inventory item
                     inventory = InventoryItem(
-                        tenant_id=tenant_id,
                         global_product_id=product.product_id,
                         quantity_on_hand=quantity,
                         unit_cost=unit_cost
@@ -85,7 +81,6 @@ class InventoryService:
     @staticmethod
     def process_sales(
         db: Session,
-        tenant_id: uuid.UUID,
         sales_data: List[Dict]
     ) -> Dict:
         """
@@ -93,7 +88,6 @@ class InventoryService:
         
         Args:
             db: Database session
-            tenant_id: Current tenant
             sales_data: List of sold items
             
         Returns:
@@ -109,7 +103,6 @@ class InventoryService:
             
             # Find inventory item
             inventory = db.query(InventoryItem).filter(
-                InventoryItem.tenant_id == tenant_id,
                 InventoryItem.global_product_id == product_id
             ).first()
             
@@ -128,8 +121,7 @@ class InventoryService:
     
     @staticmethod
     def analyze_health(
-        db: Session,
-        tenant_id: uuid.UUID
+        db: Session
     ) -> Dict:
         """
         Analyze inventory health and identify issues.
@@ -138,9 +130,7 @@ class InventoryService:
             Health metrics and recommendations
         """
         # Get all inventory
-        inventory_items = db.query(InventoryItem).filter(
-            InventoryItem.tenant_id == tenant_id
-        ).all()
+        inventory_items = db.query(InventoryItem).all()
         
         low_stock = []
         overstocked = []
@@ -185,7 +175,6 @@ class InventoryService:
     @staticmethod
     def calculate_profits(
         db: Session,
-        tenant_id: uuid.UUID,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None
     ) -> Dict:
@@ -205,7 +194,6 @@ class InventoryService:
         
         # Get orders in period
         orders = db.query(CustomerOrder).filter(
-            CustomerOrder.tenant_id == tenant_id,
             CustomerOrder.created_at >= start_date,
             CustomerOrder.created_at <= end_date,
             CustomerOrder.payment_status == 'paid'
@@ -221,7 +209,6 @@ class InventoryService:
             for line_item in order.line_items:
                 # Get inventory item to find cost
                 inventory = db.query(InventoryItem).filter(
-                    InventoryItem.tenant_id == tenant_id,
                     InventoryItem.global_product_id == line_item.global_product_id
                 ).first()
                 
@@ -261,7 +248,6 @@ class InventoryService:
     @staticmethod
     def process_shelf_audit(
         db: Session,
-        tenant_id: uuid.UUID,
         audit_id: uuid.UUID,
         auto_adjust: bool = True
     ) -> Dict:
@@ -270,7 +256,6 @@ class InventoryService:
         
         Args:
             db: Database session
-            tenant_id: Current tenant
             audit_id: Audit record ID
             auto_adjust: Whether to auto-adjust inventory
             
@@ -278,8 +263,7 @@ class InventoryService:
             Audit summary
         """
         audit = db.query(ShelfAuditRecord).filter(
-            ShelfAuditRecord.audit_id == audit_id,
-            ShelfAuditRecord.tenant_id == tenant_id
+            ShelfAuditRecord.audit_id == audit_id
         ).first()
         
         if not audit:
@@ -296,7 +280,6 @@ class InventoryService:
             if auto_adjust and discrepancy != 0:
                 # Update inventory
                 inventory = db.query(InventoryItem).filter(
-                    InventoryItem.tenant_id == tenant_id,
                     InventoryItem.global_product_id == item.global_product_id
                 ).first()
                 
