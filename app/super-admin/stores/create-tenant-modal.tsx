@@ -66,11 +66,15 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
                             <input
                                 type="text"
                                 required
-                                pattern="[a-z0-9-]+"
                                 placeholder="downtown"
                                 className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
                                 value={formData.subdomain}
-                                onChange={e => setFormData({ ...formData, subdomain: e.target.value.toLowerCase() })}
+                                onChange={e => {
+                                    const val = e.target.value.toLowerCase();
+                                    if (/^[a-z0-9-]*$/.test(val)) {
+                                        setFormData({ ...formData, subdomain: val });
+                                    }
+                                }}
                             />
                             <span className="px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-gray-500 text-sm font-medium">
                                 .indumart.us
