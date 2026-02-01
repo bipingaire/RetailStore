@@ -8,12 +8,31 @@ from app.models.master_models import Tenant
 from app.models.tenant_models import User, StoreInfo, TenantBase
 from app.utils.auth import get_password_hash
 
+from app.config import settings
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def debug_connection_info():
+    url = settings.master_database_url
+    if "@" in url:
+        # Mask password
+        auth, rest = url.split("@")
+        if ":" in auth:
+            user, password = auth.split(":")[-2:]
+            # Handle if schema is present e.g. postgresql://
+            prefix = auth.split("://")[0] + "://"
+            masked_password = password[:3] + "***" if password else "EMPTY"
+            print(f"DEBUG: Connecting to {prefix}{user}:{masked_password}@{rest}")
+        else:
+            print(f"DEBUG: No password in URL: {url.split('@')[0]}@...")
+    else:
+        print(f"DEBUG: Invalid/Local URL structure: {url}")
+
 def fix_tenants():
     print("🚀 Starting Tenant Repair Tool...")
+    debug_connection_info()
     db = db_manager.get_master_session()
     tenants = db.query(Tenant).all()
     print(f"Checking {len(tenants)} tenants in Master Registry...")
