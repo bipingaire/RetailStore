@@ -10,7 +10,6 @@ from app.dependencies import get_db, require_admin
 from app.models.tenant_models import MarketingCampaign, CampaignProduct, InventoryItem, TenantBase
 
 router = APIRouter(
-    prefix="/api/campaigns",
     tags=["Start"],
     dependencies=[Depends(require_admin)]
 )

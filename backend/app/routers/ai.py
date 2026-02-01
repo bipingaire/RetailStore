@@ -10,7 +10,6 @@ from datetime import datetime
 # import openai
 
 router = APIRouter(
-    prefix="/api/ai",
     tags=["ai"]
 )
 
@@ -32,6 +31,11 @@ class InvoiceParsedResponse(BaseModel):
 
 
 # --- ENDPOINTS ---
+
+@router.get("/health")
+async def ai_health_check():
+    """Simple health check to verify AI router is mounted correctly."""
+    return {"status": "AI Router Active", "timestamp": datetime.now().isoformat()}
 
 @router.post("/enrich-product", response_model=EnrichResponse)
 async def enrich_product(request: EnrichRequest):

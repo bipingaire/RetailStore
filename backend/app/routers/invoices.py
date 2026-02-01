@@ -156,6 +156,16 @@ async def get_invoice_history(
         "count": len(invoices)
     }
 
+@router.get("/")
+async def list_invoices_root(
+    skip: int = 0,
+    limit: int = 50,
+    tenant_filter: TenantFilter = Depends(),
+    db: Session = Depends(get_db)
+):
+    """Alias for getting invoice history (fixes frontend calling /api/invoices)."""
+    return await get_invoice_history(skip, limit, tenant_filter, db)
+
 
 @router.get("/{invoice_id}")
 async def get_invoice_details(
