@@ -31,7 +31,7 @@ services:
         - NEXT_PUBLIC_RETAILOS_DOMAIN=${NEXT_PUBLIC_RETAILOS_DOMAIN:-retailos.cloud}
         - NEXT_PUBLIC_INDUMART_DOMAIN=${NEXT_PUBLIC_INDUMART_DOMAIN:-indumart.us}
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
     container_name: retailstore_web
     restart: always
     ports:
@@ -41,7 +41,7 @@ services:
       - NEXT_PUBLIC_RETAILOS_DOMAIN=${NEXT_PUBLIC_RETAILOS_DOMAIN:-retailos.cloud}
       - NEXT_PUBLIC_INDUMART_DOMAIN=${NEXT_PUBLIC_INDUMART_DOMAIN:-indumart.us}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
     env_file:
       - .env.production
     networks:
