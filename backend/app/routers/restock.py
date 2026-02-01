@@ -10,7 +10,7 @@ import uuid
 from decimal import Decimal
 from datetime import datetime
 
-from ..database import get_db
+from ..dependencies import get_db
 from ..models import InventoryItem, Vendor, GlobalProduct
 from ..dependencies import TenantFilter
 

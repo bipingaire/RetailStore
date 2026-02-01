@@ -6,7 +6,7 @@ import uuid
 from decimal import Decimal
 from datetime import datetime
 
-from ..database import get_db
+from ..dependencies import get_db
 from ..models import CustomerOrder, OrderLineItem, Customer, DeliveryAddress
 from ..dependencies import TenantFilter
 

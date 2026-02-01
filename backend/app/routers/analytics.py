@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 import uuid
 
-from ..database import get_db
+from ..dependencies import get_db
 from ..dependencies import TenantFilter
 from ..services.inventory_service import InventoryService
 

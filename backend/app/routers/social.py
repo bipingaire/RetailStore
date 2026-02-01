@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import uuid
 
-from ..database import get_db
+from ..dependencies import get_db
 from ..models.tenant_models import SocialMediaAccount, SocialMediaPost
 from ..dependencies import TenantFilter, require_admin
 

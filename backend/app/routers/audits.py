@@ -9,7 +9,7 @@ from typing import List, Dict, Optional
 import uuid
 from decimal import Decimal
 
-from ..database import get_db
+from ..dependencies import get_db
 from ..models.additional import ShelfAuditRecord, ShelfAuditItem
 from ..models import InventoryItem
 from ..dependencies import TenantFilter, get_current_user

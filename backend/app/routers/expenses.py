@@ -9,7 +9,7 @@ from typing import List, Optional
 from datetime import datetime
 import uuid
 
-from ..database import get_db
+from ..dependencies import get_db
 from ..models.tenant_models import Expense
 from ..dependencies import TenantFilter, get_current_user
 

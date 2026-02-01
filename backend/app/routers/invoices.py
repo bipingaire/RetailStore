@@ -9,7 +9,7 @@ from typing import List, Dict, Optional
 import uuid
 from datetime import datetime
 
-from ..database import get_db
+from ..dependencies import get_db
 from ..models import UploadedInvoice
 from ..dependencies import TenantFilter
 from ..services.inventory_service import InventoryService
