@@ -30,7 +30,6 @@ try:
         superadmin = User(
             email=SUPERADMIN_EMAIL,
             encrypted_password=get_password_hash(SUPERADMIN_PASSWORD),
-            full_name="Super Administrator",
             role="superadmin",
             is_active=True
         )
