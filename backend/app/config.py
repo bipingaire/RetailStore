@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     
     # Redis (Optional)
     redis_url: str | None = Field(default=None, env="REDIS_URL")
+
+    # AI Integration
+    openai_api_key: str | None = Field(default=None, env="OPENAI_API_KEY")
     
     # App
     environment: str = Field(default="development", env="ENVIRONMENT")

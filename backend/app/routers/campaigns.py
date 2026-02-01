@@ -205,11 +205,53 @@ class GeneratePostRequest(BaseModel):
 
 @router.post("/generate-post")
 def generate_campaign_post(data: GeneratePostRequest, db: Session = Depends(get_db)):
-    """Generate AI social media post (Mock)."""
-    # In real app: call OpenAI
+    """Generate AI social media post using OpenAI."""
+    from ..config import settings
+    import openai
+
+    if not settings.openai_api_key:
+        # Fallback to mock if no key
+        product_names = [p.get('global_products', {}).get('product_name', 'Product') for p in data.products]
+        names_str = ", ".join(product_names)
+        return {
+            "post": f"🔥 FLASH SALE ALERT! 🔥\n\nGet amazing deals on {names_str}! Limited time only. \n\nShop now at our store! 🛍️ #sale #deal #{names_str.split(',')[0].replace(' ', '')} (Mock - No API Key)"
+        }
+
+    client = openai.OpenAI(api_key=settings.openai_api_key)
+
     product_names = [p.get('global_products', {}).get('product_name', 'Product') for p in data.products]
     names_str = ", ".join(product_names)
     
-    return {
-        "post": f"🔥 FLASH SALE ALERT! 🔥\n\nGet amazing deals on {names_str}! Limited time only. \n\nShop now at our store! 🛍️ #sale #deal #{names_str.split(',')[0].replace(' ', '')}"
-    }
+    prompt = f"""
+    Write a catchy, engaging social media post (Instagram/Facebook style) for a retail store sale.
+    
+    Products on sale: {names_str}
+    
+    Requirements:
+    - Use emojis
+    - Create urgency
+    - Include hashtags
+    - Keep it under 280 characters if possible, or short enough for Instagram caption.
+    - Tone: Exciting, professional.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",  # or gpt-3.5-turbo
+            messages=[
+                {"role": "system", "content": "You are a professional social media manager for a retail store."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=200,
+            temperature=0.7
+        )
+        
+        content = response.choices[0].message.content.strip()
+        return {"post": content}
+        
+    except Exception as e:
+        # Fallback in case of API error
+        print(f"OpenAI Error: {e}")
+        return {
+             "post": f"🔥 FLASH SALE! Great deals on {names_str}. Visit us properly! (AI Error: {str(e)})"
+        }
