@@ -1,6 +1,7 @@
 
 from ..database_manager import db_manager
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from ..models.master_models import Tenant
 import uuid
 
@@ -27,8 +28,39 @@ class TenantService:
             db_name = db_manager.create_tenant_database(subdomain)
             db_manager.init_tenant_schema(db_name)
             
-            # TODO: Create Admin User in the new Tenant DB
-            # For now, we just create the content structure
+            # Create Admin User in the new Tenant DB
+            from ..models.tenant_models import User as TenantUser
+            from ..utils.auth import get_password_hash
+            from ..models.tenant_models import StoreInfo
+            
+            tenant_db = db_manager.get_tenant_session(db_name)
+            try:
+                # 1. Create Admin User
+                admin_user = TenantUser(
+                    email=admin_email,
+                    encrypted_password=get_password_hash(admin_password),
+                    role="admin",
+                    is_active=True,
+                    email_confirmed_at=func.now()
+                )
+                tenant_db.add(admin_user)
+                
+                # 2. Create Store Info
+                store_info = StoreInfo(
+                    subdomain=subdomain,
+                    store_name=store_name,
+                    store_email=admin_email
+                )
+                tenant_db.add(store_info)
+                
+                tenant_db.commit()
+                print(f"✅ Created admin user {admin_email} for {subdomain}")
+            except Exception as e:
+                print(f"❌ Error creating admin user for {subdomain}: {e}")
+                tenant_db.rollback()
+                raise e
+            finally:
+                tenant_db.close()
             
         except Exception as e:
             print(f"Error provisioning database for {subdomain}: {e}")
