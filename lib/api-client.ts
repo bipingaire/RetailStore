@@ -5,7 +5,7 @@
  * Handles authentication, tenant routing, and all API operations.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export class APIClient {
     private subdomain: string;
