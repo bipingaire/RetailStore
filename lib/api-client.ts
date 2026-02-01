@@ -689,7 +689,7 @@ export class APIClient {
     // --- STORES (Tenants) ---
 
     async getStores() {
-        return this.request('/api/tenants');
+        return this.request('/api/superadmin/tenants');
     }
 
     async getNearestStore(lat: number, lng: number) {
@@ -702,7 +702,7 @@ export class APIClient {
         admin_email: string;
         admin_password: string;
     }) {
-        return this.request('/api/tenants/register', {
+        return this.request('/api/superadmin/tenants', {
             method: 'POST',
             body: JSON.stringify(data),
         });
