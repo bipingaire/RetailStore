@@ -122,11 +122,11 @@ def create_default_admin(tenant, tenant_db):
     store = tenant_db.query(StoreInfo).first()
     if not store:
         new_store = StoreInfo(
-            name=tenant.store_name,
+            store_name=tenant.store_name,
             subdomain=tenant.subdomain,
-            address=tenant.store_address,
-            phone=tenant.store_phone,
-            email=tenant.store_email
+            store_address=tenant.store_address,
+            store_phone=tenant.store_phone,
+            store_email=tenant.store_email
         )
         tenant_db.add(new_store)
         
