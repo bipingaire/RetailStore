@@ -11,7 +11,7 @@ from .models.master_models import MasterBase
 from .models.tenant_models import TenantBase
 from .routers import (
     auth, products, inventory, orders, customers, vendors, files,
-    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, tenants, expenses
+    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, tenants, expenses, ai
 )
 
 # Create FastAPI app
