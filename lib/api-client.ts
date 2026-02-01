@@ -399,9 +399,10 @@ export class APIClient {
 
         const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
-        const response = await fetch(`${API_URL}/api/invoices/upload`, {
+        const response = await fetch(`${API_URL}/api/ai/parse-invoice`, {
             method: 'POST',
             headers: {
+                // 'Content-Type': 'multipart/form-data', // Browser sets this automatically
                 'Authorization': `Bearer ${token}`,
                 'X-Subdomain': this.subdomain,
             },
