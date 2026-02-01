@@ -73,7 +73,7 @@ export function CreateTenantModal({ isOpen, onClose, onSuccess }: CreateTenantMo
                                 onChange={e => setFormData({ ...formData, subdomain: e.target.value.toLowerCase() })}
                             />
                             <span className="px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-gray-500 text-sm font-medium">
-                                .retailos.com
+                                .indumart.us
                             </span>
                         </div>
                         <p className="text-xs text-gray-400 mt-1">Lowercase alphanumeric only.</p>

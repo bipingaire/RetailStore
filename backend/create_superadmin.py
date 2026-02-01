@@ -3,7 +3,7 @@ from app.models.master_models import User
 from app.utils.auth import get_password_hash
 from sqlalchemy.orm import Session
 import sys
-
+-/
 # SuperAdmin credentials
 SUPERADMIN_EMAIL = "superadmin@retailos.cloud"
 SUPERADMIN_PASSWORD = "SuperAdmin@2026"

@@ -64,11 +64,22 @@ export default function SuperAdminLayout({
                         <svg className="w-5 h-5 opacity-70 group-hover:opacity-100" viewBox="0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21h18" /><path d="M5 21V7l8-4 8 4v14" /><path d="M17 21v-8H7v8" /></svg>
                         Stores
                     </Link>
+                    </Link>
                 </nav>
+
+                <div className="mt-auto pt-6 border-t border-slate-700/50">
+                    <button
+                        onClick={() => logout()}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-300 hover:text-white hover:bg-white/5 transition group"
+                    >
+                        <svg className="w-5 h-5 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                        Logout
+                    </button>
+                </div>
             </aside>
             <main className="flex-1 ml-64 p-8">
                 {children}
             </main>
-        </div>
+        </div >
     );
 }

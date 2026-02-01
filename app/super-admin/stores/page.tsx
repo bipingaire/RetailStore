@@ -79,12 +79,12 @@ export default function SuperAdminStoresPage() {
                         <h3 className="text-lg font-bold text-slate-900 mb-1">{store.store_name}</h3>
 
                         <a
-                            href={`http://${store.subdomain}.localhost:3000`}
+                            href={`https://${store.subdomain}.indumart.us`}
                             target="_blank"
                             className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline mb-6"
                         >
                             <Globe size={14} />
-                            {store.subdomain}.retailos.com
+                            {store.subdomain}.indumart.us
                         </a>
 
                         <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-500">
