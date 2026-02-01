@@ -39,6 +39,7 @@ def get_subdomain(
     if "." in host and not host.startswith("localhost"):
         subdomain = host.split(".")[0]
         if subdomain not in ["www", "api"]:
+            print(f"DEBUG: get_subdomain parsed host '{host}' -> '{subdomain}'")
             return subdomain
     
     # Try query parameter
@@ -61,6 +62,7 @@ def get_db(subdomain: str = Depends(get_subdomain)) -> Session:
     """
     # System subdomains use the master database
     if subdomain in ["retailos", "system", "admin", "www", "api"]:
+        print(f"DEBUG: get_db using MASTER DB for subdomain: '{subdomain}'")
         db = db_manager.get_master_session()
         try:
             yield db
