@@ -690,7 +690,7 @@ export class APIClient {
     // --- STORES (Tenants) ---
 
     async getStores() {
-        return this.request('/api/tenants/');
+        return this.request('/api/tenants');
     }
 
     async getNearestStore(lat: number, lng: number) {
