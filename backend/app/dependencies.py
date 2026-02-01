@@ -178,10 +178,13 @@ class TenantContext:
         request: Request,
         user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
+        master_db: Session = Depends(get_master_db),
         subdomain: str = Depends(get_subdomain)
     ):
         self.user = user
         self.db = db
+        self.tenant_db = db  # Alias for clarity
+        self.master_db = master_db
         self.subdomain = subdomain
         self.request = request
         self.role = user.role
