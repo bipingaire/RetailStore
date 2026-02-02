@@ -9,6 +9,17 @@ export default function RootPage({ searchParams }: { searchParams: { domain?: st
   // Determine domain type
   const domainType = getDomainType(host, searchParams.domain, searchParams.subdomain);
 
+  // Server-side logging for debugging
+  console.log(`[Root Page] Host: ${host}, Domain Type: ${domainType}`);
+
+  // Explicit check: if host contains indumart.us and no subdomain detected, force redirect to find-store
+  const isIndumartParent = host.includes('indumart.us') && !host.match(/^(?!www\.)[\w-]+\.indumart\.us/);
+
+  if (isIndumartParent && domainType === 'unknown') {
+    console.log(`[Root Page] Forcing redirect to /find-store for indumart.us parent domain`);
+    redirect('/find-store');
+  }
+
   // Redirect based on domain type
   if (domainType === 'retailos') {
     // RetailOS.com -> Business advertising page
@@ -20,7 +31,9 @@ export default function RootPage({ searchParams }: { searchParams: { domain?: st
     // tenant.indumart.us -> Ecommerce site
     redirect('/shop');
   } else {
-    // Default fallback (localhost without params)
-    redirect('/shop');
+    // For truly unknown domains (not indumart.us), show an error
+    // This prevents accidental redirects to /shop
+    console.error(`[Root Page] Unknown domain type for host: ${host}`);
+    throw new Error(`Unable to determine domain type for: ${host}. Please check your domain configuration.`);
   }
 }

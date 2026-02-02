@@ -72,19 +72,32 @@ export function getDomainType(host: string, queryDomain?: string, querySubdomain
 
     if (!domain) return 'unknown';
 
+    // Explicit check for indumart.us domains (most specific first)
+    if (domain === 'indumart.us' || domain === indumartDomain) {
+        const detectedType = subdomain ? 'indumart-tenant' : 'indumart-parent';
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[Domain Detection] Host: ${host}, Domain: ${domain}, Subdomain: ${subdomain}, Type: ${detectedType}`);
+        }
+        return detectedType;
+    }
+
     // RetailOS domain (supports both .com and .cloud or custom)
-    if (domain.includes(retailosDomain.split('.')[0])) {
+    if (domain === 'retailos.cloud' || domain === retailosDomain || domain.includes(retailosDomain.split('.')[0])) {
         return 'retailos';
     }
 
-    // Indumart domain
-    if (domain.includes(indumartDomain.split('.')[0])) {
-        // Has subdomain = tenant site (e.g., highpoint.indumart.us)
-        if (subdomain) {
-            return 'indumart-tenant';
+    // Fallback pattern matching for indumart domains
+    if (domain.includes('indumart')) {
+        const detectedType = subdomain ? 'indumart-tenant' : 'indumart-parent';
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[Domain Detection - Fallback] Host: ${host}, Domain: ${domain}, Subdomain: ${subdomain}, Type: ${detectedType}`);
         }
-        // No subdomain = parent domain (www.indumart.us)
-        return 'indumart-parent';
+        return detectedType;
+    }
+
+    // Log unknown domains in development
+    if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[Domain Detection] Unknown domain type for host: ${host}`);
     }
 
     return 'unknown';
