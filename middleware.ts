@@ -67,16 +67,17 @@ export async function middleware(req: NextRequest) {
   // =========================================
   if (domainType === 'indumart-parent') {
     // Redirect root to find-store page
-    if (pathname === '/' || pathname === '') {
-      return NextResponse.redirect(new URL('/find-store', req.url));
-    }
-
-    // Allow access to find-store page
-    if (pathname === '/find-store' || pathname.startsWith('/api/stores')) {
+    // Allow access to find-store page and necessary assets
+    if (
+      pathname === '/find-store' ||
+      pathname.startsWith('/api') ||
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/static')
+    ) {
       return res;
     }
 
-    // Redirect any admin attempts to retailOS.com
+    // Redirect any admin attempts to retailOS.com (existing logic, updated URL handling)
     if (pathname.startsWith('/admin') || pathname.startsWith('/super-admin')) {
       const retailosUrl = new URL('/admin/login', req.url);
       if (queryDomain) {
@@ -85,7 +86,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(retailosUrl);
     }
 
-    return res;
+    // Redirect EVERYTHING else (including /shop) to /find-store
+    return NextResponse.redirect(new URL('/find-store', req.url));
   }
 
   // =========================================
