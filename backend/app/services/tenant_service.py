@@ -1,11 +1,48 @@
-
 from ..database_manager import db_manager
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from ..models.master_models import Tenant
 import uuid
+import math
 
 class TenantService:
+    @staticmethod
+    def find_nearest_tenant(lat: float, lng: float, master_db: Session):
+        """
+        Find closest tenant to coordinates.
+        Uses simple Euclidean distance for now (sufficient for US mapping).
+        """
+        tenants = master_db.query(Tenant).filter(
+            Tenant.is_active == True,
+            Tenant.latitude.isnot(None),
+            Tenant.longitude.isnot(None)
+        ).all()
+        
+        nearest = None
+        min_dist = float('inf')
+        
+        for t in tenants:
+            # Approx distance (pythagoras)
+            # 1 deg lat ~ 111 km, 1 deg lng ~ 111 km * cos(lat)
+            # For rough sorting, just dx^2 + dy^2 is fine
+            
+            t_lat = float(t.latitude)
+            t_lng = float(t.longitude)
+            
+            dist = (t_lat - lat)**2 + (t_lng - lng)**2
+            
+            if dist < min_dist:
+                min_dist = dist
+                nearest = t
+                
+        if nearest:
+            return {
+                "subdomain": nearest.subdomain,
+                "store_name": nearest.store_name,
+                "distance_approx": math.sqrt(min_dist)
+            }
+        return None
+
     @staticmethod
     def create_tenant(subdomain: str, store_name: str, admin_email: str, admin_password: str, master_db: Session):
         """

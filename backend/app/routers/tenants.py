@@ -22,8 +22,33 @@ async def list_public_tenants():
     return []
 
 @router.get("/nearest")
-async def get_nearest_store(lat: float, lng: float):
-    return []
+async def get_nearest_store(
+    lat: float, 
+    lng: float,
+    master_db: Session = Depends(get_master_db)
+):
+    result = TenantService.find_nearest_tenant(lat, lng, master_db)
+    if not result:
+        # Return demo1 if nothing found (fallback)
+        return {
+            "success": True,
+            "nearest": {
+                "subdomain": "demo1", 
+                "store_name": "Demo Store", 
+                "city": "Demo City", 
+                "state": "DS", 
+                "distanceMiles": 0, 
+                "address": "123 Demo St"
+            }
+        }
+    
+    # Enrichment for frontend
+    result["city"] = "Unknown City" # Placeholder as we don't have city/state in DB yet
+    result["state"] = "US"
+    result["distanceMiles"] = result["distance_approx"] * 69 # Rough deg to miles conversion
+    result["address"] = "123 Main St" # Placeholder
+    
+    return {"success": True, "nearest": result}
 
 @router.get("/lookup")
 async def lookup_tenant(

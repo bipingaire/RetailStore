@@ -8,7 +8,7 @@ Contains:
 - Tenant registry
 """
 
-from sqlalchemy import Column, String, Integer, Boolean, DateTime, Text, ForeignKey, JSON
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, Text, ForeignKey, JSON, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import func
@@ -32,6 +32,10 @@ class TenantRegistry(MasterBase):
     subdomain = Column(String(100), unique=True, nullable=False, index=True)
     store_name = Column("store-name", String(255), nullable=False)
     database_name = Column("database-name", String(100), unique=True, nullable=False)
+    
+    # Location for geo-routing
+    latitude = Column(Numeric(10, 8), nullable=True)
+    longitude = Column(Numeric(11, 8), nullable=True)
     
     # Store contact info
     store_address = Column("store-address", Text)
