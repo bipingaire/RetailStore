@@ -41,7 +41,17 @@ export default function FindStorePage() {
             setStatus('locating');
 
             // Call API to find nearest store
-            const data = await apiClient.getNearestStore(position.latitude, position.longitude);
+            const data: any = await apiClient.getNearestStore(position.latitude, position.longitude);
+
+            // Check if backend returned stores list (no lat/long data available)
+            if (data.success === false && data.stores) {
+                console.log('No geolocation data available, showing manual selection');
+                setAllStores(data.stores);
+                setStatus('denied');
+                setShowManualSelection(true);
+                setErrorMessage(data.message || 'Please select your store manually');
+                return;
+            }
 
             if (!data.success || !data.nearest) {
                 throw new Error('No stores found nearby');
@@ -53,6 +63,7 @@ export default function FindStorePage() {
             // Redirect to nearest store after 2 seconds
             setTimeout(() => {
                 const storeUrl = buildDomainUrl('indumart-tenant', '/shop', data.nearest.subdomain);
+                console.log('Redirecting to:', storeUrl);
                 window.location.href = storeUrl;
             }, 2000);
         } catch (error: any) {
