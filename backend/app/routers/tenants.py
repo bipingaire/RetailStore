@@ -27,28 +27,45 @@ async def get_nearest_store(
     lng: float,
     master_db: Session = Depends(get_master_db)
 ):
+    """Find nearest store based on geolocation"""
     result = TenantService.find_nearest_tenant(lat, lng, master_db)
+    
     if not result:
-        # Return demo1 if nothing found (fallback)
+        # No tenants with lat/long found, return all active stores for manual selection
+        all_stores = master_db.query(Tenant).filter(Tenant.is_active == True).all()
+        
+       if not all_stores:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No active stores found"
+            )
+        
+        # Return all stores for manual selection
+        stores_list = []
+        for store in all_stores:
+            stores_list.append({
+                "subdomain": store.subdomain,
+                "displayName": store.store_name or store.subdomain.title(),
+                "fullAddress": store.store_address if store.store_address else "Address not available"
+            })
+        
         return {
-            "success": True,
-            "nearest": {
-                "subdomain": "demo1", 
-                "store_name": "Demo Store", 
-                "city": "Demo City", 
-                "state": "DS", 
-                "distanceMiles": 0, 
-                "address": "123 Demo St"
-            }
+            "success": False,
+            "message": "No geolocation data available. Please select your store manually.",
+            "stores": stores_list
         }
     
-    # Enrichment for frontend
-    result["city"] = "Unknown City" # Placeholder as we don't have city/state in DB yet
-    result["state"] = "US"
-    result["distanceMiles"] = result["distance_approx"] * 69 # Rough deg to miles conversion
-    result["address"] = "123 Main St" # Placeholder
-    
-    return {"success": True, "nearest": result}
+    # Construct proper response with actual data from database  
+    return {
+        "success": True,
+        "nearest": {
+            "subdomain": result["subdomain"],
+            "city": result.get("city", ""),
+            "state": result.get("state", ""),
+            "distanceMiles": result.get("distance_miles", result.get("distance", 0)),
+            "address": result.get("address", result.get("store_name", ""))
+        }
+    }
 
 @router.get("/lookup")
 async def lookup_tenant(

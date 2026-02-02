@@ -7,10 +7,10 @@ import math
 
 class TenantService:
     @staticmethod
-    def find_nearest_tenant(lat: float, lng: float, master_db: Session):
+    def find_nearest_tenant(lat: float, lng: float,master_db: Session):
         """
         Find closest tenant to coordinates.
-        Uses simple Euclidean distance for now (sufficient for US mapping).
+        Uses Haversine formula for accurate distance calculation.
         """
         tenants = master_db.query(Tenant).filter(
             Tenant.is_active == True,
@@ -19,27 +19,37 @@ class TenantService:
         ).all()
         
         nearest = None
-        min_dist = float('inf')
+        min_dist_miles = float('inf')
         
         for t in tenants:
-            # Approx distance (pythagoras)
-            # 1 deg lat ~ 111 km, 1 deg lng ~ 111 km * cos(lat)
-            # For rough sorting, just dx^2 + dy^2 is fine
-            
+            # Use Haversine formula for accurate distance in miles
             t_lat = float(t.latitude)
             t_lng = float(t.longitude)
             
-            dist = (t_lat - lat)**2 + (t_lng - lng)**2
+            # Haversine formula
+            R = 3959  # Earth's radius in miles
+            dlat = math.radians(t_lat - lat)
+            dlng = math.radians(t_lng - lng)
             
-            if dist < min_dist:
-                min_dist = dist
+            a = (math.sin(dlat/2) ** 2 + 
+                 math.cos(math.radians(lat)) * math.cos(math.radians(t_lat)) * 
+                 math.sin(dlng/2) ** 2)
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+            distance_miles = R * c
+            
+            if distance_miles < min_dist_miles:
+                min_dist_miles = distance_miles
                 nearest = t
                 
         if nearest:
             return {
                 "subdomain": nearest.subdomain,
                 "store_name": nearest.store_name,
-                "distance_approx": math.sqrt(min_dist)
+                "address": nearest.store_address if nearest.store_address else nearest.store_name,
+                "city": "",  # Not in current schema
+                "state": "",  # Not in current schema
+                "distance_miles": round(min_dist_miles, 1),
+                "distance": round(min_dist_miles, 1)
             }
         return None
 
