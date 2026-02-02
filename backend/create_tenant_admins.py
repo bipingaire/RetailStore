@@ -32,18 +32,18 @@ for tenant in TENANTS:
         # but we can check if db exists by just trying to init schema which gets engine
         print(f"   Checking database: {tenant['database_name']}")
         
-        # This will create the DB if it doesn't exist (via helper inside manager if used correctly, 
-        # but here we rely on the fact that if we just inserted into registry, the DB might be missing)
-        # db_manager.create_tenant_database expects subdomain to generate name: tenant_{subdomain}
-        db_manager.create_tenant_database(tenant['subdomain'])
+        # This will create the DB if it doesn't exist
+        # We capture the ACTUAL database name returned, which includes the correct prefix
+        actual_db_name = db_manager.create_tenant_database(tenant['subdomain'])
+        print(f"   Using database: {actual_db_name}")
         
         # 2. Initialize Schema (Tables)
         print("   Initializing schema...")
-        db_manager.init_tenant_schema(tenant['database_name'])
+        db_manager.init_tenant_schema(actual_db_name)
         
         # 3. Create Admin User
         print("   Creating admin user...")
-        session = db_manager.get_tenant_session(tenant['database_name'])
+        session = db_manager.get_tenant_session(actual_db_name)
         
         existing = session.query(TenantUser).filter(TenantUser.email == tenant['email']).first()
         
