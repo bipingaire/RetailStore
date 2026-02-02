@@ -697,17 +697,7 @@ export class APIClient {
         return response.json();
     }
 
-    async getInvoices(skip: number = 0, limit: number = 50) {
-        return this.request(`/api/invoices?skip=${skip}&limit=${limit}`);
-    }
 
-    async getInvoiceDetails(id: string) {
-        return this.request(`/api/invoices/${id}`);
-    }
-
-    async parseInvoice(file: File) {
-        return this.uploadInvoice(file);
-    }
 
     // --- STORES (Tenants) ---
 
