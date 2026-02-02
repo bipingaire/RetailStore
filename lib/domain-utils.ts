@@ -7,48 +7,32 @@ export type DomainType = 'retailos' | 'indumart-parent' | 'indumart-tenant' | 'u
 
 /**
  * Extract domain and subdomain from hostname
- * Examples:
- *   www.retailos.com -> { domain: 'retailos.com', subdomain: null }
- *   www.indumart.us -> { domain: 'indumart.us', subdomain: null }
- *   highpoint.indumart.us -> { domain: 'indumart.us', subdomain: 'highpoint' }
- *   localhost:3000 -> Uses query params or defaults
+ * Parse hostname into domain and subdomain
  */
-export function parseHost(host: string): { domain: string | null; subdomain: string | null } {
-    if (!host) return { domain: null, subdomain: null };
-
+export function parseHost(host: string): { domain: string; subdomain: string } {
     // Remove port if present
-    const hostname = host.split(':')[0];
+    const hostname = host.split(':')[0].toLowerCase();
 
-    // Handle localhost - check query params in actual request
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return { domain: null, subdomain: null };
-    }
+    // Remove 'www.' prefix first before processing
+    const cleanHost = hostname.startsWith('www.') ? hostname.slice(4) : hostname;
 
-    const parts = hostname.split('.');
+    // Split into parts
+    const parts = cleanHost.split('.');
 
-    // Single domain (e.g., 'retailos')
+    // Handle different cases
     if (parts.length === 1) {
-        return { domain: null, subdomain: null };
+        // localhost or single word
+        return { domain: cleanHost, subdomain: '' };
+    } else if (parts.length === 2) {
+        // example.com (no subdomain)
+        return { domain: cleanHost, subdomain: '' };
+    } else {
+        // subdomain.example.com
+        // Everything except first part is domain
+        const subdomain = parts[0];
+        const domain = parts.slice(1).join('.');
+        return { domain, subdomain };
     }
-
-    // Two parts (e.g., 'retailos.com', 'indumart.us')
-    if (parts.length === 2) {
-        return {
-            domain: hostname,
-            subdomain: null
-        };
-    }
-
-    // Three or more parts (e.g., 'www.retailos.com', 'highpoint.indumart.us')
-    const subdomain = parts[0];
-    const domain = parts.slice(-2).join('.');
-
-    // Treat 'www' as non-subdomain
-    if (subdomain === 'www') {
-        return { domain, subdomain: null };
-    }
-
-    return { domain, subdomain };
 }
 
 /**
