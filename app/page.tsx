@@ -12,14 +12,6 @@ export default function RootPage({ searchParams }: { searchParams: { domain?: st
   // Server-side logging for debugging
   console.log(`[Root Page] Host: ${host}, Domain Type: ${domainType}`);
 
-  // Explicit check: if host contains indumart.us and no subdomain detected, force redirect to find-store
-  const isIndumartParent = host.includes('indumart.us') && !host.match(/^(?!www\.)[\w-]+\.indumart\.us/);
-
-  if (isIndumartParent && domainType === 'unknown') {
-    console.log(`[Root Page] Forcing redirect to /find-store for indumart.us parent domain`);
-    redirect('/find-store');
-  }
-
   // Redirect based on domain type
   if (domainType === 'retailos') {
     // RetailOS.com -> Business advertising page
@@ -31,9 +23,16 @@ export default function RootPage({ searchParams }: { searchParams: { domain?: st
     // tenant.indumart.us -> Ecommerce site
     redirect('/shop');
   } else {
-    // For truly unknown domains (not indumart.us), show an error
-    // This prevents accidental redirects to /shop
-    console.error(`[Root Page] Unknown domain type for host: ${host}`);
-    throw new Error(`Unable to determine domain type for: ${host}. Please check your domain configuration.`);
+    // Fallback: if host contains indumart.us (even if detection failed), redirect to find-store
+    // This handles edge cases like www.indumart.us or indumart.us
+    if (host.includes('indumart.us')) {
+      console.log(`[Root Page] Fallback redirect to /find-store for indumart.us host: ${host}`);
+      redirect('/find-store');
+    }
+
+    // For localhost or truly unknown domains, redirect to shop
+    // This maintains backward compatibility for development
+    console.log(`[Root Page] Unknown domain, redirecting to /shop for host: ${host}`);
+    redirect('/shop');
   }
 }
