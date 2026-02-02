@@ -670,6 +670,41 @@ export class APIClient {
         });
     }
 
+    // --- INVOICES ---
+
+    async uploadInvoice(file: File) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
+        // Manual request to handle FormData correctly (request wrapper might JSONify body)
+        // Also explicitly appending subdomain
+        const response = await fetch(`${API_URL}/api/invoices/upload?subdomain=${this.subdomain}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'X-Subdomain': this.subdomain,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Upload failed: ${error}`);
+        }
+
+        return response.json();
+    }
+
+    async getInvoices(skip: number = 0, limit: number = 50) {
+        return this.request(`/api/invoices?skip=${skip}&limit=${limit}`);
+    }
+
+    async getInvoiceDetails(id: string) {
+        return this.request(`/api/invoices/${id}`);
+    }
+
     async parseInvoice(file: File) {
         return this.uploadInvoice(file);
     }
