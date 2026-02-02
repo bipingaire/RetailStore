@@ -34,7 +34,7 @@ async def get_nearest_store(
         # No tenants with lat/long found, return all active stores for manual selection
         all_stores = master_db.query(Tenant).filter(Tenant.is_active == True).all()
         
-       if not all_stores:
+        if not all_stores:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No active stores found"
