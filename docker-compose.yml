@@ -1,26 +1,27 @@
 version: '3.8'
 
 services:
-  # Caddy - Reverse Proxy with Automatic HTTPS
-  caddy:
-    image: caddy:2-alpine
-    container_name: retailstore_caddy
-    restart: unless-stopped
-    ports:
-      - "3010:80" # Frontend HTTP -> port 3010
-      - "3443:443" # Frontend HTTPS -> port 3443
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy-data:/data
-      - caddy-config:/config
-      - caddy-logs:/var/log/caddy
-    environment:
-      - CERTBOT_EMAIL=${CERTBOT_EMAIL:-admin@retailos.cloud}
-    networks:
-      - retailstore-network
-    depends_on:
-      - web
-      - backend
+  # Caddy - DISABLED - Using nginx on host instead
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: retailstore_caddy
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3010:80" # Frontend HTTP -> port 3010
+  #     - "3443:443" # Frontend HTTPS -> port 3443
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile
+  #     - caddy-data:/data
+  #     - caddy-config:/config
+  #     - caddy-logs:/var/log/caddy
+  #   environment:
+  #     - CERTBOT_EMAIL=${CERTBOT_EMAIL:-admin@retailos.cloud}
+  #   networks:
+  #     - retailstore-network
+  #   depends_on:
+  #     - web
+  #     - backend
+
 
   # Next.js frontend application
   web:
