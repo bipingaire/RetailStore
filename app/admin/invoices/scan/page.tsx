@@ -72,7 +72,16 @@ export default function InvoiceUploadPage() {
             toast.success('📄 Invoice uploaded! Processing...');
 
             // Redirect to review page
-            router.push(`/admin/invoices/review?id=${data.invoice_id}`);
+            console.log('[Invoice Upload] Redirecting to review page:', `/admin/invoices/review?id=${data.invoice_id}`);
+
+            try {
+                router.push(`/admin/invoices/review?id=${data.invoice_id}`);
+                console.log('[Invoice Upload] Router.push called successfully');
+            } catch (routerError) {
+                console.error('[Invoice Upload] Router push failed:', routerError);
+                // Fallback to window.location
+                window.location.href = `/admin/invoices/review?id=${data.invoice_id}`;
+            }
 
         } catch (error: any) {
             console.error('[Invoice Upload] Error:', error);
@@ -102,8 +111,8 @@ export default function InvoiceUploadPage() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
                     <div
                         className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${uploading
-                                ? 'border-blue-400 bg-blue-50'
-                                : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/30 cursor-pointer'
+                            ? 'border-blue-400 bg-blue-50'
+                            : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/30 cursor-pointer'
                             }`}
                         onClick={() => !uploading && fileInputRef.current?.click()}
                     >
