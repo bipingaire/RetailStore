@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Upload, Loader2, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import * as pdfjsLib from 'pdfjs-dist';
-import OpenAI from 'openai';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Disable static generation - this page requires browser APIs
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 type ScanStatus = 'idle' | 'converting' | 'scanning' | 'review' | 'committing' | 'complete';
 
@@ -34,11 +33,22 @@ export default function InvoiceScannerPage() {
     const [extractedData, setExtractedData] = useState<InvoiceData | null>(null);
     const [apiKey, setApiKey] = useState('');
     const [loadingKey, setLoadingKey] = useState(true);
+    const [mounted, setMounted] = useState(false);
 
-    // Fetch API key from backend on mount
+    // Ensure component only renders on client
     useEffect(() => {
+        setMounted(true);
         fetchApiKey();
     }, []);
+
+    // Don't render until mounted (prevents SSR issues)
+    if (!mounted) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            </div>
+        );
+    }
 
     const fetchApiKey = async () => {
         try {
@@ -137,6 +147,12 @@ export default function InvoiceScannerPage() {
     };
 
     const convertPDFToImages = async (file: File): Promise<string[]> => {
+        // Dynamically import pdfjs-dist (browser-only)
+        const pdfjsLib = await import('pdfjs-dist');
+
+        // Configure worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         const images: string[] = [];
@@ -164,6 +180,9 @@ export default function InvoiceScannerPage() {
     };
 
     const extractDataFromImage = async (imageData: string, apiKey: string): Promise<any> => {
+        // Dynamically import OpenAI (browser-only)
+        const OpenAI = (await import('openai')).default;
+
         const openai = new OpenAI({
             apiKey: apiKey,
             dangerouslyAllowBrowser: true, // Client-side usage
