@@ -13,11 +13,18 @@ export default function InvoicesPage() {
   }, []);
 
   async function fetchInvoices() {
+    console.log('[Invoice Page] Fetching invoices...');
     try {
       const data = await apiClient.getInvoices();
-      setInvoices(data);
+      console.log('[Invoice Page] Invoices fetched:', data);
+
+      // Handle both response formats
+      const invoiceList = data.invoices || data || [];
+      console.log('[Invoice Page] Processed invoice list:', invoiceList);
+
+      setInvoices(invoiceList);
     } catch (error: any) {
-      console.error('Error fetching invoices:', error);
+      console.error('[Invoice Page] Error fetching invoices:', error);
       toast.error('Failed to load invoices');
     } finally {
       setLoading(false);
@@ -25,17 +32,32 @@ export default function InvoicesPage() {
   }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    console.log('[Invoice Upload] File input changed');
     const file = e.target.files?.[0];
-    if (!file) return;
+
+    if (!file) {
+      console.log('[Invoice Upload] No file selected');
+      return;
+    }
+
+    console.log('[Invoice Upload] File selected:', file.name, file.size, 'bytes');
 
     try {
+      console.log('[Invoice Upload] Starting upload...');
       toast.info('Uploading invoice...');
-      await apiClient.uploadInvoice(file);
+
+      const result = await apiClient.uploadInvoice(file);
+      console.log('[Invoice Upload] Upload successful:', result);
+
       toast.success('Invoice uploaded successfully!');
       fetchInvoices();
+
+      // Reset file input
+      e.target.value = '';
     } catch (error: any) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload invoice');
+      console.error('[Invoice Upload] Upload error:', error);
+      console.error('[Invoice Upload] Error details:', error.message, error.stack);
+      toast.error(`Failed to upload invoice: ${error.message || 'Unknown error'}`);
     }
   }
 
@@ -102,8 +124,8 @@ export default function InvoicesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${invoice.processing_status === 'completed'
-                            ? 'bg-green-50 text-green-700 border border-green-100'
-                            : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
+                          ? 'bg-green-50 text-green-700 border border-green-100'
+                          : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
                           }`}>
                           {invoice.processing_status === 'completed' ? 'PROCESSED' : 'PROCESSING'}
                         </span>
