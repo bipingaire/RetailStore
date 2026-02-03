@@ -121,7 +121,8 @@ class InventoryService:
     
     @staticmethod
     def analyze_health(
-        db: Session
+        db: Session,
+        tenant_id: uuid.UUID
     ) -> Dict:
         """
         Analyze inventory health and identify issues.
@@ -129,8 +130,10 @@ class InventoryService:
         Returns:
             Health metrics and recommendations
         """
-        # Get all inventory
-        inventory_items = db.query(InventoryItem).all()
+        # Get all inventory for this tenant
+        inventory_items = db.query(InventoryItem).filter(
+            InventoryItem.tenant_id == tenant_id
+        ).all()
         
         low_stock = []
         overstocked = []
@@ -171,6 +174,7 @@ class InventoryService:
             "out_of_stock": zero_stock[:10],
             "health_score": max(0, 100 - (len(low_stock) + len(zero_stock)) * 2)
         }
+
     
     @staticmethod
     def calculate_profits(
