@@ -11,7 +11,7 @@ from .models.master_models import MasterBase
 from .models.tenant_models import TenantBase
 from .routers import (
     auth, products, inventory, orders, customers, vendors, files,
-    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, tenants, expenses, ai, invoices_v2
+    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, tenants, expenses, ai, invoice_commit
 )
 
 # Create FastAPI app
@@ -93,7 +93,7 @@ app.include_router(superadmin.router, prefix="/api/superadmin", tags=["👑 Supe
 
 # Inventory Management Features
 app.include_router(invoices.router, prefix="/api/invoices", tags=["📥 Inventory IN"])
-app.include_router(invoices_v2.router, prefix="/api/invoices-v2", tags=["📥 Invoice Scanner (New)"])
+app.include_router(invoice_commit.router, prefix="/api/invoices", tags=["📥 Inventory IN"])
 app.include_router(sales.router, prefix="/api/sales", tags=["📤 Inventory OUT"])
 app.include_router(expenses.router, prefix="/api/expenses", tags=["💸 Expenses"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["📊 Health & Campaigns"])

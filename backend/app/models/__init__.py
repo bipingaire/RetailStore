@@ -36,13 +36,6 @@ from .tenant_models import (
     Expense
 )
 
-# Import Invoice Scanning Models (New workflow)
-from .invoice_models import (
-    InvoiceScanSession,
-    InvoiceExtractedItem,
-    CommittedInvoice,
-)
-
 # Export all models for easy access via `from app.models import ...`
 __all__ = [
     # Master Models
@@ -70,10 +63,5 @@ __all__ = [
     "TenantPaymentConfig",
     "MarketingCampaign",
     "CampaignProduct",
-    "Expense",
-    
-    # Invoice Scanning Models
-    "InvoiceScanSession",
-    "InvoiceExtractedItem",
-    "CommittedInvoice",
+    "Expense"
 ]
