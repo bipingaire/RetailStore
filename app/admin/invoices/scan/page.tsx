@@ -27,6 +27,7 @@ export default function InvoiceUploadPage() {
     }, []);
 
     const fetchHistory = async () => {
+        console.log('[[ VERSION CHECK: v2026-02-04-FINAL ]] - IF YOU SEE THIS, NEW CODE IS RUNNING');
         console.log('[Invoice Page] Fetching invoices...');
         try {
             const res = await fetch(`${API_URL}/api/invoices`);
