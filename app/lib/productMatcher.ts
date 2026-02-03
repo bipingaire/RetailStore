@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export type MatchStatus = 'matched' | 'review' | 'new';
 
@@ -23,79 +18,41 @@ export async function findBestMatch(rawName: string): Promise<{
         return { status: 'new', suggestions: [] };
     }
 
-    const cleanName = rawName.trim();
+    try {
+        const response = await fetch(`${API_URL}/api/products/search?q=${encodeURIComponent(rawName)}&limit=5`);
+        const data = await response.json();
 
-    // 1. Try exact match by name (case-insensitive)
-    const { data: exactMatch } = await supabase
-        .from('global-product-master-catalog')
-        .select('product-id, product-name, sku')
-        .ilike('product-name', cleanName)
-        .limit(1);
+        if (!data.success || !data.results || data.results.length === 0) {
+            return { status: 'new', suggestions: [] };
+        }
 
-    if (exactMatch && exactMatch.length > 0) {
-        return {
-            status: 'matched',
-            match: {
-                id: exactMatch[0]['product-id'],
-                name: exactMatch[0]['product-name'],
-                sku: exactMatch[0].sku || '',
-                confidence: 1.0
-            },
-            suggestions: []
-        };
-    }
+        const suggestions = data.results.map((item: any, idx: number) => ({
+            id: item.id,
+            name: item.name,
+            sku: item.sku || '',
+            confidence: item.confidence || Math.max(0.5, 0.9 - (idx * 0.1))
+        }));
 
-    // 2. Try SKU/UPC match
-    const { data: skuMatch } = await supabase
-        .from('global-product-master-catalog')
-        .select('product-id, product-name, sku')
-        .or(`sku.ilike.${cleanName},barcode.ilike.${cleanName}`)
-        .limit(1);
-
-    if (skuMatch && skuMatch.length > 0) {
-        return {
-            status: 'matched',
-            match: {
-                id: skuMatch[0]['product-id'],
-                name: skuMatch[0]['product-name'],
-                sku: skuMatch[0].sku || '',
-                confidence: 1.0
-            },
-            suggestions: []
-        };
-    }
-
-    // 3. Fuzzy search by partial name (top 5 suggestions)
-    const keywords = cleanName.split(' ').filter(w => w.length > 2);
-    if (keywords.length > 0) {
-        const searchPattern = keywords.join('%');
-        const { data: fuzzyMatches } = await supabase
-            .from('global-product-master-catalog')
-            .select('product-id, product-name, sku')
-            .ilike('product-name', `%${searchPattern}%`)
-            .limit(5);
-
-        if (fuzzyMatches && fuzzyMatches.length > 0) {
-            const suggestions = fuzzyMatches.map((m, idx) => ({
-                id: m['product-id'],
-                name: m['product-name'],
-                sku: m.sku || '',
-                confidence: Math.max(0.5, 0.9 - (idx * 0.1)) // Decreasing confidence
-            }));
-
+        // If first result has high confidence (>0.9), auto-match
+        if (suggestions[0].confidence > 0.9) {
             return {
-                status: 'review',
-                match: suggestions[0], // Best guess
-                suggestions
+                status: 'matched',
+                match: suggestions[0],
+                suggestions: []
             };
         }
-    }
 
-    // 4. No match found - mark as new product
-    return {
-        status: 'new',
-        suggestions: []
-    };
+        // Otherwise, needs review
+        return {
+            status: 'review',
+            match: suggestions[0],
+            suggestions
+        };
+
+    } catch (err) {
+        console.error('Product matching failed:', err);
+        return { status: 'new', suggestions: [] };
+    }
 }
 
 // Batch matching for multiple items
