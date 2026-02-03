@@ -22,11 +22,11 @@ depends_on = None
 def upgrade():
     # Only create the NEW tables that don't exist yet
     
-    # Committed Invoices
+    # Committed Invoices (NO foreign key - vendors might not exist yet)
     op.create_table(
         'committed-invoices',
         sa.Column('invoice-id', postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
-        sa.Column('vendor-id', postgresql.UUID(as_uuid=True), sa.ForeignKey('vendors.id')),
+        sa.Column('vendor-id', postgresql.UUID(as_uuid=True)),  # No FK constraint
         sa.Column('supplier-name', sa.String(255)),
         sa.Column('invoice-number', sa.String(100)),
         sa.Column('invoice-date', sa.DateTime(timezone=True)),
