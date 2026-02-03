@@ -4,9 +4,12 @@ import { apiClient } from '@/lib/api-client';
 import { FileText, Upload, Clock, CloudUpload, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
+import InvoiceReviewPanel from '@/app/components/invoices/InvoiceReviewPanel';
+
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewInvoiceId, setReviewInvoiceId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInvoices();
@@ -16,12 +19,7 @@ export default function InvoicesPage() {
     console.log('[Invoice Page] Fetching invoices...');
     try {
       const data = await apiClient.getInvoices();
-      console.log('[Invoice Page] Invoices fetched:', data);
-
-      // Handle both response formats
       const invoiceList = data.invoices || data || [];
-      console.log('[Invoice Page] Processed invoice list:', invoiceList);
-
       setInvoices(invoiceList);
     } catch (error: any) {
       console.error('[Invoice Page] Error fetching invoices:', error);
@@ -35,10 +33,7 @@ export default function InvoicesPage() {
     console.log('[Invoice Upload] File input changed');
     const file = e.target.files?.[0];
 
-    if (!file) {
-      console.log('[Invoice Upload] No file selected');
-      return;
-    }
+    if (!file) return;
 
     console.log('[Invoice Upload] File selected:', file.name, file.size, 'bytes');
 
@@ -49,21 +44,18 @@ export default function InvoicesPage() {
       const result = await apiClient.uploadInvoice(file);
       console.log('[Invoice Upload] Upload successful:', result);
 
-      toast.success('Invoice uploaded! Opening review...');
+      toast.success('Invoice uploaded! Processing...');
 
-      // Open review page in new window (popup)
-      const reviewUrl = `/admin/invoices/review?id=${result.invoice_id}`;
-      console.log('[Invoice Upload] Opening review window:', reviewUrl);
+      // TRIGGER INLINE REVIEW
+      setReviewInvoiceId(result.invoice_id);
 
-      window.open(reviewUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
-
+      // Refresh list to show "Scanning..." entry
       fetchInvoices();
 
       // Reset file input
       e.target.value = '';
     } catch (error: any) {
       console.error('[Invoice Upload] Upload error:', error);
-      console.error('[Invoice Upload] Error details:', error.message, error.stack);
       toast.error(`Failed to upload invoice: ${error.message || 'Unknown error'}`);
     }
   }
@@ -94,6 +86,18 @@ export default function InvoicesPage() {
             <input type="file" onChange={handleUpload} className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
           </label>
         </div>
+
+        {/* INLINE REVIEW PANEL */}
+        {reviewInvoiceId && (
+          <InvoiceReviewPanel
+            invoiceId={reviewInvoiceId}
+            onClose={() => setReviewInvoiceId(null)}
+            onCommitSuccess={() => {
+              setReviewInvoiceId(null);
+              fetchInvoices();
+            }}
+          />
+        )}
 
         {/* Content */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
