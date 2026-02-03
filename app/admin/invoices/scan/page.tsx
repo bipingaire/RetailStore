@@ -69,19 +69,13 @@ export default function InvoiceUploadPage() {
             const data = await response.json();
             console.log('[Invoice Upload] Upload successful:', data);
 
-            toast.success('📄 Invoice uploaded! Processing...');
+            toast.success('📄 Invoice uploaded! Opening review...');
 
-            // Redirect to review page
-            console.log('[Invoice Upload] Redirecting to review page:', `/admin/invoices/review?id=${data.invoice_id}`);
+            // Open review page in new window (popup)
+            const reviewUrl = `/admin/invoices/review?id=${data.invoice_id}`;
+            console.log('[Invoice Upload] Opening review window:', reviewUrl);
 
-            try {
-                router.push(`/admin/invoices/review?id=${data.invoice_id}`);
-                console.log('[Invoice Upload] Router.push called successfully');
-            } catch (routerError) {
-                console.error('[Invoice Upload] Router push failed:', routerError);
-                // Fallback to window.location
-                window.location.href = `/admin/invoices/review?id=${data.invoice_id}`;
-            }
+            window.open(reviewUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
 
         } catch (error: any) {
             console.error('[Invoice Upload] Error:', error);
