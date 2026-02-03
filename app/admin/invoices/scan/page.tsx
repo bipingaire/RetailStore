@@ -33,13 +33,44 @@ export default function InvoiceScannerPage() {
     const [statusText, setStatusText] = useState('');
     const [extractedData, setExtractedData] = useState<InvoiceData | null>(null);
     const [apiKey, setApiKey] = useState('');
+    const [loadingKey, setLoadingKey] = useState(true);
+
+    // Fetch API key from backend on mount
+    useEffect(() => {
+        fetchApiKey();
+    }, []);
+
+    const fetchApiKey = async () => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/config/openai-key`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    'X-Subdomain': localStorage.getItem('subdomain') || '',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.available) {
+                    setApiKey(data.api_key);
+                } else {
+                    toast.error('OpenAI API key not configured on server');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch API key:', error);
+            toast.error('Failed to load configuration');
+        } finally {
+            setLoadingKey(false);
+        }
+    };
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         if (!apiKey) {
-            toast.error('Please enter your OpenAI API key first');
+            toast.error('OpenAI API key not available. Please configure OPENAI_API_KEY in .env');
             return;
         }
 
@@ -238,27 +269,18 @@ RETURN ONLY RAW JSON. NO MARKDOWN.
                     <p className="text-gray-600">Upload invoice PDFs for automated extraction and inventory updates</p>
                 </div>
 
-                {/* API Key Input */}
-                {status === 'idle' && (
+                {/* Loading Key */}
+                {loadingKey && (
                     <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            OpenAI API Key
-                        </label>
-                        <input
-                            type="password"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="sk-..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <p className="text-xs text-gray-500 mt-2">
-                            Your API key is only used in your browser and never stored on our servers
-                        </p>
+                        <div className="flex items-center gap-3">
+                            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                            <span className="text-gray-600">Loading configuration...</span>
+                        </div>
                     </div>
                 )}
 
                 {/* Upload Section */}
-                {status === 'idle' && (
+                {!loadingKey && status === 'idle' && (
                     <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
                         <Upload className="mx-auto h-16 w-16 text-gray-400 mb-4" />
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Invoice PDF</h3>

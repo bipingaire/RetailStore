@@ -11,7 +11,7 @@ from .models.master_models import MasterBase
 from .models.tenant_models import TenantBase
 from .routers import (
     auth, products, inventory, orders, customers, vendors, files,
-    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, tenants, expenses, ai, invoice_commit
+    invoices, sales, analytics, audits, restock, profits, superadmin, shop, reports, campaigns, settings as settings_router, social, tenants, expenses, ai, invoice_commit, config
 )
 
 # Create FastAPI app
@@ -103,6 +103,7 @@ app.include_router(profits.router, prefix="/api/profits", tags=["💰 Profit Tra
 app.include_router(campaigns.router, prefix="/api/campaigns", tags=["📣 Campaigns"])
 app.include_router(ai.router, prefix="/api/ai", tags=["🧠 AI Features"])
 app.include_router(settings_router.router, prefix="/api/settings", tags=["⚙️ Settings"])
+app.include_router(config.router, prefix="/api/config", tags=["🔧 Config"])
 
 # Shutdown event
 @app.on_event("shutdown")
