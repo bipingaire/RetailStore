@@ -75,6 +75,7 @@ export default function InvoiceUploadPage() {
             // Open review page in new window (popup)
             const reviewUrl = `/admin/invoices/review?id=${data.invoice_id}`;
             console.log('[Invoice Upload] Opening review window:', reviewUrl);
+            console.log('[[ TRIGGERING POPUP NOW ]]');
 
             window.open(reviewUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
 
