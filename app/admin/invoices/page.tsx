@@ -49,7 +49,14 @@ export default function InvoicesPage() {
       const result = await apiClient.uploadInvoice(file);
       console.log('[Invoice Upload] Upload successful:', result);
 
-      toast.success('Invoice uploaded successfully!');
+      toast.success('Invoice uploaded! Opening review...');
+
+      // Open review page in new window (popup)
+      const reviewUrl = `/admin/invoices/review?id=${result.invoice_id}`;
+      console.log('[Invoice Upload] Opening review window:', reviewUrl);
+
+      window.open(reviewUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+
       fetchInvoices();
 
       // Reset file input
