@@ -47,7 +47,17 @@ export default function InvoiceReviewPage() {
         // Poll for invoice processing status
         const pollInterval = setInterval(async () => {
             try {
-                const response = await fetch(`${API_URL}/api/invoices/${invoiceId}`);
+                const response = await fetch(`${API_URL}/api/invoices/${invoiceId}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const data = await response.json();
 
                 if (data.status === 'completed') {
@@ -114,6 +124,7 @@ export default function InvoiceReviewPage() {
 
             const response = await fetch(`${API_URL}/api/invoices/process`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
