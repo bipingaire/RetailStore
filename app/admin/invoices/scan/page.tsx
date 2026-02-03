@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, Loader2, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -153,6 +153,7 @@ export default function InvoiceScannerPage() {
             await page.render({
                 canvasContext: context,
                 viewport: viewport,
+                canvas: canvas,
             }).promise;
 
             const imageData = canvas.toDataURL('image/jpeg', 0.95);
