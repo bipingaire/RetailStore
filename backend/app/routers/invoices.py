@@ -138,7 +138,7 @@ async def process_invoice(
     invoice = UploadedInvoice(
         supplier_name=invoice_data.supplier_name,
         invoice_number=invoice_data.invoice_number,
-        invoice_date=datetime.fromisoformat(invoice_data.invoice_date.replace('Z', '+00:00')),
+        invoice_date=datetime.fromisoformat(invoice_data.invoice_date.replace("Z", "+00:00")),
         total_amount_value=invoice_data.total_amount,
         processing_status="processed",
         ai_extracted_data_json={
