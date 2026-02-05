@@ -49,6 +49,7 @@ class InvoiceItem(BaseModel):
     product_name: str
     quantity: float
     unit_cost: float
+    category_name: Optional[str] = None
     upc_code: Optional[str] = None
 
 

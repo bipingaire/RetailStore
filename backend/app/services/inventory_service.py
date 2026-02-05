@@ -103,6 +103,7 @@ class InventoryService:
                 db.add(inventory)
                 items_created += 1
         
+        master_db.commit()  # Commit global products to master catalog
         db.commit()
         
         return {
