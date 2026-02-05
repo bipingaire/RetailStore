@@ -133,9 +133,8 @@ class InventoryService:
             Health metrics and recommendations
         """
         # Get all inventory for this tenant
-        inventory_items = db.query(InventoryItem).filter(
-            InventoryItem.tenant_id == tenant_id
-        ).all()
+        # Note: No need to filter by tenant_id as we are already in the tenant's isolated DB
+        inventory_items = db.query(InventoryItem).all()
         
         low_stock = []
         overstocked = []
