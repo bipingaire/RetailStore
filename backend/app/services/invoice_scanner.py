@@ -147,6 +147,38 @@ class InvoiceScanner:
             db.close()
 
     @staticmethod
+    def _infer_category(product_name: str) -> str:
+        """
+        Deterministic keyword matching for categories.
+        """
+        if not product_name:
+            return "Uncategorized"
+            
+        name = product_name.upper()
+        
+        # KEYWORD RULES
+        if any(x in name for x in ["RICE", "FLOUR", "ATTA", "DAL", "LENTIL", "BEAN", "PULSE", "GRAIN", "WHEAT"]):
+            return "Grains & Pulses"
+        if any(x in name for x in ["OIL", "GHEE", "BUTTER", "FAT"]):
+            return "Oils & Fats"
+        if any(x in name for x in ["SPICE", "MASALA", "POWDER", "SALT", "SUGAR", "CHILLI", "TURMERIC", "CUMIN"]):
+            return "Spices & Seasonings"
+        if any(x in name for x in ["TEA", "COFFEE", "DRINK", "JUICE", "SODA", "WATER", "BEVERAGE", "MILK"]):
+            return "Beverages"
+        if any(x in name for x in ["SNACK", "CHIPS", "BISCUIT", "COOKIE", "CHOCOLATE", "CANDY", "NAMKEEN"]):
+            return "Snacks"
+        if any(x in name for x in ["SOAP", "SHAMPOO", "WASH", "CLEAN", "DETERGENT", "TOOTH"]):
+            return "Household & Personal Care"
+        if any(x in name for x in ["VEG", "FRUIT", "ONION", "POTATO", "TOMATO", "GARLIC", "GINGER"]):
+            return "Fresh Produce"
+        if any(x in name for x in ["MEAT", "CHICKEN", "FISH", "EGG", "MUTTON"]):
+            return "Meat & Poultry"
+        if any(x in name for x in ["FROZEN", "PEAS", "CORN"]):
+            return "Frozen Foods"
+            
+        return "General Grocery"
+
+    @staticmethod
     def _analyze_image_with_openai(image_path: str) -> Dict[str, Any]:
         """
         Sends image to OpenAI for extraction.
@@ -162,27 +194,24 @@ class InvoiceScanner:
             
             # IMPROVED PROMPT
             prompt = """
-            You are an expert invoice data extractor. Analyze this invoice image and extract structured data.
+            You are an expert invoice data extractor. Analyze this invoice image.
             
-            CRITICAL INSTRUCTIONS:
-            1. **Extracted Fields**: You must extract the following in strict JSON format:
-               - vendor_name (string): Name of the supplier/store.
-               - invoice_number (string): The invoice or receipt number. If unsure, look for # or Inv or Receipt.
-               - invoice_date (string, YYYY-MM-DD): The date of the transaction. Transform to YYYY-MM-DD format.
-               - total_amount (number): The comprehensive total of the invoice.
-               - items (array of objects):
-                   - product_name (string): Exact text description of the line item.
-                   - quantity (number): Defaults to 1 if not specified.
-                   - unit_cost (number): Price per item.
-                   - total_price (number): Line total.
-                   - category (string): **MANDATORY**. Classify the item into one of: "Food", "Beverage", "Household", "Tobacco", "Personal Care", "Automotive", "Other". Do NOT return null. Guess if unsure.
-                   - vendor_code (string, optional): SKU or product code if visible.
+            EXTRACT THESE FIELDS OR ELSE:
+            1. **vendor_name**: Top of the page usually.
+            2. **invoice_number**: Look for "Inv#", "Invoice:", "Bill No", "Receipt#". It is almost ALWAYS present. Check top-right.
+            3. **invoice_date**: Look for "Date:", "Dt:", or just a date string like "12/05/2024". Check corners.
+            4. **total_amount**: The final grand total at the bottom.
+            5. **items**: List of products.
+               - product_name (EXACT TEXT)
+               - quantity (Number)
+               - unit_cost (Number)
+               - total_price (Number)
+               - category: "Grains", "Spices", "Oil", "Snacks", "Beverages", "Household", "Produce", "Other".
             
-            2. **Constraints**:
-               - If a field is missing, use null, but TRY HARD to find it.
-               - **Category MUST NOT be null**.
-               - Do not include markdown formatting like ```json.
-               - Return ONLY valid JSON.
+            CRITICAL RULES:
+            - If you cannot find "Invoice #" or "Date", look for HANDWRITTEN text.
+            - If Category is unsure, guess based on the product name. NEver return null for category.
+            - Return STRICT JSON.
             """
 
             response = client.chat.completions.create(
@@ -232,7 +261,10 @@ class InvoiceScanner:
             if not vendor_name and data.get("vendor_name"):
                 vendor_name = data.get("vendor_name")
             if not invoice_number and data.get("invoice_number"):
-                invoice_number = data.get("invoice_number")
+                # Clean up invoice number (remove labels)
+                inv = data.get("invoice_number", "").replace("Invoice", "").replace("#", "").replace(":", "").strip()
+                if inv: invoice_number = inv
+                
             if not invoice_date and data.get("invoice_date"):
                 invoice_date = data.get("invoice_date")
             if not total_amount and data.get("total_amount"):
@@ -252,7 +284,7 @@ class InvoiceScanner:
             if items:
                 result["items"].extend(items)
         
-        # MATH FALLBACK: Calculate missing totals
+        # MATH FALLBACK: Calculate missing totals & CATEGORY INFERENCE
         calculated_total = 0
         for item in result["items"]:
              # If total_price is missing but we have unit_cost, calculate it
@@ -273,6 +305,12 @@ class InvoiceScanner:
                           item["unit_cost"] = total / qty
                   except:
                       pass
+             
+             # DETERMINISTIC CATEGORY FALLBACK
+             current_cat = item.get("category")
+             prod_name = item.get("product_name", "")
+             if not current_cat or current_cat.lower() in ["other", "uncategorized", "unknown"]:
+                 item["category"] = InvoiceScanner._infer_category(prod_name)
                       
              calculated_total += float(item.get("total_price", 0) or 0)
 
