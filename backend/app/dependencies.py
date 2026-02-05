@@ -45,13 +45,31 @@ def get_subdomain(
         if subdomain not in ["www", "api"]:
             print(f"DEBUG: get_subdomain parsed host '{host}' -> '{subdomain}'")
             return subdomain
-    
-    # Try query parameter
+            
+    # Try query parameter (LAST RESORT)
     subdomain = request.query_params.get("subdomain")
     if subdomain:
         print(f"DEBUG: Found subdomain query param: {subdomain}")
         return subdomain
-    
+
+    # SPECIAL CASE for internal docker networking (fastapi_backend)
+    # When Next.js calls backend via docker service name, host is "fastapi_backend"
+    if host in ["fastapi_backend", "backend", "localhost", "127.0.0.1"]:
+        # Check if we can get it from Referer header as fallback
+        referer = request.headers.get("referer", "")
+        if referer and "://" in referer:
+            try:
+                # https://highpoint.indumart.us/admin/invoices -> highpoint
+                from urllib.parse import urlparse
+                netloc = urlparse(referer).netloc
+                if "." in netloc:
+                    subdomain = netloc.split(".")[0]
+                    if subdomain not in ["www", "api"]:
+                        print(f"DEBUG: Extracted subdomain '{subdomain}' from Referer: {referer}")
+                        return subdomain
+            except Exception as e:
+                print(f"DEBUG: Failed to parse referer: {e}")
+
     print(f"ERROR: Subdomain resolution failed for {request.url}. Host: {host}")
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
