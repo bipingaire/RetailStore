@@ -9,6 +9,8 @@ type InvoiceItem = {
     product_name: string;
     quantity: number;
     unit_cost: number;
+    total_price?: number;
+    category?: string;
     vendor_code?: string;
     upc?: string;
     expiry?: string;
@@ -110,6 +112,7 @@ export default function InvoiceReviewPanel({ invoiceId, onClose, onCommitSuccess
                     product_name: item.product_name,
                     quantity: item.quantity,
                     unit_cost: item.unit_cost,
+                    category_name: item.category || 'Uncategorized', # Mapped to backend
                     upc_code: item.upc || null
                 }))
             };
@@ -222,6 +225,7 @@ export default function InvoiceReviewPanel({ invoiceId, onClose, onCommitSuccess
                                 <tr>
                                     <th className="px-4 py-2 text-left bg-gray-50/80 backdrop-blur">Product</th>
                                     <th className="px-4 py-2 text-left w-24 bg-gray-50/80 backdrop-blur">Code</th>
+                                    <th className="px-4 py-2 text-left w-32 bg-gray-50/80 backdrop-blur">Category</th>
                                     <th className="px-4 py-2 text-center w-20 bg-gray-50/80 backdrop-blur">Qty</th>
                                     <th className="px-4 py-2 text-right w-24 bg-gray-50/80 backdrop-blur">Cost</th>
                                     <th className="px-4 py-2 text-left w-32 bg-gray-50/80 backdrop-blur">Expiry</th>
@@ -247,6 +251,24 @@ export default function InvoiceReviewPanel({ invoiceId, onClose, onCommitSuccess
                                                 className="w-full text-xs font-mono bg-transparent border-none p-0 focus:ring-0 text-gray-600"
                                                 placeholder="SKU"
                                             />
+                                        </td>
+                                        <td className="px-4 py-2">
+                                            <input
+                                                type="text"
+                                                value={item.category || ''}
+                                                onChange={(e) => updateItem(idx, 'category', e.target.value)}
+                                                className="w-full text-xs bg-transparent border-none p-0 focus:ring-0 text-gray-600 truncate"
+                                                placeholder="Uncategorized"
+                                                list="categories"
+                                            />
+                                            <datalist id="categories">
+                                                <option value="Food" />
+                                                <option value="Beverage" />
+                                                <option value="Household" />
+                                                <option value="Tobacco" />
+                                                <option value="Personal Care" />
+                                                <option value="Automotive" />
+                                            </datalist>
                                         </td>
                                         <td className="px-4 py-2">
                                             <input

@@ -315,9 +315,25 @@ class InvoiceScanner:
              calculated_total += float(item.get("total_price", 0) or 0)
 
         # Fallback: if total is missing, sum items
-        if not result["total_amount"]:
+        if not result["total_amount"] or float(result["total_amount"] or 0) == 0:
             result["total_amount"] = calculated_total
             
+        # VALIDATION: Check for Date/Invoice Number Swap
+        # If invoice_number looks like a date (contains overlapping slashes/dashes and numbers), and invoice_date looks numeric
+        import re
+        inv_val = str(result.get("invoice_number", "") or "")
+        date_val = str(result.get("invoice_date", "") or "")
+        
+        # Simple date pattern (MM/DD/YYYY or YYYY-MM-DD)
+        is_inv_date = re.search(r'\d{1,4}[-/]\d{1,2}[-/]\d{1,4}', inv_val)
+        is_date_date = re.search(r'\d{1,4}[-/]\d{1,2}[-/]\d{1,4}', date_val)
+        
+        if is_inv_date and not is_date_date:
+            # Swap them! The AI put the date in the invoice number field.
+            print(f"DEBUG: Swapping extracted Invoice # ('{inv_val}') with Date ('{date_val}')")
+            result["invoice_date"] = inv_val
+            result["invoice_number"] = date_val if date_val else "NV-" + str(int(datetime.utcnow().timestamp()))
+        
         return result
 
     @staticmethod
