@@ -219,37 +219,29 @@ async def list_invoices_root(
 
 @router.get("/{invoice_id}")
 async def get_invoice_details(
-    invoice_id: str,  # Changed from UUID to string to handle validation ourselves
+    invoice_id: uuid.UUID,
+    tenant_filter: TenantFilter = Depends(),
     db: Session = Depends(get_db)
 ):
-    """Get invoice details - no auth required for polling."""
+    """Get invoice details."""
     try:
-        # Validate and convert UUID
-        try:
-            invoice_uuid = uuid.UUID(invoice_id)
-        except ValueError as e:
-            print(f"Invalid UUID format: {invoice_id}, error: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid invoice ID format: {invoice_id}"
-            )
-        
-        print(f"Fetching invoice details for {invoice_uuid}")
+        print(f"[GET INVOICE DETAILS] Invoice ID: {invoice_id}")
+        print(f"[GET INVOICE DETAILS] Tenant: {tenant_filter.subdomain}")
         
         invoice = db.query(UploadedInvoice).filter(
-            UploadedInvoice.invoice_id == invoice_uuid
+            UploadedInvoice.invoice_id == invoice_id
         ).first()
         
         if not invoice:
-            print(f"Invoice {invoice_uuid} not found in database")
+            print(f"[GET INVOICE DETAILS] Invoice not found: {invoice_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Invoice not found"
             )
         
-        print(f"Invoice {invoice_uuid} found, status: {invoice.processing_status}")
+        print(f"[GET INVOICE DETAILS] Found invoice: {invoice.invoice_id}, Status: {invoice.processing_status}")
         
-        return {
+        result = {
             "id": str(invoice.invoice_id),
             "vendor_name": invoice.supplier_name,
             "invoice_number": invoice.invoice_number,
@@ -261,13 +253,18 @@ async def get_invoice_details(
             "pages_scanned": invoice.pages_scanned or 0,
             "created_at": invoice.created_at.isoformat() if invoice.created_at else None
         }
+        
+        print(f"[GET INVOICE DETAILS] Returning data for invoice: {invoice_id}")
+        return result
+        
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error fetching invoice {invoice_id}: {e}")
+        print(f"[GET INVOICE DETAILS ERROR] {type(e).__name__}: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal server error: {str(e)}"
+            detail=f"Error retrieving invoice: {str(e)}"
         )
+
