@@ -44,7 +44,17 @@ class InventoryService:
             product_name = item.get('product_name')
             quantity = Decimal(item.get('quantity', 0))
             unit_cost = Decimal(item.get('unit_cost', 0))
+            total_price = Decimal(item.get('total_price', 0))
             category_name = item.get('category') or item.get('category_name') or "Uncategorized"
+            
+            # Smart Cost Calculation (AI Fallback)
+            if quantity > 0:
+                if unit_cost == 0 and total_price > 0:
+                    unit_cost = total_price / quantity
+                    print(f"DEBUG INVENTORY: Calculated missing unit_cost from total ({total_price}/{quantity} = {unit_cost})")
+                elif total_price == 0 and unit_cost > 0:
+                    total_price = unit_cost * quantity
+
             
             # Try to find existing product in MASTER DB
             print(f"DEBUG INVENTORY: Searching Master DB for logic: '{product_name}'")
