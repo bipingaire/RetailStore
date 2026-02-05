@@ -40,12 +40,8 @@ class InventoryService:
         
         for item in invoice_data.get('items', []):
             product_name = item.get('product_name')
-            # Handle potential None values safely before Decimal conversion
-            qty_val = item.get('quantity')
-            cost_val = item.get('unit_cost')
-            
-            quantity = Decimal(str(qty_val)) if qty_val is not None else Decimal(0)
-            unit_cost = Decimal(str(cost_val)) if cost_val is not None else Decimal(0)
+            quantity = Decimal(item.get('quantity', 0))
+            unit_cost = Decimal(item.get('unit_cost', 0))
             
             # Try to find existing product
             product = db.query(GlobalProduct).filter(

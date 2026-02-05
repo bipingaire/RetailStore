@@ -133,57 +133,32 @@ async def process_invoice(
     
     **Inventory IN** - Adds purchased items to inventory.
     """
-
     # Create invoice record
-    try:
-        print(f"[PROCESS INVOICE] Starting processing for supplier: {invoice_data.supplier_name}")
-        print(f"[PROCESS INVOICE] Items count: {len(invoice_data.items)}")
-        
-        # Validate date
-        try:
-            inv_date = datetime.fromisoformat(invoice_data.invoice_date.replace('Z', '+00:00'))
-        except ValueError as e:
-            print(f"[PROCESS INVOICE] Date parse error: {e}")
-            # Fallback to now if invalid
-            inv_date = datetime.utcnow()
-
-        invoice = UploadedInvoice(
-            supplier_name=invoice_data.supplier_name,
-            invoice_number=invoice_data.invoice_number,
-            invoice_date=inv_date,
-            total_amount_value=invoice_data.total_amount,
-            processing_status="processed",
-            ai_extracted_data_json={
-                "items": [item.model_dump() for item in invoice_data.items]
-            }
-        )
-        
-        db.add(invoice)
-        db.flush()
-        print(f"[PROCESS INVOICE] Created invoice record ID: {invoice.invoice_id}")
-        
-        # Process inventory updates
-        print(f"[PROCESS INVOICE] Calling InventoryService...")
-        result = InventoryService.process_invoice(
-            db=db,
-            invoice_data={"items": [item.model_dump() for item in invoice_data.items]},
-            supplier_name=invoice_data.supplier_name
-        )
-        print(f"[PROCESS INVOICE] Inventory processed successfully.")
-        
-        return {
-            "invoice_id": invoice.invoice_id,
-            **result
+    invoice = UploadedInvoice(
+        supplier_name=invoice_data.supplier_name,
+        invoice_number=invoice_data.invoice_number,
+        invoice_date=datetime.fromisoformat(invoice_data.invoice_date),
+        total_amount_value=invoice_data.total_amount,
+        processing_status="processed",
+        ai_extracted_data_json={
+            "items": [item.model_dump() for item in invoice_data.items]
         }
-    except Exception as e:
-        print(f"[PROCESS INVOICE ERROR] {type(e).__name__}: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing invoice: {str(e)}"
-        )
+    )
+    
+    db.add(invoice)
+    db.flush()
+    
+    # Process inventory updates
+    result = InventoryService.process_invoice(
+        db=db,
+        invoice_data={"items": [item.model_dump() for item in invoice_data.items]},
+        supplier_name=invoice_data.supplier_name
+    )
+    
+    return {
+        "invoice_id": invoice.invoice_id,
+        **result
+    }
 
 
 @router.get("/history")
