@@ -57,9 +57,9 @@ class InventoryService:
                 print(f"DEBUG INVENTORY: Product '{product_name}' NOT FOUND in Master DB. Creating it now...")
                 new_global_product = GlobalProduct(
                     product_name=product_name,
-                    category="Uncategorized", # Default
-                    description=f"Imported from invoice from {supplier_name}",
-                    is_active=True
+                    category_name="Uncategorized", # Default
+                    description_text=f"Imported from invoice from {supplier_name}",
+                    status="active"
                 )
                 master_db.add(new_global_product)
                 master_db.flush() # flush to get product_id
