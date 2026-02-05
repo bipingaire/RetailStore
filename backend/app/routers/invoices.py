@@ -9,7 +9,7 @@ from typing import List, Dict, Optional
 import uuid
 from datetime import datetime
 
-from ..dependencies import get_db
+from ..dependencies import get_db, get_master_db
 from ..models import UploadedInvoice
 from ..dependencies import TenantFilter
 from ..dependencies import TenantFilter
@@ -123,7 +123,8 @@ async def upload_invoice(
 async def process_invoice(
     invoice_data: InvoiceData,
     tenant_filter: TenantFilter = Depends(),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    master_db: Session = Depends(get_master_db)
 ):
     """
     Process invoice data and update inventory.
@@ -151,6 +152,7 @@ async def process_invoice(
     # Process inventory updates
     result = InventoryService.process_invoice(
         db=db,
+        master_db=master_db,
         invoice_data={"items": [item.model_dump() for item in invoice_data.items]},
         supplier_name=invoice_data.supplier_name
     )

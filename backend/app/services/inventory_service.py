@@ -21,6 +21,7 @@ class InventoryService:
     @staticmethod
     def process_invoice(
         db: Session,
+        master_db: Session,
         invoice_data: Dict,
         supplier_name: str
     ) -> Dict:
@@ -28,7 +29,8 @@ class InventoryService:
         Process scanned invoice and update inventory.
         
         Args:
-            db: Database session
+            db: Tenant Database session
+            master_db: Master Database session (for global products)
             invoice_data: Parsed invoice data from OCR
             supplier_name: Vendor name
             
@@ -43,8 +45,8 @@ class InventoryService:
             quantity = Decimal(item.get('quantity', 0))
             unit_cost = Decimal(item.get('unit_cost', 0))
             
-            # Try to find existing product
-            product = db.query(GlobalProduct).filter(
+            # Try to find existing product in MASTER DB
+            product = master_db.query(GlobalProduct).filter(
                 GlobalProduct.product_name.ilike(f"%{product_name}%")
             ).first()
             
