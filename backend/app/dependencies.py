@@ -30,8 +30,12 @@ def get_subdomain(
     2. Host header (mystore.example.com -> mystore)
     3. Query parameter ?subdomain=mystore
     """
+    # Debug logging for subdomain resolution
+    print(f"DEBUG: get_subdomain called. URL: {request.url}")
+    
     # Try header first
     if x_subdomain:
+        print(f"DEBUG: Found X-Subdomain header: {x_subdomain}")
         return x_subdomain
     
     # Try host parsing
@@ -45,8 +49,10 @@ def get_subdomain(
     # Try query parameter
     subdomain = request.query_params.get("subdomain")
     if subdomain:
+        print(f"DEBUG: Found subdomain query param: {subdomain}")
         return subdomain
     
+    print(f"ERROR: Subdomain resolution failed for {request.url}. Host: {host}")
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Subdomain required. Provide via X-Subdomain header, subdomain in URL, or ?subdomain= parameter"
