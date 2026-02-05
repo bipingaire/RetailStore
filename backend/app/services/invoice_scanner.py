@@ -175,12 +175,12 @@ class InvoiceScanner:
                    - quantity (number): Defaults to 1 if not specified.
                    - unit_cost (number): Price per item.
                    - total_price (number): Line total.
-                   - category (string): **MANDATORY**. Classify the item into one of: "Food", "Beverage", "Household", "Tobacco", "Personal Care", "Automotive", "Other". Infer from product name.
+                   - category (string): **MANDATORY**. Classify the item into one of: "Food", "Beverage", "Household", "Tobacco", "Personal Care", "Automotive", "Other". Do NOT return null. Guess if unsure.
                    - vendor_code (string, optional): SKU or product code if visible.
             
             2. **Constraints**:
                - If a field is missing, use null, but TRY HARD to find it.
-               - Ensure "category" is never null. Make a best guess based on the product name.
+               - **Category MUST NOT be null**.
                - Do not include markdown formatting like ```json.
                - Return ONLY valid JSON.
             """
@@ -251,11 +251,34 @@ class InvoiceScanner:
             items = page.get("items", [])
             if items:
                 result["items"].extend(items)
-                
+        
+        # MATH FALLBACK: Calculate missing totals
+        calculated_total = 0
+        for item in result["items"]:
+             # If total_price is missing but we have unit_cost, calculate it
+             if not item.get("total_price") and item.get("unit_cost"):
+                 try:
+                     qty = float(item.get("quantity", 1))
+                     cost = float(item.get("unit_cost", 0))
+                     item["total_price"] = cost * qty
+                 except:
+                     pass
+             
+             # If unit_cost is missing but we have total_price, calculate it
+             if not item.get("unit_cost") and item.get("total_price"):
+                  try:
+                      qty = float(item.get("quantity", 1))
+                      total = float(item.get("total_price", 0))
+                      if qty > 0:
+                          item["unit_cost"] = total / qty
+                  except:
+                      pass
+                      
+             calculated_total += float(item.get("total_price", 0) or 0)
+
         # Fallback: if total is missing, sum items
-        if not result["total_amount"] and result["items"]:
-            total = sum(item.get("total_price", 0) or 0 for item in result["items"])
-            result["total_amount"] = total
+        if not result["total_amount"]:
+            result["total_amount"] = calculated_total
             
         return result
 
