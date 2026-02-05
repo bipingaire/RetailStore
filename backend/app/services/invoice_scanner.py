@@ -115,6 +115,35 @@ class InvoiceScanner:
             
             # 4. Update Invoice Record
             invoice.ai_extracted_data_json = final_data
+            
+            # Populate top-level columns for easier querying
+            invoice.supplier_name = final_data.get("vendor_name")
+            invoice.invoice_number = final_data.get("invoice_number")
+            
+            # Handle Total Amount
+            try:
+                if final_data.get("total_amount"):
+                    invoice.total_amount_value = float(final_data.get("total_amount"))
+            except:
+                pass
+                
+            # Handle Date Parsing
+            date_str = final_data.get("invoice_date")
+            if date_str:
+                try:
+                    # Try ISO first
+                    invoice.invoice_date = datetime.fromisoformat(date_str)
+                except ValueError:
+                    try:
+                        # Try common US format MM/DD/YYYY
+                        invoice.invoice_date = datetime.strptime(date_str, "%m/%d/%Y")
+                    except ValueError:
+                        try:
+                            # Try YYYY-MM-DD
+                            invoice.invoice_date = datetime.strptime(date_str, "%Y-%m-%d")
+                        except ValueError:
+                            print(f"Could not parse invoice date: {date_str}")
+            
             invoice.processing_status = "completed"
             invoice.pages_scanned = len(images) # Mark all done
             db.commit()
@@ -136,9 +165,21 @@ class InvoiceScanner:
                 pass
         finally:
             db.close()
-
+ 
     @staticmethod
-    def _analyze_image_with_openai(image_path: str) -> Dict[str, Any]:
+    def _parse_date(date_str: str) -> Optional[datetime]:
+        """Helper to parse various date formats."""
+        if not date_str:
+            return None
+        for fmt in ["%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y", "%Y/%m/%d"]:
+            try:
+                return datetime.strptime(date_str, fmt)
+            except ValueError:
+                continue
+        try:
+            return datetime.fromisoformat(date_str)
+        except ValueError:
+            return None
         """
         Sends image to OpenAI for extraction.
         """
