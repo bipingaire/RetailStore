@@ -44,6 +44,7 @@ class InventoryService:
             product_name = item.get('product_name')
             quantity = Decimal(item.get('quantity', 0))
             unit_cost = Decimal(item.get('unit_cost', 0))
+            category_name = item.get('category') or item.get('category_name') or "Uncategorized"
             
             # Try to find existing product in MASTER DB
             print(f"DEBUG INVENTORY: Searching Master DB for logic: '{product_name}'")
@@ -54,10 +55,10 @@ class InventoryService:
             if not product:
                 # Create NEW Global Product if not found
                 # This ensures we capture new items from invoices
-                print(f"DEBUG INVENTORY: Product '{product_name}' NOT FOUND in Master DB. Creating it now...")
+                print(f"DEBUG INVENTORY: Product '{product_name}' NOT FOUND in Master DB. Creating it now with Category: {category_name}")
                 new_global_product = GlobalProduct(
                     product_name=product_name,
-                    category_name="Uncategorized", # Default
+                    category_name=category_name, # Use AI Category
                     description_text=f"Imported from invoice from {supplier_name}",
                     status="active"
                 )
