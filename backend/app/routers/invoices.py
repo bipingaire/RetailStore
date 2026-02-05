@@ -134,6 +134,12 @@ async def process_invoice(
     
     **Inventory IN** - Adds purchased items to inventory.
     """
+    print(f"DEBUG: /process endpoint called - UNIQUE_MARKER_999")
+    print(f"DEBUG: Processing payload for supplier: {invoice_data.supplier_name}")
+    print(f"DEBUG: User provided {len(invoice_data.items)} items")
+    for idx, item in enumerate(invoice_data.items):
+        print(f"DEBUG: Item {idx}: {item.product_name} (Qty: {item.quantity})")
+
     # Create invoice record
     invoice = UploadedInvoice(
         supplier_name=invoice_data.supplier_name,

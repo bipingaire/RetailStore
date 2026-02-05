@@ -46,30 +46,51 @@ class InventoryService:
             unit_cost = Decimal(item.get('unit_cost', 0))
             
             # Try to find existing product in MASTER DB
+            print(f"DEBUG INVENTORY: Searching Master DB for logic: '{product_name}'")
             product = master_db.query(GlobalProduct).filter(
                 GlobalProduct.product_name.ilike(f"%{product_name}%")
             ).first()
             
-            if product:
-                # Find or create inventory item
-                inventory = db.query(InventoryItem).filter(
-                    InventoryItem.global_product_id == product.product_id
-                ).first()
-                
-                if inventory:
-                    # Update existing
-                    inventory.quantity_on_hand += quantity
-                    inventory.unit_cost = unit_cost
-                    items_updated += 1
-                else:
-                    # Create new inventory item
-                    inventory = InventoryItem(
-                        global_product_id=product.product_id,
-                        quantity_on_hand=quantity,
-                        unit_cost=unit_cost
-                    )
-                    db.add(inventory)
-                    items_created += 1
+            if not product:
+                # Create NEW Global Product if not found
+                # This ensures we capture new items from invoices
+                print(f"DEBUG INVENTORY: Product '{product_name}' NOT FOUND in Master DB. Creating it now...")
+                new_global_product = GlobalProduct(
+                    product_name=product_name,
+                    category="Uncategorized", # Default
+                    description=f"Imported from invoice from {supplier_name}",
+                    is_active=True
+                )
+                master_db.add(new_global_product)
+                master_db.flush() # flush to get product_id
+                product = new_global_product
+                print(f"DEBUG INVENTORY: Created new GlobalProduct ID={product.product_id} Name='{product.product_name}'")
+            else:
+                print(f"DEBUG INVENTORY: Found match! ID={product.product_id} Name='{product.product_name}'")
+
+            # Now product exists (either found or created)
+            # Find or create inventory item
+            inventory = db.query(InventoryItem).filter(
+                InventoryItem.global_product_id == product.product_id
+            ).first()
+            
+            if inventory:
+                print(f"DEBUG INVENTORY: Updating existing Tenant Inventory Item {inventory.inventory_id}")
+                # Update existing
+                inventory.quantity_on_hand += quantity
+                # Update cost with moving average or just latest? Using latest for now
+                inventory.unit_cost = unit_cost
+                items_updated += 1
+            else:
+                print(f"DEBUG INVENTORY: Creating NEW Tenant Inventory Item for Product ID {product.product_id}")
+                # Create new inventory item
+                inventory = InventoryItem(
+                    global_product_id=product.product_id,
+                    quantity_on_hand=quantity,
+                    unit_cost=unit_cost
+                )
+                db.add(inventory)
+                items_created += 1
         
         db.commit()
         
