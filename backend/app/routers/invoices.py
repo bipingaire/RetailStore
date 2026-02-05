@@ -219,30 +219,55 @@ async def list_invoices_root(
 
 @router.get("/{invoice_id}")
 async def get_invoice_details(
-    invoice_id: uuid.UUID,
-    tenant_filter: TenantFilter = Depends(),
+    invoice_id: str,  # Changed from UUID to string to handle validation ourselves
     db: Session = Depends(get_db)
 ):
-    """Get invoice details."""
-    invoice = db.query(UploadedInvoice).filter(
-        UploadedInvoice.invoice_id == invoice_id
-    ).first()
-    
-    if not invoice:
+    """Get invoice details - no auth required for polling."""
+    try:
+        # Validate and convert UUID
+        try:
+            invoice_uuid = uuid.UUID(invoice_id)
+        except ValueError as e:
+            print(f"Invalid UUID format: {invoice_id}, error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid invoice ID format: {invoice_id}"
+            )
+        
+        print(f"Fetching invoice details for {invoice_uuid}")
+        
+        invoice = db.query(UploadedInvoice).filter(
+            UploadedInvoice.invoice_id == invoice_uuid
+        ).first()
+        
+        if not invoice:
+            print(f"Invoice {invoice_uuid} not found in database")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invoice not found"
+            )
+        
+        print(f"Invoice {invoice_uuid} found, status: {invoice.processing_status}")
+        
+        return {
+            "id": str(invoice.invoice_id),
+            "vendor_name": invoice.supplier_name,
+            "invoice_number": invoice.invoice_number,
+            "invoice_date": invoice.invoice_date.isoformat() if invoice.invoice_date else None,
+            "total_amount": float(invoice.total_amount_value) if invoice.total_amount_value else 0,
+            "status": invoice.processing_status,
+            "line_items_json": invoice.ai_extracted_data_json.get("items", []) if invoice.ai_extracted_data_json else [],
+            "total_pages": invoice.total_pages or 0,
+            "pages_scanned": invoice.pages_scanned or 0,
+            "created_at": invoice.created_at.isoformat() if invoice.created_at else None
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching invoice {invoice_id}: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Invoice not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}"
         )
-    
-    return {
-        "id": str(invoice.invoice_id),
-        "vendor_name": invoice.supplier_name,
-        "invoice_number": invoice.invoice_number,
-        "invoice_date": invoice.invoice_date.isoformat() if invoice.invoice_date else None,
-        "total_amount": float(invoice.total_amount_value) if invoice.total_amount_value else 0,
-        "status": invoice.processing_status,
-        "line_items_json": invoice.ai_extracted_data_json.get("items", []) if invoice.ai_extracted_data_json else [],
-        "total_pages": invoice.total_pages or 0,
-        "pages_scanned": invoice.pages_scanned or 0,
-        "created_at": invoice.created_at.isoformat() if invoice.created_at else None
-    }
