@@ -11,6 +11,63 @@ from ..models import GlobalProduct
 
 router = APIRouter()
 
+@router.get("/")
+async def list_products(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_master_db)
+):
+    """
+    List global products with pagination.
+    """
+    products = db.query(GlobalProduct).limit(limit).offset(offset).all()
+    
+    results = []
+    for product in products:
+        results.append({
+            "id": str(product.product_id),
+            "name": product.product_name,
+            "sku": product.upc_ean_code or '',
+            "brand": product.brand_name,
+            "category": product.category_name,
+            "image_url": product.image_url
+        })
+        
+    return {
+        "success": True,
+        "results": results,
+        "count": len(results)
+    }
+
+@router.get("/")
+async def list_products(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_master_db)
+):
+    """
+    List global products with pagination.
+    """
+    products = db.query(GlobalProduct).limit(limit).offset(offset).all()
+    
+    results = []
+    for product in products:
+        results.append({
+            "id": str(product.product_id),
+            "name": product.product_name,
+            "sku": product.upc_ean_code or '',
+            # SAFE GUARDS: Ensure these are never None
+            "brand": product.brand_name or "",
+            "category": product.category_name or "Uncategorized", 
+            "image_url": product.image_url
+        })
+        
+    return {
+        "success": True,
+        "results": results,
+        "count": len(results)
+    }
+
 @router.get("/search")
 async def search_products(
     q: str = Query(..., description="Search query"),
@@ -43,8 +100,8 @@ async def search_products(
                 "id": str(exact_match.product_id),
                 "name": exact_match.product_name,
                 "sku": exact_match.upc_ean_code or '',
-                "brand": exact_match.brand_name,
-                "category": exact_match.category_name,
+                "brand": exact_match.brand_name or "",
+                "category": exact_match.category_name or "Uncategorized",
                 "confidence": 1.0
             }],
             "count": 1
@@ -62,8 +119,8 @@ async def search_products(
                 "id": str(upc_match.product_id),
                 "name": upc_match.product_name,
                 "sku": upc_match.upc_ean_code or '',
-                "brand": upc_match.brand_name,
-                "category": upc_match.category_name,
+                "brand": upc_match.brand_name or "",
+                "category": upc_match.category_name or "Uncategorized",
                 "confidence": 1.0
             }],
             "count": 1
@@ -90,8 +147,8 @@ async def search_products(
                     "id": str(product.product_id),
                     "name": product.product_name,
                     "sku": product.upc_ean_code or '',
-                    "brand": product.brand_name,
-                    "category": product.category_name,
+                    "brand": product.brand_name or "",
+                    "category": product.category_name or "Uncategorized",
                     "confidence": confidence
                 })
             

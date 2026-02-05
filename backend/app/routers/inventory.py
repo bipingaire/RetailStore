@@ -23,7 +23,9 @@ class InventoryResponse(BaseModel):
     quantity_on_hand: Decimal
     unit_cost: Optional[Decimal] = None
     selling_price: Optional[Decimal] = None
-    product_name: Optional[str] = None
+    product_name: Optional[str] = "" 
+    category_name: Optional[str] = ""
+    brand_name: Optional[str] = ""
     
     class Config:
         from_attributes = True
@@ -58,12 +60,6 @@ async def create_inventory(
 ):
     """
     Add item to inventory.
-    
-    **Auto-Sync Logic:**
-    1. Checks if product exists in Global Catalog (by UPC or Name).
-    2. If YES: Links to existing Global Product.
-    3. If NO: Creates new Global Product (Auto-Sync).
-    4. Creates Inventory Item in Tenant Database.
     """
     # 1. Check Global Catalog
     global_product = None
@@ -81,10 +77,10 @@ async def create_inventory(
             product_name=item_data.product_name,
             upc_ean_code=item_data.upc_ean_code,
             brand_name=item_data.brand_name,
-            category_name=item_data.category_name,
+            category_name=item_data.category_name or "Uncategorized",
             description_text=item_data.description_text,
             image_url=item_data.image_url,
-            status="active" # Auto-activate for now, or use "pending" if review needed
+            status="active" 
         )
         context.master_db.add(global_product)
         context.master_db.commit()
@@ -115,14 +111,15 @@ async def create_inventory(
     context.tenant_db.refresh(new_item)
     
     # 4. Return response (with product name)
-    # We construct response manually to ensure product name is included
     return InventoryResponse(
         inventory_id=new_item.inventory_id,
         global_product_id=new_item.global_product_id,
         quantity_on_hand=new_item.quantity_on_hand,
         unit_cost=new_item.unit_cost,
         selling_price=new_item.selling_price,
-        product_name=global_product.product_name
+        product_name=global_product.product_name or "",
+        category_name=global_product.category_name or "Uncategorized",
+        brand_name=global_product.brand_name or ""
     )
 
 
@@ -132,8 +129,6 @@ async def list_inventory(
 ):
     """
     List inventory items for the current tenant.
-    
-    **Database-per-tenant**: Queries tenant's own database.
     """
     # Query tenant database
     items = context.tenant_db.query(InventoryItem).all()
@@ -147,6 +142,9 @@ async def list_inventory(
             "quantity_on_hand": item.quantity_on_hand,
             "unit_cost": item.unit_cost,
             "selling_price": item.selling_price,
+            "product_name": "Unknown Product", # Default
+            "category_name": "Uncategorized", # Default
+            "brand_name": "" # Default
         }
         
         # Get product from master DB
@@ -155,7 +153,9 @@ async def list_inventory(
         ).first()
         
         if product:
-            item_dict["product_name"] = product.product_name
+            item_dict["product_name"] = product.product_name or "Unknown Product"
+            item_dict["category_name"] = product.category_name or "Uncategorized"
+            item_dict["brand_name"] = product.brand_name or ""
         
         result.append(item_dict)
     
@@ -178,7 +178,21 @@ async def get_inventory_item(
             detail="Inventory item not found"
         )
     
-    return item
+    # Enrich
+    product = context.master_db.query(GlobalProduct).filter(
+        GlobalProduct.product_id == item.global_product_id
+    ).first()
+
+    return InventoryResponse(
+        inventory_id=item.inventory_id,
+        global_product_id=item.global_product_id,
+        quantity_on_hand=item.quantity_on_hand,
+        unit_cost=item.unit_cost,
+        selling_price=item.selling_price,
+        product_name=product.product_name if product else "Unknown",
+        category_name=product.category_name if product else "Uncategorized",
+        brand_name=product.brand_name if product else ""
+    )
 
 
 @router.put("/{inventory_id}", response_model=InventoryResponse)
@@ -206,4 +220,18 @@ async def update_inventory(
     context.tenant_db.commit()
     context.tenant_db.refresh(item)
     
-    return item
+    # Enrich response
+    product = context.master_db.query(GlobalProduct).filter(
+        GlobalProduct.product_id == item.global_product_id
+    ).first()
+
+    return InventoryResponse(
+        inventory_id=item.inventory_id,
+        global_product_id=item.global_product_id,
+        quantity_on_hand=item.quantity_on_hand,
+        unit_cost=item.unit_cost,
+        selling_price=item.selling_price,
+        product_name=product.product_name if product else "Unknown",
+        category_name=product.category_name if product else "Uncategorized",
+        brand_name=product.brand_name if product else ""
+    )
