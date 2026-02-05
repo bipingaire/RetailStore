@@ -36,27 +36,11 @@ app.add_middleware(
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
-# Request timing and logging middleware
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    start_time = time.time()
-    
-    # Log request start
-    print(f"➡️ [REQ] {request.method} {request.url.path} (Query: {request.query_params})")
-    print(f"   Headers: {dict(request.headers)}")
-    
-    try:
-        response = await call_next(request)
-        
-        process_time = time.time() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
-        
-        # Log response
-        print(f"⬅️ [RES] {response.status_code} (took {process_time:.4f}s)")
-        return response
-    except Exception as e:
-        print(f"❌ [ERR] Request failed: {str(e)}")
-        raise
+# Request timing and logging middleware (REMOVED for production)
+# @app.middleware("http")
+# async def log_requests(request: Request, call_next):
+#     response = await call_next(request)
+#     return response
 
 # Startup event
 @app.on_event("startup")

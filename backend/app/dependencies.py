@@ -30,12 +30,11 @@ def get_subdomain(
     2. Host header (mystore.example.com -> mystore)
     3. Query parameter ?subdomain=mystore
     """
-    # Debug logging for subdomain resolution
-    print(f"DEBUG: get_subdomain called. URL: {request.url}")
+    # Debug logging for subdomain resolution (REMOVED)
+    # print(f"DEBUG: get_subdomain called. URL: {request.url}")
     
     # Try header first
     if x_subdomain:
-        print(f"DEBUG: Found X-Subdomain header: {x_subdomain}")
         return x_subdomain
     
     # Try host parsing
@@ -43,13 +42,11 @@ def get_subdomain(
     if "." in host and not host.startswith("localhost"):
         subdomain = host.split(".")[0]
         if subdomain not in ["www", "api"]:
-            print(f"DEBUG: get_subdomain parsed host '{host}' -> '{subdomain}'")
             return subdomain
             
     # Try query parameter (LAST RESORT)
     subdomain = request.query_params.get("subdomain")
     if subdomain:
-        print(f"DEBUG: Found subdomain query param: {subdomain}")
         return subdomain
 
     # SPECIAL CASE for internal docker networking (fastapi_backend)
@@ -65,12 +62,10 @@ def get_subdomain(
                 if "." in netloc:
                     subdomain = netloc.split(".")[0]
                     if subdomain not in ["www", "api"]:
-                        print(f"DEBUG: Extracted subdomain '{subdomain}' from Referer: {referer}")
                         return subdomain
-            except Exception as e:
-                print(f"DEBUG: Failed to parse referer: {e}")
+            except Exception:
+                pass
 
-    print(f"ERROR: Subdomain resolution failed for {request.url}. Host: {host}")
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Subdomain required. Provide via X-Subdomain header, subdomain in URL, or ?subdomain= parameter"
