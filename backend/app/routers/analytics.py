@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 import uuid
 
-from ..dependencies import get_db, get_master_db
+from ..dependencies import get_db
 from ..dependencies import TenantFilter
 from ..services.inventory_service import InventoryService
 
@@ -39,9 +39,9 @@ async def get_inventory_health(
     
     Returns health score and actionable insights.
     """
-    # Fix: Removed tenant_id argument as per service update
     health_data = InventoryService.analyze_health(
-        db=db
+        db=db,
+        tenant_id=tenant_filter.tenant_id
     )
     
     # Add recommendations
@@ -80,60 +80,59 @@ async def get_inventory_health(
 async def push_to_sale_campaign(
     campaign_data: CampaignCreate,
     tenant_filter: TenantFilter = Depends(),
-    db: Session = Depends(get_db),
-    master_db: Session = Depends(get_master_db)
+    db: Session = Depends(get_db)
 ):
     """
     Create sales campaign for overstocked items.
     
     **Push to Website & Social Media** - Creates campaigns to move inventory.
+    
+    - **product_ids**: Products to include in campaign
+    - **discount_percent**: Discount percentage
+    - **campaign_type**: Where to publish (website/social_media/both)
+    - **duration_days**: Campaign duration
     """
     from ..models.additional import SocialMediaPost
     from datetime import datetime, timedelta
-    from ..models.tenant_models import InventoryItem
-    from ..models.master_models import GlobalProduct
     
     # Create social media posts if requested
     posts_created = []
     
     if campaign_data.campaign_type in ["social_media", "both"]:
+        # Get product details
+        from ..models import GlobalProduct, InventoryItem
+        
         products = []
         for product_id in campaign_data.product_ids:
-            # 1. Get Inventory Item (Tenant DB)
-            inventory = db.query(InventoryItem).filter(
+            inventory = db.query(InventoryItem).join(GlobalProduct).filter(
+                InventoryItem.tenant_id == tenant_filter.tenant_id,
                 InventoryItem.global_product_id == product_id
             ).first()
             
-            if inventory:
-                # 2. Get Product Details (Master DB)
-                global_product = master_db.query(GlobalProduct).filter(
-                    GlobalProduct.product_id == product_id
-                ).first()
-                
-                if global_product:
-                    products.append({
-                        "name": global_product.product_name,
-                        "price": float(inventory.selling_price or 0),
-                        "discount": campaign_data.discount_percent
-                    })
+            if inventory and inventory.global_product:
+                products.append({
+                    "name": inventory.global_product.product_name,
+                    "price": float(inventory.selling_price or 0),
+                    "discount": campaign_data.discount_percent
+                })
         
-        if products:
-            # Create social media post
-            campaign_content = f"🔥 FLASH SALE! {campaign_data.discount_percent}% OFF on selected items for {campaign_data.duration_days} days! "
-            campaign_content += f"Featured products: {', '.join([p['name'] for p in products[:3]])}..."
-            
-            post = SocialMediaPost(
-                platform="all",
-                content=campaign_content,
-                status="draft",
-                scheduled_time=datetime.utcnow() + timedelta(hours=1)
-            )
-            
-            db.add(post)
-            db.commit()
-            db.refresh(post)
-            
-            posts_created.append(post.post_id)
+        # Create social media post
+        campaign_content = f"🔥 FLASH SALE! {campaign_data.discount_percent}% OFF on selected items for {campaign_data.duration_days} days! "
+        campaign_content += f"Featured products: {', '.join([p['name'] for p in products[:3]])}..."
+        
+        post = SocialMediaPost(
+            tenant_id=tenant_filter.tenant_id,
+            platform="all",
+            content=campaign_content,
+            status="draft",
+            scheduled_time=datetime.utcnow() + timedelta(hours=1)
+        )
+        
+        db.add(post)
+        db.commit()
+        db.refresh(post)
+        
+        posts_created.append(post.post_id)
     
     return {
         "campaign_created": True,
@@ -149,8 +148,7 @@ async def push_to_sale_campaign(
 @router.get("/insights")
 async def get_inventory_insights(
     tenant_filter: TenantFilter = Depends(),
-    db: Session = Depends(get_db),
-    master_db: Session = Depends(get_master_db)
+    db: Session = Depends(get_db)
 ):
     """
     Get AI-powered inventory insights.
@@ -160,10 +158,13 @@ async def get_inventory_insights(
     - Slow-moving items
     - Profitability analysis
     """
-    from ..models.tenant_models import InventoryItem
+    from ..models import InventoryItem, GlobalProduct
+    from sqlalchemy import desc
     
-    # Get all inventory items
-    inventory_items = db.query(InventoryItem).all()
+    # Get inventory with products
+    inventory_items = db.query(InventoryItem).join(GlobalProduct).filter(
+        InventoryItem.tenant_id == tenant_filter.tenant_id
+    ).all()
     
     # Calculate metrics
     total_value = sum(
