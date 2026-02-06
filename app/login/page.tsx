@@ -70,39 +70,49 @@ export default function LoginPage() {
         if (authError) throw authError;
 
         // 2. Determine Destination
-        // Fetch tenant profile to know if they are owner or staff
         if (authData.user) {
           // 2a. Check if Owner (Active Only)
-          // Schema uses 'owner-user-id' (hyphenated) and 'is-active' (boolean)
-          const { data: tenant } = await supabase
+          const { data: tenant, error: ownerError } = await supabase
             .from('retail-store-tenant')
             .select('tenant-id, store-name')
             .eq('owner-user-id', authData.user.id)
             .eq('is-active', true)
-            .single();
+            .maybeSingle(); // Use maybeSingle to avoid 406 if 0 rows
+
+          if (ownerError) {
+            console.error('Owner check failed:', ownerError);
+            // Don't throw yet, try role check
+          }
 
           if (tenant) {
-            // Owner found and active
+            router.push('/admin');
+            return;
+          }
+
+          // 2b. Check if Staff/Manager (Tenant User Role)
+          // We use explicit foreign key syntax if needed, or just standard embedding
+          // 'retail-store-tenant!inner' implies an inner join on the FK
+          const { data: roleData, error: roleError } = await supabase
+            .from('tenant-user-role')
+            .select('role-type, tenant-id, retail-store-tenant!inner(is-active)')
+            .eq('user-id', authData.user.id)
+            .eq('retail-store-tenant.is-active', true)
+            .maybeSingle();
+
+          if (roleError) {
+            console.error('Role check error:', roleError);
+            setMessage(`Login Error: ${roleError.message}`);
+            return;
+          }
+
+          if (roleData) {
             router.push('/admin');
           } else {
-            // 2b. Check if Staff/Manager (Tenant User Role)
-            // Query role AND ensure linked tenant is active
-            const { data: roleData } = await supabase
-              .from('tenant-user-role')
-              .select('role-type, tenant-id, retail-store-tenant!inner(is-active)')
-              .eq('user-id', authData.user.id)
-              .eq('retail-store-tenant.is-active', true)
-              .single();
-
-            if (roleData) {
-              // Found a role with an active tenant
-              router.push('/admin');
-            } else {
-              // Fallback: If no tenant found or inactive
-              console.error('Login failed: User not associated with an active store');
-              setMessage('No active store found for this user.');
-              router.push('/');
-            }
+            console.warn('Login failed: User has no active role or store');
+            // Check if they have specific specific inactive role to give better feedback?
+            // For now just generic error
+            setMessage('Access Denied. You are not linked to an active store.');
+            // Do not redirect to '/' immediately so they can see the message.
           }
         }
       }
