@@ -1,12 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign, Loader2, ShoppingBag } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 type Order = {
   id: string;
@@ -25,6 +20,7 @@ type Order = {
 };
 
 export default function OrderManager() {
+  const supabase = createClientComponentClient();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
