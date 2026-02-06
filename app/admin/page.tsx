@@ -42,7 +42,7 @@ export default function AdminDashboard() {
         const { count: activeCampaigns } = await supabase
           .from('marketing-campaign-master')
           .select('*', { count: 'exact', head: true })
-          .eq('is-active', true);
+          .eq('is-active-flag', true);
 
         // 2. Recent Orders Table
         const { data: orders } = await supabase

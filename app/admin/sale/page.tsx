@@ -92,7 +92,7 @@ export default function SaleAdmin() {
               manufacturer: manufacturer-name
             )
           `)
-          .eq('is-active-flag', true)
+          .eq('is-active', true)
           .limit(120)
       ]);
 
