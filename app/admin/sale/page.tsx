@@ -93,7 +93,7 @@ export default function SaleAdmin() {
            category:"category-name"
         ),
         inventory_batches:"inventory-batch-tracking-record"(batch_quantity:"batch-quantity-count")
-            )
+
           `)
           .eq('is-active-flag', true)
           .limit(120)
