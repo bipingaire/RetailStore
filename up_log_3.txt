@@ -1,0 +1,222 @@
+time="2026-01-05T22:47:12+05:45" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_URL\" variable is not set. Defaulting to a blank string."
+time="2026-01-05T22:47:12+05:45" level=warning msg="The \"NEXT_PUBLIC_SUPABASE_ANON_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-05T22:47:12+05:45" level=warning msg="C:\\Users\\hp\\RetailStore\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [web internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.81kB 0.0s done
+#1 DONE 0.0s
+
+#2 [web internal] load metadata for docker.io/library/node:18-alpine
+#2 DONE 2.1s
+
+#3 [web internal] load .dockerignore
+#3 transferring context: 151B done
+#3 DONE 0.0s
+
+#4 [web base 1/1] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#4 resolve docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e 0.0s done
+#4 DONE 0.0s
+
+#5 [web builder 1/4] WORKDIR /app
+#5 CACHED
+
+#6 [web runner 2/8] RUN addgroup --system --gid 1001 nodejs
+#6 CACHED
+
+#7 [web runner 3/8] RUN adduser --system --uid 1001 nextjs
+#7 CACHED
+
+#8 [web internal] load build context
+#8 transferring context: 29.36kB 0.0s done
+#8 DONE 0.1s
+
+#9 [web deps 1/4] RUN apk add --no-cache libc6-compat
+#9 CACHED
+
+#10 [web deps 2/4] WORKDIR /app
+#10 CACHED
+
+#11 [web deps 3/4] COPY package.json package-lock.json* ./
+#11 CACHED
+
+#12 [web deps 4/4] RUN npm ci
+#12 CACHED
+
+#13 [web builder 2/4] COPY --from=deps /app/node_modules ./node_modules
+#13 CACHED
+
+#14 [web builder 3/4] COPY . .
+#14 DONE 0.3s
+
+#15 [web builder 4/4] RUN npm run build
+#15 2.270 
+#15 2.270 > retailstore@1.0.0 build
+#15 2.270 > next build
+#15 2.270 
+#15 3.384 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#15 3.385 This information is used to shape Next.js' roadmap and prioritize features.
+#15 3.385 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#15 3.385 https://nextjs.org/telemetry
+#15 3.385 
+#15 3.495    ▲ Next.js 14.0.4
+#15 3.495 
+#15 3.495    Creating an optimized production build ...
+#15 18.18 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (138kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+#15 22.79  ⚠ Compiled with warnings
+#15 22.79 
+#15 22.79 ./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+#15 22.79 A Node.js API is used (process.versions at line: 43) which is not supported in the Edge Runtime.
+#15 22.79 Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+#15 22.79 
+#15 22.79 Import trace for requested module:
+#15 22.79 ./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+#15 22.79 ./node_modules/@supabase/realtime-js/dist/module/index.js
+#15 22.79 ./node_modules/@supabase/supabase-js/dist/module/index.js
+#15 22.79 ./node_modules/@supabase/auth-helpers-shared/dist/index.mjs
+#15 22.79 ./node_modules/@supabase/auth-helpers-nextjs/dist/index.js
+#15 22.79 
+#15 22.79 ./node_modules/@supabase/supabase-js/dist/module/index.js
+#15 22.79 A Node.js API is used (process.version at line: 31) which is not supported in the Edge Runtime.
+#15 22.79 Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+#15 22.79 
+#15 22.79 Import trace for requested module:
+#15 22.79 ./node_modules/@supabase/supabase-js/dist/module/index.js
+#15 22.79 ./node_modules/@supabase/auth-helpers-shared/dist/index.mjs
+#15 22.79 ./node_modules/@supabase/auth-helpers-nextjs/dist/index.js
+#15 22.79 
+#15 22.79    Skipping validation of types
+#15 22.79    Skipping linting
+#15 23.09    Collecting page data ...
+#15 24.16 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 24.31 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 24.72 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.29    Generating static pages (0/48) ...
+#15 27.75 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.75 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.77 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.77 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.77 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.77 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.78 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.78 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.78    Generating static pages (12/48) 
+#15 27.91 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.91 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.91 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.91 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.91 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+#15 27.92    Generating static pages (24/48) 
+#15 27.94  ⚠ Entire page /shop/checkout/success deopted into client-side rendering. https://nextjs.org/docs/messages/deopted-into-client-rendering /shop/checkout/success
+#15 28.05    Generating static pages (36/48) 
+#15 28.06  ⚠ Entire page /shop/checkout deopted into client-side rendering. https://nextjs.org/docs/messages/deopted-into-client-rendering /shop/checkout
+#15 28.20  ✓ Generating static pages (48/48) 
+#15 28.75    Finalizing page optimization ...
+#15 28.75    Collecting build traces ...
+#15 45.06 
+#15 45.11 Route (app)                              Size     First Load JS
+#15 45.11 ┌ ○ /                                    151 B          82.1 kB
+#15 45.11 ├ ○ /_not-found                          872 B          82.8 kB
+#15 45.11 ├ ○ /admin                               3.75 kB         146 kB
+#15 45.11 ├ ○ /admin/audit                         3.02 kB         139 kB
+#15 45.11 ├ ○ /admin/dashboard                     151 B          82.1 kB
+#15 45.11 ├ ○ /admin/inventory                     4.96 kB         140 kB
+#15 45.11 ├ ○ /admin/inventory/master              4.34 kB         140 kB
+#15 45.11 ├ ○ /admin/invoice-history               2.14 kB         138 kB
+#15 45.11 ├ ○ /admin/invoice-review                2.94 kB        84.9 kB
+#15 45.11 ├ ○ /admin/invoices                      5.9 kB          141 kB
+#15 45.11 ├ ○ /admin/orders                        2.41 kB         138 kB
+#15 45.11 ├ ○ /admin/pos-mapping                   4.15 kB         140 kB
+#15 45.11 ├ ○ /admin/reports                       3.13 kB         139 kB
+#15 45.11 ├ ○ /admin/restock                       8.68 kB         144 kB
+#15 45.11 ├ ○ /admin/sale                          5.1 kB          141 kB
+#15 45.11 ├ ○ /admin/sales                         3.81 kB         139 kB
+#15 45.11 ├ ○ /admin/settings                      9.09 kB         151 kB
+#15 45.11 ├ ○ /admin/social                        3.81 kB         139 kB
+#15 45.11 ├ ○ /admin/vendors                       2.68 kB         138 kB
+#15 45.11 ├ λ /api/ai/enrich-product               0 B                0 B
+#15 45.11 ├ λ /api/audit/submit                    0 B                0 B
+#15 45.11 ├ λ /api/domains/check                   0 B                0 B
+#15 45.11 ├ λ /api/inventory/commit                0 B                0 B
+#15 45.11 ├ λ /api/parse-catalog                   0 B                0 B
+#15 45.11 ├ λ /api/parse-invoice                   0 B                0 B
+#15 45.11 ├ λ /api/sales/sync                      0 B                0 B
+#15 45.11 ├ λ /api/sync-pdf                        0 B                0 B
+#15 45.11 ├ ○ /auth/forgot-password                1.76 kB         144 kB
+#15 45.11 ├ ○ /auth/reset-password                 1.61 kB         137 kB
+#15 45.11 ├ ○ /login                               3.1 kB          139 kB
+#15 45.11 ├ ○ /shop                                11.7 kB         154 kB
+#15 45.11 ├ λ /shop/[slug]                         6.25 kB         142 kB
+#15 45.11 ├ ○ /shop/account                        151 B          82.1 kB
+#15 45.11 ├ ○ /shop/cart                           3.51 kB         146 kB
+#15 45.11 ├ ○ /shop/checkout                       4.01 kB         146 kB
+#15 45.11 ├ ○ /shop/checkout/success               2.84 kB         145 kB
+#15 45.11 ├ ○ /shop/orders                         253 B           138 kB
+#15 45.11 ├ λ /shop/product/[id]                   3.65 kB         146 kB
+#15 45.11 ├ ○ /shop/profile                        177 B           138 kB
+#15 45.11 ├ ○ /super-admin                         118 kB          253 kB
+#15 45.11 ├ ○ /super-admin/agent                   3.83 kB         146 kB
+#15 45.11 ├ ○ /supplier                            2.58 kB        84.5 kB
+#15 45.11 ├ ○ /supplier/inventory                  3.91 kB         139 kB
+#15 45.11 ├ ○ /supplier/orders                     6.78 kB         142 kB
+#15 45.11 ├ ○ /supplier/retailers                  5.16 kB        87.1 kB
+#15 45.11 ├ ○ /supplier/settings                   2.86 kB         138 kB
+#15 45.11 └ ○ /test-parser                         1.61 kB        83.5 kB
+#15 45.11 + First Load JS shared by all            81.9 kB
+#15 45.11   ├ chunks/4938-5f08b817adb6ea2f.js      26.7 kB
+#15 45.11   ├ chunks/fd9d1056-4aa63184c66b9a48.js  53.3 kB
+#15 45.11   ├ chunks/main-app-3f4e3c3025e6c14f.js  223 B
+#15 45.11   └ chunks/webpack-4ac1a1ad7ce50124.js   1.74 kB
+#15 45.11 
+#15 45.11 
+#15 45.11 ƒ Middleware                             159 kB
+#15 45.11 
+#15 45.11 ○  (Static)   prerendered as static content
+#15 45.11 λ  (Dynamic)  server-rendered on demand using Node.js
+#15 45.11 
+#15 45.40 npm notice
+#15 45.40 npm notice New major version of npm available! 10.8.2 -> 11.7.0
+#15 45.40 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+#15 45.40 npm notice To update run: npm install -g npm@11.7.0
+#15 45.40 npm notice
+#15 DONE 45.6s
+
+#16 [web runner 4/8] COPY --from=builder /app/public ./public
+#16 DONE 0.1s
+
+#17 [web runner 5/8] RUN mkdir .next
+#17 DONE 0.5s
+
+#18 [web runner 6/8] RUN chown nextjs:nodejs .next
+#18 DONE 0.3s
+
+#19 [web runner 7/8] COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+#19 DONE 0.7s
+
+#20 [web runner 8/8] COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+#20 DONE 0.1s
+
+#21 [web] exporting to image
+#21 exporting layers
+#21 exporting layers 0.8s done
+#21 exporting manifest sha256:70a1801aea52e6fe019e764d34cf2a83a34f5d7acf223dfdead58823ed8f3159 0.0s done
+#21 exporting config sha256:9dfc9a950309b486ad2d59278f15c907750713fd51c503ca871b12e42d7fcf1c 0.0s done
+#21 exporting attestation manifest sha256:d88d393a24e20a0a8f2e271c3620d7ac955b21514520faeb45fe5ef6f3b8fb0e 0.0s done
+#21 exporting manifest list sha256:26775c798e9c9b87dbd04ede44ca77bb68e27f9f84a74e93953a39662b935557
+#21 exporting manifest list sha256:26775c798e9c9b87dbd04ede44ca77bb68e27f9f84a74e93953a39662b935557 0.0s done
+#21 naming to docker.io/library/retailstore-web:latest done
+#21 unpacking to docker.io/library/retailstore-web:latest
+#21 unpacking to docker.io/library/retailstore-web:latest 0.9s done
+#21 DONE 1.8s
+
+#22 [web] resolving provenance for metadata file
+#22 DONE 0.1s
+ web  Built
+ Network retailstore_default  Creating
+ Network retailstore_default  Created
+ Container retailstore_web  Creating
+ Container retailstore_web  Created
+ Container retailstore_web  Starting
+ Container retailstore_web  Started
