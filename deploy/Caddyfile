@@ -1,0 +1,26 @@
+{
+    email advikai757@gmail.com
+    # Enable auto-HTTPS - Caddy will handle SSL directly
+}
+
+# Main domains with automatic SSL
+indumart.us, www.indumart.us {
+    reverse_proxy app:3010
+    encode gzip
+}
+
+retailOS.cloud, www.retailOS.cloud {
+    reverse_proxy app:3010
+    encode gzip
+}
+
+# All tenant subdomains - automatic SSL for each
+*.indumart.us {
+    reverse_proxy app:3010
+    encode gzip
+}
+
+*.retailOS.cloud {
+    reverse_proxy app:3010
+    encode gzip
+}

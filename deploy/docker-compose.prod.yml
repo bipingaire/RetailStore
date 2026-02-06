@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  app:
+    # Use the Dockerfile in the root of the project
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    restart: always
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NEXT_PUBLIC_APP_URL=https://retailOS.cloud
+      - NEXT_PUBLIC_RETAILOS_DOMAIN=${NEXT_PUBLIC_RETAILOS_DOMAIN:-retailOS.cloud}
+      - NEXT_PUBLIC_INDUMART_DOMAIN=${NEXT_PUBLIC_INDUMART_DOMAIN:-indumart.us}
+      - HOSTNAME=0.0.0.0
+      - PORT=3010
+    expose:
+      - "3010"
+    networks:
+      - web_net
+
+  caddy:
+    image: caddy:2.7-alpine
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web_net
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  web_net:
+
+
+volumes:
+  caddy_data:
+  caddy_config:
