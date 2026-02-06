@@ -31,7 +31,7 @@ export default function FinancialReportsPage() {
         // 1. Get Orders (Revenue & Count)
         const { data: orders } = await supabase
             .from('customer-order-header')
-            .select('final-amount, created-at');
+            .select('"final-amount", "created-at"');
 
         let totalRevenue = 0;
         let totalOrders = 0;
@@ -96,7 +96,7 @@ export default function FinancialReportsPage() {
         // 3. Inventory Value
         const { data: inventory } = await supabase
             .from('retail-store-inventory-item')
-            .select('current_stock_quantity:current-stock-quantity, cost_price_amount:cost-price-amount');
+            .select('current_stock_quantity:"current-stock-quantity", cost_price_amount:"cost-price-amount"');
 
         let totalInventoryValue = 0;
         if (inventory) {

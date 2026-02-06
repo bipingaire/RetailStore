@@ -31,7 +31,7 @@ export default function ProfilePage() {
       // Fetch orders for this phone number
       const { data } = await supabase
         .from('customer-order-header')
-        .select('id:order-id, total_amount:final-amount, created_at, status:order-status-code, items:customer-order-line-item(count)')
+        .select('id:"order-id", total_amount:"final-amount", created_at, status:"order-status-code", items:"customer-order-line-item"(count)')
         .eq('customer-phone', MOCK_USER.phone)
         .order('created_at', { ascending: false });
 

@@ -23,8 +23,8 @@ function OrderSuccessContent() {
             .from('customer-order-header')
             .select(`
         *,
-        order-line-item-detail (*),
-        delivery-address-information (*)
+        "order-line-item-detail" (*),
+        "delivery-address-information" (*)
       `)
             .eq('order-id', id)
             .single();

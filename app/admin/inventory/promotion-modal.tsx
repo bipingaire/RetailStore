@@ -19,7 +19,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
   useEffect(() => {
     supabase
       .from('marketing-campaign-master')
-      .select('id:campaign-id, title:title-text, slug:campaign-slug')
+      .select('id:"campaign-id", title:"title-text", slug:"campaign-slug"')
       .eq('is-active-flag', true)
       .order('sort-order', { ascending: true })
       .then(({ data }) => setCampaigns((data as any[]) || []));

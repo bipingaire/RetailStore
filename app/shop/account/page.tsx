@@ -38,7 +38,7 @@ export default function AccountPage() {
     // Load purchase history
     const { data: orderData } = await supabase
       .from('customer-order-header')
-      .select('order_id:order-id, order_date_time:created_at, final_amount:final-amount, order_status:order-status-code, payment_status:payment-status')
+      .select('order_id:"order-id", order_date_time:created_at, final_amount:"final-amount", order_status:"order-status-code", payment_status:"payment-status"')
       .eq('customer-email', user.email) // Assuming we filter by email as we might not have a direct link to auth.users.id in the new schema yet, or we use user.id if mapped. Let's use email for safety as common in guest checkouts promoted to accounts.
       .order('created_at', { ascending: false });
 

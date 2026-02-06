@@ -28,17 +28,17 @@ export default function OrderManager() {
     const { data } = await supabase
       .from('customer-order-header')
       .select(`
-        id:order-id,
-        customer_phone:customer-phone,
-        fulfillment_method:fulfillment-type,
-        payment_method:payment-method,
-        total_amount:final-amount,
-        status:order-status-code,
+        id:"order-id",
+        customer_phone:"customer-phone",
+        fulfillment_method:"fulfillment-type",
+        payment_method:"payment-method",
+        total_amount:"final-amount",
+        status:"order-status-code",
         created_at,
-        items:customer-order-line-item (
-          qty:quantity-sold,
-          product:retail-store-inventory-item (
-            global_products:global-product-master-catalog!global-product-id ( name:product-name, image_url:image-url )
+        items:"customer-order-line-item" (
+          qty:"quantity-sold",
+          product:"retail-store-inventory-item" (
+            global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", image_url:"image-url" )
           )
         )
       `)
