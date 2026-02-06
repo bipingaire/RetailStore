@@ -3,12 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Use local worker from node_modules
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-}
 
 export default function SalesSyncPage() {
   const { tenantId } = useTenant();
@@ -24,10 +18,13 @@ export default function SalesSyncPage() {
   const [posStatus, setPosStatus] = useState<string>('');
 
   const convertPdfToImages = async (file: File): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async function () {
         try {
+          // Lazy load pdfjs-dist only on client side
+          const pdfjsLib = await import('pdfjs-dist');
+          pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
           const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result as ArrayBuffer)).promise;
           const images: string[] = [];
           for (let i = 1; i <= pdf.numPages; i++) {
@@ -36,7 +33,8 @@ export default function SalesSyncPage() {
             const canvas = document.createElement('canvas');
             canvas.height = viewport.height;
             canvas.width = viewport.width;
-            await page.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise;
+            const context = canvas.getContext('2d')!;
+            await page.render({ canvasContext: context, viewport, canvas }).promise;
             images.push(canvas.toDataURL('image/jpeg'));
           }
           resolve(images);
