@@ -1,11 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 type Tenant = {
   id: string;
@@ -29,10 +25,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     async function initSession() {
       // 1. Check for active Supabase session
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         setLoading(false);
-        return; 
+        return;
       }
 
       // 2. Fetch the tenant associated with this user
@@ -47,7 +43,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.warn("User logged in but no tenant found:", error);
       }
-      
+
       setLoading(false);
     }
 

@@ -1,12 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { User, Gift, Clock, ChevronRight, LogOut, QrCode, Star, ShoppingBag } from 'lucide-react';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 // Mock User for MVP (In real app, use supabase.auth.user())
 const MOCK_USER = {

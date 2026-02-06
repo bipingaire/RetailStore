@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import {
   LayoutDashboard,
   FileInput,
@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [posPending, setPosPending] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Default to false for security
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClientComponentClient();
+
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },

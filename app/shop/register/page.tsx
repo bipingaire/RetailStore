@@ -1,14 +1,14 @@
 'use client';
 import { useState, Suspense } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, User, Phone, ArrowRight, ShoppingBag, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 function RegisterContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const supabase = createClientComponentClient();
+
 
     const [formData, setFormData] = useState({
         fullName: '',

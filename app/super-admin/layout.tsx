@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import {
     ShieldCheck, LayoutDashboard, Users, Store, Settings, LogOut, Loader2
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
-    const supabase = createClientComponentClient();
+
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -84,8 +84,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${isActive
-                                        ? 'bg-blue-600/10 text-blue-400'
-                                        : 'hover:bg-slate-900 hover:text-white'
+                                    ? 'bg-blue-600/10 text-blue-400'
+                                    : 'hover:bg-slate-900 hover:text-white'
                                     }`}
                             >
                                 <item.icon size={18} />

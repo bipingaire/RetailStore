@@ -1,12 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, Edit2, Save, X, Package, Trash2, LogOut, ShoppingBag, Calendar } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+
 
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);

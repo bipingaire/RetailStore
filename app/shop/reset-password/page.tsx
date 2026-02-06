@@ -1,13 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Lock, Eye, EyeOff, CheckCircle, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
+
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');

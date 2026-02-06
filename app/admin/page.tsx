@@ -8,10 +8,9 @@ import {
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminDashboard() {
-  const supabase = createClientComponentClient();
   const [stats, setStats] = useState({
     revenue: 0,
     orders: 0,

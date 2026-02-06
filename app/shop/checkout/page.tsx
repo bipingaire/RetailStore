@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     CheckCircle, Package, MapPin, CreditCard, ArrowRight,
@@ -8,10 +8,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 function CheckoutContent() {
     const router = useRouter();

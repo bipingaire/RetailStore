@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import {
   Search, ShoppingBag, Star, ArrowRight, Check, Plus, Minus,
   Phone, Menu, Heart, User, ChevronDown, Clock, Zap
@@ -59,7 +59,7 @@ type Segment = {
 };
 
 export default function ShopHome() {
-  const supabase = createClientComponentClient();
+
   const [promos, setPromos] = useState<Promotion[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [segments, setSegments] = useState<Segment[]>([]);

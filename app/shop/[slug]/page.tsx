@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 
 // ... icons ...
 
 export default function ShopHome({ params }: { params: { slug: string } }) {
-  const supabase = createClientComponentClient();
+
   const [promos, setPromos] = useState<Promotion[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

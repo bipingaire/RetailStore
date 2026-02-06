@@ -1,14 +1,10 @@
 'use client';
 import { useEffect, useState, Suspense } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, Package, MapPin, Calendar, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 function OrderSuccessContent() {
     const searchParams = useSearchParams();

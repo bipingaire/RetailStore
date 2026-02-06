@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Package, Mail, FileText, Send, Zap, ShoppingCart, AlertCircle, CheckCircle2, ChevronRight, Truck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,7 +17,7 @@ interface RestockItem {
 
 export default function RestockPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+
 
   const [lowStockItems, setLowStockItems] = useState<RestockItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);

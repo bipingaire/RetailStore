@@ -1,13 +1,12 @@
 'use client';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export function useTenant() {
     const [tenantId, setTenantId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const supabase = createClientComponentClient();
     const router = useRouter();
 
     useEffect(() => {
