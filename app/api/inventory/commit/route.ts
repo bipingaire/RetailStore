@@ -28,82 +28,76 @@ export async function POST(req: Request) {
       // 1. Check Global Product
       let globalProductId = null;
       const { data: existingProduct, error: fetchError } = await supabase
-        .from('global_products')
-        .select('id')
-        .eq('name', item.name)
-        .maybeSingle(); // Use maybeSingle to avoid errors if 0 found
+        .from('global-product-master-catalog')
+        .select('product-id')
+        .eq('product-name', item.name)
+        .maybeSingle();
 
-      if (fetchError) {
-        console.error("❌ Global DB Fetch Error:", fetchError);
-        throw fetchError;
-      }
+      if (fetchError) throw fetchError;
 
       if (existingProduct) {
-        globalProductId = existingProduct.id;
+        globalProductId = existingProduct['product-id'];
       } else {
         console.log("   --> Creating new Global Product");
         const { data: newProduct, error: createError } = await supabase
-          .from('global_products')
+          .from('global-product-master-catalog')
           .insert({
-            name: item.name,
-            upc_ean: item.sku || null,
-            source_type: 'invoice'
+            'product-name': item.name,
+            'upc-ean-code': item.sku || null,
+            'data-source-origin': 'invoice_scan'
           })
           .select()
           .single();
-        
-        if (createError) {
-          console.error("❌ Global Product Create Error:", createError);
-          throw createError;
-        }
-        globalProductId = newProduct.id;
+
+        if (createError) throw createError;
+        globalProductId = newProduct['product-id'];
       }
 
       // 2. Add Batch
-      // First, get or create the store_inventory link
+      // First, get or create the inventory link
       let inventoryId = null;
       const { data: existingInventory } = await supabase
-        .from('store_inventory')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('global_product_id', globalProductId)
+        .from('retail-store-inventory-item')
+        .select('inventory-id')
+        .eq('tenant-id', tenantId)
+        .eq('global-product-id', globalProductId)
         .maybeSingle();
 
       if (existingInventory) {
-        inventoryId = existingInventory.id;
+        inventoryId = existingInventory['inventory-id'];
       } else {
-         console.log("   --> Linking to Store Inventory");
-         const { data: newInv, error: invError } = await supabase
-          .from('store_inventory')
+        console.log("   --> Linking to Store Inventory");
+        const { data: newInv, error: invError } = await supabase
+          .from('retail-store-inventory-item')
           .insert({
-            tenant_id: tenantId,
-            global_product_id: globalProductId
+            'tenant-id': tenantId,
+            'global-product-id': globalProductId,
+            'current-stock-quantity': 0, // Initial, will be incremented by trigger or we assume 0
+            'is-active': true
           })
           .select()
           .single();
 
-         if (invError) {
-            console.error("❌ Store Inventory Error:", invError);
-            throw invError;
-         }
-         inventoryId = newInv.id;
+        if (invError) throw invError;
+        inventoryId = newInv['inventory-id'];
       }
 
       // 3. Insert Batch
       console.log("   --> Inserting Batch...");
       const { error: batchError } = await supabase
-        .from('inventory_batches')
+        .from('inventory-batch-tracking-record')
         .insert({
-          store_inventory_id: inventoryId,
-          batch_quantity: parseInt(item.qty),
-          expiry_date: item.expiry,
-          cost_basis: item.unit_cost || 0
+          'inventory-id': inventoryId,
+          'tenant-id': tenantId,
+          'batch-quantity-count': parseInt(item.qty),
+          'expiry-date-timestamp': item.expiry || null, // Ensure handling of empty string
+          'cost-per-unit-amount': item.unit_cost || 0
         });
 
-      if (batchError) {
-        console.error("❌ Batch Insert Error:", batchError);
-        throw batchError;
-      }
+      if (batchError) throw batchError;
+
+      // Opt: Increment current-stock explicitly if no trigger exists? 
+      // Assuming trigger based on batch insert, but if not, verify later.
     }
 
     console.log("✅ Success!");

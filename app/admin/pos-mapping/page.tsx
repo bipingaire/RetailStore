@@ -40,11 +40,11 @@ export default function PosMappingPage() {
   const loadData = async (tid: string) => {
     setLoading(true);
     const [{ data: mapData }, { data: invData }] = await Promise.all([
-      supabase.from('pos_mappings').select(`
-            id, pos_name, pos_code, last_sold_price, previous_sold_price, is_verified,
-            store_inventory:store_inventory_id ( id, global_products ( name, image_url ) )
-          `).eq('tenant_id', tid).order('is_verified', { ascending: true }).limit(400),
-      supabase.from('store_inventory').select(`id, price, global_products ( name, upc_ean )`).eq('tenant_id', tid).eq('is_active', true).limit(400)
+      supabase.from('pos-item-mapping').select(` // Fixed table
+            id:mapping-id, pos_name:pos-item-name, pos_code:pos-item-code, last_sold_price:last-sold-price, is_verified:is-verified,
+            store_inventory:matched-inventory-id ( id:inventory-id, global_products:global-product-master-catalog ( name:product-name, image_url:image-url ) )
+          `).eq('tenant-id', tid).order('is-verified', { ascending: true }).limit(400),
+      supabase.from('retail-store-inventory-item').select(`id:inventory-id, price:selling-price-amount, global_products:global-product-master-catalog ( name:product-name, upc_ean:upc-ean-code )`).eq('tenant-id', tid).eq('is-active', true).limit(400)
     ]);
 
     if (mapData) {
@@ -61,9 +61,9 @@ export default function PosMappingPage() {
 
   const handleRemap = async (mapId: string, newInventoryId: string) => {
     const current = mappings.find((m) => m.id === mapId);
-    await supabase.from('pos_mappings').update({ store_inventory_id: newInventoryId, is_verified: true }).eq('id', mapId);
+    await supabase.from('pos-item-mapping').update({ 'matched-inventory-id': newInventoryId, 'is-verified': true }).eq('mapping-id', mapId);
     if (current?.last_sold_price !== undefined) {
-      await supabase.from('store_inventory').update({ price: current.last_sold_price, is_active: true }).eq('id', newInventoryId);
+      await supabase.from('retail-store-inventory-item').update({ 'selling-price-amount': current.last_sold_price, 'is-active': true }).eq('inventory-id', newInventoryId);
     }
     setEditingId(null);
     if (tenantId) loadData(tenantId);

@@ -19,7 +19,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
-  
+
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [cartCounts, setCartCounts] = useState<Record<string, number>>({});
 
@@ -38,12 +38,16 @@ export default function CheckoutPage() {
 
       // 2. Fetch Details for IDs
       const { data } = await supabase
-        .from('store_inventory')
+        .from('retail-store-inventory-item')
         .select(`
-          id, price, 
-          global_products ( name, image_url )
+          id: inventory-id,
+          price: selling-price-amount,
+          global_products: global-product-master-catalog!global-product-id (
+             name: product-name,
+             image_url: image-url
+          )
         `)
-        .in('id', ids);
+        .in('inventory-id', ids);
 
       if (data) {
         // Merge DB data with LocalStorage counts
@@ -51,7 +55,7 @@ export default function CheckoutPage() {
           id: item.id,
           name: item.global_products?.name || 'Unknown Item',
           image: item.global_products?.image_url,
-          price: item.price,
+          price: Number(item.price ?? 0),
           qty: counts[item.id],
           restriction: 'all' // In real app, fetch this from DB
         }));
@@ -91,8 +95,8 @@ export default function CheckoutPage() {
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
-          tenant_id: TENANT_ID, 
-          customer_phone: '555-0101', 
+          tenant_id: TENANT_ID,
+          customer_phone: '555-0101',
           fulfillment_method: method,
           payment_method: payment,
           total_amount: total,
@@ -147,12 +151,12 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32 font-sans">
       <div className="bg-white p-4 border-b sticky top-0 z-10 flex items-center gap-4">
-        <Link href="/shop" className="p-2 hover:bg-gray-100 rounded-full"><ArrowRight className="rotate-180" size={20}/></Link>
+        <Link href="/shop" className="p-2 hover:bg-gray-100 rounded-full"><ArrowRight className="rotate-180" size={20} /></Link>
         <h1 className="text-xl font-bold">Checkout</h1>
       </div>
 
       <div className="p-4 space-y-6 max-w-lg mx-auto">
-        
+
         {/* ITEMS LIST */}
         <div className="bg-white p-4 rounded-xl shadow-sm border">
           <h2 className="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider">Items ({cartItems.length})</h2>
@@ -160,7 +164,7 @@ export default function CheckoutPage() {
             {cartItems.map((item) => (
               <div key={item.id} className="flex gap-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 overflow-hidden">
-                   {item.image ? <img src={item.image} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-300">IMG</div>}
+                  {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-300">IMG</div>}
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
@@ -170,14 +174,14 @@ export default function CheckoutPage() {
                     </div>
                     <div className="font-mono font-bold">${(item.price * item.qty).toFixed(2)}</div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between mt-2">
-                     <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-1">
-                        <button onClick={() => updateItemQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm hover:text-red-500"><Minus size={12}/></button>
-                        <span className="text-xs font-bold w-4 text-center">{item.qty}</span>
-                        <button onClick={() => updateItemQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-blue-600"><Plus size={12}/></button>
-                     </div>
-                     <button onClick={() => updateItemQty(item.id, -item.qty)} className="text-gray-300 hover:text-red-500 p-1"><Trash2 size={16}/></button>
+                    <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-1">
+                      <button onClick={() => updateItemQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm hover:text-red-500"><Minus size={12} /></button>
+                      <span className="text-xs font-bold w-4 text-center">{item.qty}</span>
+                      <button onClick={() => updateItemQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-blue-600"><Plus size={12} /></button>
+                    </div>
+                    <button onClick={() => updateItemQty(item.id, -item.qty)} className="text-gray-300 hover:text-red-500 p-1"><Trash2 size={16} /></button>
                   </div>
                 </div>
               </div>
@@ -202,7 +206,7 @@ export default function CheckoutPage() {
             </button>
           </div>
           {method === 'delivery' && (
-            <textarea className="w-full border rounded-lg p-3 mt-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" rows={2} placeholder="Delivery Address..." value={address} onChange={(e) => setAddress(e.target.value)}/>
+            <textarea className="w-full border rounded-lg p-3 mt-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" rows={2} placeholder="Delivery Address..." value={address} onChange={(e) => setAddress(e.target.value)} />
           )}
         </div>
 
@@ -217,7 +221,7 @@ export default function CheckoutPage() {
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50 safe-area-bottom">
         <button onClick={handlePlaceOrder} disabled={placingOrder || (method === 'delivery' && !address)} className="w-full bg-black text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-between px-6 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all">
-          {placingOrder ? <div className="flex gap-2 mx-auto"><Loader2 className="animate-spin"/> Processing...</div> : <><span>Confirm Order</span><ArrowRight/></>}
+          {placingOrder ? <div className="flex gap-2 mx-auto"><Loader2 className="animate-spin" /> Processing...</div> : <><span>Confirm Order</span><ArrowRight /></>}
         </button>
       </div>
     </div>

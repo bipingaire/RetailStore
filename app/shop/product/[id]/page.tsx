@@ -28,21 +28,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
     async function loadProduct() {
         const { data, error } = await supabase
-            .from('store_inventory')
+            .from('retail-store-inventory-item')
             .select(`
-        id,
-        price,
-        current_stock_quantity,
-        global_products (
-          name,
-          image_url,
-          category,
-          manufacturer,
-          description,
-          package_size
+        id: inventory-id,
+        price: selling-price-amount,
+        current_stock_quantity: current-stock-quantity,
+        global_products: global-product-master-catalog!global-product-id (
+          name: product-name,
+          image_url: image-url,
+          category: category-name,
+          manufacturer: manufacturer-name,
+          description: description-text,
+          package_size: package-size
         )
       `)
-            .eq('id', id)
+            .eq('inventory-id', id)
             .single();
 
         if (data) {
@@ -56,17 +56,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         if (!category) return;
 
         const { data } = await supabase
-            .from('store_inventory')
+            .from('retail-store-inventory-item')
             .select(`
-        id,
-        price,
-        global_products (name, image_url, category)
+        id: inventory-id,
+        price: selling-price-amount,
+        global_products: global-product-master-catalog!global-product-id (name: product-name, image_url: image-url, category: category-name)
       `)
-            .eq('global_products.category', category)
-            .neq('id', id)
+            .eq('global-product-master-catalog.category-name', category)
+            .neq('inventory-id', id)
             .limit(4);
 
-        if (data) setRelatedProducts(data);
+        if (data) setRelatedProducts(data.map((d: any) => ({
+            ...d,
+            price: Number(d.price ?? 0)
+        })));
     }
 
     const addToCart = () => {

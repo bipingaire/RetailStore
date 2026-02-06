@@ -85,12 +85,24 @@ export default function InvoicePage() {
   const fetchHistory = async () => {
     if (!TENANT_ID || TENANT_ID.includes('PASTE')) return;
     const { data } = await supabase
-      .from('invoices')
-      .select('id, vendor_name, invoice_number, invoice_date, total_amount, created_at, status')
-      .eq('tenant_id', TENANT_ID)
-      .order('created_at', { ascending: false })
+      .from('customer-invoices') // Fixed table name
+      .select('invoice-id, invoice-number, issue-date, total-amount, created-at, status') // Fixed columns
+      .eq('tenant-id', TENANT_ID) // Fixed column
+      .order('created-at', { ascending: false })
       .limit(10);
-    if (data) setHistory(data);
+
+    // Map to UI model
+    if (data) {
+      setHistory(data.map((d: any) => ({
+        id: d['invoice-id'],
+        vendor_name: 'Unknown', // Join not available yet
+        invoice_number: d['invoice-number'],
+        invoice_date: d['issue-date'],
+        total_amount: d['total-amount'],
+        created_at: d['created-at'],
+        status: d['status']
+      })));
+    }
     setLoadingHistory(false);
   };
 

@@ -48,9 +48,9 @@ function CheckoutContent() {
         if (ids.length === 0) return;
 
         const { data } = await supabase
-            .from('store_inventory')
-            .select('id, price, global_products(name, image_url)')
-            .in('id', ids);
+            .from('retail-store-inventory-item')
+            .select('id:inventory-id, price:selling-price-amount, global_products:global-product-master-catalog!global-product-id(name:product-name, image_url:image-url)')
+            .in('inventory-id', ids);
 
         if (data) {
             const items = data.map((item: any) => ({

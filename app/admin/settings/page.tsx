@@ -94,7 +94,7 @@ export default function SettingsPage() {
       setTenantId(currentTenantId);
 
       // 2. Load Vendors
-      const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
+      const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant-id', currentTenantId);
       if (vendorData) setVendors(vendorData as any);
 
       // 3. Load Social Accounts
