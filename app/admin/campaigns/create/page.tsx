@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Upload, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function CreateCampaignPage() {
+import { Suspense } from 'react';
+
+function CreateCampaignContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClientComponentClient();
@@ -359,5 +361,17 @@ export default function CreateCampaignPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function CreateCampaignPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        }>
+            <CreateCampaignContent />
+        </Suspense>
     );
 }

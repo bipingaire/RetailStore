@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, ArrowRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 
-export default function LoginPage() {
+import { Suspense } from 'react';
+
+function LoginPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClientComponentClient();
@@ -188,5 +190,17 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            </div>
+        }>
+            <LoginPageContent />
+        </Suspense>
     );
 }

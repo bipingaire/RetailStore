@@ -1,11 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, User, Phone, ArrowRight, ShoppingBag, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
-export default function RegisterPage() {
+function RegisterContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClientComponentClient();
@@ -299,5 +299,17 @@ export default function RegisterPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            </div>
+        }>
+            <RegisterContent />
+        </Suspense>
     );
 }

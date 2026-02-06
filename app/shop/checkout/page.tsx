@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -13,7 +13,7 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
@@ -251,8 +251,8 @@ export default function CheckoutPage() {
                                         <button
                                             onClick={() => setFulfillmentType('delivery')}
                                             className={`p-4 rounded-lg border-2 transition ${fulfillmentType === 'delivery'
-                                                    ? 'border-green-600 bg-green-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
+                                                ? 'border-green-600 bg-green-50'
+                                                : 'border-gray-200 hover:border-gray-300'
                                                 }`}
                                         >
                                             <Truck className={`mx-auto mb-2 ${fulfillmentType === 'delivery' ? 'text-green-600' : 'text-gray-400'}`} />
@@ -263,8 +263,8 @@ export default function CheckoutPage() {
                                         <button
                                             onClick={() => setFulfillmentType('pickup')}
                                             className={`p-4 rounded-lg border-2 transition ${fulfillmentType === 'pickup'
-                                                    ? 'border-green-600 bg-green-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
+                                                ? 'border-green-600 bg-green-50'
+                                                : 'border-gray-200 hover:border-gray-300'
                                                 }`}
                                         >
                                             <Package className={`mx-auto mb-2 ${fulfillmentType === 'pickup' ? 'text-green-600' : 'text-gray-400'}`} />
@@ -368,8 +368,8 @@ export default function CheckoutPage() {
                                     <button
                                         onClick={() => setPaymentMethod('card')}
                                         className={`w-full p-4 rounded-lg border-2 text-left transition ${paymentMethod === 'card'
-                                                ? 'border-green-600 bg-green-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-green-600 bg-green-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -384,8 +384,8 @@ export default function CheckoutPage() {
                                     <button
                                         onClick={() => setPaymentMethod('cash')}
                                         className={`w-full p-4 rounded-lg border-2 text-left transition ${paymentMethod === 'cash'
-                                                ? 'border-green-600 bg-green-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-green-600 bg-green-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
@@ -486,5 +486,17 @@ export default function CheckoutPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+            </div>
+        }>
+            <CheckoutContent />
+        </Suspense>
     );
 }

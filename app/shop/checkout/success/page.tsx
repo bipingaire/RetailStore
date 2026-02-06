@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, Package, MapPin, Calendar, ArrowRight } from 'lucide-react';
@@ -10,7 +10,7 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams?.get('orderId');
     const [order, setOrder] = useState<any>(null);
@@ -236,5 +236,17 @@ export default function OrderSuccessPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function OrderSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+            </div>
+        }>
+            <OrderSuccessContent />
+        </Suspense>
     );
 }
