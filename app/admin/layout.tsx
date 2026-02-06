@@ -26,8 +26,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [posPending, setPosPending] = useState<number | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Default to false for security
+  const [isLoading, setIsLoading] = useState(true);
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },
@@ -48,8 +48,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   async function handleSignOut() {
     await supabase.auth.signOut();
     toast.success('Signed out successfully');
-    router.push('/admin/login');
+    router.push('/login');
   }
+
+  useEffect(() => {
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setIsAuthenticated(false);
+        router.push('/login'); // Redirect to unified login
+      } else {
+        setIsAuthenticated(true);
+      }
+      setIsLoading(false);
+    }
+    checkSession();
+  }, [router]);
 
   if (isLoading) {
     return (
@@ -59,8 +73,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Login page bypass
-  if (!isAuthenticated && pathname !== '/admin/login') return null;
+  // Strict Protection: Do not render ANYTHING if not authenticated
+  if (!isAuthenticated) return null;
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
@@ -92,8 +106,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
               >
                 <Icon size={18} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'} />

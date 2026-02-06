@@ -26,7 +26,8 @@ export async function middleware(req: NextRequest) {
     if (path.startsWith('/admin')) {
       // Allow through, but ensure session exists or redirect to login
       if (!session && path !== '/admin/login') {
-        // return NextResponse.redirect(new URL('/shop/login', req.url)); // Optional: Enforce login
+        // Redirect to the unified login page
+        return NextResponse.redirect(new URL('/login', req.url));
       }
       return res;
     }
