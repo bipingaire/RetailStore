@@ -70,32 +70,37 @@ export default function LoginPage() {
         if (authError) throw authError;
 
         // 2. Determine Destination
-        // Fetch tenant profile to know if they are retailer or supplier
+        // Fetch tenant profile to know if they are owner or staff
         if (authData.user) {
-          // 2a. Check if Owner
+          // 2a. Check if Owner (Active Only)
+          // Schema uses 'owner-user-id' (hyphenated) and 'is-active' (boolean)
           const { data: tenant } = await supabase
             .from('retail-store-tenant')
-            .select('type')
-            .eq('owner_id', authData.user.id)
+            .select('tenant-id, store-name')
+            .eq('owner-user-id', authData.user.id)
+            .eq('is-active', true)
             .single();
 
           if (tenant) {
-            if (tenant.type === 'retailer') router.push('/admin');
-            else router.push('/supplier');
+            // Owner found and active
+            router.push('/admin');
           } else {
-            // 2b. Check if Staff/Manager (Tenant Role)
+            // 2b. Check if Staff/Manager (Tenant User Role)
+            // Query role AND ensure linked tenant is active
             const { data: roleData } = await supabase
               .from('tenant-user-role')
-              .select('role-type, tenant-id')
+              .select('role-type, tenant-id, retail-store-tenant!inner(is-active)')
               .eq('user-id', authData.user.id)
+              .eq('retail-store-tenant.is-active', true)
               .single();
 
             if (roleData) {
-              // Found a role, authorized to access Admin Dashboard
+              // Found a role with an active tenant
               router.push('/admin');
             } else {
-              // Fallback: If no tenant found, assume customer or error
-              // For now, redirect to home/shop
+              // Fallback: If no tenant found or inactive
+              console.error('Login failed: User not associated with an active store');
+              setMessage('No active store found for this user.');
               router.push('/');
             }
           }
