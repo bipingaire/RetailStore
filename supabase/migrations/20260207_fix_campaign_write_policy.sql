@@ -1,6 +1,7 @@
 -- Enable Write Access for Marketing Campaigns
 
 -- INSERT Policy
+DROP POLICY IF EXISTS "Enable insert access for marketing" ON public."marketing-campaign-master";
 CREATE POLICY "Enable insert access for marketing" 
 ON public."marketing-campaign-master"
 FOR INSERT 
@@ -15,6 +16,7 @@ WITH CHECK (
 );
 
 -- UPDATE Policy
+DROP POLICY IF EXISTS "Enable update access for marketing" ON public."marketing-campaign-master";
 CREATE POLICY "Enable update access for marketing" 
 ON public."marketing-campaign-master"
 FOR UPDATE
@@ -37,6 +39,7 @@ WITH CHECK (
 );
 
 -- DELETE Policy
+DROP POLICY IF EXISTS "Enable delete access for marketing" ON public."marketing-campaign-master";
 CREATE POLICY "Enable delete access for marketing" 
 ON public."marketing-campaign-master"
 FOR DELETE
