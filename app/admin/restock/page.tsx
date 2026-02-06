@@ -35,12 +35,12 @@ export default function RestockPage() {
       .select(`
         inventory_id:inventory-id,
         current_stock_quantity:current-stock-quantity,
-        reorder_point_value:reorder-point-quantity,
+        reorder_point_value:reorder-point-value,
         cost_price_amount:cost-price-amount,
         global_products:global-product-master-catalog!global-product-id (product_name:product-name)
       `)
       .lte('current-stock-quantity', 20) // Temporary fix: hardcoded threshold as RPC might not exist for new schema yet
-      .eq('is-active-flag', true);
+      .eq('is-active', true);
 
     const items: RestockItem[] = (data || []).map((item: any) => {
       const suggestedQty = Math.max(50, (item.reorder_point_value || 10) * 3);

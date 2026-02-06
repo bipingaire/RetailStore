@@ -39,11 +39,11 @@ export default function InventoryHealthPage() {
             .select(`
         inventory_id:inventory-id,
         current_stock_quantity:current-stock-quantity,
-        reorder_point_value:reorder-point-quantity,
+        reorder_point_value:reorder-point-value,
         cost_price_amount:cost-price-amount,
         global_products:global-product-master-catalog!global-product-id (product_name:product-name)
       `)
-            .eq('is-active-flag', true);
+            .eq('is-active', true);
 
         const { data: batches } = await supabase
             .from('inventory-batch-tracking-record')
