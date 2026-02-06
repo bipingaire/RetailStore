@@ -1,0 +1,30 @@
+^C^CTerminate batch job (Y/N)? 
+^C
+> retailstore@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at new <anonymous> (C:\Users\hp\RetailStore\.next\server\app\api\email\send-po\route.js:1:13426)
+    at 47057 (C:\Users\hp\RetailStore\.next\server\app\api\email\send-po\route.js:1:12967)
+    at t (C:\Users\hp\RetailStore\.next\server\webpack-runtime.js:1:128)
+    at r (C:\Users\hp\RetailStore\.next\server\app\api\email\send-po\route.js:2:2203)
+    at C:\Users\hp\RetailStore\.next\server\app\api\email\send-po\route.js:2:2236
+    at t.X (C:\Users\hp\RetailStore\.next\server\webpack-runtime.js:1:1206)
+    at C:\Users\hp\RetailStore\.next\server\app\api\email\send-po\route.js:2:2216
+    at Object.<anonymous> (C:\Users\hp\RetailStore\.next\server\app\api\email\send-po\route.js:2:2264)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+
+> Build error occurred
+Error: Failed to collect page data for /api/email/send-po
+    at C:\Users\hp\RetailStore\node_modules\next\dist\build\utils.js:1269:15
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  type: 'Error'
+}

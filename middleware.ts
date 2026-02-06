@@ -1,43 +1,77 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse, type NextRequest } from 'next/server';
 
-// Basic gate for privileged areas.
-const PROTECTED_PREFIXES = ['/admin', '/super-admin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
-
 export async function middleware(req: NextRequest) {
-  // TEMP: Completely disabled for debugging
-  return NextResponse.next();
-
-  /* ORIGINAL CODE - Disabled
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
+  const { data: { session } } = await supabase.auth.getSession();
 
-  // Refresh session if expired - required for Server Components
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const url = req.nextUrl;
+  const hostname = req.headers.get('host') || '';
+  const path = url.pathname;
 
-  const { pathname } = req.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  // --- 1. DOMAIN IDENTIFICATION ---
+  // Default to 'indumart.us' logic if localhost for dev ease, or simple toggle
+  const isRetailOS = hostname.includes('retailos.cloud');
+  const isInduMart = hostname.includes('indumart.us') || hostname.includes('localhost');
 
-  // If user is NOT signed in and trying to access a protected route, redirect to login
-  if (isProtected && !session) {
-    const redirectUrl = new URL('/login', req.url);
-    redirectUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(redirectUrl);
+  // --- 2. RETAILOS.CLOUD ROUTING ---
+  if (isRetailOS) {
+    // Superadmin Rewrite
+    if (path.startsWith('/superadmin')) {
+      return NextResponse.rewrite(new URL(`/super-admin${path.replace('/superadmin', '')}`, req.url));
+    }
+
+    // Admin Dashboard (Tenant Admin)
+    if (path.startsWith('/admin')) {
+      // Allow through, but ensure session exists or redirect to login
+      if (!session && path !== '/admin/login') {
+        // return NextResponse.redirect(new URL('/shop/login', req.url)); // Optional: Enforce login
+      }
+      return res;
+    }
+
+    // Root -> Business Landing Page
+    if (path === '/') {
+      return NextResponse.rewrite(new URL('/business', req.url));
+    }
+  }
+
+  // --- 3. INDUMART.US ROUTING ---
+  if (isInduMart) {
+    // Check for subdomain
+    const subdomain = hostname.split('.')[0];
+    const isRootDomain = subdomain === 'indumart' || subdomain === 'www' || hostname === 'localhost:3010' || hostname === 'localhost:3000'; // Adjust for local dev ports
+
+    // Root Domain -> Locator Page
+    if (isRootDomain && path === '/') {
+      return NextResponse.rewrite(new URL('/locator', req.url));
+    }
+
+    // Subdomain (e.g. greensboro.indumart.us) -> Shop
+    // Next.js automatically maps '/' to 'app/page.tsx' which redirects to '/shop'
+    // But we can enable explicit rewrite if needed, or just let the default redirect handle it.
+    // Default 'app/page.tsx' does: redirect('/shop')
+
+    // Optimization: If on subdomain and hitting root, rewrite directly to /shop to save a client-side redirect?
+    // if (!isRootDomain && path === '/') {
+    //   return NextResponse.rewrite(new URL('/shop', req.url));
+    // }
   }
 
   return res;
-  */
 }
 
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/super-admin/:path*',
-    '/supplier/:path*',
-    '/vendors/:path*',
-    '/pos-mapping/:path*',
-    '/test-parser/:path*',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - api (API routes)
+     * - auth (Auth routes)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|api|auth|.*\\..*).*)',
   ],
 };
