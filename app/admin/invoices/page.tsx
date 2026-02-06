@@ -63,14 +63,6 @@ export default function InvoicePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = PDFJS_CDN;
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
-
-  useEffect(() => {
     if (TENANT_ID) fetchHistory();
   }, [TENANT_ID]);
 
