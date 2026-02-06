@@ -48,11 +48,11 @@ export default function SocialPage() {
       const { data: cData } = await supabase
         .from('marketing-campaign-master')
         .select(`
-            id:campaign-id, slug:campaign-slug, title:title-text, tagline:tagline-text, badge_label:badge-label,
-            segment_products:campaign-product-segment-group!campaign-id (
-            store_inventory:retail-store-inventory-item!inventory-id (
-                id:inventory-id, price:selling-price-amount,
-                global_products:global-product-master-catalog!global-product-id ( name:product-name, image_url:image-url )
+            "campaign-id":id, "campaign-slug":slug, "title-text":title, "tagline-text":tagline, "badge-label":badge_label,
+            segment_products:"campaign-product-segment-group"!"campaign-id" (
+            store_inventory:"retail-store-inventory-item"!"inventory-id" (
+                "inventory-id":id, "selling-price-amount":price,
+                global_products:"global-product-master-catalog"!"global-product-id" ( "product-name":name, "image-url":image_url )
             )
             )
         `)

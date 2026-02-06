@@ -4,9 +4,9 @@ import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Link as Lin
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 
-// CDN for PDF.js to avoid heavy local build config
-const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-const PDFJS_WORKER_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+// Using unpkg CDN to avoid tracking prevention issues
+const PDFJS_CDN = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
+const PDFJS_WORKER_CDN = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 
 export default function SalesSyncPage() {
   const { tenantId } = useTenant();

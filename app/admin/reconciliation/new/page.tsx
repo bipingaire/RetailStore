@@ -58,15 +58,15 @@ export default function NewReconciliationPage() {
         const { data } = await supabase
             .from('retail-store-inventory-item')
             .select(`
-        inventory_id:inventory-id,
-        current_stock_quantity:current-stock-quantity,
-        cost_price_amount:cost-price-amount,
-        global_products:global-product-master-catalog!global-product-id (
-          product_name:product-name,
-          upc_ean_code:upc-ean-code
+        "inventory-id":inventory_id,
+        "current-stock-quantity":current_stock_quantity,
+        "cost-price-amount":cost_price_amount,
+        global_products:"global-product-master-catalog"!"global-product-id" (
+          "product-name":product_name,
+          "upc-ean-code":upc_ean_code
         )
       `)
-            .eq('is_active', true)
+            .eq('is-active-flag', true)
             .limit(100);
 
         if (data) {

@@ -41,10 +41,10 @@ export default function PosMappingPage() {
     setLoading(true);
     const [{ data: mapData }, { data: invData }] = await Promise.all([
       supabase.from('pos-item-mapping').select(` // Fixed table
-            id:mapping-id, pos_name:pos-item-name, pos_code:pos-item-code, last_sold_price:last-sold-price, is_verified:is-verified,
-            store_inventory:matched-inventory-id ( id:inventory-id, global_products:global-product-master-catalog ( name:product-name, image_url:image-url ) )
+            "mapping-id":id, "pos-item-name":pos_name, "pos-item-code":pos_code, "last-sold-price":last_sold_price, "is-verified":is_verified,
+            store_inventory:"matched-inventory-id" ( "inventory-id":id, global_products:"global-product-master-catalog" ( "product-name":name, "image-url":image_url ) )
           `).eq('tenant-id', tid).order('is-verified', { ascending: true }).limit(400),
-      supabase.from('store_inventory').select(`id:inventory-id, price:selling-price-amount, global_products:global-product-master-catalog ( name:product-name, upc_ean:upc-ean-code )`).eq('tenant-id', tid).eq('is-active', true).limit(400)
+      supabase.from('retail-store-inventory-item').select(`"inventory-id":id, "selling-price-amount":price, global_products:"global-product-master-catalog" ( "product-name":name, "upc-ean-code":upc_ean )`).eq('tenant-id', tid).eq('is-active-flag', true).limit(400)
     ]);
 
     if (mapData) {

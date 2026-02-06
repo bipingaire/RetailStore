@@ -26,16 +26,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         const { data, error } = await supabase
             .from('retail-store-inventory-item')
             .select(`
-        id: inventory-id,
-        price: selling-price-amount,
-        current_stock_quantity: current-stock-quantity,
-        global_products: global-product-master-catalog!global-product-id (
-          name: product-name,
-          image_url: image-url,
-          category: category-name,
-          manufacturer: manufacturer-name,
-          description: description-text,
-          package_size: package-size
+        "inventory-id":id,
+        "selling-price-amount":price,
+        "current-stock-quantity":current_stock_quantity,
+        global_products:"global-product-master-catalog"!"global-product-id" (
+          "product-name":name,
+          "image-url":image_url,
+          "category-name":category,
+          "manufacturer-name":manufacturer,
+          "description-text":description,
+          "package-size":package_size
         )
       `)
             .eq('inventory-id', id)
@@ -54,11 +54,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         const { data } = await supabase
             .from('retail-store-inventory-item')
             .select(`
-        id: inventory-id,
-        price: selling-price-amount,
-        global_products: global-product-master-catalog!global-product-id (name: product-name, image_url: image-url, category: category-name)
+        "inventory-id":id,
+        "selling-price-amount":price,
+        global_products:"global-product-master-catalog"!"global-product-id" ("product-name":name, "image-url":image_url, "category-name":category)
       `)
-            .eq('global-product-master-catalog.category-name', category)
+            .eq('global_products.category-name', category)
             .neq('inventory-id', id)
             .limit(4);
 

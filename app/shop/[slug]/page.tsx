@@ -16,22 +16,22 @@ export default function ShopHome({ params }: { params: { slug: string } }) {
       const { data: campaignData, error: campaignError } = await supabase
         .from('marketing-campaign-master')
         .select(`
-          id: campaign-id,
-          slug: campaign-slug,
-          segment_type: campaign-type,
-          is_promoted: is-promoted,
-          promotion_ends_at: promotion-ends-at,
-          discount_percentage: discount-percentage,
-          segment_products: campaign-product-segment-group!campaign-id (
-             store_inventory: retail-store-inventory-item!inventory-id (
-                id: inventory-id,
-                price: selling-price-amount,
-                global_products: global-product-master-catalog!global-product-id (
-                   name: product-name,
-                   image_url: image-url,
-                   category: category-name,
-                   manufacturer: manufacturer-name,
-                   upc_ean: upc-ean-code
+          "campaign-id":id,
+          "campaign-slug":slug,
+          "campaign-type":segment_type,
+          "is-promoted":is_promoted,
+          "promotion-ends-at":promotion_ends_at,
+          "discount-percentage":discount_percentage,
+          segment_products:"campaign-product-segment-group"!"campaign-id" (
+             store_inventory:"retail-store-inventory-item"!"inventory-id" (
+                "inventory-id":id,
+                "selling-price-amount":price,
+                global_products:"global-product-master-catalog"!"global-product-id" (
+                   "product-name":name,
+                   "image-url":image_url,
+                   "category-name":category,
+                   "manufacturer-name":manufacturer,
+                   "upc-ean-code":upc_ean
                 )
              )
           )
@@ -44,15 +44,15 @@ export default function ShopHome({ params }: { params: { slug: string } }) {
       const { data: prodData, error: prodError } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          id: inventory-id,
-          price: selling-price-amount,
-          global_products: global-product-master-catalog!global-product-id (
-            name: product-name,
-            image_url: image-url,
-            category: category-name
+          "inventory-id":id,
+          "selling-price-amount":price,
+          global_products:"global-product-master-catalog"!"global-product-id" (
+            "product-name":name,
+            "image-url":image_url,
+            "category-name":category
           )
         `)
-        .eq('is-active', true)
+        .eq('is-active-flag', true)
         .limit(20);
 
       if (prodError) console.error("Product Error:", prodError);

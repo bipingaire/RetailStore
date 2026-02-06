@@ -107,29 +107,29 @@ export default function ShopHome() {
       const { data: campaignData, error: campaignError } = await supabase
         .from('marketing-campaign-master')
         .select(`
-          id: campaign-id,
-          slug: campaign-slug,
-          title: title-text,
-          subtitle: subtitle-text,
-          badge_label: badge-label,
-          badge_color: badge-color,
-          tagline: tagline-text,
-          segment_type: campaign-type,
-          sort_order: sort-order,
-          is_promoted: is-promoted,
-          promotion_ends_at: promotion-ends-at,
-          discount_percentage: discount-percentage,
-          featured_on_website: featured-on-website,
-          segment_products: campaign-product-segment-group!campaign-id (
-             store_inventory: retail-store-inventory-item!inventory-id (
-                id: inventory-id,
-                price: selling-price-amount,
-                global_products: global-product-master-catalog!global-product-id (
-                   name: product-name,
-                   image_url: image-url,
-                   category: category-name,
-                   manufacturer: manufacturer-name,
-                   upc_ean: upc-ean-code
+          "campaign-id":id,
+          "campaign-slug":slug,
+          "title-text":title,
+          "subtitle-text":subtitle,
+          "badge-label":badge_label,
+          "badge-color":badge_color,
+          "tagline-text":tagline,
+          "campaign-type":segment_type,
+          "sort-order":sort_order,
+          "is-promoted":is_promoted,
+          "promotion-ends-at":promotion_ends_at,
+          "discount-percentage":discount_percentage,
+          "featured-on-website":featured_on_website,
+          segment_products:"campaign-product-segment-group"!"campaign-id" (
+             store_inventory:"retail-store-inventory-item"!"inventory-id" (
+                "inventory-id":id,
+                "selling-price-amount":price,
+                global_products:"global-product-master-catalog"!"global-product-id" (
+                   "product-name":name,
+                   "image-url":image_url,
+                   "category-name":category,
+                   "manufacturer-name":manufacturer,
+                   "upc-ean-code":upc_ean
                 )
              )
           )
@@ -143,16 +143,16 @@ export default function ShopHome() {
       const { data: prodData, error: prodError } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          id: inventory-id,
-          price: selling-price-amount,
-          global_products: global-product-master-catalog!global-product-id (
-            name: product-name,
-            image_url: image-url,
-            category: category-name,
-            manufacturer: manufacturer-name
+          "inventory-id":id,
+          "selling-price-amount":price,
+          global_products:"global-product-master-catalog"!"global-product-id" (
+            "product-name":name,
+            "image-url":image_url,
+            "category-name":category,
+            "manufacturer-name":manufacturer
           )
         `)
-        .eq('is-active', true)
+        .eq('is-active-flag', true)
         .limit(50);
 
       if (prodError) console.error("Inventory load error:", prodError);
