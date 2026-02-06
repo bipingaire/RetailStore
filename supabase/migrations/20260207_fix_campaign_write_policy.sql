@@ -7,6 +7,7 @@ ON public."marketing-campaign-master"
 FOR INSERT 
 TO authenticated
 WITH CHECK (
+    is_superadmin(auth.uid()) OR
     EXISTS (
         SELECT 1 
         FROM public."tenant-user-role" tur 
@@ -22,6 +23,7 @@ ON public."marketing-campaign-master"
 FOR UPDATE
 TO authenticated
 USING (
+    is_superadmin(auth.uid()) OR
     EXISTS (
         SELECT 1 
         FROM public."tenant-user-role" tur 
@@ -30,6 +32,7 @@ USING (
     )
 )
 WITH CHECK (
+    is_superadmin(auth.uid()) OR
     EXISTS (
         SELECT 1 
         FROM public."tenant-user-role" tur 
@@ -45,6 +48,7 @@ ON public."marketing-campaign-master"
 FOR DELETE
 TO authenticated
 USING (
+    is_superadmin(auth.uid()) OR
     EXISTS (
         SELECT 1 
         FROM public."tenant-user-role" tur 
