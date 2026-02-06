@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { Upload, FileText, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 export default function ZReportUploadPage() {
-    const supabase = createClientComponentClient();
+
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState<any>(null);

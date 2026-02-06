@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { Users, Search, Phone, Mail, Globe, MapPin, Building, ArrowRight } from 'lucide-react';
 
 type VendorProfile = {
@@ -31,7 +31,7 @@ type VendorInvoice = {
 };
 
 export default function VendorDashboard() {
-  const supabase = createClientComponentClient();
+
   const [vendors, setVendors] = useState<VendorProfile[]>([]);
   const [invoices, setInvoices] = useState<VendorInvoice[]>([]);
   const [loading, setLoading] = useState(true);

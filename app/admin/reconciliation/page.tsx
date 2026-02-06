@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Plus, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
@@ -15,7 +15,7 @@ interface Reconciliation {
 
 export default function ReconciliationPage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
+
     const [reconciliations, setReconciliations] = useState<Reconciliation[]>([]);
     const [loading, setLoading] = useState(true);
 

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Upload, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,7 +10,7 @@ import { Suspense } from 'react';
 function CreateCampaignContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const supabase = createClientComponentClient();
+
 
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -65,7 +65,7 @@ function CreateCampaignContent() {
     }
 
     async function publishCampaign() {
-        const supabase = createClientComponentClient();
+
 
         // Get tenant ID
         const { data: { user } } = await supabase.auth.getUser();

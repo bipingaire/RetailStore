@@ -1,13 +1,13 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Lock, Mail, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SuperAdminLoginPage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
+
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

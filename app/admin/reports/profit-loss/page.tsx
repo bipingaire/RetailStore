@@ -1,11 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { DollarSign, TrendingUp, TrendingDown, Package, Sparkles, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { calculateProfitMetrics, ProfitMetrics } from '@/lib/analytics/profit-calculator';
 
 export default function ProfitLossPage() {
-    const supabase = createClientComponentClient();
+
     const [metrics, setMetrics] = useState<ProfitMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30');
@@ -133,19 +133,19 @@ export default function ProfitLossPage() {
 
                     {/* Net Profit */}
                     <div className={`group relative overflow-hidden rounded-2xl p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 ${metrics.netProfit >= 0
-                            ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                            : 'bg-gradient-to-br from-red-500 to-rose-600'
+                        ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                        : 'bg-gradient-to-br from-red-500 to-rose-600'
                         }`}>
                         <div className={`rounded-2xl p-6 h-full ${metrics.netProfit >= 0
-                                ? 'bg-gradient-to-br from-purple-50 to-pink-50'
-                                : 'bg-gradient-to-br from-red-50 to-rose-50'
+                            ? 'bg-gradient-to-br from-purple-50 to-pink-50'
+                            : 'bg-gradient-to-br from-red-50 to-rose-50'
                             }`}>
                             <div className="flex items-center justify-between mb-4">
                                 <span className={`text-sm font-bold uppercase tracking-wide ${metrics.netProfit >= 0 ? 'text-purple-900' : 'text-red-900'
                                     }`}>Net Profit</span>
                                 <div className={`p-2 rounded-lg ${metrics.netProfit >= 0
-                                        ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                                        : 'bg-gradient-to-br from-red-500 to-rose-600'
+                                    ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                                    : 'bg-gradient-to-br from-red-500 to-rose-600'
                                     }`}>
                                     {metrics.netProfit >= 0 ? (
                                         <TrendingUp className="text-white" size={20} />
@@ -199,8 +199,8 @@ export default function ProfitLossPage() {
                             </div>
 
                             <div className={`flex justify-between py-5 rounded-xl px-4 border-2 ${metrics.netProfit >= 0
-                                    ? 'bg-purple-500/20 border-purple-400/50'
-                                    : 'bg-red-500/20 border-red-400/50'
+                                ? 'bg-purple-500/20 border-purple-400/50'
+                                : 'bg-red-500/20 border-red-400/50'
                                 }`}>
                                 <span className="font-bold text-white text-lg">Net Profit</span>
                                 <span className={`font-black text-2xl ${metrics.netProfit >= 0 ? 'text-purple-300' : 'text-red-300'
@@ -247,8 +247,8 @@ export default function ProfitLossPage() {
                                 <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden">
                                     <div
                                         className={`h-4 rounded-full transition-all duration-1000 ease-out shadow-lg ${metrics.netMargin >= 0
-                                                ? 'bg-gradient-to-r from-purple-400 to-pink-500'
-                                                : 'bg-gradient-to-r from-red-400 to-rose-500'
+                                            ? 'bg-gradient-to-r from-purple-400 to-pink-500'
+                                            : 'bg-gradient-to-r from-red-400 to-rose-500'
                                             }`}
                                         style={{ width: `${Math.min(Math.abs(metrics.netMargin), 100)}%` }}
                                     ></div>

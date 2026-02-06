@@ -1,13 +1,13 @@
 'use client';
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { DollarSign, Calendar, Tag, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AddExpensePage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
+
 
     const [formData, setFormData] = useState({
         expense_date: new Date().toISOString().split('T')[0],

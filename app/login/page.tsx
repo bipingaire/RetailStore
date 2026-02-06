@@ -1,6 +1,6 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import {
   Store, Truck, Lock, Mail, User, ArrowRight, Loader2, CheckCircle
@@ -8,9 +8,8 @@ import {
 import { toast } from 'sonner';
 
 export default function LoginPage() {
-  // Use Auth Helpers client to ensure cookies are set for Middleware
-  const supabase = createClientComponentClient();
   const router = useRouter();
+
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [role, setRole] = useState<'retailer' | 'supplier'>('retailer');
   const [loading, setLoading] = useState(false);

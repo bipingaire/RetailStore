@@ -1,13 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Tag, X, Percent, DollarSign, Share2, Image as ImageIcon } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 type Campaign = { id: string; title: string; slug?: string };
 
 export default function PromotionModal({ product, batch, onClose }: any) {
-  const supabase = createClientComponentClient();
+
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<'percentage' | 'fixed_price'>('percentage');
   const [value, setValue] = useState(30); // Default 30% off

@@ -1,9 +1,10 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { Loader2, UploadCloud, Save, Trash2, Plus, FileText, Truck, Receipt, Calendar, User, CheckSquare, Clock } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+
 
 const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
 const PDFJS_WORKER_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";

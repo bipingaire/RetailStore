@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { MapPin, Store, ArrowRight, Loader2 } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 
 type Tenant = {
     'tenant-id': string;
@@ -16,7 +16,7 @@ export default function LocatorPage() {
     const [loading, setLoading] = useState(true);
     const [city, setCity] = useState<string | null>(null);
     const [stores, setStores] = useState<Tenant[]>([]);
-    const supabase = createClientComponentClient();
+
 
     useEffect(() => {
         async function initLocator() {

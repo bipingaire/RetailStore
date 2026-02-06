@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Send, Search, Camera, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ interface CountItem {
 
 export default function NewReconciliationPage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
+
 
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [countItems, setCountItems] = useState<Map<string, CountItem>>(new Map());
