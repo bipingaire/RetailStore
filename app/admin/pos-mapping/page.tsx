@@ -48,7 +48,7 @@ export default function PosMappingPage() {
           id:"inventory-id",
           price:"selling-price-amount",
           global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", image_url:"image-url" )
-        `).eq('tenant-id', tid).eq('is-active-flag', true).limit(400)
+        `).eq('tenant-id', tid).limit(400)
     ]);
 
     if (mapData) {

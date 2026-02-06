@@ -39,7 +39,7 @@ export default function RestockPage() {
           global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", image_url:"image-url")
         `)
       .lte('current-stock-quantity', 20) // Temporary fix: hardcoded threshold as RPC might not exist for new schema yet
-      .eq('is-active-flag', true);
+
 
     const items: RestockItem[] = (data || []).map((item: any) => {
       const suggestedQty = Math.max(50, (item.reorder_point_value || 10) * 3);

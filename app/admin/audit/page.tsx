@@ -34,7 +34,7 @@ export default function AuditPage() {
           global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", image_url:"image-url", category:"category-name" ),
           inventory_batches:"inventory-batch-tracking-record" ( batch_quantity:"batch-quantity-count" )
         `)
-        .eq('is-active-flag', true);
+        ;
 
       if (error) {
         setLoading(false);

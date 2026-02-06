@@ -44,14 +44,14 @@ export default function InventoryHealthPage() {
           global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name" ),
           inventory_batches:"inventory-batch-tracking-record" ( expiry:"expiry-date-timestamp", quantity:"batch-quantity-count" )
         `)
-            .eq('is-active-flag', true);
+
 
         const total = inventory?.length || 0;
         const lowStock = inventory?.filter((i: any) =>
             i.current_stock_quantity <= i.reorder_point_value && i.current_stock_quantity > 0
         ).length || 0;
         const outOfStock = inventory?.filter((i: any) => i.current_stock_quantity === 0).length || 0;
-        const expiringSoon = batches?.length || 0;
+        const expiringSoon = inventory?.reduce((sum: number, i: any) => sum + (i.inventory_batches?.length || 0), 0) || 0;
 
         const slowMovingItems: SlowMovingProduct[] = inventory
             ?.filter((i: any) => i.current_stock_quantity > i.reorder_point_value * 3)

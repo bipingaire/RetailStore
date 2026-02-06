@@ -22,9 +22,9 @@ export default function InvoiceHistoryPage() {
   useEffect(() => {
     async function fetchData() {
       const { data } = await supabase
-        .from('invoices')
+        .from('vendor-invoices')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created-at', { ascending: false });
 
       if (data) setInvoices(data as any);
       setLoading(false);
@@ -33,8 +33,8 @@ export default function InvoiceHistoryPage() {
   }, []);
 
   const filtered = invoices.filter(inv =>
-    (inv.vendor_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (inv.invoice_number || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (inv['vendor-name'] || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (inv['invoice-number'] || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

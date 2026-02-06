@@ -41,7 +41,7 @@ export default function VendorDashboard() {
   useEffect(() => {
     async function loadVendorData() {
       setLoading(true);
-      const { data: invoiceData } = await supabase.from('invoices').select('*').order('invoice_date', { ascending: false });
+      const { data: invoiceData } = await supabase.from('vendor-invoices').select('*').order('invoice-date', { ascending: false });
       const { data: contactData } = await supabase.from('vendors').select('*');
 
       const rawInvoices = invoiceData || [];
@@ -57,14 +57,14 @@ export default function VendorDashboard() {
       });
 
       rawInvoices.forEach((inv: any) => {
-        const name = inv.vendor_name || 'Unknown';
+        const name = inv['vendor-name'] || 'Unknown';
         if (!vendorMap[name]) {
           vendorMap[name] = { name, total_spend: 0, invoice_count: 0, last_order_date: 'N/A', outstanding_balance: 0, reliability_score: 80 };
         }
         const v = vendorMap[name];
-        v.total_spend += inv.total_amount || 0;
+        v.total_spend += inv['total-amount'] || 0;
         v.invoice_count += 1;
-        if (v.last_order_date === 'N/A' || new Date(inv.invoice_date) > new Date(v.last_order_date)) v.last_order_date = inv.invoice_date;
+        if (v.last_order_date === 'N/A' || new Date(inv['invoice-date']) > new Date(v.last_order_date)) v.last_order_date = inv['invoice-date'];
       });
 
       setVendors(Object.values(vendorMap).sort((a, b) => b.total_spend - a.total_spend));

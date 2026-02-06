@@ -203,15 +203,15 @@ export default function InvoicePage() {
       poc_name: vendorData.poc_name
     }, { onConflict: 'name' });
 
-    const { error: invError } = await supabase.from('invoices').insert({
-      tenant_id: TENANT_ID,
-      image_url: 'stored_file_url_placeholder',
-      status: 'completed',
-      vendor_name: finalVendorName,
-      invoice_number: metadata.invoice_number,
-      invoice_date: metadata.invoice_date,
-      total_amount: metadata.total_amount,
-      line_items_json: items
+    const { error: invError } = await supabase.from('vendor-invoices').insert({
+      'tenant-id': TENANT_ID,
+      'image-url': 'stored_file_url_placeholder',
+      'status': 'completed',
+      'vendor-name': finalVendorName,
+      'invoice-number': metadata.invoice_number,
+      'invoice-date': metadata.invoice_date,
+      'total-amount': metadata.total_amount,
+      'line-items-json': items
     });
 
     if (invError) return toast.error(`Failed to save: ${invError.message}`);
