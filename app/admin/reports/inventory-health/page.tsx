@@ -35,21 +35,21 @@ export default function InventoryHealthPage() {
         setLoading(true);
 
         const { data: inventory } = await supabase
-            .from('store_inventory')
+            .from('retail-store-inventory-item')
             .select(`
-        inventory_id,
-        current_stock_quantity,
-        reorder_point_value,
-        cost_price_amount,
-        global_products (product_name)
+        inventory_id:inventory-id,
+        current_stock_quantity:current-stock-quantity,
+        reorder_point_value:reorder-point-value,
+        cost_price_amount:cost-price-amount,
+        global_products:global-product-master-catalog!global-product-id (product_name:product-name)
       `)
-            .eq('is_active', true);
+            .eq('is-active', true);
 
         const { data: batches } = await supabase
-            .from('inventory_batches')
-            .select('expiry_date_timestamp, batch_quantity_count')
-            .gte('expiry_date_timestamp', new Date().toISOString().split('T')[0])
-            .lte('expiry_date_timestamp', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+            .from('inventory-batch-tracking-record')
+            .select('expiry_date_timestamp:expiry-date-timestamp, batch_quantity_count:batch-quantity-count')
+            .gte('expiry-date-timestamp', new Date().toISOString().split('T')[0])
+            .lte('expiry-date-timestamp', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
         const total = inventory?.length || 0;
         const lowStock = inventory?.filter((i: any) =>
@@ -240,8 +240,8 @@ export default function InventoryHealthPage() {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-right">
                                             <span className={`px-3 py-1 rounded-full font-bold ${item.days_since_last_sale > 60
-                                                    ? 'bg-red-500/20 text-red-300'
-                                                    : 'bg-yellow-500/20 text-yellow-300'
+                                                ? 'bg-red-500/20 text-red-300'
+                                                : 'bg-yellow-500/20 text-yellow-300'
                                                 }`}>
                                                 {item.days_since_last_sale}d
                                             </span>

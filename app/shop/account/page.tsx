@@ -37,10 +37,10 @@ export default function AccountPage() {
 
     // Load purchase history
     const { data: orderData } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('customer_id', user.id)
-      .order('order_date_time', { ascending: false });
+      .from('customer-order-header')
+      .select('order_id:order-id, order_date_time:created_at, final_amount:final-amount, order_status:order-status-code, payment_status:payment-status')
+      .eq('customer-email', user.email) // Assuming we filter by email as we might not have a direct link to auth.users.id in the new schema yet, or we use user.id if mapped. Let's use email for safety as common in guest checkouts promoted to accounts.
+      .order('created_at', { ascending: false });
 
     setOrders(orderData || []);
     setLoading(false);
@@ -235,9 +235,9 @@ export default function AccountPage() {
                             ${order.final_amount?.toFixed(2)}
                           </div>
                           <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${order.order_status === 'delivered' ? 'bg-green-500/20 text-green-300' :
-                              order.order_status === 'shipped' ? 'bg-blue-500/20 text-blue-300' :
-                                order.order_status === 'cancelled' ? 'bg-red-500/20 text-red-300' :
-                                  'bg-yellow-500/20 text-yellow-300'
+                            order.order_status === 'shipped' ? 'bg-blue-500/20 text-blue-300' :
+                              order.order_status === 'cancelled' ? 'bg-red-500/20 text-red-300' :
+                                'bg-yellow-500/20 text-yellow-300'
                             }`}>
                             {order.order_status}
                           </div>

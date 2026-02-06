@@ -30,13 +30,13 @@ export default function AuditPage() {
   useEffect(() => {
     async function loadInventory() {
       const { data, error } = await supabase
-        .from('store_inventory')
+        .from('retail-store-inventory-item')
         .select(`
-          id, price,
-          global_products ( name, image_url, category ),
-          inventory_batches ( batch_quantity )
+          id:inventory-id, price:selling-price-amount,
+          global_products:global-product-master-catalog!global-product-id ( name:product-name, image_url:image-url, category:category-name ),
+          inventory_batches:inventory-batch-tracking-record ( batch_quantity:batch-quantity-count )
         `)
-        .eq('is_active', true);
+        .eq('is-active', true);
 
       if (error) {
         setLoading(false);

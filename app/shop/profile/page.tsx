@@ -32,10 +32,11 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchHistory() {
       // Fetch orders for this phone number
+      // Fetch orders for this phone number
       const { data } = await supabase
-        .from('orders')
-        .select('id, total_amount, created_at, status, order_items(count)')
-        .eq('customer_phone', MOCK_USER.phone)
+        .from('customer-order-header')
+        .select('id:order-id, total_amount:final-amount, created_at, status:order-status-code, items:customer-order-line-item(count)')
+        .eq('customer-phone', MOCK_USER.phone)
         .order('created_at', { ascending: false });
 
       if (data) {
@@ -44,7 +45,7 @@ export default function ProfilePage() {
           total_amount: o.total_amount,
           created_at: o.created_at,
           status: o.status,
-          item_count: o.order_items[0].count
+          item_count: o.items[0]?.count || 0
         })));
       }
       setLoading(false);
@@ -56,11 +57,11 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 font-sans">
-      
+
       {/* 1. IDENTITY CARD */}
       <div className="bg-white p-6 pb-12 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-        
+
         <div className="flex items-center gap-4 relative z-10">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
             {MOCK_USER.name.charAt(0)}
@@ -98,9 +99,9 @@ export default function ProfilePage() {
             {/* The Scan Code */}
             <div className="bg-white p-3 rounded-xl flex items-center gap-4">
               {/* QR Generation via API for simplicity */}
-              <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrValue)}`} 
-                alt="Member QR" 
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrValue)}`}
+                alt="Member QR"
                 className="w-16 h-16"
               />
               <div className="flex-1">
@@ -116,7 +117,7 @@ export default function ProfilePage() {
       <div className="px-4 mt-6">
         <h3 className="font-bold text-gray-900 mb-3 text-sm">Account</h3>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-50">
-          
+
           <div className="p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
@@ -152,7 +153,7 @@ export default function ProfilePage() {
       {/* 4. RECENT HISTORY */}
       <div className="px-4 mt-8">
         <h3 className="font-bold text-gray-900 mb-3 text-sm">Order History</h3>
-        
+
         {loading ? (
           <div className="text-center py-10 text-gray-400 text-xs">Loading history...</div>
         ) : orders.length === 0 ? (
@@ -168,15 +169,14 @@ export default function ProfilePage() {
                     <Clock size={18} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-gray-900">Order #{order.id.slice(0,4)}</div>
+                    <div className="text-sm font-bold text-gray-900">Order #{order.id.slice(0, 4)}</div>
                     <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold text-gray-900">${order.total_amount.toFixed(2)}</div>
-                  <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                    order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                  }`}>
+                  <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
                     {order.status}
                   </span>
                 </div>

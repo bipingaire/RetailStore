@@ -33,14 +33,14 @@ function CreateCampaignContent() {
 
     async function loadProducts() {
         const { data } = await supabase
-            .from('store_inventory')
+            .from('retail-store-inventory-item')
             .select(`
-        inventory_id,
-        current_stock_quantity,
-        selling_price_amount,
-        global_products (product_name, image_url)
+        inventory_id:inventory-id,
+        current_stock_quantity:current-stock-quantity,
+        selling_price_amount:selling-price-amount,
+        global_products:global-product-master-catalog!global-product-id (product_name:product-name, image_url:image-url)
       `)
-            .eq('is_active', true)
+            .eq('is-active', true)
             .limit(50);
 
         setProducts(data || []);
@@ -85,7 +85,7 @@ function CreateCampaignContent() {
             return;
         }
 
-        const tenantId = userRole['tenant-id'];
+        const tenantId = (userRole as any)['tenant-id'];
 
         try {
             toast.loading('Publishing campaign...');

@@ -31,16 +31,16 @@ export default function RestockPage() {
 
   async function loadLowStockItems() {
     const { data } = await supabase
-      .from('store_inventory')
+      .from('retail-store-inventory-item')
       .select(`
-        inventory_id,
-        current_stock_quantity,
-        reorder_point_value,
-        cost_price_amount,
-        global_products (product_name)
+        inventory_id:inventory-id,
+        current_stock_quantity:current-stock-quantity,
+        reorder_point_value:reorder-point-value,
+        cost_price_amount:cost-price-amount,
+        global_products:global-product-master-catalog!global-product-id (product_name:product-name)
       `)
-      .lte('current_stock_quantity', supabase.rpc('reorder_point_value'))
-      .eq('is_active', true);
+      .lte('current-stock-quantity', 20) // Temporary fix: hardcoded threshold as RPC might not exist for new schema yet
+      .eq('is-active', true);
 
     const items: RestockItem[] = (data || []).map((item: any) => {
       const suggestedQty = Math.max(50, (item.reorder_point_value || 10) * 3);

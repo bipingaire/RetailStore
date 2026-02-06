@@ -46,18 +46,18 @@ export default function SocialPage() {
       setLoading(true);
       // Load Campaigns
       const { data: cData } = await supabase
-        .from('product_segments') // Note: Using product_segments (legacy name for campaigns in this context)
+        .from('marketing-campaign-master')
         .select(`
-            id, slug, title, tagline, badge_label,
-            segment_products (
-            store_inventory:store_inventory_id (
-                id, price,
-                global_products ( name, image_url )
+            id:campaign-id, slug:campaign-slug, title:title-text, tagline:tagline-text, badge_label:badge-label,
+            segment_products:campaign-product-segment-group!campaign-id (
+            store_inventory:retail-store-inventory-item!inventory-id (
+                id:inventory-id, price:selling-price-amount,
+                global_products:global-product-master-catalog!global-product-id ( name:product-name, image_url:image-url )
             )
             )
         `)
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
+        .eq('is-active-flag', true)
+        .order('sort-order', { ascending: true });
 
       setCampaigns((cData as any[]) || []);
 
@@ -182,6 +182,12 @@ export default function SocialPage() {
     } catch (err: any) {
       setStatus('❌ Gen Failed: ' + err.message);
     }
+  };
+
+  const handleProductPost = async (campaign: Campaign, product: any) => {
+    setStatus(`Post product "${product?.global_products?.name}" to social (stub)...`);
+    // Placeholder for actual posting logic
+    setTimeout(() => setStatus('✅ Product Posted!'), 1000);
   };
 
 

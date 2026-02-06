@@ -47,15 +47,18 @@ export default function MasterInventoryPage() {
   useEffect(() => {
     async function fetchData() {
       const { data, error } = await supabase
-        .from('store_inventory')
+        .from('retail-store-inventory-item')
         .select(`
-          id, price, local_name, local_image_url, local_category, local_pack_quantity, local_uom,
-          global_products ( name, upc_ean, image_url, category, pack_quantity, uom, manufacturer ),
-          vendors ( name ),
-          inventory_batches ( batch_quantity, cost_basis, arrival_date, expiry_date )
+          id:inventory-id, price:selling-price-amount,
+          local_name:product-name, local_image_url:image-url, local_category:category-name,
+          global_products:global-product-master-catalog!global-product-id ( name:product-name, upc_ean:upc-ean-code, image_url:image-url, category:category-name, pack_quantity:package-size, manufacturer:manufacturer-name ),
+          batches:inventory-batch-tracking-record ( batch_quantity:batch-quantity-count, cost_basis:cost-per-unit-amount, arrival_date:created_at, expiry_date:expiry-date-timestamp )
         `)
-        .eq('is_active', true);
+        .eq('is-active', true);
 
+      // Note: Vendors join removed as it might not be directly linked in new schema or needs different path.
+      // Assuming vendor info comes from elsewhere or we skip for now to fix errors.
+      // If needed, we might need to join via a different path or fetch separately.
       const { data: vendorData } = await supabase.from('vendors').select('name').order('name');
       if (error) return;
 

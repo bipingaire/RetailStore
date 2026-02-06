@@ -30,17 +30,43 @@ export default function OrderManager() {
 
   const fetchOrders = async () => {
     const { data } = await supabase
-      .from('orders')
+      .from('customer-order-header')
       .select(`
-        *,
-        order_items (
-          qty,
-          store_inventory ( global_products ( name, image_url ) )
+        id:order-id,
+        customer_phone:customer-phone,
+        fulfillment_method:fulfillment-type,
+        payment_method:payment-method,
+        total_amount:final-amount,
+        status:order-status-code,
+        created_at,
+        items:customer-order-line-item (
+          qty:quantity-sold,
+          product:retail-store-inventory-item (
+            global_products:global-product-master-catalog!global-product-id ( name:product-name, image_url:image-url )
+          )
         )
       `)
       .order('created_at', { ascending: false });
 
-    if (data) setOrders(data as any);
+    if (data) {
+      // Map new schema back to UI expected structure to minimize UI rewrite
+      const mappedOrders = data.map((o: any) => ({
+        id: o.id,
+        customer_phone: o.customer_phone,
+        fulfillment_method: o.fulfillment_method,
+        payment_method: o.payment_method,
+        total_amount: o.total_amount,
+        status: o.status,
+        created_at: o.created_at,
+        order_items: o.items.map((i: any) => ({
+          qty: i.qty,
+          store_inventory: {
+            global_products: i.product?.global_products || { name: 'Unknown', image_url: '' }
+          }
+        }))
+      }));
+      setOrders(mappedOrders);
+    }
     setLoading(false);
   };
 
@@ -51,7 +77,7 @@ export default function OrderManager() {
   }, []);
 
   const updateStatus = async (id: string, newStatus: string) => {
-    await supabase.from('orders').update({ status: newStatus }).eq('id', id);
+    await supabase.from('customer-order-header').update({ 'order-status-code': newStatus }).eq('order-id', id);
     fetchOrders();
   };
 
@@ -83,8 +109,8 @@ export default function OrderManager() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${order.status === 'pending' ? 'bg-yellow-100 border-yellow-200 text-yellow-800' :
-                        order.status === 'ready' ? 'bg-blue-100 border-blue-200 text-blue-800' :
-                          'bg-gray-100 border-gray-200 text-gray-600'
+                      order.status === 'ready' ? 'bg-blue-100 border-blue-200 text-blue-800' :
+                        'bg-gray-100 border-gray-200 text-gray-600'
                       }`}>
                       {order.status.replace('_', ' ')}
                     </span>

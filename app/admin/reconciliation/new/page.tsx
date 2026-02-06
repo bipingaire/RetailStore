@@ -56,14 +56,14 @@ export default function NewReconciliationPage() {
 
     async function loadInventory() {
         const { data } = await supabase
-            .from('store_inventory')
+            .from('retail-store-inventory-item')
             .select(`
-        inventory_id,
-        current_stock_quantity,
-        cost_price_amount,
-        global_products (
-          product_name,
-          upc_ean_code
+        inventory_id:inventory-id,
+        current_stock_quantity:current-stock-quantity,
+        cost_price_amount:cost-price-amount,
+        global_products:global-product-master-catalog!global-product-id (
+          product_name:product-name,
+          upc_ean_code:upc-ean-code
         )
       `)
             .eq('is_active', true)

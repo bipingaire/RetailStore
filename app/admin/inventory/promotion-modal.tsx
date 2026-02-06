@@ -22,10 +22,10 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
   useEffect(() => {
     supabase
-      .from('product_segments')
-      .select('id, title, slug')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
+      .from('marketing-campaign-master')
+      .select('id:campaign-id, title:title-text, slug:campaign-slug')
+      .eq('is-active-flag', true)
+      .order('sort-order', { ascending: true })
       .then(({ data }) => setCampaigns((data as any[]) || []));
   }, []);
 
@@ -37,7 +37,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
     endDate.setDate(endDate.getDate() + days);
 
     const { data: promoData, error } = await supabase
-      .from('promotions')
+      .from('promotions') // Keeping promotions for now as it might be separate, check implementation plan if needed
       .insert({
         tenant_id: 'PASTE_YOUR_COPIED_UUID_HERE', // <--- REMEMBER TO USE YOUR REAL ID
         store_inventory_id: product.id,
@@ -58,11 +58,11 @@ export default function PromotionModal({ product, batch, onClose }: any) {
       // Optionally attach to campaign
       if (campaignId) {
         await supabase
-          .from('segment_products')
+          .from('campaign-product-segment-group')
           .upsert({
-            segment_id: campaignId,
-            store_inventory_id: product.id,
-            highlight_label: batch ? 'Clearance' : 'Promo',
+            'campaign-id': campaignId,
+            'inventory-id': product.id,
+            'highlight-label': batch ? 'Clearance' : 'Promo',
           });
       }
       setStatus('✅ Promotion Live on Website' + (campaignId ? ' & Campaign' : ''));

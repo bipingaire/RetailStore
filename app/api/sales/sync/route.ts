@@ -37,94 +37,97 @@ export async function POST(req: Request) {
     const results = [];
 
     // 2. Process Each Sale
+    // 2. Process Each Sale
     for (const sale of sales) {
       let inventoryId = null;
 
-      // A. CHECK MAPPING TABLE (Has this weird name been seen before?)
+      // A. CHECK MAPPING TABLE
       const { data: existingMap } = await supabase
-        .from('pos_mappings')
-        .select('store_inventory_id, last_sold_price')
-        .eq('tenant_id', tenantId)
-        .eq('pos_name', sale.name)
+        .from('pos-item-mapping')
+        .select('matched-inventory-id, last-sold-price')
+        .eq('tenant-id', tenantId)
+        .eq('pos-item-name', sale.name)
         .maybeSingle();
 
-      if (existingMap?.store_inventory_id) {
-        inventoryId = existingMap.store_inventory_id;
+      const map = existingMap as any;
+      if (map?.['matched-inventory-id']) {
+        inventoryId = map['matched-inventory-id'];
 
         // Update Price History
-        if (existingMap.last_sold_price !== sale.sold_price) {
-          await supabase.from('pos_mappings').update({
-            previous_sold_price: existingMap.last_sold_price,
-            last_sold_price: sale.sold_price
-          }).eq('pos_name', sale.name).eq('tenant_id', tenantId);
+        if (map['last-sold-price'] !== sale.sold_price) {
+          await supabase.from('pos-item-mapping').update({
+            'previous-sold-price': map['last-sold-price'], // Assuming previous-sold-price exists, implied pattern
+            'last-sold-price': sale.sold_price
+          }).eq('pos-item-name', sale.name).eq('tenant-id', tenantId);
         }
       }
       else {
         // B. NEW ITEM DISCOVERED - Fuzzy Match or Create Stub
         // Try to find a clean inventory item with similar name
         const { data: match } = await supabase
-          .from('store_inventory')
-          .select('id, global_products!inner(name)')
-          .ilike('global_products.name', `%${sale.name}%`)
-          .eq('tenant_id', tenantId)
+          .from('retail-store-inventory-item')
+          .select('inventory-id, global_products:global-product-master-catalog!inner(product-name)')
+          .ilike('global-product-master-catalog.product-name', `%${sale.name}%`)
+          .eq('tenant-id', tenantId)
           .limit(1)
           .maybeSingle();
 
         if (match) {
-          inventoryId = match.id;
+          inventoryId = (match as any)['inventory-id'];
         } else {
           // C. CREATE STUB INVENTORY (The "Ghost" Item)
           // We create a temp global product so it shows up in inventory list
           const { data: newGlobal } = await supabase
-            .from('global_products')
-            .insert({ name: sale.name + " (POS Import)", source_type: 'pos_stub' })
+            .from('global-product-master-catalog')
+            .insert({ 'product-name': sale.name + " (POS Import)", 'description-text': 'POS Stub' }) // source-type uncertain, using desc
             .select()
             .single();
 
           const { data: newInv } = await supabase
-            .from('store_inventory')
+            .from('retail-store-inventory-item')
             .insert({
-              tenant_id: tenantId,
-              global_product_id: newGlobal.id,
-              price: sale.sold_price
+              'tenant-id': tenantId,
+              'global-product-id': (newGlobal as any)['global-product-id'], // Assuming PK is global-product-id
+              'selling-price-amount': sale.sold_price
             })
             .select()
             .single();
 
-          inventoryId = newInv.id;
+          inventoryId = (newInv as any)['inventory-id'];
         }
 
         // Create the Mapping Record for future
-        await supabase.from('pos_mappings').insert({
-          tenant_id: tenantId,
-          pos_name: sale.name,
-          pos_code: sale.sku || null,
-          store_inventory_id: inventoryId,
-          last_sold_price: sale.sold_price,
-          is_verified: !!match // If we fuzzy matched, it's auto-verified? No, let's mark false to be safe.
+        await supabase.from('pos-item-mapping').insert({
+          'tenant-id': tenantId,
+          'pos-item-name': sale.name,
+          'pos-item-code': sale.sku || null,
+          'matched-inventory-id': inventoryId,
+          'last-sold-price': sale.sold_price,
+          'is-verified': !!match // If we fuzzy matched, it's auto-verified? No, let's mark false to be safe.
         });
       }
 
       // D. DEDUCT STOCK (Allow Negative)
       // First, try to eat existing positive batches
       const { data: batches } = await supabase
-        .from('inventory_batches')
+        .from('inventory-batch-tracking-record')
         .select('*')
-        .eq('store_inventory_id', inventoryId)
-        .gt('batch_quantity', 0)
-        .order('expiry_date', { ascending: true });
+        .eq('inventory-id', inventoryId)
+        .gt('batch-quantity-count', 0)
+        .order('expiry-date-timestamp', { ascending: true }); // Assuming expiry is used for FIFO
 
       let qtyRemainingToDeduct = sale.qty;
 
       if (batches) {
         for (const batch of batches) {
           if (qtyRemainingToDeduct <= 0) break;
-          const deduction = Math.min(batch.batch_quantity, qtyRemainingToDeduct);
+          const currentQty = batch['batch-quantity-count'];
+          const deduction = Math.min(currentQty, qtyRemainingToDeduct);
 
           await supabase
-            .from('inventory_batches')
-            .update({ batch_quantity: batch.batch_quantity - deduction })
-            .eq('id', batch.id);
+            .from('inventory-batch-tracking-record')
+            .update({ 'batch-quantity-count': currentQty - deduction })
+            .eq('batch-id', batch['batch-id']); // Assuming PK is batch-id
 
           qtyRemainingToDeduct -= deduction;
         }
@@ -133,11 +136,11 @@ export async function POST(req: Request) {
       // E. NEGATIVE BALANCE HANDLER
       // If we still need to deduct (qtyRemainingToDeduct > 0), create a negative batch
       if (qtyRemainingToDeduct > 0) {
-        await supabase.from('inventory_batches').insert({
-          store_inventory_id: inventoryId,
-          batch_quantity: -qtyRemainingToDeduct, // Negative value
-          arrival_date: new Date(),
-          status: 'sold_oversell'
+        await supabase.from('inventory-batch-tracking-record').insert({
+          'inventory-id': inventoryId,
+          'batch-quantity-count': -qtyRemainingToDeduct, // Negative value
+          'expiry-date-timestamp': new Date().toISOString(), // Required field probably?
+          // status?
         });
       }
 

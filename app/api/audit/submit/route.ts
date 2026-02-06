@@ -48,35 +48,36 @@ export async function POST(req: Request) {
       if (variance < 0) {
         // SHRINKAGE (Theft/Loss): Remove from batches (FIFO)
         let qtyToRemove = Math.abs(variance);
-        
+
         const { data: batches } = await supabase
-          .from('inventory_batches')
+          .from('inventory-batch-tracking-record')
           .select('*')
-          .eq('store_inventory_id', item.id)
-          .gt('batch_quantity', 0)
-          .order('expiry_date', { ascending: true });
+          .eq('inventory-id', item.id)
+          .gt('batch-quantity-count', 0)
+          .order('expiry-date-timestamp', { ascending: true });
 
         if (batches) {
           for (const batch of batches) {
             if (qtyToRemove <= 0) break;
-            const deduction = Math.min(batch.batch_quantity, qtyToRemove);
-            
+            const currentQty = (batch as any)['batch-quantity-count'];
+            const deduction = Math.min(currentQty, qtyToRemove);
+
             await supabase
-              .from('inventory_batches')
-              .update({ batch_quantity: batch.batch_quantity - deduction })
-              .eq('id', batch.id);
-              
+              .from('inventory-batch-tracking-record')
+              .update({ 'batch-quantity-count': currentQty - deduction })
+              .eq('batch-id', (batch as any)['batch-id']);
+
             qtyToRemove -= deduction;
           }
         }
       } else {
         // FOUND STOCK: Add a new batch
-        await supabase.from('inventory_batches').insert({
-          store_inventory_id: item.id,
-          batch_quantity: variance,
-          expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Default 1y expiry for found items
-          arrival_date: new Date(),
-          status: 'audit_adjustment'
+        await supabase.from('inventory-batch-tracking-record').insert({
+          'inventory-id': item.id,
+          'batch-quantity-count': variance,
+          'expiry-date-timestamp': new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Default 1y expiry for found items
+          'received-date-timestamp': new Date().toISOString(),
+          'status-code': 'audit_adjustment'
         });
       }
     }

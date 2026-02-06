@@ -70,7 +70,7 @@ export default function PosMappingPage() {
   };
 
   const verifyMap = async (id: string) => {
-    await supabase.from('pos_mappings').update({ is_verified: true }).eq('id', id);
+    await supabase.from('pos-item-mapping').update({ 'is-verified': true }).eq('mapping-id', id);
     setMappings(prev => {
       const next = prev.map(m => m.id === id ? { ...m, is_verified: true } : m);
       setPendingCount(next.filter((m) => !m.is_verified).length);

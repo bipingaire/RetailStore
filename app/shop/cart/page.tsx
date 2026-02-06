@@ -93,15 +93,15 @@ export default function CheckoutPage() {
     setPlacingOrder(true);
     try {
       const { data: orderData, error: orderError } = await supabase
-        .from('orders')
+        .from('customer-order-header')
         .insert({
-          tenant_id: TENANT_ID,
-          customer_phone: '555-0101',
-          fulfillment_method: method,
-          payment_method: payment,
-          total_amount: total,
-          status: 'pending',
-          delivery_address: method === 'delivery' ? address : null
+          'tenant-id': TENANT_ID,
+          'customer-phone': '555-0101',
+          'fulfillment-type': method, // Mapped from method
+          'payment-method': payment,
+          'final-amount': total,
+          'order-status-code': 'pending', // Mapped from status
+          'delivery-address-information': method === 'delivery' ? address : null // Mapped from delivery_address
         })
         .select()
         .single();

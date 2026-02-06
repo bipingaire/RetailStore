@@ -43,10 +43,10 @@ export default function FinancialReportsPage() {
         let salesByDate: Record<string, number> = {};
 
         if (orders) {
-            totalRevenue = orders.reduce((sum, o) => sum + Number(o['final-amount'] || 0), 0);
+            totalRevenue = orders.reduce((sum: number, o: any) => sum + Number(o['final-amount'] || 0), 0);
             totalOrders = orders.length;
 
-            orders.forEach(order => {
+            orders.forEach((order: any) => {
                 const date = new Date(order['created-at']).toLocaleDateString();
                 salesByDate[date] = (salesByDate[date] || 0) + Number(order['final-amount']);
             });
@@ -100,12 +100,12 @@ export default function FinancialReportsPage() {
 
         // 3. Inventory Value
         const { data: inventory } = await supabase
-            .from('store_inventory')
-            .select('current_stock_quantity, cost_price_amount');
+            .from('retail-store-inventory-item')
+            .select('current_stock_quantity:current-stock-quantity, cost_price_amount:cost-price-amount');
 
         let totalInventoryValue = 0;
         if (inventory) {
-            totalInventoryValue = inventory.reduce((sum, item) => {
+            totalInventoryValue = inventory.reduce((sum: number, item: any) => {
                 return sum + (Number(item.current_stock_quantity || 0) * Number(item.cost_price_amount || 0));
             }, 0);
         }
