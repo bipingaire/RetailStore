@@ -46,10 +46,13 @@ export default function MasterInventoryPage() {
       const { data, error } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          "inventory-id":id, "selling-price-amount":price,
-          "product-name":local_name, "image-url":local_image_url, "category-name":local_category,
-          global_products:"global-product-master-catalog"!"global-product-id" ( "product-name":name, "upc-ean-code":upc_ean, "image-url":image_url, "category-name":category, "package-size":pack_quantity, "manufacturer-name":manufacturer ),
-          batches:"inventory-batch-tracking-record" ( "batch-quantity-count":batch_quantity, "cost-per-unit-amount":cost_basis, created_at:arrival_date, "expiry-date-timestamp":expiry_date )
+          id:"inventory-id",
+          local_name:"product-name",
+          local_image_url:"image-url",
+          local_category:"category-name",
+          price:"selling-price-amount",
+          global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", upc_ean:"upc-ean-code", image_url:"image-url", category:"category-name", pack_quantity:"package-size", manufacturer:"manufacturer-name" ),
+          batches:"inventory-batch-tracking-record" ( batch_quantity:"batch-quantity-count", cost_basis:"cost-per-unit-amount", arrival_date:created_at, expiry_date:"expiry-date-timestamp" )
         `)
         .eq('is-active-flag', true);
 

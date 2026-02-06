@@ -35,11 +35,14 @@ function CreateCampaignContent() {
         const { data } = await supabase
             .from('retail-store-inventory-item')
             .select(`
-        "inventory-id":inventory_id,
-        "current-stock-quantity":current_stock_quantity,
-        "selling-price-amount":selling_price_amount,
-        global_products:"global-product-master-catalog"!"global-product-id" ("product-name":product_name, "image-url":image_url)
-      `)
+            id:"inventory-id",
+            price:"selling-price-amount",
+            global_products:"global-product-master-catalog"!"global-product-id" (
+              name:"product-name",
+              category:"category-name",
+              image_url:"image-url"
+            )
+          `)
             .eq('is-active-flag', true)
             .limit(50);
 

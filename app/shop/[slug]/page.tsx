@@ -16,22 +16,22 @@ export default function ShopHome({ params }: { params: { slug: string } }) {
       const { data: campaignData, error: campaignError } = await supabase
         .from('marketing-campaign-master')
         .select(`
-          "campaign-id":id,
-          "campaign-slug":slug,
-          "campaign-type":segment_type,
-          "is-promoted":is_promoted,
-          "promotion-ends-at":promotion_ends_at,
-          "discount-percentage":discount_percentage,
+          id:"campaign-id",
+          slug:"campaign-slug",
+          segment_type:"campaign-type",
+          is_promoted:"is-promoted",
+          promotion_ends_at:"promotion-ends-at",
+          discount_percentage:"discount-percentage",
           segment_products:"campaign-product-segment-group"!"campaign-id" (
              store_inventory:"retail-store-inventory-item"!"inventory-id" (
-                "inventory-id":id,
-                "selling-price-amount":price,
+                id:"inventory-id",
+                price:"selling-price-amount",
                 global_products:"global-product-master-catalog"!"global-product-id" (
-                   "product-name":name,
-                   "image-url":image_url,
-                   "category-name":category,
-                   "manufacturer-name":manufacturer,
-                   "upc-ean-code":upc_ean
+                   name:"product-name",
+                   image_url:"image-url",
+                   category:"category-name",
+                   manufacturer:"manufacturer-name",
+                   upc_ean:"upc-ean-code"
                 )
              )
           )
@@ -44,12 +44,12 @@ export default function ShopHome({ params }: { params: { slug: string } }) {
       const { data: prodData, error: prodError } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          "inventory-id":id,
-          "selling-price-amount":price,
+          id:"inventory-id",
+          price:"selling-price-amount",
           global_products:"global-product-master-catalog"!"global-product-id" (
-            "product-name":name,
-            "image-url":image_url,
-            "category-name":category
+            name:"product-name",
+            image_url:"image-url",
+            category:"category-name"
           )
         `)
         .eq('is-active-flag', true)

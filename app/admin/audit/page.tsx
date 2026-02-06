@@ -29,9 +29,10 @@ export default function AuditPage() {
       const { data, error } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          "inventory-id":id, "selling-price-amount":price,
-          global_products:"global-product-master-catalog"!"global-product-id" ( "product-name":name, "image-url":image_url, "category-name":category ),
-          inventory_batches:"inventory-batch-tracking-record" ( "batch-quantity-count":batch_quantity )
+          id:"inventory-id",
+          price:"selling-price-amount",
+          global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", image_url:"image-url", category:"category-name" ),
+          inventory_batches:"inventory-batch-tracking-record" ( batch_quantity:"batch-quantity-count" )
         `)
         .eq('is-active-flag', true);
 

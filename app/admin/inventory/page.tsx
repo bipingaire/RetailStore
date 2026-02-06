@@ -39,18 +39,18 @@ export default function InventoryDashboard() {
         const { data, error } = await supabase
           .from('retail-store-inventory-item')
           .select(`
-            "inventory-id",
-            "selling-price-amount",
-            "current-stock-quantity",
-            "global-product-master-catalog"!"global-product-id" (
-              "product-name",
-              "upc-ean-code",
-              "image-url"
+            id:"inventory-id",
+            price:"selling-price-amount",
+            current_stock_quantity:"current-stock-quantity",
+            global_products:"global-product-master-catalog"!"global-product-id" (
+              name:"product-name",
+              upc:"upc-ean-code",
+              image_url:"image-url"
             ),
-            "inventory-batch-tracking-record"!"inventory-id" (
-              "batch-id",
-              "batch-quantity-count",
-              "expiry-date-timestamp"
+            inventory_batches:"inventory-batch-tracking-record"!"inventory-id" (
+              batch_id:"batch-id",
+              batch_quantity:"batch-quantity-count",
+              expiry_date:"expiry-date-timestamp"
             )
           `);
 

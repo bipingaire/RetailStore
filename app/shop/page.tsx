@@ -107,33 +107,34 @@ export default function ShopHome() {
       const { data: campaignData, error: campaignError } = await supabase
         .from('marketing-campaign-master')
         .select(`
-          "campaign-id":id,
-          "campaign-slug":slug,
-          "title-text":title,
-          "subtitle-text":subtitle,
-          "badge-label":badge_label,
-          "badge-color":badge_color,
-          "tagline-text":tagline,
-          "campaign-type":segment_type,
-          "sort-order":sort_order,
-          "is-promoted":is_promoted,
-          "promotion-ends-at":promotion_ends_at,
-          "discount-percentage":discount_percentage,
-          "featured-on-website":featured_on_website,
-          segment_products:"campaign-product-segment-group"!"campaign-id" (
-             store_inventory:"retail-store-inventory-item"!"inventory-id" (
-                "inventory-id":id,
-                "selling-price-amount":price,
-                global_products:"global-product-master-catalog"!"global-product-id" (
-                   "product-name":name,
-                   "image-url":image_url,
-                   "category-name":category,
-                   "manufacturer-name":manufacturer,
-                   "upc-ean-code":upc_ean
-                )
-             )
+        .select(`
+          id: "campaign-id",
+          slug: "campaign-slug",
+          title: "title-text",
+          subtitle: "subtitle-text",
+          badge_label: "badge-label",
+          badge_color: "badge-color",
+          tagline: "tagline-text",
+          segment_type: "campaign-type",
+          sort_order: "sort-order",
+          is_promoted: "is-promoted",
+          promotion_ends_at: "promotion-ends-at",
+          discount_percentage: "discount-percentage",
+          featured_on_website: "featured-on-website",
+          segment_products: "campaign-product-segment-group"!"campaign-id"(
+            store_inventory: "retail-store-inventory-item"!"inventory-id"(
+              id: "inventory-id",
+              price: "selling-price-amount",
+              global_products: "global-product-master-catalog"!"global-product-id"(
+                name: "product-name",
+                image_url: "image-url",
+                category: "category-name",
+                manufacturer: "manufacturer-name",
+                upc_ean: "upc-ean-code"
+              )
+            )
           )
-        `)
+          `)
         .eq('is-active-flag', true)
         .order('sort-order', { ascending: true });
 
@@ -143,15 +144,15 @@ export default function ShopHome() {
       const { data: prodData, error: prodError } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          "inventory-id":id,
-          "selling-price-amount":price,
-          global_products:"global-product-master-catalog"!"global-product-id" (
-            "product-name":name,
-            "image-url":image_url,
-            "category-name":category,
-            "manufacturer-name":manufacturer
+          id: "inventory-id",
+          price: "selling-price-amount",
+          global_products: "global-product-master-catalog"!"global-product-id"(
+            name: "product-name",
+            image_url: "image-url",
+            category: "category-name",
+            manufacturer: "manufacturer-name"
           )
-        `)
+          `)
         .eq('is-active-flag', true)
         .limit(50);
 
@@ -263,7 +264,7 @@ export default function ShopHome() {
     const map: Record<string, string> = {};
     segments.forEach((seg) => {
       const key = seg.slug || seg.id;
-      map[key] = `#segment-${key}`;
+      map[key] = `#segment - ${ key }`;
     });
     return map;
   }, [segments]);
@@ -491,7 +492,7 @@ export default function ShopHome() {
                     const qty = cart[prodItem.id] || 0;
 
                     return (
-                      <div key={`${prodItem.id}-${idx}`} className="bg-white rounded-2xl p-4 border-2 border-red-100 hover:border-red-300 hover:shadow-xl transition-all relative group">
+                      <div key={`${ prodItem.id } -${ idx } `} className="bg-white rounded-2xl p-4 border-2 border-red-100 hover:border-red-300 hover:shadow-xl transition-all relative group">
                         {/* Discount Badge */}
                         <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
                           {discount}% OFF
@@ -559,13 +560,13 @@ export default function ShopHome() {
             return (
               <section
                 key={segment.id}
-                id={`segment-${segment.slug || segment.id}`}
+                id={`segment - ${ segment.slug || segment.id } `}
                 className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
                   <div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold"
-                      style={{ backgroundColor: `${segment.badge_color || '#ecfdf3'}`, color: '#0f172a' }}>
+                      style={{ backgroundColor: `${ segment.badge_color || '#ecfdf3' } `, color: '#0f172a' }}>
                       <Zap size={14} /> {segment.badge_label || 'Curated'}
                     </div>
                     <h3 className="text-2xl font-black text-gray-900 mt-2">{segment.title}</h3>
@@ -582,10 +583,10 @@ export default function ShopHome() {
                     const hasPromo = Boolean(promo);
 
                     return (
-                      <div key={`${prodItem.id}-${idx}`} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:border-green-100 hover:shadow-md transition-all relative">
+                      <div key={`${ prodItem.id } -${ idx } `} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:border-green-100 hover:shadow-md transition-all relative">
                         {hasPromo && (
                           <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                            {promo?.discount_type === 'fixed_price' ? 'Price Drop' : `${promo?.discount_value}% OFF`}
+                            {promo?.discount_type === 'fixed_price' ? 'Price Drop' : `${ promo?.discount_value }% OFF`}
                           </div>
                         )}
                         {sp.highlight_label && (
@@ -611,7 +612,7 @@ export default function ShopHome() {
                           </div>
                           {promo && (
                             <span className="text-[10px] text-red-600 font-bold">
-                              {promo.discount_type === 'fixed_price' ? 'Deal' : `${promo.discount_value}% off`}
+                              {promo.discount_type === 'fixed_price' ? 'Deal' : `${ promo.discount_value }% off`}
                             </span>
                           )}
                         </div>

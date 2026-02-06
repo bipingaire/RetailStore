@@ -36,11 +36,11 @@ export default function CheckoutPage() {
       const { data } = await supabase
         .from('retail-store-inventory-item')
         .select(`
-          "inventory-id":id,
-          "selling-price-amount":price,
+          id:"inventory-id",
+          price:"selling-price-amount",
           global_products:"global-product-master-catalog"!"global-product-id" (
-             "product-name":name,
-             "image-url":image_url
+             name:"product-name",
+             image_url:"image-url"
           )
         `)
         .in('inventory-id', ids);

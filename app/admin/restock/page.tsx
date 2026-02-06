@@ -33,12 +33,11 @@ export default function RestockPage() {
     const { data } = await supabase
       .from('retail-store-inventory-item')
       .select(`
-        "inventory-id":inventory_id,
-        "current-stock-quantity":current_stock_quantity,
-        "reorder-point-value":reorder_point_value,
-        "cost-price-amount":cost_price_amount,
-        global_products:"global-product-master-catalog"!"global-product-id" ("product-name":product_name)
-      `)
+          id:"inventory-id",
+          stock:"current-stock-quantity",
+          min_level:"reorder-level-quantity",
+          global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", image_url:"image-url")
+        `)
       .lte('current-stock-quantity', 20) // Temporary fix: hardcoded threshold as RPC might not exist for new schema yet
       .eq('is-active-flag', true);
 

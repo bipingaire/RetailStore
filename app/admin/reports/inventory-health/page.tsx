@@ -37,19 +37,14 @@ export default function InventoryHealthPage() {
         const { data: inventory } = await supabase
             .from('retail-store-inventory-item')
             .select(`
-        "inventory-id":inventory_id,
-        "current-stock-quantity":current_stock_quantity,
-        "reorder-point-value":reorder_point_value,
-        "cost-price-amount":cost_price_amount,
-        global_products:"global-product-master-catalog"!"global-product-id" ("product-name":product_name)
-      `)
+          id:"inventory-id",
+          stock:"current-stock-quantity",
+          price:"selling-price-amount",
+          cost:"cost-price-amount",
+          global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name" ),
+          inventory_batches:"inventory-batch-tracking-record" ( expiry:"expiry-date-timestamp", quantity:"batch-quantity-count" )
+        `)
             .eq('is-active-flag', true);
-
-        const { data: batches } = await supabase
-            .from('inventory-batch-tracking-record')
-            .select('expiry_date_timestamp:expiry-date-timestamp, batch_quantity_count:batch-quantity-count')
-            .gte('expiry-date-timestamp', new Date().toISOString().split('T')[0])
-            .lte('expiry-date-timestamp', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
         const total = inventory?.length || 0;
         const lowStock = inventory?.filter((i: any) =>

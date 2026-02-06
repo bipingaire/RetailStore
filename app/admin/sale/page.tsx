@@ -65,31 +65,34 @@ export default function SaleAdmin() {
         supabase
           .from('marketing-campaign-master')
           .select(`
-            "campaign-id":id,
-            "campaign-slug":slug,
-            "title-text":title,
-            "subtitle-text":subtitle,
-            "badge-label":badge_label,
-            "badge-color":badge_color,
-            "tagline-text":tagline,
-            "campaign-type":segment_type,
-            "sort-order":sort_order,
-            "is-active-flag":is_active,
-            "start-date-time":start_date,
-            "end-date-time":end_date,
-            segment_products:"campaign-product-segment-group"!"campaign-id" ( "inventory-id":store_inventory_id )
-          `)
+            id:"campaign-id",
+          slug:"campaign-slug",
+          title:"title-text",
+          subtitle:"subtitle-text",
+          badge_label:"badge-label",
+          badge_color:"badge-color",
+          tagline:"tagline-text",
+          segment_type:"campaign-type",
+          sort_order:"sort-order",
+          is_active:"is-active-flag",
+          start_date:"start-date-time",
+          end_date:"end-date-time",
+          segment_products:"campaign-product-segment-group"!"campaign-id" (
+             store_inventory_id:"inventory-id"
+          )
+        `)
           .order('sort-order', { ascending: true }),
         supabase
           .from('retail-store-inventory-item')
           .select(`
-            "inventory-id":id,
-            "selling-price-amount":price,
-            global_products:"global-product-master-catalog"!"global-product-id" (
-              "product-name":name,
-              "image-url":image_url,
-              "category-name":category,
-              "manufacturer-name":manufacturer
+            id:"inventory-id",
+        price:"selling-price-amount",
+        global_products:"global-product-master-catalog"!"global-product-id" (
+           name:"product-name",
+           image_url:"image-url",
+           category:"category-name"
+        ),
+        inventory_batches:"inventory-batch-tracking-record"(batch_quantity:"batch-quantity-count")
             )
           `)
           .eq('is-active-flag', true)
@@ -179,18 +182,18 @@ export default function SaleAdmin() {
         'end-date-time': new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 days
       })
       .select(`
-        "campaign-id":id,
-        "campaign-slug":slug,
-        "title-text":title,
-        "subtitle-text":subtitle,
-        "badge-label":badge_label,
-        "badge-color":badge_color,
-        "tagline-text":tagline,
-        "campaign-type":segment_type,
-        "sort-order":sort_order,
-        "is-active-flag":is_active,
-        "start-date-time":start_date,
-        "end-date-time":end_date
+        id:"campaign-id",
+        slug:"campaign-slug",
+        title:"title-text",
+        subtitle:"subtitle-text",
+        badge_label:"badge-label",
+        badge_color:"badge-color",
+        tagline:"tagline-text",
+        segment_type:"campaign-type",
+        sort_order:"sort-order",
+        is_active:"is-active-flag",
+        start_date:"start-date-time",
+        end_date:"end-date-time"
       `)
       .single();
 
