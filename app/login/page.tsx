@@ -1,17 +1,15 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import {
   Store, Truck, Lock, Mail, User, ArrowRight, Loader2, CheckCircle
 } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { toast } from 'sonner';
 
 export default function LoginPage() {
+  // Use Auth Helpers client to ensure cookies are set for Middleware
+  const supabase = createClientComponentClient();
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [role, setRole] = useState<'retailer' | 'supplier'>('retailer');
@@ -70,49 +68,54 @@ export default function LoginPage() {
         if (authError) throw authError;
 
         // 2. Determine Destination
+        // 2. Determine Destination
         if (authData.user) {
+          const userId = authData.user.id;
+          console.log(`Debug: Authenticated User ID: ${userId}`);
+
           // 2a. Check if Owner (Active Only)
           const { data: tenant, error: ownerError } = await supabase
             .from('retail-store-tenant')
             .select('tenant-id, store-name')
-            .eq('owner-user-id', authData.user.id)
+            .eq('owner-user-id', userId)
             .eq('is-active', true)
-            .maybeSingle(); // Use maybeSingle to avoid 406 if 0 rows
+            .maybeSingle();
 
           if (ownerError) {
             console.error('Owner check failed:', ownerError);
-            // Don't throw yet, try role check
+            toast.error(`Owner Query Error: ${ownerError.message}`);
           }
 
           if (tenant) {
+            toast.success(`Welcome Owner: ${tenant['store-name']}`);
             router.push('/admin');
             return;
           }
 
           // 2b. Check if Staff/Manager (Tenant User Role)
-          // We use explicit foreign key syntax if needed, or just standard embedding
-          // 'retail-store-tenant!inner' implies an inner join on the FK
+          // Using strict query to debug RLS issues
           const { data: roleData, error: roleError } = await supabase
             .from('tenant-user-role')
             .select('role-type, tenant-id, retail-store-tenant!inner(is-active)')
-            .eq('user-id', authData.user.id)
+            .eq('user-id', userId)
             .eq('retail-store-tenant.is-active', true)
             .maybeSingle();
 
           if (roleError) {
             console.error('Role check error:', roleError);
-            setMessage(`Login Error: ${roleError.message}`);
+            toast.error(`Role Query Error: ${roleError.message}`);
             return;
           }
 
           if (roleData) {
+            toast.success(`Welcome ${roleData['role-type']}`);
             router.push('/admin');
           } else {
             console.warn('Login failed: User has no active role or store');
-            // Check if they have specific specific inactive role to give better feedback?
-            // For now just generic error
-            setMessage('Access Denied. You are not linked to an active store.');
-            // Do not redirect to '/' immediately so they can see the message.
+            // Explicit error for debugging
+            toast.error('Login successful, but no associated store found.');
+            toast.info(`Debug: User ID ${userId.slice(0, 8)}...`);
+            toast.info('If you have a store, this is likely an RLS (Policy) issue preventing the app from seeing it.');
           }
         }
       }
