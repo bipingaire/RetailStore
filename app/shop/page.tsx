@@ -107,7 +107,6 @@ export default function ShopHome() {
       const { data: campaignData, error: campaignError } = await supabase
         .from('marketing-campaign-master')
         .select(`
-        .select(`
           id: "campaign-id",
           slug: "campaign-slug",
           title: "title-text",
@@ -264,7 +263,7 @@ export default function ShopHome() {
     const map: Record<string, string> = {};
     segments.forEach((seg) => {
       const key = seg.slug || seg.id;
-      map[key] = `#segment - ${ key }`;
+      map[key] = `#segment - ${key}`;
     });
     return map;
   }, [segments]);
@@ -423,8 +422,7 @@ export default function ShopHome() {
               <div className="w-20 h-20 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all">
                 {/* Placeholder Icons based on index to vary visuals */}
                 <img
-                  src={`https://cdn-icons-png.flaticon.com/512/${i === 0 ? '2909/2909859' : i === 1 ? '3194/3194766' : i === 2 ? '1046/1046774' : i === 3 ? '2395/2395796' : '706/706164'
-                    }.png`}
+                  src={`https://cdn-icons-png.flaticon.com/512/${i === 0 ? '2909/2909859' : i === 1 ? '3194/3194766' : i === 2 ? '1046/1046774' : i === 3 ? '2395/2395796' : '706/706164'}.png`}
                   className="w-10 h-10 opacity-80 group-hover:opacity-100 transition-opacity"
                   alt={cat}
                 />
@@ -492,7 +490,7 @@ export default function ShopHome() {
                     const qty = cart[prodItem.id] || 0;
 
                     return (
-                      <div key={`${ prodItem.id } -${ idx } `} className="bg-white rounded-2xl p-4 border-2 border-red-100 hover:border-red-300 hover:shadow-xl transition-all relative group">
+                      <div key={`${prodItem.id}-${idx}`} className="bg-white rounded-2xl p-4 border-2 border-red-100 hover:border-red-300 hover:shadow-xl transition-all relative group">
                         {/* Discount Badge */}
                         <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
                           {discount}% OFF
@@ -560,13 +558,13 @@ export default function ShopHome() {
             return (
               <section
                 key={segment.id}
-                id={`segment - ${ segment.slug || segment.id } `}
+                id={`segment-${segment.slug || segment.id}`}
                 className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
                   <div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold"
-                      style={{ backgroundColor: `${ segment.badge_color || '#ecfdf3' } `, color: '#0f172a' }}>
+                      style={{ backgroundColor: `${segment.badge_color || '#ecfdf3'}`, color: '#0f172a' }}>
                       <Zap size={14} /> {segment.badge_label || 'Curated'}
                     </div>
                     <h3 className="text-2xl font-black text-gray-900 mt-2">{segment.title}</h3>
@@ -583,10 +581,10 @@ export default function ShopHome() {
                     const hasPromo = Boolean(promo);
 
                     return (
-                      <div key={`${ prodItem.id } -${ idx } `} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:border-green-100 hover:shadow-md transition-all relative">
+                      <div key={`${prodItem.id}-${idx}`} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:border-green-100 hover:shadow-md transition-all relative">
                         {hasPromo && (
                           <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                            {promo?.discount_type === 'fixed_price' ? 'Price Drop' : `${ promo?.discount_value }% OFF`}
+                            {promo?.discount_type === 'fixed_price' ? 'Price Drop' : `${promo?.discount_value}% OFF`}
                           </div>
                         )}
                         {sp.highlight_label && (
@@ -612,7 +610,7 @@ export default function ShopHome() {
                           </div>
                           {promo && (
                             <span className="text-[10px] text-red-600 font-bold">
-                              {promo.discount_type === 'fixed_price' ? 'Deal' : `${ promo.discount_value }% off`}
+                              {promo.discount_type === 'fixed_price' ? 'Deal' : `${promo.discount_value}% off`}
                             </span>
                           )}
                         </div>
