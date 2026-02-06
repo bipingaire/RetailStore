@@ -72,6 +72,7 @@ export default function LoginPage() {
         // 2. Determine Destination
         // Fetch tenant profile to know if they are retailer or supplier
         if (authData.user) {
+          // 2a. Check if Owner
           const { data: tenant } = await supabase
             .from('retail-store-tenant')
             .select('type')
@@ -82,8 +83,21 @@ export default function LoginPage() {
             if (tenant.type === 'retailer') router.push('/admin');
             else router.push('/supplier');
           } else {
-            // Fallback: If no tenant found, assume customer
-            router.push('/');
+            // 2b. Check if Staff/Manager (Tenant Role)
+            const { data: roleData } = await supabase
+              .from('tenant-user-role')
+              .select('role-type, tenant-id')
+              .eq('user-id', authData.user.id)
+              .single();
+
+            if (roleData) {
+              // Found a role, authorized to access Admin Dashboard
+              router.push('/admin');
+            } else {
+              // Fallback: If no tenant found, assume customer or error
+              // For now, redirect to home/shop
+              router.push('/');
+            }
           }
         }
       }
