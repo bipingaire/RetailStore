@@ -1,12 +1,8 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X } from 'lucide-react';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from '@/lib/supabase';
 
 type MasterItem = {
   id: string;
@@ -54,7 +50,7 @@ export default function MasterInventoryPage() {
           global_products:global-product-master-catalog!global-product-id ( name:product-name, upc_ean:upc-ean-code, image_url:image-url, category:category-name, pack_quantity:package-size, manufacturer:manufacturer-name ),
           batches:inventory-batch-tracking-record ( batch_quantity:batch-quantity-count, cost_basis:cost-per-unit-amount, arrival_date:created_at, expiry_date:expiry-date-timestamp )
         `)
-        .eq('is-active', true);
+        .eq('is-active-flag', true);
 
       // Note: Vendors join removed as it might not be directly linked in new schema or needs different path.
       // Assuming vendor info comes from elsewhere or we skip for now to fix errors.

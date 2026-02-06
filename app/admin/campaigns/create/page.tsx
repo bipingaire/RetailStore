@@ -40,7 +40,7 @@ function CreateCampaignContent() {
         selling_price_amount:selling-price-amount,
         global_products:global-product-master-catalog!global-product-id (product_name:product-name, image_url:image-url)
       `)
-            .eq('is-active', true)
+            .eq('is-active-flag', true)
             .limit(50);
 
         setProducts(data || []);

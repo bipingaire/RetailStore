@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import {
   TrendingUp, Users, Package, AlertCircle,
   Clock, ArrowRight, DollarSign, ShoppingBag,
@@ -9,10 +8,7 @@ import {
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from '@/lib/supabase';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -32,20 +28,20 @@ export default function AdminDashboard() {
         const { count: lowStock } = await supabase
           .from('retail-store-inventory-item')
           .select('reorder-point-quantity', { count: 'exact', head: true })
-          .eq('is-active', true)
+          .eq('is-active-flag', true)
           .lt('current-stock-quantity', 10);
 
         // Pending Orders
         const { count: pendingOrders } = await supabase
           .from('customer-order-header')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending');
+          .eq('order-status-code', 'pending');
 
         // Active Campaigns (Promos)
         const { count: activeCampaigns } = await supabase
           .from('marketing-campaign-master')
           .select('*', { count: 'exact', head: true })
-          .eq('is-active', true);
+          .eq('is-active-flag', true);
 
         // 2. Recent Orders Table
         const { data: orders } = await supabase
@@ -199,8 +195,8 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-50 text-green-700' :
-                              order.status === 'pending' ? 'bg-blue-50 text-blue-700' :
-                                'bg-gray-100 text-gray-600'
+                            order.status === 'pending' ? 'bg-blue-50 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
                             }`}>
                             {order.status || 'Pending'}
                           </span>

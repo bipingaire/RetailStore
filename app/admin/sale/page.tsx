@@ -92,7 +92,7 @@ export default function SaleAdmin() {
               manufacturer: manufacturer-name
             )
           `)
-          .eq('is-active', true)
+          .eq('is-active-flag', true)
           .limit(120)
       ]);
 
@@ -400,8 +400,8 @@ export default function SaleAdmin() {
                     key={seg.id}
                     onClick={() => handleSelectSegment(seg)}
                     className={`w-full text-left p-3 rounded-lg border transition-all group ${seg.id === selectedSegmentId
-                        ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-200'
-                        : 'bg-white border-transparent hover:bg-gray-50 hover:border-gray-200'
+                      ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-200'
+                      : 'bg-white border-transparent hover:bg-gray-50 hover:border-gray-200'
                       }`}
                   >
                     <div className="flex justify-between items-start mb-1">
