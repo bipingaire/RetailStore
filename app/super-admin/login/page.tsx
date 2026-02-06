@@ -26,8 +26,19 @@ export default function SuperAdminLoginPage() {
 
             if (authError) throw authError;
 
-            // Verify Superadmin Status (Optional: add strict role check here if needed via RPC or profile)
-            // For now, we rely on the specific content and middleware protection
+            // Schema Verification: Check against 'superadmin-users' table
+            const { data: superAdmin, error: roleError } = await supabase
+                .from('superadmin-users')
+                .select('superadmin-id, is-active')
+                .eq('user-id', data.user.id)
+                .eq('is-active', true)
+                .single();
+
+            if (roleError || !superAdmin) {
+                // Log them out immediately if not authorized
+                await supabase.auth.signOut();
+                throw new Error('Access Denied: Not a recognized Superadmin');
+            }
 
             toast.success('Welcome back, Superadmin');
             router.push('/super-admin');
