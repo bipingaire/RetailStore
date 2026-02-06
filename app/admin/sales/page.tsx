@@ -3,10 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import * as pdfjsLib from 'pdfjs-dist';
 
-// Using unpkg CDN to avoid tracking prevention issues
-const PDFJS_CDN = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
-const PDFJS_WORKER_CDN = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+// Use local worker from node_modules
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+}
 
 export default function SalesSyncPage() {
   const { tenantId } = useTenant();
@@ -21,23 +23,11 @@ export default function SalesSyncPage() {
   const [posEndpoint, setPosEndpoint] = useState<string>('');
   const [posStatus, setPosStatus] = useState<string>('');
 
-  useEffect(() => {
-    // Load PDF.js worker
-    const script = document.createElement('script');
-    script.src = PDFJS_CDN;
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
-
   const convertPdfToImages = async (file: File): Promise<string[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async function () {
         try {
-          // @ts-ignore
-          const pdfjsLib = window['pdfjs-dist/build/pdf'];
-          pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN;
           const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result as ArrayBuffer)).promise;
           const images: string[] = [];
           for (let i = 1; i <= pdf.numPages; i++) {

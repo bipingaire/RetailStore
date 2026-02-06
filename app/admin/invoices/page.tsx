@@ -4,11 +4,12 @@ import { Loader2, UploadCloud, Save, Trash2, Plus, FileText, Truck, Receipt, Cal
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import * as pdfjsLib from 'pdfjs-dist';
 
-
-// Using unpkg CDN to avoid tracking prevention issues
-const PDFJS_CDN = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
-const PDFJS_WORKER_CDN = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+// Use local worker from node_modules
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+}
 
 type InvoiceItem = {
   id: string;
