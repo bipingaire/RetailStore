@@ -26,16 +26,23 @@ else
 fi
 
 # 3. Check for .env.production file
-if [ ! -f .env.production ]; then
-    echo "❌ Error: .env.production file not found!"
+ENV_FILE=".env.production"
+if [ -f .env.production ]; then
+    ENV_FILE=".env.production"
+elif [ -f ../.env.production ]; then
+    ENV_FILE="../.env.production"
+else
+    echo "❌ Error: .env.production file not found in current or parent directory!"
     echo "👉 Please create .env.production with your secrets."
     exit 1
 fi
 
+echo "Using env file: $ENV_FILE"
+
 # 4. Deploy
 echo "🚀 Deploying containers..."
 # Use docker-compose.prod.yml with .env.production
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build --remove-orphans
+docker compose -f docker-compose.prod.yml --env-file "$ENV_FILE" up -d --build --remove-orphans
 
 echo "✅ Deployment complete!"
 echo "🌍 Your app should be live at https://retailOS.cloud and https://indumart.us"
