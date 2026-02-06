@@ -1,12 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { Search, Calendar, ChevronDown, ChevronUp, FileText, ArrowRight, Receipt } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 type InvoiceRecord = {
   id: string;
@@ -30,21 +25,21 @@ export default function InvoiceHistoryPage() {
         .from('invoices')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (data) setInvoices(data as any);
       setLoading(false);
     }
     fetchData();
   }, []);
 
-  const filtered = invoices.filter(inv => 
+  const filtered = invoices.filter(inv =>
     (inv.vendor_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (inv.invoice_number || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="p-8 max-w-7xl mx-auto font-sans min-h-screen bg-gray-50">
-      
+
       <header className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
@@ -55,12 +50,12 @@ export default function InvoiceHistoryPage() {
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
-          <input 
-            type="text" 
-            placeholder="Search vendor or invoice #..." 
+          <input
+            type="text"
+            placeholder="Search vendor or invoice #..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border rounded-lg shadow-sm w-64 focus:ring-2 focus:ring-purple-500 outline-none" 
+            className="pl-10 pr-4 py-2 border rounded-lg shadow-sm w-64 focus:ring-2 focus:ring-purple-500 outline-none"
           />
         </div>
       </header>
@@ -87,8 +82,8 @@ export default function InvoiceHistoryPage() {
 
                 return (
                   <>
-                    <tr 
-                      key={inv.id} 
+                    <tr
+                      key={inv.id}
                       className={`hover:bg-gray-50 cursor-pointer transition ${isExpanded ? 'bg-blue-50/50' : ''}`}
                       onClick={() => setExpandedRow(isExpanded ? null : inv.id)}
                     >
@@ -98,7 +93,7 @@ export default function InvoiceHistoryPage() {
                       <td className="p-4 text-right font-bold">{itemCount}</td>
                       <td className="p-4 text-right font-bold text-green-600">${inv.total_amount?.toFixed(2)}</td>
                       <td className="p-4 text-gray-400">
-                        {isExpanded ? <ChevronUp size={18}/> : <ChevronDown size={18}/>}
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </td>
                     </tr>
 
@@ -108,29 +103,29 @@ export default function InvoiceHistoryPage() {
                         <td colSpan={6} className="p-0">
                           <div className="p-6">
                             <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
-                                <Receipt size={14}/> Line Items Record
+                              <Receipt size={14} /> Line Items Record
                             </h4>
                             <table className="w-full text-sm bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                <thead className="bg-gray-100 text-xs font-bold text-gray-500">
-                                    <tr>
-                                        <th className="p-3 text-left">Product</th>
-                                        <th className="p-3 text-left">SKU / UPC</th>
-                                        <th className="p-3 text-right">Qty</th>
-                                        <th className="p-3 text-right">Unit Cost</th>
-                                        <th className="p-3 text-right">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {inv.line_items_json.map((item: any, idx: number) => (
-                                        <tr key={idx}>
-                                            <td className="p-3 font-medium">{item.product_name}</td>
-                                            <td className="p-3 font-mono text-xs text-gray-500">{item.vendor_code || item.upc}</td>
-                                            <td className="p-3 text-right">{item.qty}</td>
-                                            <td className="p-3 text-right text-gray-600">${item.unit_cost?.toFixed(2)}</td>
-                                            <td className="p-3 text-right font-bold">${(item.qty * item.unit_cost).toFixed(2)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
+                              <thead className="bg-gray-100 text-xs font-bold text-gray-500">
+                                <tr>
+                                  <th className="p-3 text-left">Product</th>
+                                  <th className="p-3 text-left">SKU / UPC</th>
+                                  <th className="p-3 text-right">Qty</th>
+                                  <th className="p-3 text-right">Unit Cost</th>
+                                  <th className="p-3 text-right">Total</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {inv.line_items_json.map((item: any, idx: number) => (
+                                  <tr key={idx}>
+                                    <td className="p-3 font-medium">{item.product_name}</td>
+                                    <td className="p-3 font-mono text-xs text-gray-500">{item.vendor_code || item.upc}</td>
+                                    <td className="p-3 text-right">{item.qty}</td>
+                                    <td className="p-3 text-right text-gray-600">${item.unit_cost?.toFixed(2)}</td>
+                                    <td className="p-3 text-right font-bold">${(item.qty * item.unit_cost).toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
                             </table>
                           </div>
                         </td>

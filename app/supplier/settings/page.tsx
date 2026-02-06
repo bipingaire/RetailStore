@@ -1,21 +1,16 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { 
-  Server, Truck, CreditCard, Save, RefreshCw, CheckCircle, AlertTriangle, ShieldCheck 
+import { supabase } from '@/lib/supabase';
+import {
+  Server, Truck, CreditCard, Save, RefreshCw, CheckCircle, AlertTriangle, ShieldCheck
 } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 const SUPPLIER_TENANT_ID = 'PASTE_YOUR_SUPPLIER_UUID_HERE'; // Replace with real ID
 
 export default function SupplierSettings() {
   const [loading, setLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<'connected' | 'disconnected' | 'error'>('disconnected');
-  
+
   const [config, setConfig] = useState({
     erp_system: 'sap', // sap, oracle, netsuite, custom
     api_endpoint: '',
@@ -51,7 +46,7 @@ export default function SupplierSettings() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         {/* 1. API INTEGRATION */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex justify-between items-start mb-6">
@@ -59,7 +54,7 @@ export default function SupplierSettings() {
               <Server className="text-blue-600" /> ERP Integration
             </h2>
             <span className={`px-2 py-1 rounded text-xs font-bold uppercase flex items-center gap-1 ${apiStatus === 'connected' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-              {apiStatus === 'connected' ? <CheckCircle size={12}/> : <AlertTriangle size={12}/>}
+              {apiStatus === 'connected' ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
               {apiStatus}
             </span>
           </div>
@@ -67,10 +62,10 @@ export default function SupplierSettings() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">ERP System</label>
-              <select 
+              <select
                 className="w-full border p-2 rounded-lg bg-gray-50 font-medium"
                 value={config.erp_system}
-                onChange={e => setConfig({...config, erp_system: e.target.value})}
+                onChange={e => setConfig({ ...config, erp_system: e.target.value })}
               >
                 <option value="sap">SAP S/4HANA</option>
                 <option value="oracle">Oracle NetSuite</option>
@@ -81,33 +76,33 @@ export default function SupplierSettings() {
 
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">API Endpoint URL</label>
-              <input 
-                type="text" 
-                placeholder="https://api.myserver.com/v1/inventory" 
+              <input
+                type="text"
+                placeholder="https://api.myserver.com/v1/inventory"
                 className="w-full border p-2 rounded-lg font-mono text-sm"
                 value={config.api_endpoint}
-                onChange={e => setConfig({...config, api_endpoint: e.target.value})}
+                onChange={e => setConfig({ ...config, api_endpoint: e.target.value })}
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">API Secret Key</label>
-              <input 
-                type="password" 
-                placeholder="sk_live_..." 
+              <input
+                type="password"
+                placeholder="sk_live_..."
                 className="w-full border p-2 rounded-lg font-mono text-sm"
                 value={config.api_key}
-                onChange={e => setConfig({...config, api_key: e.target.value})}
+                onChange={e => setConfig({ ...config, api_key: e.target.value })}
               />
             </div>
 
             <div className="pt-4 flex gap-3">
-              <button 
+              <button
                 onClick={testConnection}
                 disabled={loading}
                 className="flex-1 bg-black text-white py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-gray-800"
               >
-                {loading ? <RefreshCw className="animate-spin" size={16}/> : <ShieldCheck size={16}/>}
+                {loading ? <RefreshCw className="animate-spin" size={16} /> : <ShieldCheck size={16} />}
                 Test Connection
               </button>
             </div>
@@ -119,7 +114,7 @@ export default function SupplierSettings() {
 
         {/* 2. LOGISTICS & TERMS */}
         <div className="space-y-8">
-          
+
           {/* Logistics Card */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h2 className="text-lg font-bold flex items-center gap-2 mb-6">
@@ -131,14 +126,14 @@ export default function SupplierSettings() {
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Base Rate (Pallet)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-gray-400">$</span>
-                    <input type="number" className="w-full border p-2 pl-6 rounded-lg font-bold" value={config.transport_rate_pallet} onChange={e => setConfig({...config, transport_rate_pallet: Number(e.target.value)})} />
+                    <input type="number" className="w-full border p-2 pl-6 rounded-lg font-bold" value={config.transport_rate_pallet} onChange={e => setConfig({ ...config, transport_rate_pallet: Number(e.target.value) })} />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Per Mile Rate</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 text-gray-400">$</span>
-                    <input type="number" className="w-full border p-2 pl-6 rounded-lg font-bold" value={config.transport_rate_mile} onChange={e => setConfig({...config, transport_rate_mile: Number(e.target.value)})} />
+                    <input type="number" className="w-full border p-2 pl-6 rounded-lg font-bold" value={config.transport_rate_mile} onChange={e => setConfig({ ...config, transport_rate_mile: Number(e.target.value) })} />
                   </div>
                 </div>
               </div>
@@ -146,7 +141,7 @@ export default function SupplierSettings() {
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Minimum Order Value</label>
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-gray-400">$</span>
-                  <input type="number" className="w-full border p-2 pl-6 rounded-lg font-bold" value={config.min_order_value} onChange={e => setConfig({...config, min_order_value: Number(e.target.value)})} />
+                  <input type="number" className="w-full border p-2 pl-6 rounded-lg font-bold" value={config.min_order_value} onChange={e => setConfig({ ...config, min_order_value: Number(e.target.value) })} />
                 </div>
               </div>
             </div>
@@ -160,13 +155,13 @@ export default function SupplierSettings() {
             <div className="flex flex-wrap gap-3">
               {['Net 15', 'Net 30', 'Net 60', 'COD', 'Pre-Pay'].map(term => (
                 <label key={term} className={`px-4 py-2 rounded-lg border cursor-pointer font-bold text-sm transition ${config.payment_terms.includes(term) ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="hidden"
                     checked={config.payment_terms.includes(term)}
                     onChange={(e) => {
-                      if (e.target.checked) setConfig(p => ({...p, payment_terms: [...p.payment_terms, term]}));
-                      else setConfig(p => ({...p, payment_terms: p.payment_terms.filter(t => t !== term)}));
+                      if (e.target.checked) setConfig(p => ({ ...p, payment_terms: [...p.payment_terms, term] }));
+                      else setConfig(p => ({ ...p, payment_terms: p.payment_terms.filter(t => t !== term) }));
                     }}
                   />
                   {term}
