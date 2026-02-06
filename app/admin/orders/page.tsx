@@ -37,7 +37,7 @@ export default function OrderManager() {
         created_at,
         items:"customer-order-line-item" (
           qty:"quantity-sold",
-          product:"retail-store-inventory-item" (
+          product:"retail-store-inventory-item"!"inventory-id" (
             global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name", image_url:"image-url" )
           )
         )

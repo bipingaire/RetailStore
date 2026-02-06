@@ -92,7 +92,7 @@ export default function SaleAdmin() {
            image_url:"image-url",
            category:"category-name"
         ),
-        inventory_batches:"inventory-batch-tracking-record"(batch_quantity:"batch-quantity-count")
+        inventory_batches:"inventory-batch-tracking-record"!"inventory-id"(batch_quantity:"batch-quantity-count")
 
 
           `)
