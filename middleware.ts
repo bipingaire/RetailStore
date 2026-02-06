@@ -22,6 +22,14 @@ export async function middleware(req: NextRequest) {
       return NextResponse.rewrite(new URL(`/super-admin${path.replace('/superadmin', '')}`, req.url));
     }
 
+    // Superadmin Protection
+    if (path.startsWith('/super-admin')) {
+      if (!session && path !== '/super-admin/login') {
+        return NextResponse.redirect(new URL('/super-admin/login', req.url));
+      }
+      return res;
+    }
+
     // Admin Dashboard (Tenant Admin)
     if (path.startsWith('/admin')) {
       // Allow through, but ensure session exists or redirect to login
