@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { ClipboardCheck, Search, Save, RefreshCcw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 type AuditItem = {
   id: string;
@@ -16,6 +16,7 @@ type AuditItem = {
 };
 
 export default function AuditPage() {
+  const supabase = createClientComponentClient();
   const [items, setItems] = useState<AuditItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

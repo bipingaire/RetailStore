@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X } from 'lucide-react';
 
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 type MasterItem = {
   id: string;
@@ -22,6 +22,7 @@ type MasterItem = {
 };
 
 export default function MasterInventoryPage() {
+  const supabase = createClientComponentClient();
   const [items, setItems] = useState<MasterItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MasterItem[]>([]);
   const [loading, setLoading] = useState(true);
