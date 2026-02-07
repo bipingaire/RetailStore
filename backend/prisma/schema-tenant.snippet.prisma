@@ -1,0 +1,15 @@
+
+model POSItemMapping {
+  id String @id @default(uuid())
+  posItemName String
+  matchedInventoryId String
+  lastSoldPrice Decimal @db.Decimal(10, 2)
+  confidenceScore Decimal? @db.Decimal(5, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [matchedInventoryId], references: [id])
+
+  @@unique([posItemName])
+  @@map("pos_item_mappings")
+}

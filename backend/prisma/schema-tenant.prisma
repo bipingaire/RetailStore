@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/tenant-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TENANT_DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  password String
+  name String?
+  role String @default("CASHIER")
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  Sales Sale[]
+
+  @@map("users")
+}
+
+model Product {
+  id String @id @default(uuid())
+  name String
+  sku String @unique
+  category String?
+  description String?
+  price Decimal @db.Decimal(10, 2)
+  costPrice Decimal @db.Decimal(10, 2)
+  stock Int @default(0)
+  reorderLevel Int @default(10)
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  SaleItems SaleItem[]
+  StockMovements StockMovement[]
+  PurchaseOrderItems PurchaseOrderItem[]
+
+  @@map("products")
+}
+
+model Sale {
+  id String @id @default(uuid())
+  saleNumber String @unique
+  subtotal Decimal @db.Decimal(10, 2)
+  tax Decimal @db.Decimal(10, 2)
+  discount Decimal @db.Decimal(10, 2)
+  total Decimal @db.Decimal(10, 2)
+  status String @default("COMPLETED")
+  createdAt DateTime @default(now())
+  
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  
+  customerId String?
+  customer Customer? @relation(fields: [customerId], references: [id])
+
+  items SaleItem[]
+  Invoice Invoice?
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id String @id @default(uuid())
+  saleId String
+  productId String
+  quantity Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  subtotal Decimal @db.Decimal(10, 2)
+  
+  sale Sale @relation(fields: [saleId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("sale_items")
+}
+
+model Customer {
+  id String @id @default(uuid())
+  name String
+  email String? @unique
+  phone String? @unique
+  loyaltyPoints Int @default(0)
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Sales Sale[]
+
+  @@map("customers")
+}
+
+model Vendor {
+  id String @id @default(uuid())
+  name String
+  contactPerson String?
+  email String?
+  phone String?
+  address String?
+  isActive Boolean @default(true)
+  
+  PurchaseOrders PurchaseOrder[]
+
+  @@map("vendors")
+}
+
+model PurchaseOrder { // Restock / Vendor Invoice
+  id String @id @default(uuid())
+  poNumber String @unique
+  vendorId String
+  status String @default("PENDING") // PENDING, RECEIVED, CANCELLED
+  totalAmount Decimal @db.Decimal(10, 2)
+  orderDate DateTime @default(now())
+  receivedDate DateTime?
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+  items PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id String @id @default(uuid())
+  purchaseOrderId String
+  productId String
+  quantity Int
+  unitCost Decimal @db.Decimal(10, 2)
+  totalCost Decimal @db.Decimal(10, 2)
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+model StockMovement {
+  id String @id @default(uuid())
+  productId String
+  type String // IN (Restock), OUT (Sale), ADJUSTMENT (Reconciliation)
+  quantity Int
+  description String?
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  
+  reconciliationId String?
+  reconciliation Reconciliation? @relation(fields: [reconciliationId], references: [id])
+
+  @@map("stock_movements")
+}
+
+model Invoice { // Customer Invoice History
+  id String @id @default(uuid())
+  invoiceNumber String @unique
+  saleId String @unique
+  pdfUrl String?
+  createdAt DateTime @default(now())
+
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@map("invoices")
+}
+
+model Campaign {
+  id String @id @default(uuid())
+  name String
+  type String // EMAIL, SMS, SOCIAL
+  status String @default("DRAFT")
+  startDate DateTime?
+  endDate DateTime?
+  budget Decimal? @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+
+  @@map("campaigns")
+}
+
+model SocialAccount {
+  id String @id @default(uuid())
+  platform String // FACEBOOK, INSTAGRAM, TWITTER
+  accountId String
+  accessToken String?
+  isConnected Boolean @default(true)
+  
+  @@map("social_accounts")
+}
+
+model Reconciliation {
+  id String @id @default(uuid())
+  date DateTime @default(now())
+  status String @default("COMPLETED")
+  notes String?
+  
+  adjustments StockMovement[]
+
+  @@map("reconciliations")
+}
+
+model Settings {
+  id String @id @default(uuid())
+  key String @unique // e.g., 'tax_rate', 'currency', 'store_logo'
+  value String
+  
+  @@map("settings")
+}
+
+model POSItemMapping {
+  id String @id @default(uuid())
+  posItemName String
+  matchedInventoryId String
+  lastSoldPrice Decimal @db.Decimal(10, 2)
+  confidenceScore Decimal? @db.Decimal(5, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  tenantId String // Added for scoping if needed, though schema is per-tenant.
+  // Actually schema is tenant-specific, so no tenantId needed inside the table unless for multi-tenancy in single DB.
+  // But wait, the Frontend sends `tenantId`.
+  // If we are in Tenant DB, we don't need tenantId column?
+  // Frontend sends it to ROUTER. Router picks DB.
+  // So NO tenantId column needed here.
+  
+  product Product @relation(fields: [matchedInventoryId], references: [id])
+
+  @@unique([posItemName])
+  @@map("pos_item_mappings")
+}

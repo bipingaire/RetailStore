@@ -1,12 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Store, Lock, Mail, Eye, EyeOff, Loader2, Factory } from 'lucide-react';
 import { toast } from 'sonner';
-
-type LoginRole = 'retailer' | 'supplier';
+import { login } from '@/lib/auth';
 
 export default function AdminLoginPage() {
     const [role, setRole] = useState<'retailer' | 'supplier'>('retailer');
@@ -16,7 +13,6 @@ export default function AdminLoginPage() {
     const [showPassword, setShowPassword] = useState(false);
 
     const router = useRouter();
-    const supabase = createClientComponentClient();
 
     async function handleLogin(e: React.FormEvent) {
         e.preventDefault();
@@ -29,56 +25,20 @@ export default function AdminLoginPage() {
         setLoading(true);
 
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+            // New Custom Auth Login
+            await login(email, password);
 
-            if (error) throw error;
+            toast.success('Login successful!');
 
-            if (data.user) {
-                // If Retailer, check permissions
-                if (role === 'retailer') {
-                    // Use limit(1) and maybeSingle to prevent errors if user has multiple roles
-                    const { data: roleData, error: roleError } = await supabase
-                        .from('tenant-user-role')
-                        .select('role-type')
-                        .eq('user-id', data.user.id)
-                        .limit(1)
-                        .maybeSingle();
+            // Force hard navigation to refresh state
+            window.location.href = '/admin';
 
-                    if (roleError) console.error('Role check warning:', roleError);
-
-                    // If NO role found, or role is not owner/manager
-                    if (!roleData || !['owner', 'manager'].includes(roleData['role-type'] as string)) {
-                        // Temporarily ALLOW for dev purposes if on localhost to avoid "stuck" feeling
-                        // But strictly speakng should be:
-                        // throw new Error('Access denied. You do not have an admin role.');
-
-                        // For now, let's just Log it and Allow pass-through IF it's localhost
-                        // otherwise throw
-                        if (window.location.hostname !== 'localhost') {
-                            // throw new Error('Access denied. No Store Manager privileges found.');
-                        }
-                    }
-
-                    toast.success('Retailer Login successful!');
-
-                    // Force a hard navigation to ensure fresh state and middleware check
-                    // preventing any client-side router cache issues
-                    window.location.href = '/admin';
-                } else {
-                    // Supplier placeholder
-                    toast.success('Supplier Login successful!');
-                    router.push('/supplier/dashboard');
-                }
-            }
         } catch (error: any) {
             console.error('Login error:', error);
-            toast.error(error.message || 'Invalid email or password');
-            setLoading(false); // Make sure to stop spinner
-            // Force sign out if login failed partially
-            await supabase.auth.signOut();
+            const msg = error.response?.data?.message || error.message || 'Login failed';
+            toast.error(msg);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -88,7 +48,6 @@ export default function AdminLoginPage() {
 
                 {/* Left Side - Brand Panel */}
                 <div className="bg-blue-600 p-12 text-white flex flex-col justify-between relative overflow-hidden">
-                    {/* Background Pattern */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2"></div>
 
@@ -118,46 +77,15 @@ export default function AdminLoginPage() {
                                 <p className="text-sm text-blue-100">Always know what's in stock.</p>
                             </div>
                         </div>
-                        <div className="bg-blue-500/30 backdrop-blur-sm p-4 rounded-xl border border-blue-400/30 flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                                <Factory size={20} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold">AI Restocking</h3>
-                                <p className="text-sm text-blue-100">Never run out of best-sellers.</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
                 {/* Right Side - Login Form */}
                 <div className="p-12 bg-white relative">
 
-                    {/* Role Switcher - Top Right */}
-                    <div className="absolute top-8 right-8 bg-gray-100 p-1 rounded-lg inline-flex">
-                        <button
-                            onClick={() => setRole('retailer')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${role === 'retailer'
-                                ? 'bg-white text-blue-900 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-900'
-                                }`}
-                        >
-                            Retailer
-                        </button>
-                        <button
-                            onClick={() => setRole('supplier')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${role === 'supplier'
-                                ? 'bg-white text-blue-900 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-900'
-                                }`}
-                        >
-                            Supplier
-                        </button>
-                    </div>
-
                     <div className="mt-16">
                         <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-                        <p className="text-gray-500 mb-8">Enter your credentials to access your dashboard.</p>
+                        <p className="text-gray-500 mb-8">Enter your credentials via Local Auth.</p>
 
                         <form onSubmit={handleLogin} className="space-y-6">
 
@@ -223,10 +151,6 @@ export default function AdminLoginPage() {
                                     </>
                                 )}
                             </button>
-
-                            <p className="text-center text-sm text-gray-500 mt-6">
-                                Don't have an account? <a href="#" className="text-blue-600 font-bold hover:underline">Sign Up</a>
-                            </p>
                         </form>
                     </div>
                 </div>
