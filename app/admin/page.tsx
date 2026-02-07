@@ -27,9 +27,9 @@ export default function AdminDashboard() {
         // Low Stock
         const { count: lowStock } = await supabase
           .from('retail-store-inventory-item')
-          .select('reorder-point-value', { count: 'exact', head: true })
+          .select('reorder-level-quantity', { count: 'exact', head: true })
 
-          .lt('current-stock-quantity', 10);
+          .lt('current-stock-quantity', 10); // Or use filter if comparison with column needed (RPC)
 
         // Pending Orders
         const { count: pendingOrders } = await supabase

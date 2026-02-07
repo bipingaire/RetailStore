@@ -41,6 +41,7 @@ export default function InventoryHealthPage() {
           stock:"current-stock-quantity",
           price:"selling-price-amount",
           cost:"cost-price-amount",
+          min_level:"reorder-level-quantity",
           global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name" ),
           inventory_batches:"inventory-batch-tracking-record" ( expiry:"expiry-date-timestamp", quantity:"batch-quantity-count" )
         `)
@@ -48,13 +49,13 @@ export default function InventoryHealthPage() {
 
         const total = inventory?.length || 0;
         const lowStock = inventory?.filter((i: any) =>
-            i.current_stock_quantity <= i.reorder_point_value && i.current_stock_quantity > 0
+            i.current_stock_quantity <= (i.min_level || 10) && i.current_stock_quantity > 0
         ).length || 0;
         const outOfStock = inventory?.filter((i: any) => i.current_stock_quantity === 0).length || 0;
         const expiringSoon = inventory?.reduce((sum: number, i: any) => sum + (i.inventory_batches?.length || 0), 0) || 0;
 
         const slowMovingItems: SlowMovingProduct[] = inventory
-            ?.filter((i: any) => i.current_stock_quantity > i.reorder_point_value * 3)
+            ?.filter((i: any) => i.current_stock_quantity > (i.min_level || 10) * 3)
             .map((i: any) => ({
                 inventory_id: i.inventory_id,
                 product_name: i.global_products?.product_name || 'Unknown',
