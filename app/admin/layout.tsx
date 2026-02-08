@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { isSuperadmin } from '@/lib/auth/superadmin';
 import {
   LayoutDashboard,
@@ -30,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },
@@ -49,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    // await // supabase.auth.signOut();
     toast.success('Signed out successfully');
     router.push('/admin/login');
   }
@@ -58,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     async function checkAccess() {
       setIsLoading(true);
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = // await // supabase.auth.getSession();
 
       if (!session) {
         setIsAuthenticated(false);

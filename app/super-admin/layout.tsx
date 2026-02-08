@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { isSuperadmin } from '@/lib/auth/superadmin';
 import { Loader2 } from 'lucide-react';
 
@@ -15,7 +14,7 @@ export default function SuperadminLayout({
     const pathname = usePathname();
     const [loading, setLoading] = useState(pathname !== '/super-admin/login');
     const [authorized, setAuthorized] = useState(false);
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
 
     useEffect(() => {
         // Bypass for login page
@@ -29,7 +28,7 @@ export default function SuperadminLayout({
 
         async function checkAuth() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user } } = // await // supabase.auth.getUser();
 
                 if (!user) {
                     router.push('/super-admin/login');
@@ -81,3 +80,4 @@ export default function SuperadminLayout({
         </div>
     );
 }
+

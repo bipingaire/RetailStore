@@ -1,12 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { Users, Search, Phone, Mail, Globe, MapPin, Building, ArrowRight } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 type VendorProfile = {
   id?: string;
@@ -45,46 +40,63 @@ export default function VendorDashboard() {
   useEffect(() => {
     async function loadVendorData() {
       setLoading(true);
-      const { data: invoiceData } = await supabase
-        .from('uploaded-vendor-invoice-document')
-        .select('*')
-        .order('invoice-date', { ascending: false });
-      const { data: contactData } = await supabase.from('vendors').select('*');
+      try {
+        // Fetch from Backend via apiClient
+        // Promise.all for parallel fetching
+        const [invoiceData, contactData] = await Promise.all([
+          apiClient.get('/vendors/invoices'),
+          apiClient.get('/vendors')
+        ]);
 
-      const rawInvoices = invoiceData || [];
-      // Safe casting/mapping to old shape if needed, or update usage below
-      const mappedInvoices = rawInvoices.map((inv: any) => ({
-        id: inv['invoice-id'],
-        invoice_number: inv['invoice-number'],
-        invoice_date: inv['invoice-date'],
-        total_amount: inv['total-amount-value'],
-        status: inv['processing-status'],
-        vendor_name: inv['supplier-name']
-      }));
-      setInvoices(mappedInvoices);
+        const rawInvoices = invoiceData || [];
+        // Backend returns mapped keys: 'invoice-id', 'invoice-number', etc.
+        const mappedInvoices = rawInvoices.map((inv: any) => ({
+          id: inv['invoice-id'],
+          invoice_number: inv['invoice-number'],
+          invoice_date: inv['invoice-date'],
+          total_amount: inv['total-amount-value'],
+          status: inv['processing-status'],
+          vendor_name: inv['supplier-name']
+        }));
+        setInvoices(mappedInvoices);
 
-      const vendorMap: Record<string, VendorProfile> = {};
-      contactData?.forEach((c: any) => {
-        vendorMap[c.name] = {
-          id: c.id, name: c.name, contact_phone: c['contact-phone'], email: c.email,
-          ein: c.ein, shipping_address: c.address, website: c.website, fax: c.fax, poc_name: c['poc-name'],
-          total_spend: 0, invoice_count: 0, last_order_date: 'N/A', outstanding_balance: 0, reliability_score: c['reliability-score'] || 95
-        };
-      });
+        const vendorMap: Record<string, VendorProfile> = {};
+        contactData?.forEach((c: any) => {
+          vendorMap[c.name] = {
+            id: c.id,
+            name: c.name,
+            contact_phone: c['contact-phone'],
+            email: c.email,
+            ein: c.ein,
+            shipping_address: c.address,
+            website: c.website,
+            fax: c.fax,
+            poc_name: c['poc-name'],
+            total_spend: 0,
+            invoice_count: 0,
+            last_order_date: 'N/A',
+            outstanding_balance: 0,
+            reliability_score: c['reliability-score'] || 95
+          };
+        });
 
-      rawInvoices.forEach((inv: any) => {
-        const name = inv.vendor_name || 'Unknown';
-        if (!vendorMap[name]) {
-          vendorMap[name] = { name, total_spend: 0, invoice_count: 0, last_order_date: 'N/A', outstanding_balance: 0, reliability_score: 80 };
-        }
-        const v = vendorMap[name];
-        v.total_spend += inv.total_amount || 0;
-        v.invoice_count += 1;
-        if (v.last_order_date === 'N/A' || new Date(inv.invoice_date) > new Date(v.last_order_date)) v.last_order_date = inv.invoice_date;
-      });
+        rawInvoices.forEach((inv: any) => {
+          const name = inv['supplier-name'] || 'Unknown';
+          if (!vendorMap[name]) {
+            vendorMap[name] = { name, total_spend: 0, invoice_count: 0, last_order_date: 'N/A', outstanding_balance: 0, reliability_score: 80 };
+          }
+          const v = vendorMap[name];
+          v.total_spend += Number(inv['total-amount-value']) || 0;
+          v.invoice_count += 1;
+          if (v.last_order_date === 'N/A' || new Date(inv['invoice-date']) > new Date(v.last_order_date)) v.last_order_date = inv['invoice-date'];
+        });
 
-      setVendors(Object.values(vendorMap).sort((a, b) => b.total_spend - a.total_spend));
-      setLoading(false);
+        setVendors(Object.values(vendorMap).sort((a, b) => b.total_spend - a.total_spend));
+      } catch (err) {
+        console.error("Failed to load vendor data", err);
+      } finally {
+        setLoading(false);
+      }
     }
     loadVendorData();
   }, []);

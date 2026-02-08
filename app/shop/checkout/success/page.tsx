@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CheckCircle, Download, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
@@ -11,7 +10,7 @@ export default function CheckoutSuccessPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const orderId = searchParams?.get('orderId');
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
 
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -178,3 +177,4 @@ export default function CheckoutSuccessPage() {
         </div>
     );
 }
+

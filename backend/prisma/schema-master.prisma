@@ -29,6 +29,7 @@ model SharedCatalog {
   category String?
   description String?
   basePrice Decimal @db.Decimal(10, 2)
+  imageUrl String?
   syncedAt DateTime @default(now())
 
   tenantId String

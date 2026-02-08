@@ -3,7 +3,7 @@ import { ProductService } from '../product/product.service';
 import { SaleService } from '../sale/sale.service';
 // import { Request } from 'express'; 
 
-@Controller('api') // Base path matches Frontend '/api'
+@Controller('') // Base path empty, Global Prefix 'api' makes it '/api'
 export class LegacyApiController {
     constructor(
         private productService: ProductService,

@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Upload, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,7 +7,7 @@ import { toast } from 'sonner';
 export default function CreateCampaignPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
 
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -63,10 +62,10 @@ export default function CreateCampaignPage() {
     }
 
     async function publishCampaign() {
-        const supabase = createClientComponentClient();
+        // Supabase removed - refactor needed
 
         // Get tenant ID
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = // await // supabase.auth.getUser();
         if (!user) {
             toast.error('Please log in to continue');
             return;
@@ -361,3 +360,4 @@ export default function CreateCampaignPage() {
         </div>
     );
 }
+

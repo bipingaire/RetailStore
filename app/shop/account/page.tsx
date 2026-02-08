@@ -1,12 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, Edit2, Save, X, Package, Trash2, LogOut, ShoppingBag, Calendar } from 'lucide-react';
 
 export default function AccountPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
 
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
@@ -22,7 +21,7 @@ export default function AccountPage() {
   }, []);
 
   async function loadUserData() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = // await // supabase.auth.getUser();
 
     if (!user) {
       router.push('/shop/login?redirect=/shop/account');
@@ -46,7 +45,7 @@ export default function AccountPage() {
   }
 
   async function handleUpdateProfile() {
-    const { error } = await supabase.auth.updateUser({
+    const { error } = // await // supabase.auth.updateUser({
       data: {
         full_name: formData.fullName,
         phone: formData.phone,
@@ -70,7 +69,7 @@ export default function AccountPage() {
   }
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    // await // supabase.auth.signOut();
     router.push('/shop');
   }
 
@@ -258,3 +257,4 @@ export default function AccountPage() {
     </div>
   );
 }
+

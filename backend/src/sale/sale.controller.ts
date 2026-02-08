@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @Controller('sales')
 @UseGuards(JwtAuthGuard)
 export class SaleController {
-  constructor(private saleService: SaleService) {}
+  constructor(private saleService: SaleService) { }
 
   @Post()
   create(
@@ -14,7 +14,7 @@ export class SaleController {
     @Req() req: any,
     @Body() dto: CreateSaleDto,
   ) {
-    return this.saleService.createSale(subdomain, req.user.id, dto);
+    return this.saleService.createSale(subdomain, { ...dto, userId: req.user.id });
   }
 
   @Get()
@@ -46,9 +46,9 @@ export class SaleController {
     @Query('endDate') endDate?: string,
   ) {
     return this.saleService.getSalesStats(
-      subdomain,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined,
+      subdomain
+      // startDate ? new Date(startDate) : undefined,
+      // endDate ? new Date(endDate) : undefined,
     );
   }
 

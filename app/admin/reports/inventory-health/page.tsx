@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { AlertTriangle, TrendingDown, Calendar, Package, ChevronRight, Sparkles, Zap, ShoppingBag } from 'lucide-react';
 
 interface HealthMetrics {
@@ -22,7 +21,7 @@ interface SlowMovingProduct {
 }
 
 export default function InventoryHealthPage() {
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
     const [metrics, setMetrics] = useState<HealthMetrics | null>(null);
     const [slowMoving, setSlowMoving] = useState<SlowMovingProduct[]>([]);
     const [loading, setLoading] = useState(true);
@@ -303,3 +302,4 @@ export default function InventoryHealthPage() {
         </div>
     );
 }
+

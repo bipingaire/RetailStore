@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Package, Mail, FileText, Send, Zap, ShoppingCart, AlertCircle, CheckCircle2, ChevronRight, Truck, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,7 +16,7 @@ interface RestockItem {
 
 export default function RestockPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
 
   const [lowStockItems, setLowStockItems] = useState<RestockItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -32,7 +31,7 @@ export default function RestockPage() {
   async function loadLowStockItems() {
     try {
       // Get current user to try and filter by tenant (optional but good practice)
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = // await // supabase.auth.getUser();
 
       let query = supabase
         .from('retail-store-inventory-item')

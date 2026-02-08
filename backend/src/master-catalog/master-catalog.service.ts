@@ -25,7 +25,7 @@ export class MasterCatalogService {
       ];
     }
 
-    return this.prisma.globalProductMasterCatalog.findMany({
+    return this.prisma.sharedCatalog.findMany({
       where,
       orderBy: { productName: 'asc' },
     });

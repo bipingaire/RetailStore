@@ -1,3 +1,4 @@
+require('dotenv/config');
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '../generated/tenant-client';
 

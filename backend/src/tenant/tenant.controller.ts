@@ -4,16 +4,22 @@ import { CreateTenantDto } from './dto/create-tenant.dto';
 
 @Controller('tenants')
 export class TenantController {
-  constructor(private tenantService: TenantService) {}
+  constructor(private tenantService: TenantService) { }
 
   @Post()
   async createTenant(@Body() dto: CreateTenantDto) {
-    return this.tenantService.createTenant(dto);
+    // Explicitly cast or map to match expected interface
+    return this.tenantService.createTenant({
+      name: dto.name,
+      subdomain: dto.subdomain,
+      email: dto.adminEmail || "admin@example.com",
+      password: dto.adminPassword || "123456"
+    });
   }
 
   @Get()
   async getAllTenants() {
-    return this.tenantService.getAllTenants();
+    return this.tenantService.findAll();
   }
 
   @Get(':subdomain')

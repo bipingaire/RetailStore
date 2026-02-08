@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     CheckCircle, Package, MapPin, CreditCard, ArrowRight,
@@ -11,7 +10,7 @@ import Link from 'next/link';
 export default function CheckoutPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
     const [loading, setLoading] = useState(false);
     const [cart, setCart] = useState<any[]>([]);
     const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Confirmation
@@ -45,7 +44,7 @@ export default function CheckoutPage() {
     }, []);
 
     async function checkUser() {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = // await // supabase.auth.getSession();
         if (!session) {
             // Redirect to login if not authenticated
             router.push(`/shop/login?redirect=/shop/checkout`);
@@ -608,3 +607,4 @@ export default function CheckoutPage() {
         </div>
     );
 }
+

@@ -4,11 +4,11 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('products')
-@UseGuards(JwtAuthGuard)
 export class ProductController {
-  constructor(private productService: ProductService) {}
+  constructor(private productService: ProductService) { }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(@Headers('x-tenant') subdomain: string, @Body() dto: CreateProductDto) {
     return this.productService.create(subdomain, dto);
   }
@@ -24,16 +24,19 @@ export class ProductController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   update(@Headers('x-tenant') subdomain: string, @Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productService.update(subdomain, id, dto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   delete(@Headers('x-tenant') subdomain: string, @Param('id') id: string) {
     return this.productService.delete(subdomain, id);
   }
 
   @Post(':id/stock')
+  @UseGuards(JwtAuthGuard)
   updateStock(
     @Headers('x-tenant') subdomain: string,
     @Param('id') id: string,

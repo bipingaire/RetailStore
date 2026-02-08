@@ -1,16 +1,17 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { TenantModule } from './tenant/tenant.module';
 import { ProductModule } from './product/product.module';
 import { SaleModule } from './sale/sale.module';
 import { CustomerModule } from './customer/customer.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { LegacyApiModule } from './legacy-api/legacy-api.module';
+import { VendorModule } from './vendor/vendor.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AuthModule,
     TenantModule,
@@ -18,8 +19,7 @@ import { LegacyApiModule } from './legacy-api/legacy-api.module';
     SaleModule,
     CustomerModule,
     LegacyApiModule,
+    VendorModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule { }

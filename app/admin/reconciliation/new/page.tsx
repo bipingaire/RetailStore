@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Send, Search, Camera, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,7 +24,7 @@ interface CountItem {
 
 export default function NewReconciliationPage() {
     const router = useRouter();
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
 
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [countItems, setCountItems] = useState<Map<string, CountItem>>(new Map());
@@ -40,7 +39,7 @@ export default function NewReconciliationPage() {
     }, []);
 
     async function createReconciliation() {
-        const { data: user } = await supabase.auth.getUser();
+        const { data: user } = // await // supabase.auth.getUser();
 
         const { data, error } = await supabase
             .from('inventory_reconciliation')
@@ -250,3 +249,4 @@ export default function NewReconciliationPage() {
         </div>
     );
 }
+

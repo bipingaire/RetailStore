@@ -1,13 +1,8 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal } from 'lucide-react';
 import PromotionModal from './promotion-modal';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 // 1. Types
 type ProductRow = {
@@ -36,58 +31,27 @@ export default function InventoryDashboard() {
   // State to manage the Promotion Pop-up
   const [promoTarget, setPromoTarget] = useState<{ product: ProductRow, batch?: Batch } | null>(null);
 
-  // 2. Fetch Data (The Complex Join)
+  // 2. Fetch Data
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data, error } = await supabase
-          .from('retail-store-inventory-item')
-          .select(`
-            inventory-id,
-            selling-price-amount,
-            current-stock-quantity,
-            global-product-master-catalog!global-product-id (
-              product-name,
-              upc-ean-code,
-              image-url
-            ),
-            inventory-batch-tracking-record!inventory-id (
-              batch-id,
-              batch-quantity-count,
-              expiry-date-timestamp
-            )
-          `);
+        const data = await apiClient.get('/products');
 
-        if (error) {
-          console.error("Error fetching inventory:", error);
-          setError(`Database Error: ${error.message}. Table or column names may have changed.`);
-          setLoading(false);
-          return;
-        }
-
-        // 3. Transform Data & Calculate Expiry Logic
+        // Backend returns mapped data, but we clarify shape here
         const processed: ProductRow[] = (data || []).map((item: any) => {
-          const batches = (item['inventory-batch-tracking-record'] || []).map((b: any) => {
-            const daysLeft = Math.ceil((new Date(b['expiry-date-timestamp']).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-            return {
-              id: b['batch-id'],
-              qty: b['batch-quantity-count'],
-              expiry: b['expiry-date-timestamp'],
-              days_left: daysLeft,
-              status: daysLeft < 7 ? 'CRITICAL' : daysLeft < 30 ? 'WARNING' : 'GOOD'
-            };
-          });
-
-          // Sum total quantity
-          const totalQty = batches.reduce((acc: number, b: any) => acc + b.qty, 0);
-
           return {
-            id: item['inventory-id'],
-            name: item['global-product-master-catalog']?.['product-name'] || 'Unknown',
-            sku: item['global-product-master-catalog']?.['upc-ean-code'] || 'N/A',
-            image: item['global-product-master-catalog']?.['image-url'],
-            total_qty: item['current-stock-quantity'] || totalQty,
-            batches: batches.sort((a: any, b: any) => a.days_left - b.days_left)
+            id: item.id,
+            name: item.name,
+            sku: item.sku,
+            image: item.image,
+            total_qty: item.total_qty,
+            batches: (item.batches || []).map((b: any) => ({
+              id: b.id,
+              qty: b.qty,
+              expiry: b.expiry,
+              days_left: b.days_left,
+              status: b.status
+            }))
           };
         });
 

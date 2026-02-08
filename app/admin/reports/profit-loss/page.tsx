@@ -1,11 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { DollarSign, TrendingUp, TrendingDown, Package, Sparkles, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { calculateProfitMetrics, ProfitMetrics } from '@/lib/analytics/profit-calculator';
 
 export default function ProfitLossPage() {
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
     const [metrics, setMetrics] = useState<ProfitMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30');
@@ -312,3 +311,4 @@ export default function ProfitLossPage() {
         </div>
     );
 }
+

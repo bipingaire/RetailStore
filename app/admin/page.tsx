@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
   TrendingUp, Package, AlertCircle, ArrowUpRight, ArrowRight, MoreHorizontal
 } from 'lucide-react';
@@ -8,7 +7,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 export default function AdminDashboard() {
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
   const [stats, setStats] = useState({
     revenue: 0,
     orders: 0,
@@ -24,7 +23,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = // await // supabase.auth.getUser();
 
         if (user) {
           // 1. Try to get tenant ID from Role

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import {
   Package,
@@ -45,7 +44,7 @@ type Order = {
 
 export default function CustomerOrdersPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +58,7 @@ export default function CustomerOrdersPage() {
 
   async function loadOrders() {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = // await // supabase.auth.getUser();
 
     console.log('🔍 Current logged-in user:', user?.id);
     console.log('🔍 User email:', user?.email);

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Database, Lock, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,13 +11,13 @@ export default function SuperadminLogin() {
     const [loading, setLoading] = useState(false);
     const [showSetup, setShowSetup] = useState(false);
     const router = useRouter();
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
 
     const handleSetupAccount = async () => {
         setLoading(true);
         try {
             // Sign up the master account
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            const { data: signUpData, error: signUpError } = // await // supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -75,7 +74,7 @@ export default function SuperadminLogin() {
         setLoading(true);
 
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { data, error } = // await // supabase.auth.signInWithPassword({
                 email,
                 password,
             });
@@ -169,3 +168,4 @@ export default function SuperadminLogin() {
         </div>
     );
 }
+

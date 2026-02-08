@@ -1,13 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { ClipboardCheck, Search, Save, RefreshCcw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+
 
 type AuditItem = {
   id: string;
@@ -20,6 +16,7 @@ type AuditItem = {
 };
 
 export default function AuditPage() {
+  // Supabase removed - refactor needed
   const [items, setItems] = useState<AuditItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -31,14 +28,14 @@ export default function AuditPage() {
     async function loadInventory() {
       // 1. Get Tenant
       let currentTenantId: string | null = null;
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = // await // supabase.auth.getUser();
       if (user) {
-        const { data: role } = await supabase.from('tenant-user-role').select('tenant-id').eq('user-id', user.id).maybeSingle();
+        const { data: role } = // await // supabase.from('tenant-user-role').select('tenant-id').eq('user-id', user.id).maybeSingle();
         if (role) currentTenantId = role['tenant-id'];
         else {
           const subdomain = window.location.hostname.split('.')[0];
           if (subdomain && subdomain !== 'localhost') {
-            const { data: map } = await supabase.from('subdomain-tenant-mapping').select('tenant-id').eq('subdomain', subdomain).maybeSingle();
+            const { data: map } = // await // supabase.from('subdomain-tenant-mapping').select('tenant-id').eq('subdomain', subdomain).maybeSingle();
             if (map) currentTenantId = map['tenant-id'];
           }
         }

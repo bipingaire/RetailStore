@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
   Database, Store, Truck, Sparkles, Search,
   CheckCircle, AlertCircle, RefreshCw, Globe, UploadCloud, FileSpreadsheet, X, Image as ImageIcon, FileText, Activity, ExternalLink, Box, Layers, Link as LinkIcon, ArrowUp, ArrowRight, Loader2, FileWarning, Tag, MessageSquare, ThumbsUp, ThumbsDown, Lock, DollarSign, Receipt, TrendingUp
@@ -55,7 +54,7 @@ type PendingItem = {
 };
 
 export default function SuperAdminPage() {
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
   const [activeTab, setActiveTab] = useState<'products' | 'tenants' | 'pending' | 'website' | 'revenue'>('products');
   const [products, setProducts] = useState<GlobalProduct[]>([]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -407,7 +406,7 @@ export default function SuperAdminPage() {
             </div>
             <button
               onClick={async () => {
-                await supabase.auth.signOut();
+                // await // supabase.auth.signOut();
                 toast.success('Logged out successfully');
                 window.location.href = '/super-admin/login';
               }}

@@ -1,10 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Upload, FileText, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 export default function ZReportUploadPage() {
-    const supabase = createClientComponentClient();
+    // Supabase removed - refactor needed
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -22,14 +21,14 @@ export default function ZReportUploadPage() {
             const fileExt = file.name.split('.').pop();
             const fileName = `z-reports/${Date.now()}.${fileExt}`;
 
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { data: uploadData, error: uploadError } = // await // supabase.storage
                 .from('documents')
                 .upload(fileName, file);
 
             if (uploadError) throw uploadError;
 
             // 2. Get public URL
-            const { data: { publicUrl } } = supabase.storage
+            const { data: { publicUrl } } = // supabase.storage
                 .from('documents')
                 .getPublicUrl(fileName);
 
@@ -49,7 +48,7 @@ export default function ZReportUploadPage() {
             setResult(parseResult);
 
             // 4. Save to database
-            await supabase.from('daily_sales_z_report_data').insert({
+            // await // supabase.from('daily_sales_z_report_data').insert({
                 report_date: parseResult.reportDate,
                 total_sales_amount: parseResult.totalSales,
                 transaction_count: parseResult.transactionCount,
@@ -200,3 +199,4 @@ export default function ZReportUploadPage() {
         </div>
     );
 }
+

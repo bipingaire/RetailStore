@@ -1,11 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign, Loader2, ShoppingBag, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function OrderManager() {
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -13,7 +12,7 @@ export default function OrderManager() {
   // 1. Resolve Tenant
   useEffect(() => {
     async function resolveTenant() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = // await // supabase.auth.getUser();
       console.log('debug: verify user', user); // Debug Log
       if (!user) return;
 

@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import {
   Building, Globe, CreditCard, Share2, Users, Palette,
   Save, Phone, Mail, Plus, Trash2, Check, X, Search,
@@ -9,10 +8,7 @@ import {
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+
 
 // Types (Stubbed for this file context)
 type StoreProfile = {
@@ -24,6 +20,7 @@ type Invoice = { id: string; date: string; amount: number; status: string; };
 type Plan = { id: string; name: string; price: number; features: string[]; recommended?: boolean };
 
 export default function SettingsPage() {
+  // Supabase removed - refactor needed
   const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social'>('profile');
   const [loading, setLoading] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -60,7 +57,7 @@ export default function SettingsPage() {
 
       // 1. Resolve Tenant
       let currentTenantId = null;
-      const { data: existingTenants } = await supabase.from('retail-store-tenant').select('*').limit(1);
+      const { data: existingTenants } = // await // supabase.from('retail-store-tenant').select('*').limit(1);
 
       if (existingTenants && existingTenants.length > 0) {
         const t = existingTenants[0];
@@ -77,7 +74,7 @@ export default function SettingsPage() {
         });
       } else {
         // Create Default
-        const { data: newTenant } = await supabase.from('retail-store-tenant').insert({
+        const { data: newTenant } = // await // supabase.from('retail-store-tenant').insert({
           'store-name': 'New Retail Store', 'store-address': '123 Market St', 'store-city': 'Retail City', 'store-state': 'NY',
           'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com'
         }).select().single();
@@ -94,12 +91,12 @@ export default function SettingsPage() {
       setTenantId(currentTenantId);
 
       // 2. Load Vendors
-      const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
+      const { data: vendorData } = // await // supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
       if (vendorData) setVendors(vendorData as any);
 
       // 3. Load Social Accounts
       if (currentTenantId) {
-        const { data: socialData } = await supabase.from('social-media-accounts').select('*').eq('tenant-id', currentTenantId);
+        const { data: socialData } = // await // supabase.from('social-media-accounts').select('*').eq('tenant-id', currentTenantId);
         if (socialData) setSocialAccounts(socialData);
       }
 
@@ -112,7 +109,7 @@ export default function SettingsPage() {
     if (!tenantId) return;
     setLoading(true);
     const parts = profile.city_state_zip.split(',');
-    const { error } = await supabase.from('retail-store-tenant').update({
+    const { error } = // await // supabase.from('retail-store-tenant').update({
       'store-name': profile.name, 'store-address': profile.address, 'phone-number': profile.phone, 'email-address': profile.email
     }).eq('tenant-id', tenantId);
 
@@ -127,11 +124,11 @@ export default function SettingsPage() {
     try {
       const payload = { ...editingVendor, tenant_id: tenantId };
       if (editingVendor.id.startsWith('new-')) {
-        const { data, error } = await supabase.from('vendors').insert(payload).select().single();
+        const { data, error } = // await // supabase.from('vendors').insert(payload).select().single();
         if (error) throw error;
         setVendors(prev => [...prev, data as any]);
       } else {
-        const { error } = await supabase.from('vendors').update(payload).eq('id', editingVendor.id);
+        const { error } = // await // supabase.from('vendors').update(payload).eq('id', editingVendor.id);
         if (error) throw error;
         setVendors(prev => prev.map(v => v.id === editingVendor.id ? editingVendor : v));
       }

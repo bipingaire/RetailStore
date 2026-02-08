@@ -1,17 +1,13 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { Loader2, UploadCloud, Save, Trash2, Plus, FileText, Truck, Receipt, Calendar, User, CheckSquare, Clock } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 
 const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
 const PDFJS_WORKER_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+
 
 type InvoiceItem = {
   id: string;
@@ -55,6 +51,7 @@ type InvoiceRecord = {
 };
 
 export default function InvoicePage() {
+  // Supabase removed - refactor needed
   const { tenantId: TENANT_ID } = useTenant();
   const [uploading, setUploading] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
@@ -206,7 +203,7 @@ export default function InvoicePage() {
 
     const finalVendorName = vendorData.name || metadata.vendor_name;
 
-    await supabase.from('vendors').upsert({
+    // await // supabase.from('vendors').upsert({
       tenant_id: TENANT_ID,
       name: finalVendorName,
       ein: vendorData.ein,
@@ -218,7 +215,7 @@ export default function InvoicePage() {
       poc_name: vendorData.poc_name
     }, { onConflict: 'name' });
 
-    const { error: invError } = await supabase.from('uploaded-vendor-invoice-document').insert({
+    const { error: invError } = // await // supabase.from('uploaded-vendor-invoice-document').insert({
       'tenant-id': TENANT_ID,
       'file-url-path': 'stored_file_url_placeholder',
       'processing-status': 'processed',

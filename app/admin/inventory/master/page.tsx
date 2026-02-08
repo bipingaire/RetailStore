@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2, Sparkles, RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -31,7 +30,7 @@ type GlobalProduct = {
 };
 
 export default function MasterInventoryPage() {
-  const supabase = createClientComponentClient();
+  // Supabase removed - refactor needed
   const [activeTab, setActiveTab] = useState<'my-inventory' | 'global-catalog'>('my-inventory');
 
   // Inventory State
@@ -51,7 +50,7 @@ export default function MasterInventoryPage() {
     setLoading(true);
     try {
       if (activeTab === 'my-inventory') {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = // await // supabase.auth.getUser();
         if (!user) return;
 
         if (true) {
@@ -128,7 +127,7 @@ export default function MasterInventoryPage() {
 
   const handleAddToStore = async (product: GlobalProduct) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = // await // supabase.auth.getUser();
       if (!user) return;
 
       const { data: roleData } = await supabase

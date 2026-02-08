@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import {
     DollarSign, TrendingUp, TrendingDown, Package,
     ShoppingCart, Calendar, Download, BarChart3
@@ -9,12 +8,10 @@ import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+
 
 export default function FinancialReportsPage() {
+    // Supabase removed - refactor needed
     const [stats, setStats] = useState({
         totalRevenue: 0,
         totalOrders: 0,
@@ -389,3 +386,4 @@ export default function FinancialReportsPage() {
         </div>
     );
 }
+

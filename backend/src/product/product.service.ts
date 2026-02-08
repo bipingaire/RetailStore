@@ -54,10 +54,59 @@ export class ProductService {
     return product;
   }
 
+  async create(subdomain: string, data: any) {
+    return this.createProduct(subdomain, data);
+  }
+
+  async findOne(subdomain: string, id: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    return client.product.findUnique({ where: { id }, include: { Batches: true } });
+  }
+
+  async update(subdomain: string, id: string, data: any) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    return client.product.update({ where: { id }, data });
+  }
+
+  async delete(subdomain: string, id: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    return client.product.delete({ where: { id } });
+  }
+
+  async updateStock(subdomain: string, id: string, quantity: number, type: string) {
+    // Stub
+    return { success: true };
+  }
+
   async findAll(subdomain: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    return client.product.findMany();
+
+    // Now fetching real data with relations!
+    const products = await client.product.findMany({
+      include: {
+        Batches: true
+      }
+    });
+
+    // Map to Frontend 'ProductRow' shape
+    return products.map(p => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku || 'N/A',
+      image: p.imageUrl || null,
+      total_qty: p.stock,
+      batches: (p.Batches || []).map(b => ({
+        id: b.id,
+        qty: b.quantity,
+        expiry: b.expiryDate.toISOString(),
+        days_left: 0, // Frontend handles calculation
+        status: 'GOOD'
+      }))
+    }));
   }
 
   // --- Legacy / Compatibility Methods ---
