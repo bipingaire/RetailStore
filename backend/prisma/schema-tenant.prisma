@@ -38,12 +38,21 @@ model Product {
   isActive Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Inventory Health Fields
+  lastRestockedAt DateTime?
+  daysToExpiry Int?
+  expiryDate DateTime?
+  slowMoving Boolean @default(false)
+  fastMoving Boolean @default(false)
+  healthScore Decimal? @db.Decimal(5, 2) // 0-100 score
 
   SaleItems SaleItem[]
   StockMovements StockMovement[]
   PurchaseOrderItems PurchaseOrderItem[]
   Batches ProductBatch[]
   POSItemMappings POSItemMapping[]
+  ReconciliationItems ReconciliationItem[]
 
   @@map("products")
 }
@@ -66,6 +75,7 @@ model Sale {
 
   items SaleItem[]
   Invoice Invoice?
+  StockMovements StockMovement[]
 
   @@map("sales")
 }
@@ -145,27 +155,47 @@ model PurchaseOrderItem {
 model StockMovement {
   id String @id @default(uuid())
   productId String
-  type String // IN (Restock), OUT (Sale), ADJUSTMENT (Reconciliation)
+  movementType String // "IN", "OUT", "ADJUSTMENT", "LOSS"
   quantity Int
-  description String?
+  reason String? // "PURCHASE", "SALE", "DAMAGE", "THEFT", "EXPIRY", "RECONCILIATION"
+  notes String?
+  createdBy String?
   createdAt DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id])
   
+  // For "IN" type - from purchase/invoice
+  invoiceId String?
+  invoice Invoice? @relation(fields: [invoiceId], references: [id])
+  
+  // For "OUT" type - from sale
+  saleId String?
+  sale Sale? @relation(fields: [saleId], references: [id])
+  
+  // For "ADJUSTMENT" type - from reconciliation
   reconciliationId String?
   reconciliation Reconciliation? @relation(fields: [reconciliationId], references: [id])
 
   @@map("stock_movements")
 }
 
-model Invoice { // Customer Invoice History
+model Invoice { // Customer Invoice History + Scanned Purchase Invoices
   id String @id @default(uuid())
   invoiceNumber String @unique
-  saleId String @unique
+  saleId String? @unique
   pdfUrl String?
   createdAt DateTime @default(now())
+  
+  // For scanned purchase invoices
+  scannedImageUrl String?
+  ocrProcessed Boolean @default(false)
+  processingStatus String @default("PENDING") // "PENDING", "PROCESSED", "FAILED"
+  vendorName String?
+  invoiceDate DateTime?
+  totalAmount Decimal? @db.Decimal(10, 2)
 
-  sale Sale @relation(fields: [saleId], references: [id])
+  sale Sale? @relation(fields: [saleId], references: [id])
+  StockMovements StockMovement[]
 
   @@map("invoices")
 }
@@ -173,12 +203,19 @@ model Invoice { // Customer Invoice History
 model Campaign {
   id String @id @default(uuid())
   name String
-  type String // EMAIL, SMS, SOCIAL
-  status String @default("DRAFT")
-  startDate DateTime?
-  endDate DateTime?
-  budget Decimal? @db.Decimal(10, 2)
+  description String?
+  type String // "FLASH_SALE", "EXPIRY_CLEARANCE", "OVERSTOCK", "FESTIVE"
+  status String @default("DRAFT") // "DRAFT", "ACTIVE", "COMPLETED", "CANCELLED"
+  discount Decimal @db.Decimal(5, 2)
+  startDate DateTime
+  endDate DateTime
+  productIds String[] // Array of product IDs included in campaign
+  pushedToWebsite Boolean @default(false)
+  pushedToSocial Boolean @default(false)
+  socialPlatforms String[] // ["facebook", "instagram", "whatsapp"]
+  generatedContent String? // AI-generated marketing copy
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("campaigns")
 }
@@ -195,13 +232,34 @@ model SocialAccount {
 
 model Reconciliation {
   id String @id @default(uuid())
-  date DateTime @default(now())
-  status String @default("COMPLETED")
+  reconciliationDate DateTime @default(now())
+  status String @default("IN_PROGRESS") // "IN_PROGRESS", "COMPLETED"
   notes String?
+  totalDiscrepancies Int @default(0)
+  createdBy String?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
   
-  adjustments StockMovement[]
+  items ReconciliationItem[]
+  stockMovements StockMovement[]
 
   @@map("reconciliations")
+}
+
+model ReconciliationItem {
+  id String @id @default(uuid())
+  reconciliationId String
+  productId String
+  systemStock Int
+  physicalCount Int
+  difference Int
+  reason String? // \"THEFT\", \"DAMAGE\", \"EXPIRY\", \"COUNTING_ERROR\"
+  notes String?
+  
+  reconciliation Reconciliation @relation(fields: [reconciliationId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  
+  @@map("reconciliation_items")
 }
 
 model Settings {

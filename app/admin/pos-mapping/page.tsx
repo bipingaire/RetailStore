@@ -41,15 +41,11 @@ export default function PosMappingPage() {
 
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: roleData } = await supabase
-          .from('tenant-user-role')
-          .select('tenant-id')
-          .eq('user-id', user.id)
-          .single();
-        if (roleData) setManualTenantId((roleData as any)['tenant-id']);
-      }
+      // Mock delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Mock tenant ID
+      setManualTenantId('mock-tenant-001');
     }
     init();
   }, []);
@@ -63,32 +59,57 @@ export default function PosMappingPage() {
   const loadData = async (tid: string) => {
     setLoading(true);
     try {
-      const [{ data: mapData }, { data: invData }] = await Promise.all([
-        supabase.from('pos-item-mapping')
-          .select(`
-                mapping-id, pos-item-name, pos-item-code, last-sold-price, is-verified,
-                inventory_link:matched-inventory-id ( 
-                    inventory-id, 
-                    global_product:global-product-id ( product-name, image-url ) 
-                )
-            `)
-          .eq('tenant-id', tid)
-          .order('is-verified', { ascending: true })
-          .limit(100),
+      // Mock delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-        supabase.from('retail-store-inventory-item')
-          .select(`
-                inventory-id, 
-                selling-price-amount, 
-                global:global-product-id ( product-name, upc-ean-code )
-            `)
-          .eq('tenant-id', tid)
-          .eq('is-active', true)
-          .limit(100)
-      ]);
+      // Mock POS mapping data
+      const mockMapData = [
+        {
+          'mapping-id': 'map-001',
+          'pos-item-name': 'POS Item 1',
+          'pos-item-code': 'POS001',
+          'last-sold-price': 99.99,
+          'is-verified': false,
+          'inventory_link': {
+            'inventory-id': 'inv-001',
+            'global_product': {
+              'product-name': 'Sample Product A',
+              'image-url': ''
+            }
+          }
+        },
+        {
+          'mapping-id': 'map-002',
+          'pos-item-name': 'POS Item 2',
+          'pos-item-code': 'POS002',
+          'last-sold-price': 49.99,
+          'is-verified': true,
+          'inventory_link': null
+        }
+      ];
 
-      if (mapData) {
-        const mapped: PosMap[] = mapData.map((m: any) => ({
+      // Mock inventory data
+      const mockInvData = [
+        {
+          'inventory-id': 'inv-001',
+          'selling-price-amount': 99.99,
+          'global': {
+            'product-name': 'Sample Product A',
+            'upc-ean-code': '123456789012'
+          }
+        },
+        {
+          'inventory-id': 'inv-002',
+          'selling-price-amount': 49.99,
+          'global': {
+            'product-name': 'Sample Product B',
+            'upc-ean-code': '987654321098'
+          }
+        }
+      ];
+
+      if (mockMapData) {
+        const mapped: PosMap[] = mockMapData.map((m: any) => ({
           mapping_id: m['mapping-id'],
           pos_item_name: m['pos-item-name'],
           pos_item_code: m['pos-item-code'],
@@ -106,8 +127,8 @@ export default function PosMappingPage() {
         setPendingCount(mapped.filter(m => !m.is_verified).length);
       }
 
-      if (invData) {
-        setInventoryList(invData.map((i: any) => ({
+      if (mockInvData) {
+        setInventoryList(mockInvData.map((i: any) => ({
           id: i['inventory-id'],
           name: i.global?.['product-name'] || 'Unknown',
           sku: i.global?.['upc-ean-code'] || '',
@@ -126,18 +147,23 @@ export default function PosMappingPage() {
   const handleRemap = async (mapId: string, newInventoryId: string) => {
     const current = mappings.find((m) => m.mapping_id === mapId);
 
-    await supabase
-      .from('pos-item-mapping')
-      .update({
-        'matched-inventory-id': newInventoryId,
-        'is-verified': true
-      })
-      .eq('mapping-id', mapId);
+    // Mock update (just update local state)
+    setMappings(prev => prev.map(m =>
+      m.mapping_id === mapId
+        ? {
+          ...m, is_verified: true, inventory_link: inventoryList.find(inv => inv.id === newInventoryId) ? {
+            inventory_id: newInventoryId,
+            global_product: {
+              product_name: inventoryList.find(inv => inv.id === newInventoryId)?.name || '',
+              image_url: ''
+            }
+          } : null
+        }
+        : m
+    ));
 
-    // Optional: Auto-update price if needed, but let's stick to mapping for now
-
+    toast.success('Mapping updated');
     setEditingId(null);
-    if (effectiveTenantId) loadData(effectiveTenantId);
   };
 
   const verifyMap = async (id: string) => {
@@ -215,12 +241,12 @@ export default function PosMappingPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {mappings.map((map) => {
-                const suggestion = bestSuggestion[map.id];
+                const suggestion = bestSuggestion[map.mapping_id];
                 return (
-                  <tr key={map.id} className={`hover:bg-gray-50 group ${!map.is_verified ? 'bg-orange-50/30' : ''}`}>
+                  <tr key={map.mapping_id} className={`hover:bg-gray-50 group ${!map.is_verified ? 'bg-orange-50/30' : ''}`}>
                     <td className="px-6 py-3">
-                      <div className="font-bold text-gray-900 text-sm">{map.pos_name}</div>
-                      <div className="text-xs text-gray-400 font-mono">{map.pos_code || 'No Code'}</div>
+                      <div className="font-bold text-gray-900 text-sm">{map.pos_item_name}</div>
+                      <div className="text-xs text-gray-400 font-mono">{map.pos_item_code || 'No Code'}</div>
                     </td>
                     <td className="px-6 py-3 font-mono text-gray-600">
                       ${map.last_sold_price?.toFixed(2)}

@@ -18,7 +18,7 @@ export const apiClient = {
         if (parts.length > 1 && parts[0] !== 'www') {
             subdomain = parts[0];
         }
-        if (hostname === 'localhost') subdomain = 'demo';
+        if (hostname === 'localhost') subdomain = 'anuj';
 
         (headers as any)['x-tenant'] = subdomain;
 

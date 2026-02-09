@@ -1,109 +1,66 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign, Loader2, ShoppingBag, AlertCircle } from 'lucide-react';
+import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign, Loader2, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function OrderManager() {
-  // Supabase removed - refactor needed
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
-  // 1. Resolve Tenant
+  // Load mock data
   useEffect(() => {
-    async function resolveTenant() {
-      const { data: { user } } = // await // supabase.auth.getUser();
-      console.log('debug: verify user', user); // Debug Log
-      if (!user) return;
+    async function init() {
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      let resolvedTenantId: string | null = null;
+      setTenantId('mock-tenant-id');
 
-      // 1. Try Role
-      const { data: roleData } = await supabase
-        .from('tenant-user-role')
-        .select('tenant-id')
-        .eq('user-id', user.id)
-        .maybeSingle();
+      const mockOrders = [
+        {
+          'order-id': 'ord-123',
+          'customer-name': 'John Doe',
+          'customer-phone': '555-0123',
+          'final-amount': 150.00,
+          'created-at': new Date().toISOString(),
+          'order-status-code': 'pending',
+          'fulfillment-type': 'delivery',
+          items: [
+            { 'quantity-ordered': 2, 'product-name': 'Widget A' },
+            { 'quantity-ordered': 1, 'product-name': 'Widget B' }
+          ]
+        },
+        {
+          'order-id': 'ord-124',
+          'customer-name': 'Jane Smith',
+          'customer-phone': '555-0124',
+          'final-amount': 85.50,
+          'created-at': new Date(Date.now() - 3600000).toISOString(),
+          'order-status-code': 'completed',
+          'fulfillment-type': 'pickup',
+          items: [
+            { 'quantity-ordered': 1, 'product-name': 'Gadget X' }
+          ]
+        }
+      ];
 
-      console.log('debug: role data', roleData); // Debug Log
-
-      if (roleData) {
-        resolvedTenantId = roleData['tenant-id'];
-      } else {
-        // ... subdomain logic ...
-      }
-
-      console.log('debug: resolved tenant id', resolvedTenantId); // Debug Log
-      setTenantId(resolvedTenantId);
-
-      // If no tenant is found, stop loading
-      if (!resolvedTenantId) {
-        setLoading(false);
-        console.warn('Orders: No active tenant found. Stopping loader.');
-      }
-    }
-    resolveTenant();
-  }, []);
-
-  // 2. Fetch Orders
-  const fetchOrders = async () => {
-    console.log('debug: fetching orders for tenant', tenantId); // Debug Log
-    if (!tenantId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('customer-order-header')
-        // ... select ...
-        .select(`
-          *,
-          invoice:customer-invoices!order-id (
-             "invoice-number",
-             "payment-status",
-             status
-          ),
-          items:order-line-item-detail (
-            quantity-ordered,
-            product-name
-          )
-        `)
-        .eq('tenant-id', tenantId)
-        .order('order-date-time', { ascending: false });
-
-      if (error) throw error;
-      setOrders(data || []);
-    } catch (err: any) {
-      console.error('Error fetching orders:', err);
-      toast.error('Failed to load orders');
-    } finally {
+      setOrders(mockOrders);
       setLoading(false);
     }
-  };
 
-  useEffect(() => {
-    if (tenantId) {
-      fetchOrders();
-      const interval = setInterval(fetchOrders, 10000);
-      return () => clearInterval(interval);
-    }
-  }, [tenantId]);
+    init();
+  }, []);
 
-  // 3. Update Status
+  // Update order status (mocked)
   const updateStatus = async (id: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from('customer-order-header')
-        .update({ 'order-status-code': newStatus })
-        .eq('order-id', id);
-
-      if (error) throw error;
-      toast.success(`Order marked as ${newStatus}`);
-      fetchOrders();
-    } catch (err) {
-      toast.error('Failed to update status');
-    }
+    setOrders(prev => prev.map(o =>
+      o['order-id'] === id ? { ...o, 'order-status-code': newStatus } : o
+    ));
+    toast.success(`Order marked as ${newStatus}`);
   };
 
-  if (loading && !tenantId) return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
+  if (loading && !tenantId) {
+    return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
@@ -130,21 +87,21 @@ export default function OrderManager() {
 
               {/* Header */}
               <div className={`px-5 py-4 border-b border-gray-100 flex justify-between items-start bg-gradient-to-r ${order['order-status-code'] === 'pending' ? 'from-yellow-50 to-white' :
-                order['order-status-code'] === 'confirmed' ? 'from-blue-50 to-white' :
-                  'from-gray-50 to-white'
+                  order['order-status-code'] === 'confirmed' ? 'from-blue-50 to-white' :
+                    'from-gray-50 to-white'
                 }`}>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${order['order-status-code'] === 'pending' ? 'bg-yellow-100 border-yellow-200 text-yellow-800' :
-                      order['order-status-code'] === 'completed' ? 'bg-green-100 border-green-200 text-green-800' :
-                        'bg-gray-100 border-gray-200 text-gray-600'
+                        order['order-status-code'] === 'completed' ? 'bg-green-100 border-green-200 text-green-800' :
+                          'bg-gray-100 border-gray-200 text-gray-600'
                       }`}>
                       {order['order-status-code']}
                     </span>
                     <span className="font-mono text-xs text-gray-400">#{order['order-id'].slice(0, 4)}</span>
                   </div>
 
-                  {/* Customer Info from embedded columns */}
+                  {/* Customer Info */}
                   <div className="flex flex-col">
                     <div className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
                       {order['customer-name'] || 'Guest Customer'}
@@ -158,14 +115,6 @@ export default function OrderManager() {
                 <div className="text-right">
                   <div className="text-lg font-black text-gray-900">${order['final-amount']}</div>
 
-                  {/* Invoice/Payment Info */}
-                  {order.invoice && (
-                    <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded-sm mt-1 inline-block ${order.invoice['payment-status'] === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                      {order.invoice['payment-status'] === 'paid' ? 'PAID' : 'UNPAID'}
-                    </div>
-                  )}
-
                   <div className="text-[10px] uppercase font-bold text-gray-400 flex items-center justify-end gap-1 mt-1">
                     {order['fulfillment-type'] === 'delivery' ? <MapPin size={10} /> : <Package size={10} />} {order['fulfillment-type']}
                   </div>
@@ -177,9 +126,7 @@ export default function OrderManager() {
                 {order.items?.map((item: any, i: number) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 shrink-0 overflow-hidden flex items-center justify-center">
-                      {item.inventory?.product?.['image-url'] ? (
-                        <img src={item.inventory.product['image-url']} className="w-full h-full object-cover" alt="prod" />
-                      ) : <Package size={16} className="text-gray-300" />}
+                      <Package size={16} className="text-gray-300" />
                     </div>
                     <div className="text-sm leading-tight">
                       <span className="font-bold text-gray-900 mr-1">{item['quantity-ordered']}x</span>

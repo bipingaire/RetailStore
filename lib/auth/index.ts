@@ -14,15 +14,15 @@ export async function login(email: string, password: string) {
             // 2. Set Cookie (for Server Components / Middleware)
             // Note: Middleware checks 'access_token' cookie.
             // We can set it via JS document.cookie
-            document.cookie = \`access_token=\${access_token}; path=/; max-age=86400; SameSite=Lax\`;
-        
-        return { success: true };
+            document.cookie = `access_token=${access_token}; path=/; max-age=86400; SameSite=Lax`;
+
+            return { success: true };
+        }
+        throw new Error('No access token returned');
+    } catch (error) {
+        console.error('Login Failed', error);
+        throw error;
     }
-    throw new Error('No access token returned');
-  } catch (error) {
-    console.error('Login Failed', error);
-    throw error;
-  }
 }
 
 export function logout() {

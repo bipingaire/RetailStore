@@ -6,62 +6,62 @@ export declare class CustomerService {
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
     create(subdomain: string, data: any): Promise<{
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         email: string | null;
         phone: string | null;
+        isActive: boolean;
         loyaltyPoints: number;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     findAll(subdomain: string, search?: string): Promise<{
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         email: string | null;
         phone: string | null;
+        isActive: boolean;
         loyaltyPoints: number;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
     findOne(subdomain: string, id: string): Promise<{
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         email: string | null;
         phone: string | null;
+        isActive: boolean;
         loyaltyPoints: number;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     update(subdomain: string, id: string, data: any): Promise<{
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         email: string | null;
         phone: string | null;
+        isActive: boolean;
         loyaltyPoints: number;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     delete(subdomain: string, id: string): Promise<{
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         email: string | null;
         phone: string | null;
+        isActive: boolean;
         loyaltyPoints: number;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     updateLoyaltyPoints(subdomain: string, id: string, points: number): Promise<{
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         email: string | null;
         phone: string | null;
+        isActive: boolean;
         loyaltyPoints: number;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

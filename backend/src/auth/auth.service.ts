@@ -13,6 +13,7 @@ export class AuthService {
   ) { }
 
   async validateUser(subdomain: string, email: string, password: string) {
+    console.log(`[AuthService] Validating user for subdomain: ${subdomain}, email: ${email}`);
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
 

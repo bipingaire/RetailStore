@@ -6,6 +6,9 @@ export declare class ProductController {
     create(subdomain: string, dto: CreateProductDto): Promise<{
         id: string;
         name: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         sku: string;
         category: string | null;
         description: string | null;
@@ -15,9 +18,12 @@ export declare class ProductController {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     findAll(subdomain: string): Promise<{
         id: string;
@@ -36,15 +42,18 @@ export declare class ProductController {
     findOne(subdomain: string, id: string): Promise<{
         Batches: {
             id: string;
-            sku: string;
-            productId: string;
-            quantity: number;
-            expiryDate: Date;
             receivedDate: Date;
+            quantity: number;
+            productId: string;
+            sku: string;
+            expiryDate: Date;
         }[];
     } & {
         id: string;
         name: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         sku: string;
         category: string | null;
         description: string | null;
@@ -54,13 +63,19 @@ export declare class ProductController {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     update(subdomain: string, id: string, dto: UpdateProductDto): Promise<{
         id: string;
         name: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         sku: string;
         category: string | null;
         description: string | null;
@@ -70,13 +85,19 @@ export declare class ProductController {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     delete(subdomain: string, id: string): Promise<{
         id: string;
         name: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         sku: string;
         category: string | null;
         description: string | null;
@@ -86,9 +107,12 @@ export declare class ProductController {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     updateStock(subdomain: string, id: string, dto: {
         quantity: number;

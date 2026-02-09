@@ -55,66 +55,78 @@ export default function SettingsPage() {
     async function loadSettings() {
       setLoading(true);
 
-      // 1. Resolve Tenant
-      let currentTenantId = null;
-      const { data: existingTenants } = // await // supabase.from('retail-store-tenant').select('*').limit(1);
+      // Mock delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (existingTenants && existingTenants.length > 0) {
-        const t = existingTenants[0];
-        currentTenantId = t['tenant-id'];
-        setProfile({
-          name: t['store-name'],
-          address: t['store-address'] || '',
-          city_state_zip: `${t['store-city'] || ''}, ${t['store-state'] || ''} ${t['store-zip-code'] || ''}`,
-          phone: t['phone-number'] || '',
-          email: t['email-address'] || '',
-          tax_id: 'US-XX-XXXX',
-          default_safety_stock: 10,
-          subdomain: 'my-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
-        });
-      } else {
-        // Create Default
-        const { data: newTenant } = // await // supabase.from('retail-store-tenant').insert({
-          'store-name': 'New Retail Store', 'store-address': '123 Market St', 'store-city': 'Retail City', 'store-state': 'NY',
-          'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com'
-        }).select().single();
-        if (newTenant) {
-          currentTenantId = newTenant['tenant-id'];
-          setProfile({
-            name: newTenant['store-name'], address: newTenant['store-address'],
-            city_state_zip: `${newTenant['store-city']}, ${newTenant['store-state']} ${newTenant['store-zip-code']}`,
-            phone: newTenant['phone-number'], email: newTenant['email-address'], tax_id: '', default_safety_stock: 10,
-            subdomain: 'new-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
-          });
+      // Mock tenant data
+      const mockTenant = {
+        'tenant-id': 'mock-tenant-001',
+        'store-name': 'Demo Retail Store',
+        'store-address': '123 Main Street',
+        'store-city': 'New York',
+        'store-state': 'NY',
+        'store-zip-code': '10001',
+        'phone-number': '555-0123',
+        'email-address': 'admin@demostore.com'
+      };
+
+      setTenantId(mockTenant['tenant-id']);
+      setProfile({
+        name: mockTenant['store-name'],
+        address: mockTenant['store-address'] || '',
+        city_state_zip: `${mockTenant['store-city'] || ''}, ${mockTenant['store-state'] || ''} ${mockTenant['store-zip-code'] || ''}`,
+        phone: mockTenant['phone-number'] || '',
+        email: mockTenant['email-address'] || '',
+        tax_id: 'US-XX-XXXX',
+        default_safety_stock: 10,
+        subdomain: 'demo-store',
+        custom_domain: '',
+        logo_url: '',
+        hero_banner_url: '',
+        primary_color: '#2563eb'
+      });
+
+      // Mock vendors
+      const mockVendors = [
+        {
+          id: 'vendor-001',
+          name: 'ABC Distributors',
+          contact_phone: '555-1001',
+          whatsapp_number: '555-1001',
+          email: 'sales@abc.com',
+          transport_rate_per_pallet: 50
+        },
+        {
+          id: 'vendor-002',
+          name: 'XYZ Suppliers',
+          contact_phone: '555-2002',
+          whatsapp_number: '555-2002',
+          email: 'contact@xyz.com',
+          transport_rate_per_pallet: 45
         }
-      }
-      setTenantId(currentTenantId);
+      ];
+      setVendors(mockVendors);
 
-      // 2. Load Vendors
-      const { data: vendorData } = // await // supabase.from('vendors').select('*').eq('tenant_id', currentTenantId);
-      if (vendorData) setVendors(vendorData as any);
-
-      // 3. Load Social Accounts
-      if (currentTenantId) {
-        const { data: socialData } = // await // supabase.from('social-media-accounts').select('*').eq('tenant-id', currentTenantId);
-        if (socialData) setSocialAccounts(socialData);
-      }
-
+      // Mock social accounts
+      const mockSocial = [
+        { id: 'social-001', platform: 'Facebook', account_name: 'Demo Store', connected: true },
+        { id: 'social-002', platform: 'Instagram', account_name: '@demostore', connected: false }
+      ];
+      setSocialAccounts(mockSocial);
       setLoading(false);
     }
+
     loadSettings();
   }, []);
 
   const handleSaveProfile = async () => {
     if (!tenantId) return;
     setLoading(true);
-    const parts = profile.city_state_zip.split(',');
-    const { error } = // await // supabase.from('retail-store-tenant').update({
-      'store-name': profile.name, 'store-address': profile.address, 'phone-number': profile.phone, 'email-address': profile.email
-    }).eq('tenant-id', tenantId);
 
-    if (error) toast.error("Error saving: " + error.message);
-    else toast.success("Settings saved.");
+    // Mock save (just update local state)
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    toast.success("Settings saved.");
     setLoading(false);
   };
 
@@ -122,14 +134,13 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!editingVendor) return;
     try {
-      const payload = { ...editingVendor, tenant_id: tenantId };
+      // Mock save
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       if (editingVendor.id.startsWith('new-')) {
-        const { data, error } = // await // supabase.from('vendors').insert(payload).select().single();
-        if (error) throw error;
-        setVendors(prev => [...prev, data as any]);
+        const newVendor = { ...editingVendor, id: `vendor-${Date.now()}` };
+        setVendors(prev => [...prev, newVendor]);
       } else {
-        const { error } = // await // supabase.from('vendors').update(payload).eq('id', editingVendor.id);
-        if (error) throw error;
         setVendors(prev => prev.map(v => v.id === editingVendor.id ? editingVendor : v));
       }
       setEditingVendor(null);

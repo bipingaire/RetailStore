@@ -48,7 +48,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   async function handleSignOut() {
-    // await // supabase.auth.signOut();
+    localStorage.removeItem('access_token');
+    document.cookie = 'access_token=; path=/; max-age=0';
     toast.success('Signed out successfully');
     router.push('/admin/login');
   }
@@ -57,9 +58,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     async function checkAccess() {
       setIsLoading(true);
 
-      const { data: { session } } = // await // supabase.auth.getSession();
+      // Check if user has access token
+      const token = localStorage.getItem('access_token');
 
-      if (!session) {
+      if (!token) {
         setIsAuthenticated(false);
         setIsLoading(false);
         if (pathname !== '/admin/login') {
@@ -68,41 +70,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return;
       }
 
-      // SUPERADMIN GLOBAL BYPASS
-      const isSuper = await isSuperadmin(supabase, session.user.id);
-      if (isSuper) {
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // STRICT MULTI-TENANCY CHECK
-      // 1. Get current subdomain
-      const hostname = window.location.hostname;
-      const subdomain = hostname.split('.')[0];
-
-      // Allow localhost root access for dev testing/superadmin, otherwise enforce subdomain
-      if (hostname === 'localhost' || hostname.includes('vercel.app')) {
-        // In dev/root, we might just check if they have ANY role, or specific dev logic
-        // For now, let's allow if they have a role.
-        checkUserRole(session.user.id, null);
-      } else {
-        // 2. Resolve Tenant ID from Subdomain
-        const { data: tenantMap } = await supabase
-          .from('subdomain-tenant-mapping')
-          .select('tenant-id')
-          .eq('subdomain', subdomain)
-          .single();
-
-        if (!tenantMap) {
-          toast.error('Store not found for this subdomain');
-          setIsAuthenticated(false);
-          return;
-        }
-
-        // 3. Check if USER belongs to THIS TENANT
-        checkUserRole(session.user.id, tenantMap['tenant-id']);
-      }
+      // If we have a token, grant access
+      setIsAuthenticated(true);
+      setIsLoading(false);
     }
 
     async function checkUserRole(userId: string, tenantId: string | null) {

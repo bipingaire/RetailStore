@@ -8,10 +8,10 @@ export declare class ProductService {
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService, masterPrisma: MasterPrismaService);
     createProduct(subdomain: string, data: any): Promise<{
         id: string;
+        name: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         sku: string;
         category: string | null;
         description: string | null;
@@ -21,13 +21,19 @@ export declare class ProductService {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     create(subdomain: string, data: any): Promise<{
         id: string;
+        name: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         sku: string;
         category: string | null;
         description: string | null;
@@ -37,22 +43,28 @@ export declare class ProductService {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     findOne(subdomain: string, id: string): Promise<{
         Batches: {
             id: string;
-            sku: string;
-            productId: string;
-            quantity: number;
-            expiryDate: Date;
             receivedDate: Date;
+            quantity: number;
+            productId: string;
+            sku: string;
+            expiryDate: Date;
         }[];
     } & {
         id: string;
+        name: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         sku: string;
         category: string | null;
         description: string | null;
@@ -62,13 +74,19 @@ export declare class ProductService {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     update(subdomain: string, id: string, data: any): Promise<{
         id: string;
+        name: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         sku: string;
         category: string | null;
         description: string | null;
@@ -78,13 +96,19 @@ export declare class ProductService {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     delete(subdomain: string, id: string): Promise<{
         id: string;
+        name: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         sku: string;
         category: string | null;
         description: string | null;
@@ -94,6 +118,12 @@ export declare class ProductService {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     updateStock(subdomain: string, id: string, quantity: number, type: string): Promise<{
         success: boolean;

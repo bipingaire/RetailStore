@@ -22,6 +22,7 @@ let AuthService = class AuthService {
         this.tenantPrisma = tenantPrisma;
     }
     async validateUser(subdomain, email, password) {
+        console.log(`[AuthService] Validating user for subdomain: ${subdomain}, email: ${email}`);
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
         const user = await client.user.findUnique({ where: { email } });

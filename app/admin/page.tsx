@@ -23,118 +23,40 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const { data: { user } } = // await // supabase.auth.getUser();
+        // TODO: Replace with actual Backend API calls
+        // Currently mocking data to remove Supabase dependency and fix build errors
 
-        if (user) {
-          // 1. Try to get tenant ID from Role
-          const { data: roleData } = await supabase
-            .from('tenant-user-role')
-            .select('tenant-id')
-            .eq('user-id', user.id)
-            .limit(1)
-            .maybeSingle();
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-          let tenantId = roleData?.['tenant-id'];
+        setStats({
+          revenue: 15420, // Mock revenue
+          orders: 12,     // Mock pending orders
+          lowStock: 3,    // Mock low stock
+          activeCampaigns: 2 // Mock campaigns
+        });
 
-          // 2. Fallback: Resolve from Subdomain or Hardcoded Dev Fallback
-          if (!tenantId) {
-            const hostname = window.location.hostname;
-            const subdomain = hostname.split('.')[0];
+        setStoreName('Anuj Store');
 
-            if (subdomain && subdomain !== 'localhost' && !hostname.includes('vercel.app')) {
-              const { data: mapData } = await supabase
-                .from('subdomain-tenant-mapping')
-                .select('tenant-id')
-                .eq('subdomain', subdomain)
-                .single();
-
-              if (mapData) tenantId = mapData['tenant-id'];
-            }
+        setRecentOrders([
+          {
+            'order-id': 'ORD-001-MOCK',
+            'customer-phone': '9876543210',
+            'order-date-time': new Date().toISOString(),
+            'status': 'completed',
+            'final-amount': 150.00
+          },
+          {
+            'order-id': 'ORD-002-MOCK',
+            'customer-phone': 'Guest',
+            'order-date-time': new Date().toISOString(),
+            'status': 'pending',
+            'final-amount': 85.50
           }
+        ]);
 
-          if (tenantId) {
-            // 3. Get Store Name
-            const { data: storeData } = await supabase
-              .from('retail-store-tenant')
-              .select('store-name')
-              .eq('tenant-id', tenantId)
-              .single();
+        setChartData([1200, 1900, 1500, 2100, 1800, 2400, 2200]);
 
-            if (storeData) {
-              setStoreName(storeData['store-name']);
-            }
-
-            // Load stats filtered by tenant
-            // Low Stock for this tenant
-            const { count: lowStock } = await supabase
-              .from('retail-store-inventory-item')
-              .select('reorder-point-value', { count: 'exact', head: true })
-              .eq('tenant-id', tenantId)
-              .eq('is-active', true)
-              .lt('current-stock-quantity', 10);
-
-            // Pending Orders for this tenant
-            const { count: pendingOrders } = await supabase
-              .from('customer-order-header')
-              .select('*', { count: 'exact', head: true })
-              .eq('tenant-id', tenantId)
-              .eq('order-status-code', 'pending');
-
-            // Active Campaigns for this tenant
-            const { count: activeCampaigns } = await supabase
-              .from('marketing-campaign-master')
-              .select('*', { count: 'exact', head: true })
-              .eq('tenant-id', tenantId)
-              .eq('is-active-flag', true);
-
-            // Recent Orders for this tenant
-            const { data: orders } = await supabase
-              .from('customer-order-header')
-              .select('*')
-              .eq('tenant-id', tenantId)
-              .order('order-date-time', { ascending: false })
-              .limit(5);
-
-            // Calculate Total Revenue from paid orders
-            const { data: revenueData } = await supabase
-              .from('customer-order-header')
-              .select('final-amount')
-              .eq('tenant-id', tenantId)
-              .eq('payment-status', 'paid');
-
-            const totalRevenue = revenueData?.reduce((sum, order) => sum + (order['final-amount'] || 0), 0) || 0;
-
-            // Weekly Sales Trend (Last 7 Days)
-            const weeklyData: number[] = [0, 0, 0, 0, 0, 0, 0];
-            const today = new Date();
-
-            for (let i = 0; i < 7; i++) {
-              const date = new Date(today);
-              date.setDate(today.getDate() - (6 - i));
-              const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-              const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
-
-              const { data: daySales } = await supabase
-                .from('customer-order-header')
-                .select('final-amount')
-                .eq('tenant-id', tenantId)
-                .gte('order-date-time', startOfDay)
-                .lte('order-date-time', endOfDay);
-
-              weeklyData[i] = daySales?.reduce((sum, order) => sum + (order['final-amount'] || 0), 0) || 0;
-            }
-
-            setStats({
-              revenue: totalRevenue,
-              orders: pendingOrders || 0,
-              lowStock: lowStock || 0,
-              activeCampaigns: activeCampaigns || 0
-            });
-
-            setChartData(weeklyData);
-            setRecentOrders(orders || []);
-          }
-        }
       } catch (err) {
         console.error('Dashboard load error', err);
         toast.error('Failed to load dashboard data');

@@ -5,32 +5,32 @@ export declare class TenantController {
     constructor(tenantService: TenantService);
     createTenant(dto: CreateTenantDto): Promise<{
         id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         subdomain: string;
         storeName: string;
         databaseUrl: string;
         adminEmail: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getAllTenants(): Promise<{
         id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         subdomain: string;
         storeName: string;
         databaseUrl: string;
         adminEmail: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     getTenant(subdomain: string): Promise<{
         id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
         subdomain: string;
         storeName: string;
         databaseUrl: string;
         adminEmail: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
 }

@@ -22,10 +22,10 @@ export declare class LegacyApiController {
     }>;
     addProduct(body: any, req: any): Promise<{
         id: string;
+        name: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         sku: string;
         category: string | null;
         description: string | null;
@@ -35,5 +35,11 @@ export declare class LegacyApiController {
         reorderLevel: number;
         imageUrl: string | null;
         barcode: string | null;
+        lastRestockedAt: Date | null;
+        daysToExpiry: number | null;
+        expiryDate: Date | null;
+        slowMoving: boolean;
+        fastMoving: boolean;
+        healthScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
 }

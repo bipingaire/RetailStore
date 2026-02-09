@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Package, Mail, FileText, Send, Zap, ShoppingCart, AlertCircle, CheckCircle2, ChevronRight, Truck, ShoppingBag } from 'lucide-react';
+import { AlertTriangle, Package, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface RestockItem {
@@ -15,9 +14,6 @@ interface RestockItem {
 }
 
 export default function RestockPage() {
-  const router = useRouter();
-  // Supabase removed - refactor needed
-
   const [lowStockItems, setLowStockItems] = useState<RestockItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [vendorEmail, setVendorEmail] = useState('');
@@ -30,74 +26,40 @@ export default function RestockPage() {
 
   async function loadLowStockItems() {
     try {
-      // Get current user to try and filter by tenant (optional but good practice)
-      const { data: { user } } = // await // supabase.auth.getUser();
-
-      let query = supabase
-        .from('retail-store-inventory-item')
-        .select(`
-          inventory-id,
-          current-stock-quantity,
-          reorder-point-value,
-          cost-price-amount,
-          global:global-product-master-catalog!global-product-id (
-             product-name
-          )
-        `)
-        .eq('is-active', true);
-
-      // If we have a user, try to filter by their tenant (via role)
-      // mirrors the logic we typically use, but keeps it loose if RLS is disabled
-      if (user) {
-        const { data: roleData } = await supabase
-          .from('tenant-user-role')
-          .select('tenant-id')
-          .eq('user-id', user.id)
-          .single();
-
-        if (roleData) {
-          query = query.eq('tenant-id', (roleData as any)['tenant-id']);
-        }
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error loading restock items:", error);
-        toast.error("Failed to load inventory data");
-        setLoading(false);
-        return;
-      }
-
-      // Filter low stock items client-side (or could do DB side)
-      // Logic: Stock <= Reorder Point (default 10 if null)
-      const lowStock = (data || []).filter((item: any) => {
-        const reorderPoint = item['reorder-point-value'] ?? 10;
-        const currentStock = item['current-stock-quantity'] ?? 0;
-        return currentStock <= reorderPoint;
+      // Fetch from real backend API
+      const response = await fetch('http://localhost:3001/api/inventory/low-stock', {
+        headers: {
+          'x-tenant-id': 'retail_store_anuj',
+        },
       });
 
-      const items: RestockItem[] = lowStock.map((item: any) => {
-        const reorderPoint = item['reorder-point-value'] ?? 10;
-        const suggestedQty = Math.max(50, reorderPoint * 3);
-        const unitCost = item['cost-price-amount'] ?? 0;
+      if (response.ok) {
+        const data = await response.json();
 
-        return {
-          inventory_id: item['inventory-id'],
-          product_name: item.global?.['product-name'] || 'Unknown Product',
-          current_stock: item['current-stock-quantity'] ?? 0,
-          reorder_point: reorderPoint,
-          suggested_quantity: suggestedQty,
-          unit_cost: unitCost,
-          total_cost: suggestedQty * unitCost
-        };
-      });
+        const items: RestockItem[] = data.map((product: any) => {
+          const reorderPoint = product.reorderLevel ?? 10;
+          const suggestedQty = Math.max(50, reorderPoint * 3);
+          const unitCost = Number(product.costPrice) ?? 0;
 
-      setLowStockItems(items);
-      setSelectedItems(items.map(i => i.inventory_id));
-    } catch (err) {
-      console.error("Crash loading restock:", err);
-      toast.error("Something went wrong loading data");
+          return {
+            inventory_id: product.id,
+            product_name: product.name,
+            current_stock: product.stock ?? 0,
+            reorder_point: reorderPoint,
+            suggested_quantity: suggestedQty,
+            unit_cost: unitCost,
+            total_cost: unitCost * suggestedQty,
+          };
+        });
+
+        setLowStockItems(items);
+        setSelectedItems(items.map(i => i.inventory_id));
+      } else {
+        console.error('Failed to fetch low stock items');
+      }
+    } catch (error) {
+      console.error('Error loading low stock items:', error);
+      toast.error('Something went wrong loading data');
     } finally {
       setLoading(false);
     }
@@ -155,10 +117,10 @@ Thank you!
         setVendorEmail('');
         setSelectedItems([]);
       } else {
-        throw new Error(result.error || 'Failed to send email');
+        toast.error('Failed to send email', { id: loadingToast });
       }
-    } catch (error: any) {
-      toast.error(`Failed to send: ${error.message}`, { id: loadingToast });
+    } catch (error) {
+      toast.error('Error sending purchase order', { id: loadingToast });
     } finally {
       setSending(false);
     }
@@ -166,150 +128,151 @@ Thank you!
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center text-gray-400 text-sm">Loading restock data...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-500">Loading low stock items...</div>
       </div>
     );
   }
 
-  const totalValue = lowStockItems
-    .filter(i => selectedItems.includes(i.inventory_id))
-    .reduce((sum, item) => sum + item.total_cost, 0);
+  const selected = lowStockItems.filter(i => selectedItems.includes(i.inventory_id));
+  const totalOrderCost = selected.reduce((sum, item) => sum + item.total_cost, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="p-8 max-w-6xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Vendor Restock</h1>
+        <p className="text-gray-500 mt-2">Items below reorder point - generate and send purchase orders</p>
+      </div>
 
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Restock Automation</h1>
-          <p className="text-sm text-gray-500">Auto-generate purchase orders for low stock items.</p>
+      {lowStockItems.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">All stocked up!</h3>
+          <p className="text-gray-500">No products currently below reorder level.</p>
         </div>
-
-        {lowStockItems.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-green-200 p-12 text-center">
-            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-              <CheckCircle2 size={32} />
+      ) : (
+        <>
+          {/* Alert Banner */}
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              <div>
+                <p className="text-sm font-medium text-yellow-800">
+                  {lowStockItems.length} items need restocking
+                </p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Review and send purchase order to your vendor
+                </p>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">All Inventory Healthy</h3>
-            <p className="text-gray-500">No items are currently below their reorder point.</p>
           </div>
-        ) : (
-          <>
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-red-50 text-red-600 rounded">
-                    <Zap size={18} />
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 uppercase">Critical Low Stock</span>
-                </div>
-                <div className="text-3xl font-black text-gray-900">{lowStockItems.length} <span className="text-base font-medium text-gray-400">items</span></div>
-              </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-blue-50 text-blue-600 rounded">
-                    <ShoppingBag size={18} />
-                  </div>
-                  <span className="text-sm font-bold text-gray-700 uppercase">Estimated PO Value</span>
-                </div>
-                <div className="text-3xl font-black text-gray-900">${totalValue.toFixed(2)}</div>
-              </div>
-            </div>
-
-            {/* Restock Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h3 className="font-semibold text-gray-900 text-sm">Suggested Reorders</h3>
-                <div className="text-xs text-gray-500">Select items to include in PO</div>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {lowStockItems.map((item) => (
-                  <label
-                    key={item.inventory_id}
-                    className="flex items-center gap-4 p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                  >
+          {/* Items Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedItems.includes(item.inventory_id)}
+                      checked={selectedItems.length === lowStockItems.length}
                       onChange={(e) => {
-                        if (e.target.checked) setSelectedItems([...selectedItems, item.inventory_id]);
-                        else setSelectedItems(selectedItems.filter(id => id !== item.inventory_id));
+                        if (e.target.checked) {
+                          setSelectedItems(lowStockItems.map(i => i.inventory_id));
+                        } else {
+                          setSelectedItems([]);
+                        }
                       }}
-                      className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded"
                     />
-                    <div className="flex-1">
-                      <div className="font-bold text-gray-900 text-sm">{item.product_name}</div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                        <span className="text-red-500 font-medium">Stock: {item.current_stock}</span>
-                        <span className="text-gray-300">|</span>
-                        <span>Reorder Point: {item.reorder_point}</span>
-                      </div>
-                    </div>
-
-                    <div className="text-right w-32">
-                      <div className="text-[10px] text-gray-400 uppercase font-bold">Quantity</div>
-                      <div className="font-mono font-bold text-gray-900">{item.suggested_quantity}</div>
-                    </div>
-                    <div className="text-right w-32">
-                      <div className="text-[10px] text-gray-400 uppercase font-bold">Cost</div>
-                      <div className="font-mono font-bold text-gray-900">${item.total_cost.toFixed(2)}</div>
-                    </div>
-                  </label>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Current</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reorder Point</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Suggested Qty</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit Cost</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {lowStockItems.map((item) => (
+                  <tr key={item.inventory_id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.includes(item.inventory_id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedItems([...selectedItems, item.inventory_id]);
+                          } else {
+                            setSelectedItems(selectedItems.filter(id => id !== item.inventory_id));
+                          }
+                        }}
+                        className="rounded"
+                      />
+                    </td>
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{item.product_name}</td>
+                    <td className="px-6 py-3">
+                      <span className={`text-sm font-semibold ${item.current_stock === 0 ? 'text-red-600' : 'text-orange-600'}`}>
+                        {item.current_stock}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-500">{item.reorder_point}</td>
+                    <td className="px-6 py-3 text-sm font-semibold text-blue-600">{item.suggested_quantity}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">${item.unit_cost.toFixed(2)}</td>
+                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">${item.total_cost.toFixed(2)}</td>
+                  </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Purchase Order Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Generate Purchase Order</h2>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vendor Email
+              </label>
+              <input
+                type="email"
+                value={vendorEmail}
+                onChange={(e) => setVendorEmail(e.target.value)}
+                placeholder="vendor@example.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-gray-600">Selected Items:</span>
+                <span className="font-semibold text-gray-900">{selectedItems.length}</span>
+              </div>
+              <div className="flex items-center justify-between text-lg">
+                <span className="font-semibold text-gray-900">Total Order Cost:</span>
+                <span className="font-bold text-blue-600">${totalOrderCost.toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Vendor Actions */}
-            {selectedItems.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-in slide-in-from-bottom-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                      <Mail size={16} /> Vendor Details
-                    </h3>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1">Vendor Email</label>
-                      <input
-                        type="email"
-                        value={vendorEmail}
-                        onChange={(e) => setVendorEmail(e.target.value)}
-                        placeholder="orders@vendor.com"
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors"
-                      />
-                    </div>
-                  </div>
+            <button
+              onClick={sendPurchaseOrder}
+              disabled={sending || selectedItems.length === 0 || !vendorEmail}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
+            >
+              <Mail className="w-5 h-5" />
+              {sending ? 'Sending...' : 'Send Purchase Order'}
+            </button>
 
-                  <div className="flex flex-col justify-end gap-3">
-                    <button
-                      onClick={() => toast.info(generatePurchaseOrder(), { duration: 8000 })}
-                      className="w-full py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
-                    >
-                      <FileText size={16} /> Preview PO
-                    </button>
-                    <button
-                      onClick={sendPurchaseOrder}
-                      disabled={sending || !vendorEmail}
-                      className="w-full py-2.5 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
-                    >
-                      {sending ? (
-                        <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Sending...</span>
-                      ) : (
-                        <>
-                          <Send size={16} /> Send Purchase Order
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-      </div>
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="text-xs font-semibold text-gray-500 mb-2">Preview:</div>
+              <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                {selectedItems.length > 0 ? generatePurchaseOrder() : 'Select items to preview purchase order'}
+              </pre>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

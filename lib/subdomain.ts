@@ -2,12 +2,7 @@
  * Subdomain utilities for multi-tenant routing
  */
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { apiClient } from './api-client';
 
 /**
  * Extract subdomain from hostname
@@ -69,37 +64,27 @@ export function isSuperadminDomain(host: string): boolean {
 export async function getTenantFromSubdomain(subdomain: string): Promise<string | null> {
     if (!subdomain) return null;
 
-    const { data, error } = await supabase
-        .from('subdomain-tenant-mapping')
-        .select('tenant-id')
-        .eq('subdomain', subdomain)
-        .eq('is-active', true)
-        .single();
-
-    if (error || !data) {
+    try {
+        const tenant = await apiClient.get(`/tenants/${subdomain}`);
+        return tenant?.['tenant-id'] || tenant?.id || null;
+    } catch (error) {
         console.error('Error fetching tenant from subdomain:', error);
         return null;
     }
-
-    return data['tenant-id'];
 }
 
 /**
  * Get subdomain from tenant ID
  */
 export async function getSubdomainFromTenant(tenantId: string): Promise<string | null> {
-    const { data, error } = await supabase
-        .from('subdomain-tenant-mapping')
-        .select('subdomain')
-        .eq('tenant-id', tenantId)
-        .eq('is-active', true)
-        .single();
-
-    if (error || !data) {
+    try {
+        const tenants = await apiClient.get('/tenants');
+        const tenant = tenants.find((t: any) => t['tenant-id'] === tenantId || t.id === tenantId);
+        return tenant?.subdomain || null;
+    } catch (error) {
+        console.error('Error fetching subdomain from tenant:', error);
         return null;
     }
-
-    return data.subdomain;
 }
 
 /**
@@ -151,11 +136,11 @@ export async function isSubdomainAvailable(subdomain: string): Promise<boolean> 
         return false;
     }
 
-    const { data } = await supabase
-        .from('subdomain-tenant-mapping')
-        .select('subdomain')
-        .eq('subdomain', subdomain)
-        .single();
-
-    return !data; // Available if no data found
+    try {
+        const tenant = await apiClient.get(`/tenants/${subdomain}`);
+        return !tenant; // Available if no tenant found
+    } catch (error) {
+        // If fetch fails (404), subdomain is available
+        return true;
+    }
 }

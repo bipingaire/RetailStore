@@ -83,9 +83,27 @@ export default function AdminLoginPage() {
                 {/* Right Side - Login Form */}
                 <div className="p-12 bg-white relative">
 
+                    {/* Role Selector Tabs - Top Right */}
+                    <div className="absolute top-8 right-8 flex gap-1 bg-gray-100 rounded-lg p-1">
+                        <button
+                            type="button"
+                            onClick={() => setRole('retailer')}
+                            className={`px-6 py-2 rounded-md font-medium transition-all ${role === 'retailer' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                            Retailer
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setRole('supplier')}
+                            className={`px-6 py-2 rounded-md font-medium transition-all ${role === 'supplier' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+                        >
+                            Supplier
+                        </button>
+                    </div>
+
                     <div className="mt-16">
                         <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-                        <p className="text-gray-500 mb-8">Enter your credentials via Local Auth.</p>
+                        <p className="text-gray-500 mb-8">Enter your credentials to access your dashboard.</p>
 
                         <form onSubmit={handleLogin} className="space-y-6">
 
