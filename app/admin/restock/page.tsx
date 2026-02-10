@@ -1,278 +1,330 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Package, Mail } from 'lucide-react';
-import { toast } from 'sonner';
+import { ShoppingCart, Send, Package, CheckCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-interface RestockItem {
-  inventory_id: string;
-  product_name: string;
-  current_stock: number;
-  reorder_point: number;
-  suggested_quantity: number;
-  unit_cost: number;
-  total_cost: number;
-}
+type Product = {
+    id: string;
+    name: string;
+    sku: string;
+    stock: number;
+    reorderLevel: number;
+    costPrice: number;
+};
+
+type POItem = {
+    product: Product;
+    quantity: number;
+};
 
 export default function RestockPage() {
-  const [lowStockItems, setLowStockItems] = useState<RestockItem[]>([]);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [vendorEmail, setVendorEmail] = useState('');
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
+    const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
+    const [vendors, setVendors] = useState<any[]>([]);
+    const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
+    const [selectedItems, setSelectedItems] = useState<Map<string, number>>(new Map());
+    const [selectedVendor, setSelectedVendor] = useState('');
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadLowStockItems();
-  }, []);
+    useEffect(() => {
+        loadData();
+    }, []);
 
-  async function loadLowStockItems() {
-    try {
-      // Fetch from real backend API
-      const response = await fetch('http://localhost:3001/api/inventory/low-stock', {
-        headers: {
-          'x-tenant-id': 'retail_store_anuj',
-        },
-      });
+    async function loadData() {
+        try {
+            const [productsRes, vendorsRes, posRes] = await Promise.all([
+                fetch('/api/products'),
+                fetch('/api/vendors'),
+                fetch('/api/purchase-orders'),
+            ]);
 
-      if (response.ok) {
-        const data = await response.json();
+            if (productsRes.ok) {
+                const allProducts = await productsRes.json();
+                // Filter low stock items
+                const lowStock = allProducts.filter((p: Product) => p.stock <= p.reorderLevel);
+                setLowStockProducts(lowStock);
+            }
 
-        const items: RestockItem[] = data.map((product: any) => {
-          const reorderPoint = product.reorderLevel ?? 10;
-          const suggestedQty = Math.max(50, reorderPoint * 3);
-          const unitCost = Number(product.costPrice) ?? 0;
-
-          return {
-            inventory_id: product.id,
-            product_name: product.name,
-            current_stock: product.stock ?? 0,
-            reorder_point: reorderPoint,
-            suggested_quantity: suggestedQty,
-            unit_cost: unitCost,
-            total_cost: unitCost * suggestedQty,
-          };
-        });
-
-        setLowStockItems(items);
-        setSelectedItems(items.map(i => i.inventory_id));
-      } else {
-        console.error('Failed to fetch low stock items');
-      }
-    } catch (error) {
-      console.error('Error loading low stock items:', error);
-      toast.error('Something went wrong loading data');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function generatePurchaseOrder() {
-    const selected = lowStockItems.filter(i => selectedItems.includes(i.inventory_id));
-    const totalCost = selected.reduce((sum, item) => sum + item.total_cost, 0);
-
-    return `
-PURCHASE ORDER
-Date: ${new Date().toLocaleDateString()}
-
-Items:
-${selected.map((item, idx) =>
-      `${idx + 1}. ${item.product_name}
-   Quantity: ${item.suggested_quantity} units
-   Unit Cost: $${item.unit_cost.toFixed(2)}
-   Total: $${item.total_cost.toFixed(2)}`
-    ).join('\n\n')}
-
-TOTAL ORDER VALUE: $${totalCost.toFixed(2)}
-
-Please confirm availability and delivery timeline.
-
-Thank you!
-    `.trim();
-  }
-
-  async function sendPurchaseOrder() {
-    if (!vendorEmail || selectedItems.length === 0) {
-      toast.error('Please enter vendor email and select items');
-      return;
+            if (vendorsRes.ok) setVendors(await vendorsRes.json());
+            if (posRes.ok) setPurchaseOrders(await posRes.json());
+        } catch (error) {
+            console.error('Error loading data:', error);
+            toast.error('Failed to load data');
+        } finally {
+            setLoading(false);
+        }
     }
 
-    setSending(true);
-    const loadingToast = toast.loading('Sending purchase order...');
-
-    try {
-      const po = generatePurchaseOrder();
-      const response = await fetch('/api/email/send-po', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: vendorEmail,
-          subject: `Purchase Order - ${new Date().toLocaleDateString()}`,
-          message: po
-        })
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        toast.success('Purchase order sent successfully!', { id: loadingToast });
-        setVendorEmail('');
-        setSelectedItems([]);
-      } else {
-        toast.error('Failed to send email', { id: loadingToast });
-      }
-    } catch (error) {
-      toast.error('Error sending purchase order', { id: loadingToast });
-    } finally {
-      setSending(false);
+    function toggleProduct(product: Product) {
+        const newSelected = new Map(selectedItems);
+        if (newSelected.has(product.id)) {
+            newSelected.delete(product.id);
+        } else {
+            // Suggest reorder quantity (3x reorder level or 50, whichever is higher)
+            const suggestedQty = Math.max(product.reorderLevel * 3, 50);
+            newSelected.set(product.id, suggestedQty);
+        }
+        setSelectedItems(newSelected);
     }
-  }
 
-  if (loading) {
+    function updateQuantity(productId: string, qty: number) {
+        const newSelected = new Map(selectedItems);
+        newSelected.set(productId, qty);
+        setSelectedItems(newSelected);
+    }
+
+    async function createPurchaseOrder() {
+        if (!selectedVendor || selectedItems.size === 0) {
+            toast.error('Please select vendor and items');
+            return;
+        }
+
+        const items = lowStockProducts
+            .filter((p) => selectedItems.has(p.id))
+            .map((p) => ({
+                productId: p.id,
+                quantity: selectedItems.get(p.id)!,
+                unitCost: p.costPrice,
+            }));
+
+        try {
+            const res = await fetch('/api/purchase-orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    vendorId: selectedVendor,
+                    items,
+                    notes: 'Restock order for low inventory items',
+                }),
+            });
+
+            if (res.ok) {
+                const po = await res.json();
+                toast.success(`Purchase Order ${po.orderNumber} created!`);
+                setSelectedItems(new Map());
+                loadData();
+            }
+        } catch (error) {
+            toast.error('Failed to create purchase order');
+        }
+    }
+
+    async function sendPO(poId: string) {
+        try {
+            const res = await fetch(`/api/purchase-orders/${poId}/send`, {
+                method: 'POST',
+            });
+
+            if (res.ok) {
+                toast.success('Purchase order sent to vendor!');
+                loadData();
+            }
+        } catch (error) {
+            toast.error('Failed to send PO');
+        }
+    }
+
+    async function receivePO(poId: string) {
+        if (!confirm('Mark this PO as received? This will update inventory.')) return;
+
+        try {
+            const res = await fetch(`/api/purchase-orders/${poId}/receive`, {
+                method: 'POST',
+            });
+
+            if (res.ok) {
+                toast.success('Purchase order received! Inventory updated.');
+                loadData();
+            }
+        } catch (error) {
+            toast.error('Failed to receive PO');
+        }
+    }
+
+    if (loading) return <div className="p-8">Loading restock data...</div>;
+
+    const totalSelected = Array.from(selectedItems.values()).reduce((sum, qty) => sum + qty, 0);
+    const totalCost = lowStockProducts
+        .filter((p) => selectedItems.has(p.id))
+        .reduce((sum, p) => sum + p.costPrice * selectedItems.get(p.id)!, 0);
+
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">Loading low stock items...</div>
-      </div>
-    );
-  }
+        <div className="p-8">
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900">Restock Management</h1>
+                <p className="text-gray-500 mt-1">Generate purchase orders for low stock items</p>
+            </div>
 
-  const selected = lowStockItems.filter(i => selectedItems.includes(i.inventory_id));
-  const totalOrderCost = selected.reduce((sum, item) => sum + item.total_cost, 0);
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Low Stock Items */}
+                <div className="lg:col-span-2 bg-white rounded-lg shadow">
+                    <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h2 className="text-lg font-semibold">Low Stock Items ({lowStockProducts.length})</h2>
+                        <div className="text-sm text-gray-500">
+                            {selectedItems.size} selected | {totalSelected} units | ${totalCost.toFixed(2)}
+                        </div>
+                    </div>
 
-  return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Vendor Restock</h1>
-        <p className="text-gray-500 mt-2">Items below reorder point - generate and send purchase orders</p>
-      </div>
+                    <div className="p-6 space-y-3">
+                        {lowStockProducts.map((product) => {
+                            const isSelected = selectedItems.has(product.id);
+                            const quantity = selectedItems.get(product.id) || 0;
 
-      {lowStockItems.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">All stocked up!</h3>
-          <p className="text-gray-500">No products currently below reorder level.</p>
+                            return (
+                                <div
+                                    key={product.id}
+                                    className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                    onClick={() => toggleProduct(product)}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => { }}
+                                        className="w-5 h-5"
+                                    />
+
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-gray-900">{product.name}</h3>
+                                        <p className="text-sm text-gray-500">SKU: {product.sku}</p>
+                                    </div>
+
+                                    <div className="text-center">
+                                        <div className="text-xs text-gray-500">Current</div>
+                                        <div className="font-mono font-bold text-red-600">{product.stock}</div>
+                                    </div>
+
+                                    <div className="text-center">
+                                        <div className="text-xs text-gray-500">Reorder Level</div>
+                                        <div className="font-mono">{product.reorderLevel}</div>
+                                    </div>
+
+                                    {isSelected && (
+                                        <div onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="number"
+                                                value={quantity}
+                                                onChange={(e) => updateQuantity(product.id, parseInt(e.target.value) || 0)}
+                                                className="w-24 border border-gray-300 rounded-lg px-3 py-2 font-mono"
+                                                placeholder="Qty"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="text-right">
+                                        <div className="text-xs text-gray-500">Unit Cost</div>
+                                        <div className="font-mono font-semibold">${product.costPrice.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {lowStockProducts.length === 0 && (
+                            <div className="text-center py-12 text-gray-500">
+                                <Package size={48} className="mx-auto mb-4 text-gray-300" />
+                                <p>All items are adequately stocked!</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Create Purchase Order */}
+                <div>
+                    <div className="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 className="text-lg font-semibold mb-4">Create Purchase Order</h2>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
+                                <select
+                                    value={selectedVendor}
+                                    onChange={(e) => setSelectedVendor(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                                >
+                                    <option value="">Select Vendor</option>
+                                    {vendors.map((v) => (
+                                        <option key={v.id} value={v.id}>
+                                            {v.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="border-t pt-4">
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span>Items:</span>
+                                    <span className="font-semibold">{selectedItems.size}</span>
+                                </div>
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span>Total Units:</span>
+                                    <span className="font-semibold">{totalSelected}</span>
+                                </div>
+                                <div className="flex justify-between text-lg font-bold">
+                                    <span>Total Cost:</span>
+                                    <span>${totalCost.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={createPurchaseOrder}
+                                disabled={!selectedVendor || selectedItems.size === 0}
+                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-3 flex rounded-lg flex items-center justify-center gap-2"
+                            >
+                                <ShoppingCart size={20} />
+                                Create Purchase Order
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Recent Purchase Orders */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h2 className="text-lg font-semibold mb-4">Recent Purchase Orders</h2>
+                        <div className="space-y-3">
+                            {purchaseOrders.slice(0, 5).map((po) => (
+                                <div key={po.id} className="border border-gray-200 rounded-lg p-3">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-semibold">{po.orderNumber}</div>
+                                            <div className="text-sm text-gray-500">{po.vendor?.name}</div>
+                                        </div>
+                                        <span
+                                            className={`px-2 py-1 rounded-full text-xs font-medium ${po.status === 'received'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : po.status === 'sent'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-yellow-100 text-yellow-800'
+                                                }`}
+                                        >
+                                            {po.status}
+                                        </span>
+                                    </div>
+
+                                    <div className="text-sm font-mono font-semibold mb-2">${po.totalAmount.toFixed(2)}</div>
+
+                                    {po.status === 'draft' && (
+                                        <button
+                                            onClick={() => sendPO(po.id)}
+                                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                        >
+                                            <Send size={14} />
+                                            Send to Vendor
+                                        </button>
+                                    )}
+
+                                    {po.status === 'sent' && (
+                                        <button
+                                            onClick={() => receivePO(po.id)}
+                                            className="text-sm text-green-600 hover:text-green-800 flex items-center gap-1"
+                                        >
+                                            <CheckCircle size={14} />
+                                            Mark as Received
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      ) : (
-        <>
-          {/* Alert Banner */}
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              <div>
-                <p className="text-sm font-medium text-yellow-800">
-                  {lowStockItems.length} items need restocking
-                </p>
-                <p className="text-xs text-yellow-700 mt-1">
-                  Review and send purchase order to your vendor
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Items Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.length === lowStockItems.length}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedItems(lowStockItems.map(i => i.inventory_id));
-                        } else {
-                          setSelectedItems([]);
-                        }
-                      }}
-                      className="rounded"
-                    />
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Current</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reorder Point</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Suggested Qty</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit Cost</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {lowStockItems.map((item) => (
-                  <tr key={item.inventory_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.inventory_id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedItems([...selectedItems, item.inventory_id]);
-                          } else {
-                            setSelectedItems(selectedItems.filter(id => id !== item.inventory_id));
-                          }
-                        }}
-                        className="rounded"
-                      />
-                    </td>
-                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{item.product_name}</td>
-                    <td className="px-6 py-3">
-                      <span className={`text-sm font-semibold ${item.current_stock === 0 ? 'text-red-600' : 'text-orange-600'}`}>
-                        {item.current_stock}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-500">{item.reorder_point}</td>
-                    <td className="px-6 py-3 text-sm font-semibold text-blue-600">{item.suggested_quantity}</td>
-                    <td className="px-6 py-3 text-sm text-gray-600">${item.unit_cost.toFixed(2)}</td>
-                    <td className="px-6 py-3 text-sm font-semibold text-gray-900">${item.total_cost.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Purchase Order Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Generate Purchase Order</h2>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Vendor Email
-              </label>
-              <input
-                type="email"
-                value={vendorEmail}
-                onChange={(e) => setVendorEmail(e.target.value)}
-                placeholder="vendor@example.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-gray-600">Selected Items:</span>
-                <span className="font-semibold text-gray-900">{selectedItems.length}</span>
-              </div>
-              <div className="flex items-center justify-between text-lg">
-                <span className="font-semibold text-gray-900">Total Order Cost:</span>
-                <span className="font-bold text-blue-600">${totalOrderCost.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={sendPurchaseOrder}
-              disabled={sending || selectedItems.length === 0 || !vendorEmail}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
-            >
-              <Mail className="w-5 h-5" />
-              {sending ? 'Sending...' : 'Send Purchase Order'}
-            </button>
-
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <div className="text-xs font-semibold text-gray-500 mb-2">Preview:</div>
-              <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
-                {selectedItems.length > 0 ? generatePurchaseOrder() : 'Select items to preview purchase order'}
-              </pre>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
+    );
 }

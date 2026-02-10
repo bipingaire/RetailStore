@@ -1,418 +1,427 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
-import { Loader2, UploadCloud, Save, Trash2, Plus, FileText, Truck, Receipt, Calendar, User, CheckSquare, Clock } from 'lucide-react';
-import { toast } from 'sonner';
-import { useTenant } from '@/lib/hooks/useTenant';
+import { useState, useEffect } from 'react';
+import { Upload, FileText, Check, X, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-const PDFJS_WORKER_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-
+type Invoice = {
+  id: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  vendorId: string;
+  vendor?: { name: string };
+  totalAmount: number;
+  status: string;
+  fileUrl?: string;
+};
 
 type InvoiceItem = {
-  id: string;
-  product_name: string;
-  notes?: string;
-  vendor_code?: string;
-  upc?: string;
-  qty: number;
-  unit_cost: number;
-  expiry?: string;
+  productId: string;
+  quantity: number;
+  unitCost: number;
 };
 
-type VendorData = {
-  name: string;
-  ein: string;
-  address: string;
-  website: string;
-  email: string;
-  phone: string;
-  fax: string;
-  poc_name: string;
-};
+export default function InvoicesPage() {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [parsedData, setParsedData] = useState<any>(null);
+  const [editingInvoice, setEditingInvoice] = useState<string | null>(null);
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
 
-type InvoiceMetadata = {
-  vendor_name: string;
-  invoice_number: string;
-  invoice_date: string;
-  total_tax: number;
-  total_transport: number;
-  total_amount: number;
-};
-
-type InvoiceRecord = {
-  id: string;
-  vendor_name: string;
-  invoice_number: string;
-  invoice_date: string;
-  total_amount: number;
-  created_at: string;
-  status: string;
-};
-
-export default function InvoicePage() {
-  // Supabase removed - refactor needed
-  const { tenantId: TENANT_ID } = useTenant();
-  const [uploading, setUploading] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState('');
-  const [items, setItems] = useState<InvoiceItem[]>([]);
-  const [vendorData, setVendorData] = useState<VendorData>({
-    name: '', ein: '', address: '', website: '', email: '', phone: '', fax: '', poc_name: ''
+  // Form state
+  const [formData, setFormData] = useState({
+    vendorId: '',
+    invoiceNumber: '',
+    invoiceDate: new Date().toISOString().split('T')[0],
+    totalAmount: 0,
   });
-  const [metadata, setMetadata] = useState<InvoiceMetadata>({
-    vendor_name: '', invoice_number: '', invoice_date: new Date().toISOString().split('T')[0],
-    total_tax: 0, total_transport: 0, total_amount: 0
-  });
-  const [history, setHistory] = useState<InvoiceRecord[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = PDFJS_CDN;
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
+    loadData();
   }, []);
 
-  useEffect(() => {
-    if (TENANT_ID) fetchHistory();
-  }, [TENANT_ID]);
+  async function loadData() {
+    try {
+      const [invoicesRes, vendorsRes, productsRes] = await Promise.all([
+        fetch('/api/invoices'),
+        fetch('/api/vendors'),
+        fetch('/api/products'),
+      ]);
 
-  const fetchHistory = async () => {
-    if (!TENANT_ID || TENANT_ID.includes('PASTE')) return;
-    const { data } = await supabase
-      .from('uploaded-vendor-invoice-document')
-      .select('invoice-id, supplier-name, invoice-number, invoice-date, total-amount-value, created-at, processing-status')
-      .eq('tenant-id', TENANT_ID)
-      .order('created-at', { ascending: false })
-      .limit(10);
-
-    if (data) {
-      const mappedHistory = data.map((d: any) => ({
-        id: d['invoice-id'],
-        vendor_name: d['supplier-name'],
-        invoice_number: d['invoice-number'],
-        invoice_date: d['invoice-date'],
-        total_amount: d['total-amount-value'],
-        created_at: d['created-at'],
-        status: d['processing-status']
-      }));
-      setHistory(mappedHistory);
+      if (invoicesRes.ok) setInvoices(await invoicesRes.json());
+      if (vendorsRes.ok) setVendors(await vendorsRes.json());
+      if (productsRes.ok) setProducts(await productsRes.json());
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Failed to load data');
+    } finally {
+      setLoading(false);
     }
-    setLoadingHistory(false);
-  };
+  }
 
-  const convertPdfToImages = async (file: File): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async function () {
-        try {
-          // @ts-ignore
-          const pdfjsLib = window['pdfjs-dist/build/pdf'];
-          pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN;
-          const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result as ArrayBuffer)).promise;
-          const images: string[] = [];
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const viewport = page.getViewport({ scale: 1.5 });
-            const canvas = document.createElement('canvas');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            await page.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise;
-            images.push(canvas.toDataURL('image/jpeg'));
-          }
-          resolve(images);
-        } catch (e) { reject(e); }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  };
-
-  const handleInvoiceUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!TENANT_ID) {
-      toast.error('Configuration error: No tenant ID found');
-      return;
-    }
+    setSelectedFile(file);
 
-    setUploading(true);
-    setProcessingStatus('Initializing...');
-    let imagesToProcess: string[] = [];
+    // Parse invoice using OCR (mock for now)
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      if (file.type.includes('pdf')) {
-        setProcessingStatus('Converting PDF...');
-        imagesToProcess = await convertPdfToImages(file);
-      } else {
-        const reader = new FileReader();
-        const base64 = await new Promise<string>(r => { reader.onload = e => r(e.target?.result as string); reader.readAsDataURL(file); });
-        imagesToProcess = [base64];
+      const res = await fetch('/api/invoices/parse', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const parsed = await res.json();
+        setParsedData(parsed);
+        toast.success('Invoice parsed! Please review and confirm.');
       }
-
-      let aggregatedItems: InvoiceItem[] = [];
-      let lastMetadata: Partial<InvoiceMetadata> = {};
-      let lastVendorData: Partial<VendorData> = {};
-
-      for (let i = 0; i < imagesToProcess.length; i++) {
-        setProcessingStatus(`Scanning Page ${i + 1}/${imagesToProcess.length}...`);
-        const res = await fetch('/api/parse-invoice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileData: imagesToProcess[i], fileType: 'image' }),
-        });
-        const json = await res.json();
-
-        if (json.success) {
-          aggregatedItems = [...aggregatedItems, ...json.data.items.map((item: any) => ({ ...item, id: Math.random().toString(36).substr(2, 9), expiry: '' }))];
-          const pageMeta = json.data.metadata || {};
-          lastMetadata = { ...lastMetadata, ...pageMeta };
-          const pageVendor = json.data.vendor || {};
-          lastVendorData = { ...lastVendorData, ...pageVendor };
-        }
-      }
-
-      setItems(prev => [...prev, ...aggregatedItems]);
-      setMetadata(prev => ({ ...prev, ...lastMetadata } as any));
-      setVendorData(prev => ({ ...prev, ...lastVendorData } as any));
-      setProcessingStatus('Complete!');
-    } catch (err: any) {
-      toast.error("Scan failed: " + err.message);
-    } finally {
-      setUploading(false);
-      setProcessingStatus('');
+    } catch (error) {
+      toast.error('Failed to parse invoice');
     }
-  };
+  }
 
-  const updateItem = (id: string, field: keyof InvoiceItem, value: any) => setItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
-  const deleteItem = (id: string) => setItems(prev => prev.filter(item => item.id !== id));
-  const applyExpiryBatch = (days: number) => {
-    const date = new Date(); date.setDate(date.getDate() + days);
-    setItems(prev => prev.map(item => item.expiry ? item : { ...item, expiry: date.toISOString().split('T')[0] }));
-  };
-  const setItemExpiry = (id: string, days: number) => {
-    const date = new Date(); date.setDate(date.getDate() + days);
-    updateItem(id, 'expiry', date.toISOString().split('T')[0]);
-  };
+  async function handleCreateInvoice() {
+    try {
+      const formDataToSend = new FormData();
+      if (selectedFile) formDataToSend.append('file', selectedFile);
+      formDataToSend.append('vendorId', formData.vendorId);
+      formDataToSend.append('invoiceNumber', formData.invoiceNumber);
+      formDataToSend.append('invoiceDate', formData.invoiceDate);
+      formDataToSend.append('totalAmount', formData.totalAmount.toString());
 
-  const handleSave = async () => {
-    if (items.length === 0) return toast.error("No items to save.");
+      const res = await fetch('/api/invoices/upload', {
+        method: 'POST',
+        body: formDataToSend,
+      });
 
-    // TODO: Connect to Real Backend API
-    // Currently mocking save to fix build errors
+      if (res.ok) {
+        const invoice = await res.json();
+        toast.success('Invoice created!');
+        setEditingInvoice(invoice.id);
+        setShowUploadModal(false);
+        loadData();
+      }
+    } catch (error) {
+      toast.error('Failed to create invoice');
+    }
+  }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  async function handleAddItems(invoiceId: string) {
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: invoiceItems }),
+      });
 
-    toast.success("Invoice Saved Successfully (Mock)");
+      if (res.ok) {
+        toast.success('Items added!');
+        setInvoiceItems([]);
+      }
+    } catch (error) {
+      toast.error('Failed to add items');
+    }
+  }
 
-    // Reset form after 'saving'
-    setItems([]);
-    setMetadata({ vendor_name: '', invoice_number: '', invoice_date: new Date().toISOString().split('T')[0], total_tax: 0, total_transport: 0, total_amount: 0 });
-    setVendorData({ name: '', ein: '', address: '', website: '', email: '', phone: '', fax: '', poc_name: '' });
+  async function handleCommitInvoice(invoiceId: string) {
+    if (!confirm('This will add the invoice items to inventory. Continue?')) return;
 
-    // Mock fetch history update
-    // fetchHistory(); 
-  };
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}/commit`, {
+        method: 'POST',
+      });
+
+      if (res.ok) {
+        toast.success('Invoice committed! Inventory updated.');
+        loadData();
+        setEditingInvoice(null);
+      }
+    } catch (error) {
+      toast.error('Failed to commit invoice');
+    }
+  }
+
+  function addItemRow() {
+    setInvoiceItems([...invoiceItems, { productId: '', quantity: 1, unitCost: 0 }]);
+  }
+
+  function updateItem(index: number, field: keyof InvoiceItem, value: any) {
+    const updated = [...invoiceItems];
+    updated[index][field] = value;
+    setInvoiceItems(updated);
+  }
+
+  function removeItem(index: number) {
+    setInvoiceItems(invoiceItems.filter((_, i) => i !== index));
+  }
+
+  if (loading) return <div className="p-8">Loading invoices...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
-
-        {/* HEADER */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-              <FileText className="text-blue-600" size={28} />
-              Invoice Scanner
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">Digitize invoices and update stock automatically.</p>
-          </div>
-          <div className="flex gap-3">
-            <input type="file" multiple ref={fileInputRef} className="hidden" accept=".pdf,image/*" onChange={handleInvoiceUpload} />
-            <button onClick={() => fileInputRef.current?.click()} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-shadow shadow-sm hover:shadow-md" disabled={uploading}>
-              {uploading ? <Loader2 className="animate-spin" size={18} /> : <UploadCloud size={18} />}
-              Scan New Invoice
-            </button>
-          </div>
+    <div className="p-8">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Inventory In - Invoice Management</h1>
+          <p className="text-gray-500 mt-1">Upload vendor invoices to track incoming inventory</p>
         </div>
+        <button
+          onClick={() => setShowUploadModal(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
+        >
+          <Upload size={20} />
+          Upload Invoice
+        </button>
+      </div>
 
-        {uploading && (
-          <div className="bg-blue-50 border border-blue-100 text-blue-700 p-4 rounded-xl flex items-center gap-3 animate-pulse">
-            <Loader2 className="animate-spin" size={20} />
-            <span className="font-medium text-sm">{processingStatus}</span>
-          </div>
-        )}
-
-        {items.length > 0 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-
-            {/* META CARD */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
-                <User size={18} className="text-blue-600" />
-                <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wide">Vendor & Invoice Info</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500">Company Name</label>
-                  <input className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-semibold text-gray-900 focus:bg-white transition-colors" value={vendorData.name || metadata.vendor_name} onChange={e => { setVendorData({ ...vendorData, name: e.target.value }); setMetadata({ ...metadata, vendor_name: e.target.value }); }} />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500">Invoice #</label>
-                  <input className="w-full border border-gray-200 rounded-lg px-3 py-2 font-mono text-sm" value={metadata.invoice_number} onChange={e => setMetadata({ ...metadata, invoice_number: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500">Date</label>
-                  <input type="date" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" value={metadata.invoice_date} onChange={e => setMetadata({ ...metadata, invoice_date: e.target.value })} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-6 mt-6 pt-6 border-t border-gray-100 bg-gray-50/50 -mx-6 px-6 pb-2">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-500">Tax</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
-                    <input type="number" className="w-full border border-gray-200 rounded-lg pl-6 py-2 text-sm" value={metadata.total_tax} onChange={(e) => setMetadata({ ...metadata, total_tax: parseFloat(e.target.value) })} />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-500 flex items-center gap-1"><Truck size={12} /> Transport</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
-                    <input type="number" className="w-full border border-gray-200 rounded-lg pl-6 py-2 text-sm" value={metadata.total_transport} onChange={(e) => setMetadata({ ...metadata, total_transport: parseFloat(e.target.value) })} />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-700">Grand Total</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-900 text-sm font-bold">$</span>
-                    <input type="number" className="w-full border border-blue-200 bg-blue-50/50 rounded-lg pl-6 py-2 text-sm font-bold text-blue-700" value={metadata.total_amount} onChange={(e) => setMetadata({ ...metadata, total_amount: parseFloat(e.target.value) })} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* TABLE CARD */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-3 bg-gray-50/50 border-b border-gray-200 flex justify-between items-center">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                  <CheckSquare size={14} /> Line Items
-                </div>
-                <div className="flex gap-2">
-                  {[7, 30, 365].map(d => (
-                    <button key={d} onClick={() => applyExpiryBatch(d)} className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 px-3 py-1 rounded-md text-xs font-medium transition-colors">
-                      +{d} Days
+      {/* Invoice List */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold">Recent Invoices</h2>
+        </div>
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {invoices.map((invoice) => (
+              <tr key={invoice.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoiceNumber}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{invoice.vendor?.name || 'N/A'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  {new Date(invoice.invoiceDate).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900 font-mono">${invoice.totalAmount.toFixed(2)}</td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${invoice.status === 'committed'
+                        ? 'bg-green-100 text-green-800'
+                        : invoice.status === 'validated'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                  >
+                    {invoice.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm">
+                  {invoice.status === 'pending' && (
+                    <button
+                      onClick={() => setEditingInvoice(invoice.id)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Add Items
                     </button>
-                  ))}
-                </div>
-              </div>
+                  )}
+                  {invoice.status === 'validated' && (
+                    <button
+                      onClick={() => handleCommitInvoice(invoice.id)}
+                      className="text-green-600 hover:text-green-800 flex items-center gap-1"
+                    >
+                      <Check size={16} />
+                      Commit
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 font-medium">Product</th>
-                    <th className="px-6 py-3 font-medium">Codes (SKU/UPC)</th>
-                    <th className="px-6 py-3 font-medium text-center w-24">Qty</th>
-                    <th className="px-6 py-3 font-medium text-right w-32">Unit Cost</th>
-                    <th className="px-6 py-3 font-medium w-48">Expiry</th>
-                    <th className="px-6 py-3 w-10"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {items.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50/80 group transition-colors">
-                      <td className="px-6 py-3">
-                        <input className="w-full bg-transparent border-none p-0 font-medium text-gray-900 focus:ring-0 placeholder-gray-400" value={item.product_name} onChange={e => updateItem(item.id, 'product_name', e.target.value)} placeholder="Product Name" />
-                      </td>
-                      <td className="px-6 py-3 space-y-1">
-                        <input className="block w-24 text-xs font-mono bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5" placeholder="SKU" value={item.vendor_code || ''} onChange={e => updateItem(item.id, 'vendor_code', e.target.value)} />
-                        <input className="block w-24 text-xs font-mono bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5" placeholder="UPC" value={item.upc || ''} onChange={e => updateItem(item.id, 'upc', e.target.value)} />
-                      </td>
-                      <td className="px-6 py-3">
-                        <input type="number" className="w-full border border-gray-200 rounded p-1.5 text-center font-semibold text-gray-900" value={item.qty} onChange={e => updateItem(item.id, 'qty', parseFloat(e.target.value))} />
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <div className="relative">
-                          <span className="absolute left-2 top-1.5 text-gray-400 text-xs">$</span>
-                          <input type="number" className="w-full border border-gray-200 rounded p-1.5 pl-5 text-right font-mono" value={item.unit_cost} onChange={e => updateItem(item.id, 'unit_cost', parseFloat(e.target.value))} />
-                        </div>
-                      </td>
-                      <td className="px-6 py-3">
-                        <input type="date" className={`w-full border rounded p-1.5 text-xs ${!item.expiry ? 'border-red-300 bg-red-50 text-red-900' : 'border-gray-200'}`} value={item.expiry || ''} onChange={e => updateItem(item.id, 'expiry', e.target.value)} />
-                        <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {[7, 30, 365].map(d => (
-                            <button key={d} onClick={() => setItemExpiry(item.id, d)} className="text-[10px] bg-gray-100 px-1.5 rounded text-gray-500 hover:text-gray-900">+{d}d</button>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3 text-center">
-                        <button onClick={() => deleteItem(item.id)} className="text-gray-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="p-3 bg-gray-50/50 border-t border-gray-200 flex justify-center">
-                <button onClick={() => setItems([...items, { id: Date.now().toString(), product_name: 'New Item', qty: 1, unit_cost: 0 }])} className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-blue-50 transition-colors">
-                  <Plus size={14} /> Add Manual Row
-                </button>
-              </div>
-            </div>
-
-            <div className="sticky bottom-6 flex justify-end">
-              <button onClick={handleSave} className="bg-gray-900 text-white px-8 py-3 rounded-full font-bold text-sm shadow-xl hover:bg-gray-800 transition-transform active:scale-95 flex items-center gap-2">
-                <Save size={18} /> Confirm & Update Inventory
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Upload New Invoice</h2>
+              <button onClick={() => setShowUploadModal(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
               </button>
             </div>
 
-          </div>
-        )}
-
-        {/* HISTORY */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Clock size={20} className="text-gray-400" /> Recent Scans
-          </h2>
-          {loadingHistory ? (
-            <div className="text-sm text-gray-400">Loading history...</div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50/50 text-gray-500 font-medium">
-                  <tr>
-                    <th className="px-6 py-3">Date</th>
-                    <th className="px-6 py-3">Vendor</th>
-                    <th className="px-6 py-3">Invoice #</th>
-                    <th className="px-6 py-3 text-right">Total</th>
-                    <th className="px-6 py-3 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {history.map(inv => (
-                    <tr key={inv.id} className="hover:bg-gray-50/50">
-                      <td className="px-6 py-3 text-gray-600">{new Date(inv.created_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-3 font-semibold text-gray-900">{inv.vendor_name}</td>
-                      <td className="px-6 py-3 font-mono text-xs text-gray-500">{inv.invoice_number || '-'}</td>
-                      <td className="px-6 py-3 text-right font-medium">${inv.total_amount?.toFixed(2)}</td>
-                      <td className="px-6 py-3 text-right">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 uppercase">
-                          {inv.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {history.length === 0 && <div className="p-12 text-center text-gray-400 text-sm">No recent invoice history found.</div>}
+            {/* File Upload */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Upload Invoice File</label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-600">
+                    {selectedFile ? selectedFile.name : 'Click to upload invoice (PDF or Image)'}
+                  </p>
+                </label>
+              </div>
             </div>
-          )}
-        </div>
 
-      </div>
+            {/* Invoice Details Form */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
+                <select
+                  value={formData.vendorId}
+                  onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                >
+                  <option value="">Select Vendor</option>
+                  {vendors.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
+                  <input
+                    type="text"
+                    value={formData.invoiceNumber}
+                    onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                    placeholder="INV-001"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
+                  <input
+                    type="date"
+                    value={formData.invoiceDate}
+                    onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.totalAmount}
+                  onChange={(e) => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) })}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleCreateInvoice}
+                disabled={!formData.vendorId || !formData.invoiceNumber}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
+              >
+                Create Invoice
+              </button>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Items Modal */}
+      {editingInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Add Invoice Items</h2>
+              <button onClick={() => setEditingInvoice(null)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              {invoiceItems.map((item, index) => (
+                <div key={index} className="flex gap-4 items-start">
+                  <select
+                    value={item.productId}
+                    onChange={(e) => updateItem(index, 'productId', e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
+                  >
+                    <option value="">Select Product</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.sku})
+                      </option>
+                    ))}
+                  </select>
+
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
+                    placeholder="Qty"
+                    className="w-24 border border-gray-300 rounded-lg px-4 py-2"
+                  />
+
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={item.unitCost}
+                    onChange={(e) => updateItem(index, 'unitCost', parseFloat(e.target.value))}
+                    placeholder="Unit Cost"
+                    className="w-32 border border-gray-300 rounded-lg px-4 py-2"
+                  />
+
+                  <span className="w-32 py-2 text-right font-mono">
+                    ${(item.quantity * item.unitCost).toFixed(2)}
+                  </span>
+
+                  <button onClick={() => removeItem(index)} className="text-red-600 hover:text-red-800 p-2">
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={addItemRow}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <Plus size={20} />
+                Add Item
+              </button>
+
+              <button
+                onClick={() => handleAddItems(editingInvoice)}
+                disabled={invoiceItems.length === 0}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
+              >
+                Save Items & Validate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

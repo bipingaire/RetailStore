@@ -6,16 +6,16 @@ export declare class SaleController {
     create(subdomain: string, req: any, dto: CreateSaleDto): Promise<{
         items: {
             id: string;
-            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
-            quantity: number;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             productId: string;
+            quantity: number;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -27,16 +27,16 @@ export declare class SaleController {
     findAll(subdomain: string, status?: string, startDate?: string, endDate?: string, userId?: string, customerId?: string, limit?: string, offset?: string): Promise<({
         items: {
             id: string;
-            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
-            quantity: number;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             productId: string;
+            quantity: number;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -52,16 +52,16 @@ export declare class SaleController {
     findOne(subdomain: string, id: string): Promise<{
         items: {
             id: string;
-            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
-            quantity: number;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             productId: string;
+            quantity: number;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -72,8 +72,8 @@ export declare class SaleController {
     }>;
     cancel(subdomain: string, id: string, req: any): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;

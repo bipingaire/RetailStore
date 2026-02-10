@@ -1,314 +1,394 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Package, Sparkles, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { calculateProfitMetrics, ProfitMetrics } from '@/lib/analytics/profit-calculator';
+import { TrendingUp, DollarSign, ShoppingBag, TrendingDown, Plus } from 'lucide-react';
+import { Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+import { toast } from 'react-hot-toast';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function ProfitLossPage() {
-    // Supabase removed - refactor needed
-    const [metrics, setMetrics] = useState<ProfitMetrics | null>(null);
+    const [reports, setReports] = useState<any[]>([]);
+    const [expenses, setExpenses] = useState<any[]>([]);
+    const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
     const [loading, setLoading] = useState(true);
-    const [dateRange, setDateRange] = useState('30');
+    const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [expenseForm, setExpenseForm] = useState({
+        category: 'rent',
+        amount: 0,
+        description: '',
+        expenseDate: new Date().toISOString().split('T')[0],
+    });
 
     useEffect(() => {
-        loadMetrics();
-    }, [dateRange]);
+        loadData();
+    }, [period]);
 
-    async function loadMetrics() {
-        setLoading(true);
+    async function loadData() {
+        try {
+            const [reportsRes, expensesRes] = await Promise.all([
+                fetch(`/api/reports/profit?period=${period}`),
+                fetch('/api/reports/profit/expenses'),
+            ]);
 
-        const endDate = new Date().toISOString();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - parseInt(dateRange));
-
-        const data = await calculateProfitMetrics(
-            supabase,
-            startDate.toISOString(),
-            endDate
-        );
-
-        setMetrics(data);
-        setLoading(false);
+            if (reportsRes.ok) setReports(await reportsRes.json());
+            if (expensesRes.ok) setExpenses(await expensesRes.json());
+        } catch (error) {
+            console.error('Error loading data:', error);
+            toast.error('Failed to load profit data');
+        } finally {
+            setLoading(false);
+        }
     }
 
-    if (loading || !metrics) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 flex items-center justify-center">
-                <div className="relative">
-                    <div className="w-20 h-20 border-4 border-purple-300/30 border-t-purple-500 rounded-full animate-spin"></div>
-                    <DollarSign className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-purple-400 animate-pulse" size={32} />
-                </div>
-            </div>
-        );
+    async function generateReport() {
+        const end = new Date();
+        const start = new Date();
+
+        if (period === 'daily') {
+            start.setDate(end.getDate() - 1);
+        } else if (period === 'weekly') {
+            start.setDate(end.getDate() - 7);
+        } else {
+            start.setMonth(end.getMonth() - 1);
+        }
+
+        try {
+            const res = await fetch('/api/reports/profit/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    startDate: start.toISOString(),
+                    endDate: end.toISOString(),
+                    period,
+                }),
+            });
+
+            if (res.ok) {
+                toast.success('Report generated!');
+                loadData();
+            }
+        } catch (error) {
+            toast.error('Failed to generate report');
+        }
     }
+
+    async function addExpense() {
+        try {
+            const res = await fetch('/api/reports/profit/expense', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(expenseForm),
+            });
+
+            if (res.ok) {
+                toast.success('Expense added!');
+                setShowExpenseModal(false);
+                setExpenseForm({
+                    category: 'rent',
+                    amount: 0,
+                    description: '',
+                    expenseDate: new Date().toISOString().split('T')[0],
+                });
+                loadData();
+            }
+        } catch (error) {
+            toast.error('Failed to add expense');
+        }
+    }
+
+    if (loading) return <div className="p-8">Loading profit & loss data...</div>;
+
+    const latestReport = reports[0];
+    const chartData = {
+        labels: reports.reverse().map((r) => new Date(r.startDate).toLocaleDateString()),
+        datasets: [
+            {
+                label: 'Revenue',
+                data: reports.map((r) => Number(r.revenue)),
+                borderColor: 'rgb(34, 197, 94)',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            },
+            {
+                label: 'Net Profit',
+                data: reports.map((r) => Number(r.netProfit)),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            },
+        ],
+    };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Profit & Loss</h1>
+                    <p className="text-gray-500 mt-1">Bottom line - Track your store's financial performance</p>
+                </div>
 
-                {/* Header */}
-                <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-full blur-3xl"></div>
-                    <div className="relative z-10 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="p-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
-                                <DollarSign className="text-white" size={36} />
-                            </div>
+                <div className="flex gap-3">
+                    <select
+                        value={period}
+                        onChange={(e) => setPeriod(e.target.value as any)}
+                        className="border border-gray-300 rounded-lg px-4 py-2"
+                    >
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+
+                    <button
+                        onClick={() => setShowExpenseModal(true)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
+                    >
+                        <Plus size={20} />
+                        Add Expense
+                    </button>
+
+                    <button
+                        onClick={generateReport}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+                    >
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+
+            {/* Summary Cards */}
+            {latestReport && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-4xl font-bold text-white">Profit & Loss</h1>
-                                <p className="text-purple-200 mt-1">Financial performance overview</p>
+                                <p className="text-sm text-gray-500">Revenue</p>
+                                <p className="text-2xl font-bold text-gray-900">${Number(latestReport.revenue).toFixed(2)}</p>
                             </div>
-                        </div>
-
-                        <select
-                            value={dateRange}
-                            onChange={(e) => setDateRange(e.target.value)}
-                            className="px-6 py-3 bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl text-white font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-                        >
-                            <option value="7" className="bg-slate-800">Last 7 Days</option>
-                            <option value="30" className="bg-slate-800">Last 30 Days</option>
-                            <option value="90" className="bg-slate-800">Last 90 Days</option>
-                            <option value="365" className="bg-slate-800">Last Year</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Key Metrics - Premium Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {/* Revenue */}
-                    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 h-full">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm font-bold text-blue-900 uppercase tracking-wide">Revenue</span>
-                                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
-                                    <DollarSign className="text-white" size={20} />
-                                </div>
-                            </div>
-                            <div className="text-4xl font-black text-blue-900 mb-1">
-                                ${metrics.revenue.toFixed(2)}
-                            </div>
-                            <div className="flex items-center gap-1 text-blue-700">
-                                <ArrowUpRight size={16} />
-                                <span className="text-sm font-semibold">Total Sales</span>
-                            </div>
+                            <DollarSign className="text-green-600" size={32} />
                         </div>
                     </div>
 
-                    {/* COGS */}
-                    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                        <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 h-full">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm font-bold text-orange-900 uppercase tracking-wide">COGS</span>
-                                <div className="p-2 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
-                                    <Package className="text-white" size={20} />
-                                </div>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-500">COGS</p>
+                                <p className="text-2xl font-bold text-gray-900">${Number(latestReport.cogs).toFixed(2)}</p>
                             </div>
-                            <div className="text-4xl font-black text-orange-900 mb-1">
-                                ${metrics.cogs.toFixed(2)}
-                            </div>
-                            <div className="flex items-center gap-1 text-orange-700">
-                                <ArrowDownRight size={16} />
-                                <span className="text-sm font-semibold">Cost of Goods</span>
-                            </div>
+                            <ShoppingBag className="text-orange-600" size={32} />
                         </div>
                     </div>
 
-                    {/* Gross Profit */}
-                    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 h-full">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm font-bold text-emerald-900 uppercase tracking-wide">Gross Profit</span>
-                                <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
-                                    <TrendingUp className="text-white" size={20} />
-                                </div>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-500">Gross Profit</p>
+                                <p className="text-2xl font-bold text-green-600">${Number(latestReport.grossProfit).toFixed(2)}</p>
+                                <p className="text-xs text-gray-500 mt-1">{Number(latestReport.grossMargin).toFixed(1)}% margin</p>
                             </div>
-                            <div className="text-4xl font-black text-emerald-900 mb-1">
-                                ${metrics.grossProfit.toFixed(2)}
-                            </div>
-                            <div className="text-sm font-semibold text-emerald-700">
-                                Margin: {metrics.grossMargin.toFixed(1)}%
-                            </div>
+                            <TrendingUp className="text-green-600" size={32} />
                         </div>
                     </div>
 
-                    {/* Net Profit */}
-                    <div className={`group relative overflow-hidden rounded-2xl p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 ${metrics.netProfit >= 0
-                            ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                            : 'bg-gradient-to-br from-red-500 to-rose-600'
-                        }`}>
-                        <div className={`rounded-2xl p-6 h-full ${metrics.netProfit >= 0
-                                ? 'bg-gradient-to-br from-purple-50 to-pink-50'
-                                : 'bg-gradient-to-br from-red-50 to-rose-50'
-                            }`}>
-                            <div className="flex items-center justify-between mb-4">
-                                <span className={`text-sm font-bold uppercase tracking-wide ${metrics.netProfit >= 0 ? 'text-purple-900' : 'text-red-900'
-                                    }`}>Net Profit</span>
-                                <div className={`p-2 rounded-lg ${metrics.netProfit >= 0
-                                        ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                                        : 'bg-gradient-to-br from-red-500 to-rose-600'
-                                    }`}>
-                                    {metrics.netProfit >= 0 ? (
-                                        <TrendingUp className="text-white" size={20} />
-                                    ) : (
-                                        <TrendingDown className="text-white" size={20} />
-                                    )}
-                                </div>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-500">Net Profit</p>
+                                <p className={`text-2xl font-bold ${Number(latestReport.netProfit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    ${Number(latestReport.netProfit).toFixed(2)}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">After expenses: ${Number(latestReport.expenses).toFixed(2)}</p>
                             </div>
-                            <div className={`text-4xl font-black mb-1 ${metrics.netProfit >= 0 ? 'text-purple-900' : 'text-red-900'
-                                }`}>
-                                ${Math.abs(metrics.netProfit).toFixed(2)}
-                            </div>
-                            <div className={`text-sm font-semibold ${metrics.netProfit >= 0 ? 'text-purple-700' : 'text-red-700'
-                                }`}>
-                                Margin: {metrics.netMargin.toFixed(1)}%
-                            </div>
+                            {Number(latestReport.netProfit) >= 0 ? (
+                                <TrendingUp className="text-green-600" size={32} />
+                            ) : (
+                                <TrendingDown className="text-red-600" size={32} />
+                            )}
                         </div>
                     </div>
                 </div>
+            )}
 
-                {/* Detailed Breakdown */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Income Statement */}
-                    <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-                        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 p-6 border-b border-white/10">
-                            <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-                                <Zap className="text-yellow-300" size={24} />
-                                Income Statement
-                            </h3>
-                        </div>
+            {/* Profit Trend Chart */}
+            {reports.length > 0 && (
+                <div className="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 className="text-lg font-semibold mb-4">Profit Trends</h2>
+                    <Line
+                        data={chartData}
+                        options={{
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'top' },
+                                title: { display: false },
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function (value) {
+                                            return '$' + value;
+                                        },
+                                    },
+                                },
+                            },
+                        }}
+                    />
+                </div>
+            )}
 
-                        <div className="p-6 space-y-4">
-                            <div className="flex justify-between py-3 border-b border-white/10">
-                                <span className="text-blue-200 font-medium">Revenue</span>
-                                <span className="font-bold text-white text-lg">${metrics.revenue.toFixed(2)}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Detailed P&L Statement */}
+                {latestReport && (
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h2 className="text-lg font-semibold mb-4">Profit & Loss Statement</h2>
+                        <div className="space-y-3">
+                            <div className="flex justify-between py-2 border-b">
+                                <span className="font-medium">Revenue</span>
+                                <span className="font-mono">${Number(latestReport.revenue).toFixed(2)}</span>
                             </div>
 
-                            <div className="flex justify-between py-3 border-b border-white/10">
-                                <span className="text-blue-200 font-medium">Cost of Goods Sold (COGS)</span>
-                                <span className="font-bold text-red-400 text-lg">-${metrics.cogs.toFixed(2)}</span>
+                            <div className="flex justify-between py-2 border-b">
+                                <span className="text-gray-600">Cost of Goods Sold</span>
+                                <span className="font-mono text-red-600">-${Number(latestReport.cogs).toFixed(2)}</span>
                             </div>
 
-                            <div className="flex justify-between py-4 bg-emerald-500/20 rounded-xl px-4 border border-emerald-400/30">
-                                <span className="font-bold text-emerald-100">Gross Profit</span>
-                                <span className="font-bold text-emerald-300 text-xl">${metrics.grossProfit.toFixed(2)}</span>
+                            <div className="flex justify-between py-2 border-b font-semibold">
+                                <span>Gross Profit</span>
+                                <span className="font-mono text-green-600">${Number(latestReport.grossProfit).toFixed(2)}</span>
                             </div>
 
-                            <div className="flex justify-between py-3 border-b border-white/10">
-                                <span className="text-blue-200 font-medium">Operating Expenses</span>
-                                <span className="font-bold text-red-400 text-lg">-${metrics.expenses.toFixed(2)}</span>
+                            <div className="flex justify-between py-2 border-b">
+                                <span className="text-gray-600">Operating Expenses</span>
+                                <span className="font-mono text-red-600">-${Number(latestReport.expenses).toFixed(2)}</span>
                             </div>
 
-                            <div className={`flex justify-between py-5 rounded-xl px-4 border-2 ${metrics.netProfit >= 0
-                                    ? 'bg-purple-500/20 border-purple-400/50'
-                                    : 'bg-red-500/20 border-red-400/50'
-                                }`}>
-                                <span className="font-bold text-white text-lg">Net Profit</span>
-                                <span className={`font-black text-2xl ${metrics.netProfit >= 0 ? 'text-purple-300' : 'text-red-300'
-                                    }`}>
-                                    ${Math.abs(metrics.netProfit).toFixed(2)}
+                            <div className="flex justify-between py-3 border-t-2 border-gray-300 font-bold text-lg">
+                                <span>Net Profit</span>
+                                <span className={`font-mono ${Number(latestReport.netProfit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    ${Number(latestReport.netProfit).toFixed(2)}
                                 </span>
                             </div>
+
+                            <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                                <div className="text-sm text-gray-600 mb-2">Period</div>
+                                <div className="font-medium">
+                                    {new Date(latestReport.startDate).toLocaleDateString()} -{' '}
+                                    {new Date(latestReport.endDate).toLocaleDateString()}
+                                </div>
+                            </div>
                         </div>
                     </div>
+                )}
 
-                    {/* Profit Margins with Bars */}
-                    <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-                        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-6 border-b border-white/10">
-                            <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-                                <Sparkles className="text-yellow-300 animate-pulse" size={24} />
-                                Profit Margins
-                            </h3>
+                {/* Recent Expenses */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-semibold">Recent Expenses</h2>
+                    </div>
+
+                    <div className="space-y-2">
+                        {expenses.slice(0, 10).map((expense) => (
+                            <div key={expense.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                <div>
+                                    <div className="font-medium capitalize">{expense.category}</div>
+                                    {expense.description && <div className="text-sm text-gray-500">{expense.description}</div>}
+                                    <div className="text-xs text-gray-400">{new Date(expense.expenseDate).toLocaleDateString()}</div>
+                                </div>
+                                <div className="font-mono font-semibold text-red-600">-${Number(expense.amount).toFixed(2)}</div>
+                            </div>
+                        ))}
+
+                        {expenses.length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                <p>No expenses recorded yet.</p>
+                                <p className="text-sm">Click "Add Expense" to track operating costs.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Add Expense Modal */}
+            {showExpenseModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-8 max-w-md w-full">
+                        <h2 className="text-2xl font-bold mb-6">Add Operating Expense</h2>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                <select
+                                    value={expenseForm.category}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                                >
+                                    <option value="rent">Rent</option>
+                                    <option value="salaries">Salaries</option>
+                                    <option value="utilities">Utilities</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={expenseForm.amount}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: parseFloat(e.target.value) })}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={expenseForm.description}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                                    placeholder="Brief description"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                <input
+                                    type="date"
+                                    value={expenseForm.expenseDate}
+                                    onChange={(e) => setExpenseForm({ ...expenseForm, expenseDate: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                                />
+                            </div>
                         </div>
 
-                        <div className="p-6 space-y-6">
-                            {/* Gross Margin */}
-                            <div>
-                                <div className="flex justify-between mb-3">
-                                    <span className="text-blue-200 font-semibold">Gross Margin</span>
-                                    <span className="text-emerald-300 font-bold text-lg">{metrics.grossMargin.toFixed(1)}%</span>
-                                </div>
-                                <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden">
-                                    <div
-                                        className="bg-gradient-to-r from-emerald-400 to-teal-500 h-4 rounded-full transition-all duration-1000 ease-out shadow-lg"
-                                        style={{ width: `${Math.min(metrics.grossMargin, 100)}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-
-                            {/* Net Margin */}
-                            <div>
-                                <div className="flex justify-between mb-3">
-                                    <span className="text-blue-200 font-semibold">Net Margin</span>
-                                    <span className={`font-bold text-lg ${metrics.netMargin >= 0 ? 'text-purple-300' : 'text-red-300'
-                                        }`}>
-                                        {metrics.netMargin.toFixed(1)}%
-                                    </span>
-                                </div>
-                                <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden">
-                                    <div
-                                        className={`h-4 rounded-full transition-all duration-1000 ease-out shadow-lg ${metrics.netMargin >= 0
-                                                ? 'bg-gradient-to-r from-purple-400 to-pink-500'
-                                                : 'bg-gradient-to-r from-red-400 to-rose-500'
-                                            }`}
-                                        style={{ width: `${Math.min(Math.abs(metrics.netMargin), 100)}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-
-                            {/* Expense Ratio */}
-                            <div>
-                                <div className="flex justify-between mb-3">
-                                    <span className="text-blue-200 font-semibold">Expense Ratio</span>
-                                    <span className="text-orange-300 font-bold text-lg">
-                                        {metrics.revenue > 0 ? ((metrics.expenses / metrics.revenue) * 100).toFixed(1) : 0}%
-                                    </span>
-                                </div>
-                                <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden">
-                                    <div
-                                        className="bg-gradient-to-r from-orange-400 to-red-500 h-4 rounded-full transition-all duration-1000 ease-out shadow-lg"
-                                        style={{ width: `${Math.min((metrics.expenses / metrics.revenue) * 100, 100)}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-
-                            {/* Insights */}
-                            <div className="mt-8 p-5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl border border-blue-400/30">
-                                <h4 className="font-bold text-blue-100 mb-3 flex items-center gap-2">
-                                    <Sparkles size={18} className="text-yellow-300" />
-                                    Insights
-                                </h4>
-                                <ul className="text-sm text-blue-100 space-y-2">
-                                    {metrics.grossMargin > 30 && (
-                                        <li className="flex items-start gap-2">
-                                            <span className="text-emerald-400">✓</span>
-                                            <span>Healthy gross margin above 30%</span>
-                                        </li>
-                                    )}
-                                    {metrics.grossMargin < 20 && (
-                                        <li className="flex items-start gap-2">
-                                            <span className="text-yellow-400">⚠</span>
-                                            <span>Low gross margin - review pricing or COGS</span>
-                                        </li>
-                                    )}
-                                    {metrics.netProfit < 0 && (
-                                        <li className="flex items-start gap-2">
-                                            <span className="text-red-400">⚠</span>
-                                            <span>Negative net profit - reduce expenses</span>
-                                        </li>
-                                    )}
-                                    {(metrics.expenses / metrics.revenue) > 0.4 && (
-                                        <li className="flex items-start gap-2">
-                                            <span className="text-orange-400">⚠</span>
-                                            <span>High expense ratio - optimize operations</span>
-                                        </li>
-                                    )}
-                                </ul>
-                            </div>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={addExpense}
+                                disabled={expenseForm.amount <= 0}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
+                            >
+                                Add Expense
+                            </button>
+                            <button
+                                onClick={() => setShowExpenseModal(false)}
+                                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>
-
-            </div>
+            )}
         </div>
     );
 }
-

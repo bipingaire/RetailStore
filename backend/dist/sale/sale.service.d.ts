@@ -7,16 +7,16 @@ export declare class SaleService {
     createSale(subdomain: string, data: any): Promise<{
         items: {
             id: string;
-            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
-            quantity: number;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             productId: string;
+            quantity: number;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -28,16 +28,16 @@ export declare class SaleService {
     findAll(subdomain: string, options: any): Promise<({
         items: {
             id: string;
-            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
-            quantity: number;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             productId: string;
+            quantity: number;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -49,16 +49,16 @@ export declare class SaleService {
     findOne(subdomain: string, id: string): Promise<{
         items: {
             id: string;
-            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
-            quantity: number;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             productId: string;
+            quantity: number;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
         }[];
     } & {
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -73,8 +73,8 @@ export declare class SaleService {
     }>;
     cancelSale(subdomain: string, id: string, userId: string): Promise<{
         id: string;
-        status: string;
         createdAt: Date;
+        status: string;
         saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;

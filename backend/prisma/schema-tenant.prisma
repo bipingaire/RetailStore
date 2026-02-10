@@ -38,21 +38,15 @@ model Product {
   isActive Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Inventory Health Fields
-  lastRestockedAt DateTime?
-  daysToExpiry Int?
-  expiryDate DateTime?
-  slowMoving Boolean @default(false)
-  fastMoving Boolean @default(false)
-  healthScore Decimal? @db.Decimal(5, 2) // 0-100 score
 
   SaleItems SaleItem[]
   StockMovements StockMovement[]
   PurchaseOrderItems PurchaseOrderItem[]
   Batches ProductBatch[]
   POSItemMappings POSItemMapping[]
-  ReconciliationItems ReconciliationItem[]
+  VendorInvoiceItems VendorInvoiceItem[]
+  AuditCounts AuditCount[]
+  InventoryAdjustments InventoryAdjustment[]
 
   @@map("products")
 }
@@ -75,7 +69,6 @@ model Sale {
 
   items SaleItem[]
   Invoice Invoice?
-  StockMovements StockMovement[]
 
   @@map("sales")
 }
@@ -119,23 +112,9 @@ model Vendor {
   isActive Boolean @default(true)
   
   PurchaseOrders PurchaseOrder[]
+  VendorInvoices VendorInvoice[]
 
   @@map("vendors")
-}
-
-model PurchaseOrder { // Restock / Vendor Invoice
-  id String @id @default(uuid())
-  poNumber String @unique
-  vendorId String
-  status String @default("PENDING") // PENDING, RECEIVED, CANCELLED
-  totalAmount Decimal @db.Decimal(10, 2)
-  orderDate DateTime @default(now())
-  receivedDate DateTime?
-
-  vendor Vendor @relation(fields: [vendorId], references: [id])
-  items PurchaseOrderItem[]
-
-  @@map("purchase_orders")
 }
 
 model PurchaseOrderItem {
@@ -155,47 +134,27 @@ model PurchaseOrderItem {
 model StockMovement {
   id String @id @default(uuid())
   productId String
-  movementType String // "IN", "OUT", "ADJUSTMENT", "LOSS"
+  type String // IN (Restock), OUT (Sale), ADJUSTMENT (Reconciliation)
   quantity Int
-  reason String? // "PURCHASE", "SALE", "DAMAGE", "THEFT", "EXPIRY", "RECONCILIATION"
-  notes String?
-  createdBy String?
+  description String?
   createdAt DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id])
   
-  // For "IN" type - from purchase/invoice
-  invoiceId String?
-  invoice Invoice? @relation(fields: [invoiceId], references: [id])
-  
-  // For "OUT" type - from sale
-  saleId String?
-  sale Sale? @relation(fields: [saleId], references: [id])
-  
-  // For "ADJUSTMENT" type - from reconciliation
   reconciliationId String?
   reconciliation Reconciliation? @relation(fields: [reconciliationId], references: [id])
 
   @@map("stock_movements")
 }
 
-model Invoice { // Customer Invoice History + Scanned Purchase Invoices
+model Invoice { // Customer Invoice History
   id String @id @default(uuid())
   invoiceNumber String @unique
-  saleId String? @unique
+  saleId String @unique
   pdfUrl String?
   createdAt DateTime @default(now())
-  
-  // For scanned purchase invoices
-  scannedImageUrl String?
-  ocrProcessed Boolean @default(false)
-  processingStatus String @default("PENDING") // "PENDING", "PROCESSED", "FAILED"
-  vendorName String?
-  invoiceDate DateTime?
-  totalAmount Decimal? @db.Decimal(10, 2)
 
-  sale Sale? @relation(fields: [saleId], references: [id])
-  StockMovements StockMovement[]
+  sale Sale @relation(fields: [saleId], references: [id])
 
   @@map("invoices")
 }
@@ -203,19 +162,12 @@ model Invoice { // Customer Invoice History + Scanned Purchase Invoices
 model Campaign {
   id String @id @default(uuid())
   name String
-  description String?
-  type String // "FLASH_SALE", "EXPIRY_CLEARANCE", "OVERSTOCK", "FESTIVE"
-  status String @default("DRAFT") // "DRAFT", "ACTIVE", "COMPLETED", "CANCELLED"
-  discount Decimal @db.Decimal(5, 2)
-  startDate DateTime
-  endDate DateTime
-  productIds String[] // Array of product IDs included in campaign
-  pushedToWebsite Boolean @default(false)
-  pushedToSocial Boolean @default(false)
-  socialPlatforms String[] // ["facebook", "instagram", "whatsapp"]
-  generatedContent String? // AI-generated marketing copy
+  type String // EMAIL, SMS, SOCIAL
+  status String @default("DRAFT")
+  startDate DateTime?
+  endDate DateTime?
+  budget Decimal? @db.Decimal(10, 2)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@map("campaigns")
 }
@@ -232,34 +184,13 @@ model SocialAccount {
 
 model Reconciliation {
   id String @id @default(uuid())
-  reconciliationDate DateTime @default(now())
-  status String @default("IN_PROGRESS") // "IN_PROGRESS", "COMPLETED"
+  date DateTime @default(now())
+  status String @default("COMPLETED")
   notes String?
-  totalDiscrepancies Int @default(0)
-  createdBy String?
-  createdAt DateTime @default(now())
-  completedAt DateTime?
   
-  items ReconciliationItem[]
-  stockMovements StockMovement[]
+  adjustments StockMovement[]
 
   @@map("reconciliations")
-}
-
-model ReconciliationItem {
-  id String @id @default(uuid())
-  reconciliationId String
-  productId String
-  systemStock Int
-  physicalCount Int
-  difference Int
-  reason String? // \"THEFT\", \"DAMAGE\", \"EXPIRY\", \"COUNTING_ERROR\"
-  notes String?
-  
-  reconciliation Reconciliation @relation(fields: [reconciliationId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-  
-  @@map("reconciliation_items")
 }
 
 model Settings {
@@ -303,4 +234,149 @@ model ProductBatch {
   product Product @relation(fields: [productId], references: [id])
   
   @@map("product_batches")
+}
+
+// ===== NEW MODELS FOR CORE FEATURES =====
+
+// Invoice Management (Inventory In)
+model VendorInvoice {
+  id            String   @id @default(uuid())
+  vendorId      String
+  invoiceNumber String
+  invoiceDate   DateTime
+  totalAmount   Decimal  @db.Decimal(10, 2)
+  fileUrl       String?
+  status        String   @default("pending") // pending, validated, committed
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+  items  VendorInvoiceItem[]
+  
+  @@map("vendor_invoices")
+}
+
+model VendorInvoiceItem {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  productId   String
+  quantity    Int
+  unitCost    Decimal @db.Decimal(10, 2)
+  totalCost   Decimal @db.Decimal(10, 2)
+  
+  invoice VendorInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+  
+  @@map("vendor_invoice_items")
+}
+
+// Inventory Audit (Shelf Check)
+model AuditSession {
+  id          String    @id @default(uuid())
+  userId      String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  status      String    @default("in-progress") // in-progress, completed
+  notes       String?
+  
+  counts      AuditCount[]
+  adjustments InventoryAdjustment[]
+  
+  @@map("audit_sessions")
+}
+
+model AuditCount {
+  id              String  @id @default(uuid())
+  auditSessionId  String
+  productId       String
+  systemQuantity  Int
+  countedQuantity Int
+  variance        Int
+  varianceReason  String? // theft, damage, expired, shrinkage, other
+  createdAt       DateTime @default(now())
+  
+  auditSession AuditSession @relation(fields: [auditSessionId], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [productId], references: [id])
+  
+  @@map("audit_counts")
+}
+
+model InventoryAdjustment {
+  id             String   @id @default(uuid())
+  auditSessionId String?
+  productId      String
+  quantityChange Int
+  reason         String
+  notes          String?
+  createdAt      DateTime @default(now())
+  
+  auditSession AuditSession? @relation(fields: [auditSessionId], references: [id])
+  product      Product       @relation(fields: [productId], references: [id])
+  
+  @@map("inventory_adjustments")
+}
+
+// Purchase Order (Restock) - already had PurchaseOrderItem, adding main model
+model PurchaseOrder {
+  id          String    @id @default(uuid())
+  vendorId    String
+  orderNumber String    @unique
+  orderDate   DateTime  @default(now())
+  status      String    @default("draft") // draft, sent, confirmed, received, cancelled
+  totalAmount Decimal   @db.Decimal(10, 2)
+  notes       String?
+  sentAt      DateTime?
+  receivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  vendor Vendor             @relation(fields: [vendorId], references: [id])
+  items  PurchaseOrderItem[]
+  
+  @@map("purchase_orders")
+}
+
+// Profit & Loss Reporting (Bottom Line)
+model ProfitReport {
+  id          String   @id @default(uuid())
+  period      String   // daily, weekly, monthly
+  startDate   DateTime
+  endDate     DateTime
+  revenue     Decimal  @db.Decimal(12, 2)
+  cogs        Decimal  @db.Decimal(12, 2)
+  grossProfit Decimal  @db.Decimal(12, 2)
+  grossMargin Decimal  @db.Decimal(5, 2) // percentage
+  expenses    Decimal  @db.Decimal(12, 2)
+  netProfit   Decimal  @db.Decimal(12, 2)
+  metadata    Json?    // additional data (category breakdowns, etc)
+  createdAt   DateTime @default(now())
+  
+  @@map("profit_reports")
+}
+
+// Operating Expenses
+model Expense {
+  id          String   @id @default(uuid())
+  category    String   // rent, salaries, utilities, marketing, other
+  amount      Decimal  @db.Decimal(10, 2)
+  description String?
+  expenseDate DateTime
+  createdAt   DateTime @default(now())
+  
+  @@map("expenses")
+}
+
+// Z-Report tracking (Inventory Out)
+model ZReport {
+  id          String   @id @default(uuid())
+  reportDate  DateTime
+  reportNumber String  @unique
+  totalSales  Decimal  @db.Decimal(10, 2)
+  totalTax    Decimal  @db.Decimal(10, 2)
+  fileUrl     String?
+  status      String   @default("pending") // pending, processed
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@map("z_reports")
 }

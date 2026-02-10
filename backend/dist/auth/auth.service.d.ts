@@ -10,11 +10,11 @@ export declare class AuthService {
         tenantId: string;
         subdomain: string;
         id: string;
-        name: string | null;
-        email: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        name: string | null;
+        email: string;
         role: string;
     }>;
     login(user: any): Promise<{

@@ -13,7 +13,7 @@ export declare class VendorController {
     }[]>;
     findInvoices(subdomain: string): Promise<{
         'invoice-id': string;
-        'invoice-number': string;
+        'invoice-number': any;
         'invoice-date': Date;
         'total-amount-value': import("src/generated/tenant-client/runtime/library").Decimal;
         'processing-status': string;
