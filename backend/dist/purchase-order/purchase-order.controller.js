@@ -19,67 +19,73 @@ let PurchaseOrderController = class PurchaseOrderController {
     constructor(purchaseOrderService) {
         this.purchaseOrderService = purchaseOrderService;
     }
-    async create(body) {
-        return this.purchaseOrderService.createPurchaseOrder(body.vendorId, body.items, body.notes);
+    async create(subdomain, body) {
+        return this.purchaseOrderService.createPurchaseOrder(subdomain, body.vendorId, body.items, body.notes);
     }
-    async getAll(status) {
-        return this.purchaseOrderService.getAllPurchaseOrders(status);
+    async getAll(subdomain, status) {
+        return this.purchaseOrderService.getAllPurchaseOrders(subdomain, status);
     }
-    async getOne(id) {
-        return this.purchaseOrderService.getPurchaseOrder(id);
+    async getOne(subdomain, id) {
+        return this.purchaseOrderService.getPurchaseOrder(subdomain, id);
     }
-    async updateStatus(id, body) {
-        return this.purchaseOrderService.updateStatus(id, body.status);
+    async updateStatus(subdomain, id, body) {
+        return this.purchaseOrderService.updateStatus(subdomain, id, body.status);
     }
-    async send(id) {
-        return this.purchaseOrderService.sendPurchaseOrder(id);
+    async send(subdomain, id) {
+        return this.purchaseOrderService.sendPurchaseOrder(subdomain, id);
     }
-    async receive(id) {
-        return this.purchaseOrderService.receivePurchaseOrder(id);
+    async receive(subdomain, id) {
+        return this.purchaseOrderService.receivePurchaseOrder(subdomain, id);
     }
 };
 exports.PurchaseOrderController = PurchaseOrderController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], PurchaseOrderController.prototype, "create", null);
-__decorate([
-    (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('status')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], PurchaseOrderController.prototype, "getAll", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], PurchaseOrderController.prototype, "getOne", null);
-__decorate([
-    (0, common_1.Put)(':id/status'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
+], PurchaseOrderController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)('status')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], PurchaseOrderController.prototype, "getAll", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], PurchaseOrderController.prototype, "getOne", null);
+__decorate([
+    (0, common_1.Put)(':id/status'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
 ], PurchaseOrderController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Post)(':id/send'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], PurchaseOrderController.prototype, "send", null);
 __decorate([
     (0, common_1.Post)(':id/receive'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], PurchaseOrderController.prototype, "receive", null);
 exports.PurchaseOrderController = PurchaseOrderController = __decorate([

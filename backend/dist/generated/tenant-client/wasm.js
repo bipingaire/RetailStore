@@ -193,16 +193,6 @@ exports.Prisma.VendorScalarFieldEnum = {
   isActive: 'isActive'
 };
 
-exports.Prisma.PurchaseOrderScalarFieldEnum = {
-  id: 'id',
-  poNumber: 'poNumber',
-  vendorId: 'vendorId',
-  status: 'status',
-  totalAmount: 'totalAmount',
-  orderDate: 'orderDate',
-  receivedDate: 'receivedDate'
-};
-
 exports.Prisma.PurchaseOrderItemScalarFieldEnum = {
   id: 'id',
   purchaseOrderId: 'purchaseOrderId',
@@ -282,9 +272,115 @@ exports.Prisma.ProductBatchScalarFieldEnum = {
   receivedDate: 'receivedDate'
 };
 
+exports.Prisma.VendorInvoiceScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  invoiceNumber: 'invoiceNumber',
+  invoiceDate: 'invoiceDate',
+  totalAmount: 'totalAmount',
+  fileUrl: 'fileUrl',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VendorInvoiceItemScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  productId: 'productId',
+  quantity: 'quantity',
+  unitCost: 'unitCost',
+  totalCost: 'totalCost'
+};
+
+exports.Prisma.AuditSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  status: 'status',
+  notes: 'notes'
+};
+
+exports.Prisma.AuditCountScalarFieldEnum = {
+  id: 'id',
+  auditSessionId: 'auditSessionId',
+  productId: 'productId',
+  systemQuantity: 'systemQuantity',
+  countedQuantity: 'countedQuantity',
+  variance: 'variance',
+  varianceReason: 'varianceReason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.InventoryAdjustmentScalarFieldEnum = {
+  id: 'id',
+  auditSessionId: 'auditSessionId',
+  productId: 'productId',
+  quantityChange: 'quantityChange',
+  reason: 'reason',
+  notes: 'notes',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PurchaseOrderScalarFieldEnum = {
+  id: 'id',
+  vendorId: 'vendorId',
+  orderNumber: 'orderNumber',
+  orderDate: 'orderDate',
+  status: 'status',
+  totalAmount: 'totalAmount',
+  notes: 'notes',
+  sentAt: 'sentAt',
+  receivedAt: 'receivedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProfitReportScalarFieldEnum = {
+  id: 'id',
+  period: 'period',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  revenue: 'revenue',
+  cogs: 'cogs',
+  grossProfit: 'grossProfit',
+  grossMargin: 'grossMargin',
+  expenses: 'expenses',
+  netProfit: 'netProfit',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ExpenseScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  amount: 'amount',
+  description: 'description',
+  expenseDate: 'expenseDate',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ZReportScalarFieldEnum = {
+  id: 'id',
+  reportDate: 'reportDate',
+  reportNumber: 'reportNumber',
+  totalSales: 'totalSales',
+  totalTax: 'totalTax',
+  fileUrl: 'fileUrl',
+  status: 'status',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -297,6 +393,12 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
 
 exports.Prisma.ModelName = {
   User: 'User',
@@ -305,7 +407,6 @@ exports.Prisma.ModelName = {
   SaleItem: 'SaleItem',
   Customer: 'Customer',
   Vendor: 'Vendor',
-  PurchaseOrder: 'PurchaseOrder',
   PurchaseOrderItem: 'PurchaseOrderItem',
   StockMovement: 'StockMovement',
   Invoice: 'Invoice',
@@ -314,7 +415,16 @@ exports.Prisma.ModelName = {
   Reconciliation: 'Reconciliation',
   Settings: 'Settings',
   POSItemMapping: 'POSItemMapping',
-  ProductBatch: 'ProductBatch'
+  ProductBatch: 'ProductBatch',
+  VendorInvoice: 'VendorInvoice',
+  VendorInvoiceItem: 'VendorInvoiceItem',
+  AuditSession: 'AuditSession',
+  AuditCount: 'AuditCount',
+  InventoryAdjustment: 'InventoryAdjustment',
+  PurchaseOrder: 'PurchaseOrder',
+  ProfitReport: 'ProfitReport',
+  Expense: 'Expense',
+  ZReport: 'ZReport'
 };
 
 /**

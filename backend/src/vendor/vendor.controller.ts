@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Headers, UseGuards } from '@nestjs/common';
 import { VendorService } from './vendor.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -10,6 +10,14 @@ export class VendorController {
     @Get()
     findAll(@Headers('x-tenant') subdomain: string) {
         return this.vendorService.findAll(subdomain);
+    }
+
+    @Post()
+    create(
+        @Headers('x-tenant') subdomain: string,
+        @Body() body: { name: string }
+    ) {
+        return this.vendorService.create(subdomain, body.name);
     }
 
     @Get('invoices')

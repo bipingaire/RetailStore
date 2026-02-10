@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class AuditService {
-    constructor(private readonly prisma: TenantPrismaService) { }
+    constructor(
+        private readonly tenantPrisma: TenantPrismaService,
+        private readonly tenantService: TenantService,
+    ) { }
 
-    async startAuditSession(userId: string, notes?: string) {
-        return this.prisma.auditSession.create({
+    async startAuditSession(subdomain: string, userId: string, notes?: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.auditSession.create({
             data: {
                 userId,
                 notes,
@@ -15,13 +22,16 @@ export class AuditService {
         });
     }
 
-    async addAuditCount(sessionId: string, productId: string, countedQuantity: number, reason?: string) {
-        const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    async addAuditCount(subdomain: string, sessionId: string, productId: string, countedQuantity: number, reason?: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const product = await client.product.findUnique({ where: { id: productId } });
         if (!product) throw new Error('Product not found');
 
         const variance = countedQuantity - product.stock;
 
-        return this.prisma.auditCount.create({
+        return client.auditCount.create({
             data: {
                 auditSessionId: sessionId,
                 productId,
@@ -33,15 +43,18 @@ export class AuditService {
         });
     }
 
-    async completeAuditSession(sessionId: string) {
-        const session = await this.prisma.auditSession.findUnique({
+    async completeAuditSession(subdomain: string, sessionId: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const session = await client.auditSession.findUnique({
             where: { id: sessionId },
             include: { counts: true },
         });
 
         if (!session) throw new Error('Audit session not found');
 
-        await this.prisma.$transaction(async (tx) => {
+        await client.$transaction(async (tx) => {
             // Apply inventory adjustments
             for (const count of session.counts) {
                 if (count.variance !== 0) {
@@ -67,11 +80,14 @@ export class AuditService {
             });
         });
 
-        return this.getAuditSession(sessionId);
+        return this.getAuditSession(subdomain, sessionId);
     }
 
-    async getAuditSession(id: string) {
-        return this.prisma.auditSession.findUnique({
+    async getAuditSession(subdomain: string, id: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.auditSession.findUnique({
             where: { id },
             include: {
                 counts: { include: { product: true } },
@@ -80,15 +96,21 @@ export class AuditService {
         });
     }
 
-    async getAllAuditSessions() {
-        return this.prisma.auditSession.findMany({
+    async getAllAuditSessions(subdomain: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.auditSession.findMany({
             include: { counts: true, adjustments: true },
             orderBy: { startedAt: 'desc' },
         });
     }
 
-    async getVarianceReport() {
-        const sessions = await this.prisma.auditSession.findMany({
+    async getVarianceReport(subdomain: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const sessions = await client.auditSession.findMany({
             where: { status: 'completed' },
             include: { adjustments: { include: { product: true } } },
             orderBy: { completedAt: 'desc' },

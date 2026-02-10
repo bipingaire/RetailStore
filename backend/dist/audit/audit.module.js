@@ -11,11 +11,13 @@ const common_1 = require("@nestjs/common");
 const audit_controller_1 = require("./audit.controller");
 const audit_service_1 = require("./audit.service");
 const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
+const tenant_module_1 = require("../tenant/tenant.module");
 let AuditModule = class AuditModule {
 };
 exports.AuditModule = AuditModule;
 exports.AuditModule = AuditModule = __decorate([
     (0, common_1.Module)({
+        imports: [tenant_module_1.TenantModule],
         controllers: [audit_controller_1.AuditController],
         providers: [audit_service_1.AuditService, tenant_prisma_service_1.TenantPrismaService],
         exports: [audit_service_1.AuditService],

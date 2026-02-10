@@ -34,17 +34,33 @@ let VendorService = class VendorService {
             'reliability-score': 95
         }));
     }
+    async create(subdomain, name) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        const vendor = await client.vendor.create({
+            data: { name }
+        });
+        return {
+            id: vendor.id,
+            name: vendor.name,
+            'contact-phone': vendor.phone,
+            email: vendor.email,
+            address: vendor.address,
+            'poc-name': vendor.contactPerson,
+            'reliability-score': 95
+        };
+    }
     async findInvoices(subdomain) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
         const pos = await client.purchaseOrder.findMany({
             include: { vendor: true },
-            orderBy: { orderDate: 'desc' }
+            orderBy: { createdAt: 'desc' }
         });
         return pos.map(po => ({
             'invoice-id': po.id,
-            'invoice-number': po.poNumber,
-            'invoice-date': po.orderDate,
+            'invoice-number': po.orderNumber,
+            'invoice-date': po.createdAt,
             'total-amount-value': po.totalAmount,
             'processing-status': po.status,
             'supplier-name': po.vendor.name

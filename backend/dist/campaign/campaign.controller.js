@@ -15,84 +15,43 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CampaignController = void 0;
 const common_1 = require("@nestjs/common");
 const campaign_service_1 = require("./campaign.service");
-const campaign_dto_1 = require("./dto/campaign.dto");
 let CampaignController = class CampaignController {
     constructor(campaignService) {
         this.campaignService = campaignService;
     }
-    async create(req, dto) {
-        const tenantId = req.headers['x-tenant-id'] || 'retail_store_anuj';
-        return this.campaignService.create(tenantId, dto);
+    async create(tenantId, body) {
+        return this.campaignService.createCampaign(tenantId, body);
     }
-    async findAll(req, status) {
-        const tenantId = req.headers['x-tenant-id'] || 'retail_store_anuj';
-        return this.campaignService.findAll(tenantId, status);
+    async findAll(tenantId) {
+        return this.campaignService.listCampaigns(tenantId);
     }
-    async getSuggestions(req) {
-        const tenantId = req.headers['x-tenant-id'] || 'retail_store_anuj';
-        return this.campaignService.getSuggestions(tenantId);
-    }
-    async findOne(req, id) {
-        const tenantId = req.headers['x-tenant-id'] || 'retail_store_anuj';
-        return this.campaignService.findOne(tenantId, id);
-    }
-    async pushToWebsite(req, id) {
-        const tenantId = req.headers['x-tenant-id'] || 'retail_store_anuj';
-        return this.campaignService.pushToWebsite(tenantId, id);
-    }
-    async pushToSocial(req, id) {
-        const tenantId = req.headers['x-tenant-id'] || 'retail_store_anuj';
-        return this.campaignService.pushToSocial(tenantId, id);
+    async generate(body) {
+        return this.campaignService.generateCampaignContent(body);
     }
 };
 exports.CampaignController = CampaignController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, common_1.Headers)('x-tenant')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, campaign_dto_1.CreateCampaignDto]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], CampaignController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Query)('status')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CampaignController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)('suggestions'),
-    __param(0, (0, common_1.Req)()),
+    (0, common_1.Post)('generate'),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], CampaignController.prototype, "getSuggestions", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
-    __metadata("design:returntype", Promise)
-], CampaignController.prototype, "findOne", null);
-__decorate([
-    (0, common_1.Post)(':id/push-website'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
-    __metadata("design:returntype", Promise)
-], CampaignController.prototype, "pushToWebsite", null);
-__decorate([
-    (0, common_1.Post)(':id/push-social'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
-    __metadata("design:returntype", Promise)
-], CampaignController.prototype, "pushToSocial", null);
+], CampaignController.prototype, "generate", null);
 exports.CampaignController = CampaignController = __decorate([
     (0, common_1.Controller)('campaigns'),
     __metadata("design:paramtypes", [campaign_service_1.CampaignService])

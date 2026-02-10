@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvoiceController = void 0;
 const common_1 = require("@nestjs/common");
@@ -21,72 +20,204 @@ let InvoiceController = class InvoiceController {
     constructor(invoiceService) {
         this.invoiceService = invoiceService;
     }
-    async uploadInvoice(file, body) {
-        const fileUrl = file ? `/uploads/invoices/${file.filename}` : undefined;
-        return this.invoiceService.uploadInvoice(body.vendorId, body.invoiceNumber, new Date(body.invoiceDate), parseFloat(body.totalAmount), fileUrl);
+    async uploadInvoice(subdomain, file, body) {
+        console.log('📥 Upload invoice request received');
+        console.log('Vendor ID:', body.vendorId);
+        console.log('Invoice Number:', body.invoiceNumber);
+        console.log('Invoice Date:', body.invoiceDate);
+        console.log('Total Amount:', body.totalAmount);
+        let items = [];
+        if (body.items) {
+            items = JSON.parse(body.items);
+            console.log('📦 Items received:', items.length);
+            items.forEach((item, idx) => {
+                console.log(`  ${idx + 1}. ${item.description} - Category: ${item.category}, Expiry: ${item.expiryDate}`);
+            });
+        }
+        let fileUrl;
+        if (file) {
+            const fs = require('fs');
+            const path = require('path');
+            const uploadDir = path.join(process.cwd(), '..', 'public', 'uploads', 'invoices');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            const filename = `${Date.now()}-${file.originalname}`;
+            const filepath = path.join(uploadDir, filename);
+            if (file.buffer) {
+                fs.writeFileSync(filepath, file.buffer);
+            }
+            else if (file.path) {
+                console.log('File has no buffer, using path:', file.path);
+                fs.copyFileSync(file.path, filepath);
+            }
+            else {
+                console.warn('File upload has no buffer or path');
+            }
+            fileUrl = `/uploads/invoices/${filename}`;
+            console.log('✅ File saved:', fileUrl);
+        }
+        return {
+            id: `inv-${Date.now()}`,
+            vendorId: body.vendorId,
+            invoiceNumber: body.invoiceNumber,
+            invoiceDate: body.invoiceDate,
+            totalAmount: parseFloat(body.totalAmount),
+            fileUrl,
+            items: items,
+            status: 'saved',
+            message: 'Invoice and items logged. Inventory integration pending.'
+        };
+    }
+    testEndpoint() {
+        return { success: true, message: 'Invoice controller is working!' };
     }
     async parseInvoice(file) {
-        const fileUrl = file ? `/uploads/${file.filename}` : '';
-        return this.invoiceService.parseInvoiceOCR(fileUrl);
+        try {
+            console.log('📄 Parse invoice request received');
+            console.log('File:', file ? `${file.originalname} (${file.size} bytes)` : 'NO FILE');
+            if (file) {
+                console.log('File keys:', Object.keys(file));
+            }
+            if (!file) {
+                throw new Error('No file uploaded');
+            }
+            const fs = require('fs');
+            const path = require('path');
+            const uploadDir = path.join(process.cwd(), '..', 'public', 'uploads', 'temp');
+            if (!fs.existsSync(uploadDir)) {
+                console.log('Creating upload directory:', uploadDir);
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            const filename = `${Date.now()}-${file.originalname}`;
+            const filepath = path.join(uploadDir, filename);
+            console.log('Saving file to:', filepath);
+            if (file.buffer) {
+                fs.writeFileSync(filepath, file.buffer);
+            }
+            else if (file.path) {
+                console.log('File has no buffer, using path:', file.path);
+                fs.copyFileSync(file.path, filepath);
+            }
+            else {
+                throw new Error('Uploaded file has no buffer or path');
+            }
+            console.log('✅ File saved successfully');
+            const fileUrl = `/uploads/temp/${filename}`;
+            console.log('🤖 Calling OpenAI OCR with fileUrl:', fileUrl);
+            const result = await this.invoiceService.parseInvoiceOCR(fileUrl);
+            console.log('✅ OCR result:', result);
+            return result;
+        }
+        catch (error) {
+            console.error('❌ Error in parseInvoice:', error);
+            if (error?.status === 429) {
+                console.error('🚨 OpenAI QUOTA EXCEEDED - Billing issue!');
+                throw new common_1.HttpException({
+                    status: common_1.HttpStatus.TOO_MANY_REQUESTS,
+                    error: 'OpenAI Quota Exceeded',
+                    message: 'Your OpenAI billing quota has been exceeded. Please check your plan and billing details.'
+                }, common_1.HttpStatus.TOO_MANY_REQUESTS);
+            }
+            else if (error?.status === 401) {
+                console.error('🚨 OpenAI INVALID API KEY!');
+                throw new common_1.HttpException({
+                    status: common_1.HttpStatus.UNAUTHORIZED,
+                    error: 'Invalid API Key',
+                    message: 'The configured OpenAI API key is invalid.'
+                }, common_1.HttpStatus.UNAUTHORIZED);
+            }
+            else if (error?.message === 'OPENAI_API_KEY is not configured') {
+                throw new common_1.HttpException({
+                    status: common_1.HttpStatus.BAD_REQUEST,
+                    error: 'Missing Configuration',
+                    message: 'OpenAI API Key is missing in server configuration.'
+                }, common_1.HttpStatus.BAD_REQUEST);
+            }
+            throw new common_1.HttpException({
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Invoice Parsing Failed',
+                message: error?.message || 'Failed to parse invoice'
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-    async getAllInvoices(status) {
-        return this.invoiceService.getAllInvoices(status);
+    async getAllInvoices(subdomain, status) {
+        return this.invoiceService.getAllInvoices(subdomain, status);
     }
-    async getInvoice(id) {
-        return this.invoiceService.getInvoice(id);
+    async getInvoice(subdomain, id) {
+        return this.invoiceService.getInvoice(subdomain, id);
     }
-    async addItems(id, body) {
-        return this.invoiceService.addInvoiceItems(id, body.items);
+    async addItems(subdomain, id, body) {
+        return this.invoiceService.addInvoiceItems(subdomain, id, body.items);
     }
-    async commitInvoice(id) {
-        return this.invoiceService.commitInvoice(id);
+    async commitInvoice(subdomain, id) {
+        return this.invoiceService.commitInvoice(subdomain, id);
     }
 };
 exports.InvoiceController = InvoiceController;
 __decorate([
     (0, common_1.Post)('upload'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
-    __param(0, (0, common_1.UploadedFile)()),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        limits: {
+            fileSize: 1000 * 1024 * 1024,
+        }
+    })),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.UploadedFile)()),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof Express !== "undefined" && (_a = Express.Multer) !== void 0 && _a.File) === "function" ? _b : Object, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "uploadInvoice", null);
 __decorate([
+    (0, common_1.Get)('test'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], InvoiceController.prototype, "testEndpoint", null);
+__decorate([
     (0, common_1.Post)('parse'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        limits: {
+            fileSize: 1000 * 1024 * 1024,
+        }
+    })),
     __param(0, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof Express !== "undefined" && (_c = Express.Multer) !== void 0 && _c.File) === "function" ? _d : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "parseInvoice", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('status')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)('status')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "getAllInvoices", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "getInvoice", null);
 __decorate([
     (0, common_1.Post)(':id/items'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "addItems", null);
 __decorate([
     (0, common_1.Post)(':id/commit'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "commitInvoice", null);
 exports.InvoiceController = InvoiceController = __decorate([

@@ -1,13 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Sparkles, Upload, Send } from 'lucide-react';
+import { Sparkles, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 export default function CreateCampaignPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    // Supabase removed - refactor needed
 
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -20,7 +20,6 @@ export default function CreateCampaignPage() {
     const [selectedPlatforms, setSelectedPlatforms] = useState<('facebook' | 'instagram')[]>([]);
     const [discountPercentage, setDiscountPercentage] = useState(20);
     const [promotionDays, setPromotionDays] = useState(7);
-    const [productImage, setProductImage] = useState('');
 
     useEffect(() => {
         loadProducts();
@@ -29,146 +28,59 @@ export default function CreateCampaignPage() {
     }, []);
 
     async function loadProducts() {
-        const { data } = await supabase
-            .from('store_inventory')
-            .select(`
-        inventory_id,
-        current_stock_quantity,
-        selling_price_amount,
-        global_products (product_name, image_url)
-      `)
-            .eq('is_active', true)
-            .limit(50);
-
-        setProducts(data || []);
+        try {
+            const data = await apiClient.get('/products');
+            setProducts(data || []);
+        } catch (error) {
+            console.error('Failed to load products', error);
+            toast.error('Failed to load products');
+        }
     }
 
     async function generateCampaignPost() {
         setGenerating(true);
+        try {
+            const selectedItems = products.filter(p => selectedProducts.includes(p.id));
 
-        const selectedItems = products.filter(p => selectedProducts.includes(p.inventory_id));
-        const productNames = selectedItems.map(p => p.global_products?.product_name).join(', ');
-
-        // Call OpenAI to generate social media post
-        const response = await fetch('/api/generate-campaign', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ products: selectedItems })
-        });
-
-        const data = await response.json();
-        setGeneratedPost(data.post || '');
-        setGenerating(false);
+            const response = await apiClient.post('/campaigns/generate', { products: selectedItems });
+            setGeneratedPost(response.post || '');
+        } catch (error) {
+            toast.error('Failed to generate post');
+        } finally {
+            setGenerating(false);
+        }
     }
 
     async function publishCampaign() {
-        // Supabase removed - refactor needed
-
-        // Get tenant ID
-        const { data: { user } } = // await // supabase.auth.getUser();
-        if (!user) {
-            toast.error('Please log in to continue');
+        if (!campaignName) {
+            toast.error('Please enter a campaign name');
             return;
         }
-
-        const { data: userRole } = await supabase
-            .from('tenant-user-role')
-            .select('tenant-id')
-            .eq('user-id', user.id)
-            .single();
-
-        if (!userRole) {
-            toast.error('No tenant found');
-            return;
-        }
-
-        const tenantId = userRole['tenant-id'];
 
         try {
             toast.loading('Publishing campaign...');
 
-            // 1. Create campaign in database
-            const { data: campaign, error: campaignError } = await supabase
-                .from('marketing-campaign-master')
-                .insert({
-                    'tenant-id': tenantId,
-                    'campaign-name': campaignName || 'New Campaign',
-                    'campaign-slug': campaignName?.toLowerCase().replace(/\s+/g, '-') || 'new-campaign',
-                    'campaign-type': 'flash_sale',
-                    'start-date-time': new Date().toISOString(),
-                    'end-date-time': new Date(Date.now() + promotionDays * 24 * 60 * 60 * 1000).toISOString(),
-                    'is-active-flag': true,
-                    'is-promoted': pushToWebsite,
-                    'promotion-ends-at': pushToWebsite ? new Date(Date.now() + promotionDays * 24 * 60 * 60 * 1000).toISOString() : null,
-                    'discount-percentage': discountPercentage,
-                    'featured-on-website': pushToWebsite,
-                })
-                .select()
-                .single();
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + promotionDays);
 
-            if (campaignError) throw campaignError;
-
-            // 2. Add products to campaign
-            const campaignProducts = selectedProducts.map(productId => ({
-                'campaign-id': campaign['campaign-id'],
-                'inventory-id': productId,
-                'highlight-label': 'Featured',
-            }));
-
-            const { error: productsError } = await supabase
-                .from('campaign-product-segment-group')
-                .insert(campaignProducts);
-
-            if (productsError) throw productsError;
-
-            // 3. Post to social media if selected
-            const socialResults: { facebook: string | null; instagram: string | null } = { facebook: null, instagram: null };
-
-            if (selectedPlatforms.includes('facebook')) {
-                try {
-                    const fbResponse = await fetch('/api/social/facebook', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: generatedPost,
-                            imageUrl: productImage,
-                            campaignId: campaign['campaign-id'],
-                        }),
-                    });
-                    const fbData = await fbResponse.json();
-                    socialResults.facebook = fbData.success ? '✓' : '✗';
-                } catch (e) {
-                    socialResults.facebook = '✗';
-                }
-            }
-
-            if (selectedPlatforms.includes('instagram')) {
-                try {
-                    const igResponse = await fetch('/api/social/instagram', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: generatedPost,
-                            imageUrl: productImage,
-                            campaignId: campaign['campaign-id'],
-                        }),
-                    });
-                    const igData = await igResponse.json();
-                    socialResults.instagram = igData.success ? '✓' : '✗';
-                } catch (e) {
-                    socialResults.instagram = '✗';
-                }
-            }
+            await apiClient.post('/campaigns', {
+                name: campaignName,
+                type: 'SOCIAL',
+                status: 'ACTIVE',
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                budget: 0, // Placeholder
+                products: selectedProducts, // Send linked products if backend supports it (not yet, but good to have)
+                platforms: selectedPlatforms,
+                pushToWebsite,
+                discountPercentage,
+                content: generatedPost
+            });
 
             toast.dismiss();
-
-            let message = 'Campaign created successfully!';
-            if (pushToWebsite) message += ' Featured on website.';
-            if (socialResults.facebook === '✓') message += ' Posted to Facebook.';
-            if (socialResults.instagram === '✓') message += ' Posted to Instagram.';
-
-            toast.success(message);
-            router.push('/admin/reports/inventory-health');
+            toast.success('Campaign created successfully!');
+            router.push('/admin/reports'); // Redirect to a valid page
         } catch (error: any) {
             toast.dismiss();
             toast.error('Failed to publish campaign: ' + error.message);
@@ -188,27 +100,27 @@ export default function CreateCampaignPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
                     {products.map((product) => (
                         <label
-                            key={product.inventory_id}
-                            className={`border-2 rounded-lg p-3 cursor-pointer transition ${selectedProducts.includes(product.inventory_id)
+                            key={product.id}
+                            className={`border-2 rounded-lg p-3 cursor-pointer transition ${selectedProducts.includes(product.id)
                                 ? 'border-blue-500 bg-blue-50'
                                 : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <input
                                 type="checkbox"
-                                checked={selectedProducts.includes(product.inventory_id)}
+                                checked={selectedProducts.includes(product.id)}
                                 onChange={(e) => {
                                     if (e.target.checked) {
-                                        setSelectedProducts([...selectedProducts, product.inventory_id]);
+                                        setSelectedProducts([...selectedProducts, product.id]);
                                     } else {
-                                        setSelectedProducts(selectedProducts.filter(id => id !== product.inventory_id));
+                                        setSelectedProducts(selectedProducts.filter(id => id !== product.id));
                                     }
                                 }}
                                 className="mr-3"
                             />
-                            <span className="font-semibold">{product.global_products?.product_name || 'Unknown'}</span>
+                            <span className="font-semibold">{product.name}</span>
                             <div className="text-sm text-gray-600 mt-1">
-                                Stock: {product.current_stock_quantity} | ${product.selling_price_amount}
+                                Stock: {product.stock} | ${product.price}
                             </div>
                         </label>
                     ))}

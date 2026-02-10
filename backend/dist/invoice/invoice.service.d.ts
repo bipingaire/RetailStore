@@ -1,26 +1,153 @@
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
+import { TenantService } from '../tenant/tenant.service';
+import { Prisma } from '../generated/tenant-client';
 export declare class InvoiceService {
-    private readonly prisma;
-    constructor(prisma: TenantPrismaService);
-    uploadInvoice(vendorId: string, invoiceNumber: string, invoiceDate: Date, totalAmount: number, fileUrl?: string): Promise<any>;
-    getInvoice(id: string): Promise<any>;
-    getAllInvoices(status?: string): Promise<any>;
-    addInvoiceItems(invoiceId: string, items: Array<{
+    private readonly tenantPrisma;
+    private readonly tenantService;
+    constructor(tenantPrisma: TenantPrismaService, tenantService: TenantService);
+    uploadInvoice(subdomain: string, vendorId: string, invoiceNumber: string, invoiceDate: Date, totalAmount: number, fileUrl?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: Prisma.Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
+    }>;
+    getInvoice(subdomain: string, id: string): Promise<{
+        vendor: {
+            id: string;
+            isActive: boolean;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            address: string | null;
+            contactPerson: string | null;
+        };
+        items: ({
+            product: {
+                id: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                sku: string;
+                category: string | null;
+                description: string | null;
+                price: Prisma.Decimal;
+                costPrice: Prisma.Decimal;
+                stock: number;
+                reorderLevel: number;
+                imageUrl: string | null;
+                barcode: string | null;
+            };
+        } & {
+            id: string;
+            productId: string;
+            quantity: number;
+            invoiceId: string;
+            unitCost: Prisma.Decimal;
+            totalCost: Prisma.Decimal;
+        })[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: Prisma.Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
+    }>;
+    getAllInvoices(subdomain: string, status?: string): Promise<({
+        vendor: {
+            id: string;
+            isActive: boolean;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            address: string | null;
+            contactPerson: string | null;
+        };
+        items: {
+            id: string;
+            productId: string;
+            quantity: number;
+            invoiceId: string;
+            unitCost: Prisma.Decimal;
+            totalCost: Prisma.Decimal;
+        }[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: Prisma.Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
+    })[]>;
+    addInvoiceItems(subdomain: string, invoiceId: string, items: Array<{
         productId: string;
         quantity: number;
         unitCost: number;
-    }>): Promise<any>;
-    commitInvoice(invoiceId: string): Promise<any>;
-    parseInvoiceOCR(fileUrl: string): Promise<{
-        vendorName: string;
+    }>): Promise<Prisma.BatchPayload>;
+    commitInvoice(subdomain: string, invoiceId: string): Promise<{
+        vendor: {
+            id: string;
+            isActive: boolean;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            address: string | null;
+            contactPerson: string | null;
+        };
+        items: ({
+            product: {
+                id: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                sku: string;
+                category: string | null;
+                description: string | null;
+                price: Prisma.Decimal;
+                costPrice: Prisma.Decimal;
+                stock: number;
+                reorderLevel: number;
+                imageUrl: string | null;
+                barcode: string | null;
+            };
+        } & {
+            id: string;
+            productId: string;
+            quantity: number;
+            invoiceId: string;
+            unitCost: Prisma.Decimal;
+            totalCost: Prisma.Decimal;
+        })[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: Prisma.Decimal;
         invoiceNumber: string;
         invoiceDate: Date;
-        items: {
-            description: string;
-            quantity: number;
-            unitPrice: number;
-            totalPrice: number;
-        }[];
-        totalAmount: number;
+        fileUrl: string | null;
     }>;
+    parseInvoiceOCR(fileUrl: string): Promise<{
+        vendorName: any;
+        invoiceNumber: any;
+        invoiceDate: Date;
+        totalAmount: number;
+        items: any;
+    }>;
+    private getMockInvoiceData;
 }

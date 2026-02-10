@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { use } from 'react';
 import {
     Star, Heart, Share2, ShoppingCart, Package,
@@ -9,12 +9,9 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    // const supabase = createClientComponentClient(); // Removed
     const { id } = use(params);
     const router = useRouter();
     const [product, setProduct] = useState<any>(null);
@@ -27,27 +24,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }, [id]);
 
     async function loadProduct() {
-        const { data, error } = await supabase
-            .from('store_inventory')
-            .select(`
-        id,
-        price,
-        current_stock_quantity,
-        global_products (
-          name,
-          image_url,
-          category,
-          manufacturer,
-          description,
-          package_size
-        )
-      `)
-            .eq('id', id)
-            .single();
-
-        if (data) {
-            setProduct(data);
-            loadRelatedProducts(data.global_products?.category);
+        try {
+            const data = await apiClient.get(`/products/${id}`);
+            if (data) {
+                // Map API response to Component State schema
+                // Note: API returns flat product object.
+                // Component expects nested `global_products` for display compatibility.
+                const adaptedProduct = {
+                    id: data.id,
+                    price: data.price, // API now returns price
+                    current_stock_quantity: data.stock, // API returns stock
+                    global_products: {
+                        name: data.name,
+                        image_url: data.imageUrl,
+                        category: data.category,
+                        description: data.description,
+                        // manufacturer: ... // Missing
+                        package_size: null
+                    }
+                };
+                setProduct(adaptedProduct);
+                loadRelatedProducts(data.category);
+            }
+        } catch (e) {
+            console.error(e);
         }
         setLoading(false);
     }
@@ -55,18 +55,26 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     async function loadRelatedProducts(category: string) {
         if (!category) return;
 
-        const { data } = await supabase
-            .from('store_inventory')
-            .select(`
-        id,
-        price,
-        global_products (name, image_url, category)
-      `)
-            .eq('global_products.category', category)
-            .neq('id', id)
-            .limit(4);
+        try {
+            const allProducts = await apiClient.get('/products');
+            // Filter client-side
+            const related = allProducts
+                .filter((p: any) => p.category === category && p.id !== id)
+                .slice(0, 4)
+                .map((p: any) => ({
+                    id: p.id,
+                    price: p.price || 0,
+                    global_products: {
+                        name: p.name,
+                        image_url: p.image, // ProductService.findAll returns 'image' not 'imageUrl'
+                        category: p.category
+                    }
+                }));
 
-        if (data) setRelatedProducts(data);
+            if (related.length > 0) setRelatedProducts(related);
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     const addToCart = () => {

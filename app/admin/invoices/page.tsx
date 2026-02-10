@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Upload, FileText, Check, X, Plus, Trash2 } from 'lucide-react';
+import { Upload, FileText, Check, X, Plus, Trash2, Layout, Columns, Rows, GripVertical, GripHorizontal } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { apiClient } from '@/lib/api-client';
 
 type Invoice = {
   id: string;
@@ -25,11 +26,21 @@ export default function InvoicesPage() {
   const [vendors, setVendors] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [parsing, setParsing] = useState(false);
+  const [parsingProgress, setParsingProgress] = useState({ current: 0, total: 20 });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [editingInvoice, setEditingInvoice] = useState<string | null>(null);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
+
+  // Split View State
+  const [splitRatio, setSplitRatio] = useState(50);
+  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
+  const [isDragging, setIsDragging] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+
 
   // Form state
   const [formData, setFormData] = useState({
@@ -41,19 +52,74 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     loadData();
+    loadData();
   }, []);
+
+  // Update preview URL when file is selected
+  useEffect(() => {
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [selectedFile]);
+
+  // Handle resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const modalContent = document.getElementById('upload-modal-content');
+      if (!modalContent) return;
+
+      const rect = modalContent.getBoundingClientRect();
+
+      let newRatio = 50;
+      if (orientation === 'horizontal') {
+        const x = e.clientX - rect.left;
+        newRatio = (x / rect.width) * 100;
+      } else {
+        const y = e.clientY - rect.top;
+        newRatio = (y / rect.height) * 100;
+      }
+
+      // Clamp between 20% and 80%
+      if (newRatio < 20) newRatio = 20;
+      if (newRatio > 80) newRatio = 80;
+
+      setSplitRatio(newRatio);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, orientation]);
+
 
   async function loadData() {
     try {
       const [invoicesRes, vendorsRes, productsRes] = await Promise.all([
-        fetch('/api/invoices'),
-        fetch('/api/vendors'),
-        fetch('/api/products'),
+        apiClient.get('/invoices'),
+        apiClient.get('/vendors'),
+        apiClient.get('/products'),
       ]);
 
-      if (invoicesRes.ok) setInvoices(await invoicesRes.json());
-      if (vendorsRes.ok) setVendors(await vendorsRes.json());
-      if (productsRes.ok) setProducts(await productsRes.json());
+      setInvoices(invoicesRes);
+      setVendors(vendorsRes);
+      setProducts(productsRes);
+
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load data');
@@ -67,24 +133,70 @@ export default function InvoicesPage() {
     if (!file) return;
 
     setSelectedFile(file);
+    setShowUploadModal(true); // Show modal immediately
+    setParsing(true);
+    setParsingProgress({ current: 0, total: 20 });
+    toast.loading('📄 Scanning invoice...');
 
-    // Parse invoice using OCR (mock for now)
-    const formData = new FormData();
-    formData.append('file', file);
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setParsingProgress(prev => {
+        if (prev.current < prev.total - 2) {
+          return { ...prev, current: prev.current + 1 };
+        }
+        return prev;
+      });
+    }, 150); // Update every 150ms
 
     try {
-      const res = await fetch('/api/invoices/parse', {
-        method: 'POST',
-        body: formData,
+      // Parse invoice using OCR
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', file);
+
+      const parsed = await apiClient.post('/invoices/parse', formDataToSend);
+      setParsedData(parsed);
+
+      // Auto-match or create vendor
+      let vendorId = '';
+      const existingVendor = vendors.find(
+        v => v.name.toLowerCase() === parsed.vendorName.toLowerCase()
+      );
+
+      if (existingVendor) {
+        vendorId = existingVendor.id;
+      } else {
+        // Create new vendor automatically
+        const newVendor = await apiClient.post('/vendors', { name: parsed.vendorName });
+        vendorId = newVendor.id;
+        await loadData(); // Reload to get new vendor in list
+      }
+
+      // Auto-fill form with parsed data
+      const invoiceDate = parsed.invoiceDate
+        ? new Date(parsed.invoiceDate).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+
+      setFormData({
+        vendorId,
+        invoiceNumber: parsed.invoiceNumber || '',
+        invoiceDate,
+        totalAmount: parsed.totalAmount || 0,
       });
 
-      if (res.ok) {
-        const parsed = await res.json();
-        setParsedData(parsed);
-        toast.success('Invoice parsed! Please review and confirm.');
-      }
+      // Complete progress
+      clearInterval(progressInterval);
+      setParsingProgress({ current: 20, total: 20 });
+
+      toast.dismiss();
+      toast.success('✓ Invoice parsed! Review the data below.');
+
+      // Show modal for review
     } catch (error) {
-      toast.error('Failed to parse invoice');
+      clearInterval(progressInterval);
+      toast.dismiss();
+      toast.error('Failed to parse invoice. Please try again.');
+    } finally {
+      setParsing(false);
     }
   }
 
@@ -97,35 +209,28 @@ export default function InvoicesPage() {
       formDataToSend.append('invoiceDate', formData.invoiceDate);
       formDataToSend.append('totalAmount', formData.totalAmount.toString());
 
-      const res = await fetch('/api/invoices/upload', {
-        method: 'POST',
-        body: formDataToSend,
-      });
-
-      if (res.ok) {
-        const invoice = await res.json();
-        toast.success('Invoice created!');
-        setEditingInvoice(invoice.id);
-        setShowUploadModal(false);
-        loadData();
+      // Send items with expiry dates
+      if (parsedData?.items) {
+        formDataToSend.append('items', JSON.stringify(parsedData.items));
       }
+
+      const invoice = await apiClient.post('/invoices/upload', formDataToSend);
+      toast.success('✅ Saved to inventory!');
+      setEditingInvoice(invoice.id);
+      setShowUploadModal(false);
+      setSelectedFile(null);
+      setParsedData(null);
+      loadData();
     } catch (error) {
-      toast.error('Failed to create invoice');
+      toast.error('Failed to save to inventory');
     }
   }
 
   async function handleAddItems(invoiceId: string) {
     try {
-      const res = await fetch(`/api/invoices/${invoiceId}/items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: invoiceItems }),
-      });
-
-      if (res.ok) {
-        toast.success('Items added!');
-        setInvoiceItems([]);
-      }
+      await apiClient.post(`/invoices/${invoiceId}/items`, { items: invoiceItems });
+      toast.success('Items added!');
+      setInvoiceItems([]);
     } catch (error) {
       toast.error('Failed to add items');
     }
@@ -135,15 +240,10 @@ export default function InvoicesPage() {
     if (!confirm('This will add the invoice items to inventory. Continue?')) return;
 
     try {
-      const res = await fetch(`/api/invoices/${invoiceId}/commit`, {
-        method: 'POST',
-      });
-
-      if (res.ok) {
-        toast.success('Invoice committed! Inventory updated.');
-        loadData();
-        setEditingInvoice(null);
-      }
+      await apiClient.post(`/invoices/${invoiceId}/commit`, {});
+      toast.success('Invoice committed! Inventory updated.');
+      loadData();
+      setEditingInvoice(null);
     } catch (error) {
       toast.error('Failed to commit invoice');
     }
@@ -167,13 +267,30 @@ export default function InvoicesPage() {
 
   return (
     <div className="p-8">
+      {/* Hidden file input - triggered by Upload Invoice button */}
+      <input
+        ref={(input) => {
+          if (input) {
+            (window as any).invoiceFileInput = input;
+          }
+        }}
+        type="file"
+        accept="image/*,application/pdf"
+        onChange={handleFileUpload}
+        className="hidden"
+        id="invoice-file-input"
+      />
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Inventory In - Invoice Management</h1>
           <p className="text-gray-500 mt-1">Upload vendor invoices to track incoming inventory</p>
         </div>
         <button
-          onClick={() => setShowUploadModal(true)}
+          onClick={() => {
+            const fileInput = document.getElementById('invoice-file-input') as HTMLInputElement;
+            if (fileInput) fileInput.click();
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
         >
           <Upload size={20} />
@@ -209,10 +326,10 @@ export default function InvoicesPage() {
                 <td className="px-6 py-4">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${invoice.status === 'committed'
-                        ? 'bg-green-100 text-green-800'
-                        : invoice.status === 'validated'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-yellow-100 text-yellow-800'
+                      ? 'bg-green-100 text-green-800'
+                      : invoice.status === 'validated'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
                       }`}
                   >
                     {invoice.status}
@@ -243,185 +360,361 @@ export default function InvoicesPage() {
         </table>
       </div>
 
-      {/* Upload Modal */}
+      {/* Upload/Review Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Upload New Invoice</h2>
-              <button onClick={() => setShowUploadModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X size={24} />
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className={`bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${parsedData ? 'w-[98vw] h-[95vh]' : 'max-w-2xl w-full max-h-[90vh]'
+            }`}>
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50 shrink-0">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-gray-800">
+                  {parsedData ? 'Review & Verify Invoice' : 'Upload New Invoice'}
+                </h2>
+                {parsedData && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                    Drag splitter to resize
+                  </span>
+                )}
+              </div>
 
-            {/* File Upload */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Upload Invoice File</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <input
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-600">
-                    {selectedFile ? selectedFile.name : 'Click to upload invoice (PDF or Image)'}
-                  </p>
-                </label>
+              <div className="flex items-center gap-4">
+                {/* View Controls (Only visible when reviewing) */}
+                {parsedData && (
+                  <div className="flex items-center gap-1 bg-white rounded-lg border border-gray-300 p-1 shadow-sm">
+                    <button
+                      title="Split Horizontally"
+                      onClick={() => setOrientation('horizontal')}
+                      className={`p-1.5 rounded transition-colors ${orientation === 'horizontal' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >
+                      <Columns size={18} />
+                    </button>
+                    <button
+                      title="Split Vertically"
+                      onClick={() => setOrientation('vertical')}
+                      className={`p-1.5 rounded transition-colors ${orientation === 'vertical' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'}`}
+                    >
+                      <Rows size={18} />
+                    </button>
+                  </div>
+                )}
+
+                <button onClick={() => setShowUploadModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+                  <X size={24} />
+                </button>
               </div>
             </div>
 
-            {/* Invoice Details Form */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
-                <select
-                  value={formData.vendorId}
-                  onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                >
-                  <option value="">Select Vendor</option>
-                  {vendors.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Modal Body - Resizable Split View */}
+            <div
+              id="upload-modal-content"
+              className={`flex-1 overflow-hidden relative ${parsedData ? 'flex' : 'block overflow-y-auto'}`}
+              style={{ flexDirection: orientation === 'horizontal' ? 'row' : 'column' }}
+            >
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
-                  <input
-                    type="text"
-                    value={formData.invoiceNumber}
-                    onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                    placeholder="INV-001"
-                  />
-                </div>
+              {/* PANE 1: PREVIEW (Only visible if parsedData is present) */}
+              {parsedData && (
+                <>
+                  <div
+                    className="bg-gray-900 overflow-hidden relative flex items-center justify-center p-4"
+                    style={{ flexBasis: `${splitRatio}%` }}
+                  >
+                    {selectedFile?.type === 'application/pdf' ? (
+                      <iframe src={previewUrl || ''} className="w-full h-full bg-white rounded shadow-lg border-0" title="PDF Preview" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center overflow-auto">
+                        <img src={previewUrl || ''} className="max-w-full max-h-full object-contain rounded shadow-lg" alt="Invoice Preview" />
+                      </div>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
-                  <input
-                    type="date"
-                    value={formData.invoiceDate}
-                    onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                  />
-                </div>
-              </div>
+                  {/* RESIZER HANDLE */}
+                  <div
+                    onMouseDown={() => setIsDragging(true)}
+                    className={`bg-gray-200 hover:bg-blue-500 z-10 flex items-center justify-center transition-colors shadow-sm
+                      ${orientation === 'horizontal' ? 'w-4 cursor-col-resize h-full border-l border-r border-gray-300' : 'h-4 cursor-row-resize w-full border-t border-b border-gray-300'}
+                    `}
+                    title="Drag to resize"
+                  >
+                    {orientation === 'horizontal' ? <GripVertical className="text-gray-400" size={12} /> : <GripHorizontal className="text-gray-400" size={12} />}
+                  </div>
+                </>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.totalAmount}
-                  onChange={(e) => setFormData({ ...formData, totalAmount: parseFloat(e.target.value) })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleCreateInvoice}
-                disabled={!formData.vendorId || !formData.invoiceNumber}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
+              {/* PANE 2: FORM / DATA (or Main Upload View) */}
+              <div
+                className={`bg-white overflow-y-auto ${parsedData ? 'flex-1' : 'w-full h-full'}`}
+                style={parsedData ? { flexBasis: `${100 - splitRatio}%` } : {}}
               >
-                Create Invoice
-              </button>
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
+                <div className="p-6">
+                  {/* ORIGINAL CONTENT START */}
+                  {/* File Info & Parsing Status */}
+                  <div className="mb-6">
+                    {/* Selected File Display */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-blue-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{selectedFile?.name || 'No file selected'}</p>
+                        <p className="text-xs text-gray-500">
+                          {selectedFile ? `${(selectedFile.size / 1024).toFixed(1)} KB` : ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Parsing Status */}
+                    {parsing && (
+                      <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-sm text-blue-700 font-medium">AI is scanning invoice...</span>
+                          </div>
+                          <span className="text-xs text-blue-600 font-semibold">{parsingProgress.current}/{parsingProgress.total}</span>
+                        </div>
+                        {/* Progress Bar */}
+                        <div className="w-full bg-blue-100 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-150"
+                            style={{ width: `${(parsingProgress.current / parsingProgress.total) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {parsedData && !parsing && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <span className="text-sm text-green-700 font-medium">✓ Parsed successfully! Review the fields below.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Parsed Data Summary - Only show after successful parsing */}
+                  {parsedData && !parsing && (
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6 space-y-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">📄 AI Extracted Data</h3>
+                        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">Verified by AI</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                          <p className="text-xs text-gray-500 font-medium mb-1">Vendor</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {vendors.find(v => v.id === formData.vendorId)?.name || 'Unknown'}
+                          </p>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                          <p className="text-xs text-gray-500 font-medium mb-1">Invoice Number</p>
+                          <p className="text-base font-semibold text-gray-900">{formData.invoiceNumber}</p>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                          <p className="text-xs text-gray-500 font-medium mb-1">Invoice Date</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {new Date(formData.invoiceDate).toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                          <p className="text-xs text-gray-500 font-medium mb-1">Total Amount</p>
+                          <p className="text-base font-semibold text-green-600">${formData.totalAmount.toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      {/* Items Table */}
+                      {parsedData.items && parsedData.items.length > 0 && (
+                        <div className="mt-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-bold text-gray-900">📦 Scanned Items</h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600 font-medium">Extend All Items:</span>
+                              {[7, 30, 180, 365].map(days => (
+                                <button
+                                  key={days}
+                                  onClick={() => {
+                                    const newItems = parsedData.items.map((item: any) => {
+                                      const itemDate = item.expiryDate ? new Date(item.expiryDate) : new Date();
+                                      const newDate = new Date(itemDate);
+                                      newDate.setDate(newDate.getDate() + days);
+                                      return {
+                                        ...item,
+                                        expiryDate: newDate.toISOString().split('T')[0]
+                                      };
+                                    });
+                                    setParsedData({ ...parsedData, items: newItems });
+                                  }}
+                                  className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1.5 rounded-lg font-semibold shadow-sm"
+                                >
+                                  +{days}d All
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                            <table className="w-full text-sm min-w-[800px]">
+                              <thead className="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Product</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Category</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Qty</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Unit Price</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Expires</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Extend By</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {parsedData.items.map((item: any, idx: number) => {
+                                  const itemDate = item.expiryDate ? new Date(item.expiryDate) : new Date();
+
+                                  return (
+                                    <tr key={idx} className="border-b border-gray-100 last:border-0">
+                                      <td className="px-4 py-3 font-medium text-gray-900">{item.description}</td>
+                                      <td className="px-4 py-3 text-gray-600">{item.category || '-'}</td>
+                                      <td className="px-4 py-3 text-gray-600">{item.quantity}</td>
+                                      <td className="px-4 py-3 text-gray-600">${item.unitPrice.toFixed(2)}</td>
+                                      <td className="px-4 py-3">
+                                        <input
+                                          type="date"
+                                          value={item.expiryDate || ''}
+                                          onChange={(e) => {
+                                            const newItems = [...parsedData.items];
+                                            newItems[idx].expiryDate = e.target.value;
+                                            setParsedData({ ...parsedData, items: newItems });
+                                          }}
+                                          className="text-xs border border-gray-300 rounded px-2 py-1"
+                                        />
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        <div className="flex gap-1">
+                                          {[7, 15, 30, 60, 180, 360].map(days => (
+                                            <button
+                                              key={days}
+                                              onClick={() => {
+                                                const newDate = new Date(itemDate);
+                                                newDate.setDate(newDate.getDate() + days);
+                                                const newItems = [...parsedData.items];
+                                                newItems[idx].expiryDate = newDate.toISOString().split('T')[0];
+                                                setParsedData({ ...parsedData, items: newItems });
+                                              }}
+                                              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded font-medium"
+                                            >
+                                              +{days}d
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={handleCreateInvoice}
+                      disabled={!formData.vendorId || !formData.invoiceNumber}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
+                    >
+                      💾 Save to Inventory
+                    </button>
+                    <button
+                      onClick={() => setShowUploadModal(false)}
+                      className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </div >
       )}
+
 
       {/* Add Items Modal */}
-      {editingInvoice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Add Invoice Items</h2>
-              <button onClick={() => setEditingInvoice(null)} className="text-gray-500 hover:text-gray-700">
-                <X size={24} />
-              </button>
-            </div>
+      {
+        editingInvoice && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Add Invoice Items</h2>
+                <button onClick={() => setEditingInvoice(null)} className="text-gray-500 hover:text-gray-700">
+                  <X size={24} />
+                </button>
+              </div>
 
-            <div className="space-y-4 mb-6">
-              {invoiceItems.map((item, index) => (
-                <div key={index} className="flex gap-4 items-start">
-                  <select
-                    value={item.productId}
-                    onChange={(e) => updateItem(index, 'productId', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
-                  >
-                    <option value="">Select Product</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.sku})
-                      </option>
-                    ))}
-                  </select>
+              <div className="space-y-4 mb-6">
+                {invoiceItems.map((item, index) => (
+                  <div key={index} className="flex gap-4 items-start">
+                    <select
+                      value={item.productId}
+                      onChange={(e) => updateItem(index, 'productId', e.target.value)}
+                      className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
+                    >
+                      <option value="">Select Product</option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.sku})
+                        </option>
+                      ))}
+                    </select>
 
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                    placeholder="Qty"
-                    className="w-24 border border-gray-300 rounded-lg px-4 py-2"
-                  />
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
+                      placeholder="Qty"
+                      className="w-24 border border-gray-300 rounded-lg px-4 py-2"
+                    />
 
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={item.unitCost}
-                    onChange={(e) => updateItem(index, 'unitCost', parseFloat(e.target.value))}
-                    placeholder="Unit Cost"
-                    className="w-32 border border-gray-300 rounded-lg px-4 py-2"
-                  />
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={item.unitCost}
+                      onChange={(e) => updateItem(index, 'unitCost', parseFloat(e.target.value))}
+                      placeholder="Unit Cost"
+                      className="w-32 border border-gray-300 rounded-lg px-4 py-2"
+                    />
 
-                  <span className="w-32 py-2 text-right font-mono">
-                    ${(item.quantity * item.unitCost).toFixed(2)}
-                  </span>
+                    <span className="w-32 py-2 text-right font-mono">
+                      ${(item.quantity * item.unitCost).toFixed(2)}
+                    </span>
 
-                  <button onClick={() => removeItem(index)} className="text-red-600 hover:text-red-800 p-2">
-                    <Trash2 size={20} />
-                  </button>
-                </div>
-              ))}
-            </div>
+                    <button onClick={() => removeItem(index)} className="text-red-600 hover:text-red-800 p-2">
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                ))}
+              </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={addItemRow}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                <Plus size={20} />
-                Add Item
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={addItemRow}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  <Plus size={20} />
+                  Add Item
+                </button>
 
-              <button
-                onClick={() => handleAddItems(editingInvoice)}
-                disabled={invoiceItems.length === 0}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
-              >
-                Save Items & Validate
-              </button>
+                <button
+                  onClick={() => handleAddItems(editingInvoice)}
+                  disabled={invoiceItems.length === 0}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
+                >
+                  Save Items & Validate
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

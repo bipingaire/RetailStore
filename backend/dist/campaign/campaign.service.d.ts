@@ -1,13 +1,33 @@
+import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
-import { CreateCampaignDto } from './dto/campaign.dto';
 export declare class CampaignService {
-    private prisma;
-    constructor(prisma: TenantPrismaService);
-    create(tenantId: string, dto: CreateCampaignDto): Promise<any>;
-    findAll(tenantId: string, status?: string): Promise<any>;
-    findOne(tenantId: string, id: string): Promise<any>;
-    pushToWebsite(tenantId: string, id: string): Promise<any>;
-    pushToSocial(tenantId: string, id: string): Promise<any>;
-    getSuggestions(tenantId: string): Promise<any[]>;
-    private generateMarketingContent;
+    private tenantService;
+    private tenantPrisma;
+    constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
+    createCampaign(subdomain: string, data: any): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        status: string;
+        type: string;
+        startDate: Date | null;
+        endDate: Date | null;
+        budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
+    }>;
+    listCampaigns(subdomain: string): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        status: string;
+        type: string;
+        startDate: Date | null;
+        endDate: Date | null;
+        budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
+    }[]>;
+    generateCampaignContent(data: {
+        products: any[];
+    }): Promise<{
+        post: string;
+        image: string;
+    }>;
 }

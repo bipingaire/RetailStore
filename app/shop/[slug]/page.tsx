@@ -2,14 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { Package, MapPin, Search, Phone, Clock, Truck } from 'lucide-react';
 import NearbyStoresModal from '@/components/nearby-stores-modal';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function CustomerProductPage() {
   const params = useParams();
@@ -25,37 +20,29 @@ export default function CustomerProductPage() {
   }, [slug]);
 
   async function loadProduct() {
-    // Get product from master catalog by slug or ID
-    const { data: productData } = await supabase
-      .from('global-product-master-catalog')
-      .select('*')
-      .eq('product-id', slug)
-      .single();
+    try {
+      const data = await apiClient.get(`/products/${slug}`);
+      if (data) {
+        setProduct({
+          'product-name': data.name,
+          'image-url': data.imageUrl,
+          'description-text': data.description,
+          'category-name': data.category,
+          'upc-ean-code': data.sku,
+          // 'brand-name': data.manufacturer, // Not in API
+          // 'package-size': ..., // Not in API
+          'product-id': data.id
+        });
 
-    if (productData) {
-      setProduct(productData);
-
-      // Get inventory for current store
-      const tenantId = getTenantFromSubdomain();
-      if (tenantId) {
-        const { data: inventoryData } = await supabase
-          .from('retail-store-inventory-item')
-          .select('*')
-          .eq('global-product-id', productData['product-id'])
-          .eq('tenant-id', tenantId)
-          .single();
-
-        setInventory(inventoryData);
+        setInventory({
+          'current-stock-quantity': data.stock
+        });
       }
+    } catch (err) {
+      console.error("Failed to load product", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  }
-
-  function getTenantFromSubdomain(): string | null {
-    // Extract tenant from subdomain or context
-    // This would use your subdomain utilities
-    return null; // Placeholder
   }
 
   if (loading) {

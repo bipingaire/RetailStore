@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class ProfitService {
-    constructor(private readonly prisma: TenantPrismaService) { }
+    constructor(
+        private readonly tenantPrisma: TenantPrismaService,
+        private readonly tenantService: TenantService,
+    ) { }
 
-    async calculateProfit(startDate: Date, endDate: Date, period: 'daily' | 'weekly' | 'monthly') {
+    async calculateProfit(subdomain: string, startDate: Date, endDate: Date, period: 'daily' | 'weekly' | 'monthly') {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
         // Get total revenue from sales
-        const sales = await this.prisma.sale.findMany({
+        const sales = await client.sale.findMany({
             where: {
                 createdAt: { gte: startDate, lte: endDate },
             }
@@ -16,7 +23,7 @@ export class ProfitService {
         const revenue = sales.reduce((sum, sale) => sum + Number(sale.total), 0);
 
         // Get COGS from committed invoices
-        const invoices = await this.prisma.vendorInvoice.findMany({
+        const invoices = await client.vendorInvoice.findMany({
             where: {
                 status: 'committed',
                 invoiceDate: { gte: startDate, lte: endDate },
@@ -26,7 +33,7 @@ export class ProfitService {
         const cogs = invoices.reduce((sum, inv) => sum + Number(inv.totalAmount), 0);
 
         // Get operating expenses
-        const expenses = await this.prisma.expense.findMany({
+        const expenses = await client.expense.findMany({
             where: {
                 expenseDate: { gte: startDate, lte: endDate },
             },
@@ -39,7 +46,7 @@ export class ProfitService {
         const grossMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
         const netProfit = grossProfit - totalExpenses;
 
-        const report = await this.prisma.profitReport.create({
+        const report = await client.profitReport.create({
             data: {
                 period,
                 startDate,
@@ -56,18 +63,24 @@ export class ProfitService {
         return report;
     }
 
-    async getProfitReports(period?: string) {
+    async getProfitReports(subdomain: string, period?: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
         const where = period ? { period } : {};
 
-        return this.prisma.profitReport.findMany({
+        return client.profitReport.findMany({
             where,
             orderBy: { createdAt: 'desc' },
             take: 30,
         });
     }
 
-    async getProfitTrends(days: number = 30) {
-        const reports = await this.prisma.profitReport.findMany({
+    async getProfitTrends(subdomain: string, days: number = 30) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const reports = await client.profitReport.findMany({
             where: {
                 startDate: { gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) },
             },
@@ -77,9 +90,12 @@ export class ProfitService {
         return reports;
     }
 
-    async getCategoryBreakdown(startDate: Date, endDate: Date) {
+    async getCategoryBreakdown(subdomain: string, startDate: Date, endDate: Date) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
         // Get sales grouped by product category
-        const saleItems = await this.prisma.saleItem.findMany({
+        const saleItems = await client.saleItem.findMany({
             where: {
                 sale: {
                     createdAt: { gte: startDate, lte: endDate },
@@ -108,8 +124,11 @@ export class ProfitService {
         }));
     }
 
-    async addExpense(category: string, amount: number, description?: string, expenseDate?: Date) {
-        return this.prisma.expense.create({
+    async addExpense(subdomain: string, category: string, amount: number, description?: string, expenseDate?: Date) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.expense.create({
             data: {
                 category,
                 amount,
@@ -119,12 +138,15 @@ export class ProfitService {
         });
     }
 
-    async getExpenses(startDate?: Date, endDate?: Date) {
+    async getExpenses(subdomain: string, startDate?: Date, endDate?: Date) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
         const where = startDate && endDate
             ? { expenseDate: { gte: startDate, lte: endDate } }
             : {};
 
-        return this.prisma.expense.findMany({
+        return client.expense.findMany({
             where,
             orderBy: { expenseDate: 'desc' },
         });

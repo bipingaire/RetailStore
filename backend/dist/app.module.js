@@ -20,6 +20,7 @@ const vendor_module_1 = require("./vendor/vendor.module");
 const invoice_module_1 = require("./invoice/invoice.module");
 const audit_module_1 = require("./audit/audit.module");
 const purchase_order_module_1 = require("./purchase-order/purchase-order.module");
+const campaign_module_1 = require("./campaign/campaign.module");
 const profit_controller_1 = require("./reports/profit.controller");
 const profit_service_1 = require("./reports/profit.service");
 const tenant_prisma_service_1 = require("./prisma/tenant-prisma.service");
@@ -41,6 +42,7 @@ exports.AppModule = AppModule = __decorate([
             invoice_module_1.InvoiceModule,
             audit_module_1.AuditModule,
             purchase_order_module_1.PurchaseOrderModule,
+            campaign_module_1.CampaignModule,
         ],
         controllers: [profit_controller_1.ProfitController],
         providers: [profit_service_1.ProfitService, tenant_prisma_service_1.TenantPrismaService],

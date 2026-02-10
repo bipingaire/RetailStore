@@ -23,6 +23,9 @@ let VendorController = class VendorController {
     findAll(subdomain) {
         return this.vendorService.findAll(subdomain);
     }
+    create(subdomain, body) {
+        return this.vendorService.create(subdomain, body.name);
+    }
     findInvoices(subdomain) {
         return this.vendorService.findInvoices(subdomain);
     }
@@ -35,6 +38,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], VendorController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], VendorController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('invoices'),
     __param(0, (0, common_1.Headers)('x-tenant')),

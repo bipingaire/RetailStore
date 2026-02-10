@@ -4,9 +4,11 @@ import { diskStorage } from 'multer';
 import { InvoiceController } from './invoice.controller';
 import { InvoiceService } from './invoice.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
+import { TenantModule } from '../tenant/tenant.module';
 
 @Module({
     imports: [
+        TenantModule,
         MulterModule.register({
             storage: diskStorage({
                 destination: './uploads/invoices',

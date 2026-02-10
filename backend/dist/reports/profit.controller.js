@@ -19,68 +19,74 @@ let ProfitController = class ProfitController {
     constructor(profitService) {
         this.profitService = profitService;
     }
-    async calculate(body) {
-        return this.profitService.calculateProfit(new Date(body.startDate), new Date(body.endDate), body.period);
+    async calculate(subdomain, body) {
+        return this.profitService.calculateProfit(subdomain, new Date(body.startDate), new Date(body.endDate), body.period);
     }
-    async getReports(period) {
-        return this.profitService.getProfitReports(period);
+    async getReports(subdomain, period) {
+        return this.profitService.getProfitReports(subdomain, period);
     }
-    async getTrends(days) {
-        return this.profitService.getProfitTrends(days ? parseInt(days) : 30);
+    async getTrends(subdomain, days) {
+        return this.profitService.getProfitTrends(subdomain, days ? parseInt(days) : 30);
     }
-    async getCategoryBreakdown(query) {
-        return this.profitService.getCategoryBreakdown(new Date(query.startDate), new Date(query.endDate));
+    async getCategoryBreakdown(subdomain, query) {
+        return this.profitService.getCategoryBreakdown(subdomain, new Date(query.startDate), new Date(query.endDate));
     }
-    async addExpense(body) {
-        return this.profitService.addExpense(body.category, body.amount, body.description, body.expenseDate ? new Date(body.expenseDate) : undefined);
+    async addExpense(subdomain, body) {
+        return this.profitService.addExpense(subdomain, body.category, body.amount, body.description, body.expenseDate ? new Date(body.expenseDate) : undefined);
     }
-    async getExpenses(query) {
+    async getExpenses(subdomain, query) {
         const startDate = query.startDate ? new Date(query.startDate) : undefined;
         const endDate = query.endDate ? new Date(query.endDate) : undefined;
-        return this.profitService.getExpenses(startDate, endDate);
+        return this.profitService.getExpenses(subdomain, startDate, endDate);
     }
 };
 exports.ProfitController = ProfitController;
 __decorate([
     (0, common_1.Post)('calculate'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProfitController.prototype, "calculate", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('period')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)('period')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], ProfitController.prototype, "getReports", null);
 __decorate([
     (0, common_1.Get)('trends'),
-    __param(0, (0, common_1.Query)('days')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)('days')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], ProfitController.prototype, "getTrends", null);
 __decorate([
     (0, common_1.Get)('category-breakdown'),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProfitController.prototype, "getCategoryBreakdown", null);
 __decorate([
     (0, common_1.Post)('expense'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProfitController.prototype, "addExpense", null);
 __decorate([
     (0, common_1.Get)('expenses'),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProfitController.prototype, "getExpenses", null);
 exports.ProfitController = ProfitController = __decorate([

@@ -1,19 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
+import { TenantService } from '../tenant/tenant.service';
 import { Prisma } from '../generated/tenant-client';
+import OpenAI from 'openai';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class InvoiceService {
-    constructor(private readonly prisma: TenantPrismaService) { }
+    constructor(
+        private readonly tenantPrisma: TenantPrismaService,
+        private readonly tenantService: TenantService,
+    ) { }
 
     async uploadInvoice(
+        subdomain: string,
         vendorId: string,
         invoiceNumber: string,
         invoiceDate: Date,
         totalAmount: number,
         fileUrl?: string,
     ) {
-        return this.prisma.vendorInvoice.create({
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.vendorInvoice.create({
             data: {
                 vendorId,
                 invoiceNumber,
@@ -25,8 +36,11 @@ export class InvoiceService {
         });
     }
 
-    async getInvoice(id: string) {
-        return this.prisma.vendorInvoice.findUnique({
+    async getInvoice(subdomain: string, id: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.vendorInvoice.findUnique({
             where: { id },
             include: {
                 vendor: true,
@@ -39,24 +53,45 @@ export class InvoiceService {
         });
     }
 
-    async getAllInvoices(status?: string) {
-        const where: Prisma.VendorInvoiceWhereInput = status ? { status } : {};
+    async getAllInvoices(subdomain: string, status?: string) {
+        console.log(`getAllInvoices called for subdomain: ${subdomain}`);
+        try {
+            const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+            if (!tenant) {
+                console.log(`Tenant not found for subdomain: ${subdomain}`);
+                throw new Error(`Tenant not found for subdomain: ${subdomain}`);
+            }
+            console.log(`Tenant found: ${tenant.id}, DB: ${tenant.databaseUrl}`);
 
-        return this.prisma.vendorInvoice.findMany({
-            where,
-            include: {
-                vendor: true,
-                items: true,
-            },
-            orderBy: { createdAt: 'desc' },
-        });
+            const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+            console.log('Got tenant client');
+
+            const where: Prisma.VendorInvoiceWhereInput = status ? { status } : {};
+
+            const invoices = await client.vendorInvoice.findMany({
+                where,
+                include: {
+                    vendor: true,
+                    items: true,
+                },
+                orderBy: { createdAt: 'desc' },
+            });
+            console.log(`Found ${invoices.length} invoices`);
+            return invoices;
+        } catch (error) {
+            console.error('Error in getAllInvoices:', error);
+            throw error;
+        }
     }
 
-    async addInvoiceItems(invoiceId: string, items: Array<{
+    async addInvoiceItems(subdomain: string, invoiceId: string, items: Array<{
         productId: string;
         quantity: number;
         unitCost: number;
     }>) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
         const createItems = items.map(item => ({
             invoiceId,
             productId: item.productId,
@@ -65,14 +100,17 @@ export class InvoiceService {
             totalCost: item.quantity * item.unitCost,
         }));
 
-        return this.prisma.vendorInvoiceItem.createMany({
+        return client.vendorInvoiceItem.createMany({
             data: createItems,
         });
     }
 
-    async commitInvoice(invoiceId: string) {
+    async commitInvoice(subdomain: string, invoiceId: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
         // Get invoice with all items
-        const invoice = await this.prisma.vendorInvoice.findUnique({
+        const invoice = await client.vendorInvoice.findUnique({
             where: { id: invoiceId },
             include: { items: true },
         });
@@ -86,7 +124,7 @@ export class InvoiceService {
         }
 
         // Update inventory quantities in a transaction
-        await this.prisma.$transaction(async (tx) => {
+        await client.$transaction(async (tx) => {
             // Update each product's stock
             for (const item of invoice.items) {
                 await tx.product.update({
@@ -105,8 +143,7 @@ export class InvoiceService {
                         productId: item.productId,
                         type: 'IN',
                         quantity: item.quantity,
-                        reason: `Invoice ${invoice.invoiceNumber}`,
-                        date: new Date(),
+                        description: `Invoice ${invoice.invoiceNumber}`,
                     },
                 });
             }
@@ -118,25 +155,186 @@ export class InvoiceService {
             });
         });
 
-        return this.getInvoice(invoiceId);
+        return this.getInvoice(subdomain, invoiceId);
     }
 
     async parseInvoiceOCR(fileUrl: string) {
-        // TODO: Integrate with OCR service (Mindee, Veryfi, etc.)
-        // For now, return mock data
+        if (!process.env.OPENAI_API_KEY) {
+            console.error('❌ Missing OPENAI_API_KEY in environment variables');
+            throw new Error('OPENAI_API_KEY is not configured');
+        }
+
+        console.log(`🔑 Using OpenAI Key: ${process.env.OPENAI_API_KEY?.substring(0, 10)}... (Length: ${process.env.OPENAI_API_KEY?.length})`);
+
+        try {
+            console.log('📂 Resolving file path...');
+            const publicDir = path.join(process.cwd(), '..', 'public');
+            console.log('  - Public Dir:', publicDir);
+
+            const relativePath = fileUrl.startsWith('/') ? fileUrl.substring(1) : fileUrl;
+            console.log('  - Relative Path:', relativePath);
+
+            const filePath = path.join(publicDir, relativePath);
+            console.log('  - Full File Path:', filePath);
+
+            if (!fs.existsSync(filePath)) {
+                console.error(`❌ File not found: ${filePath}`);
+                throw new Error(`File not found at path: ${filePath}`);
+            }
+
+            const ext = path.extname(filePath).toLowerCase();
+            let promptContent: any[] = [];
+
+            console.log('📖 Reading file...');
+            const buffer = fs.readFileSync(filePath);
+            console.log(`  - File read, size: ${buffer.length} bytes`);
+
+            if (ext === '.pdf') {
+                console.log('📄 PDF detected. Extracting text...');
+                const pdfParse = require('pdf-parse');
+                console.log('pdfParse type:', typeof pdfParse);
+                console.log('pdfParse keys:', Object.keys(pdfParse));
+
+                let pdfData;
+                if (typeof pdfParse === 'function') {
+                    pdfData = await pdfParse(buffer);
+                } else if (pdfParse.default && typeof pdfParse.default === 'function') {
+                    console.log('Using pdfParse.default');
+                    pdfData = await pdfParse.default(buffer);
+                } else {
+                    throw new Error(`pdf-parse export is not a function: ${JSON.stringify(pdfParse)}`);
+                }
+
+                const pdfText = pdfData.text;
+                console.log(`  - Extracted ${pdfText.length} characters of text`);
+
+                if (!pdfText || pdfText.trim().length === 0) {
+                    throw new Error('PDF contains no extractable text (it might be a scanned image). Please upload an image instead.');
+                }
+
+                promptContent = [
+                    {
+                        type: "text",
+                        text: `Analyze this invoice TEXT and extract the following fields in JSON format:
+- vendorName: The vendor/supplier name
+- invoiceNumber: The invoice number
+- invoiceDate: Invoice date in YYYY-MM-DD format
+- totalAmount: Total amount (number)
+- items: Array of items, each with:
+  - description: Item name/description
+  - category: Product category (e.g., "Dairy", "Bakery", "Beverages", "Snacks", "Produce", "Frozen", "Household", "Electronics", etc.)
+  - quantity: Quantity (number)
+  - unitPrice: Unit price (number)
+  - totalPrice: Total price for this item (number)
+  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days from invoice date, for packaged goods use 6-12 months, for non-perishables use 1-2 years. If the invoice shows an expiry date, use that.
+
+Return ONLY the JSON object, no markdown formatting.
+
+INVOICE TEXT:
+${pdfText}`
+                    }
+                ];
+            } else {
+                // Image handling
+                const base64Image = buffer.toString('base64');
+                const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
+                const dataUrl = `data:${mimeType};base64,${base64Image}`;
+                console.log('  - Converted to base64');
+
+                promptContent = [
+                    {
+                        type: "text",
+                        text: `Analyze this invoice image and extract the following fields in JSON format:
+- vendorName: The vendor/supplier name
+- invoiceNumber: The invoice number
+- invoiceDate: Invoice date in YYYY-MM-DD format
+- totalAmount: Total amount (number)
+- items: Array of items, each with:
+  - description: Item name/description
+  - category: Product category (e.g., "Dairy", "Bakery", "Beverages", "Snacks", "Produce", "Frozen", "Household", "Electronics", etc.)
+  - quantity: Quantity (number)
+  - unitPrice: Unit price (number)
+  - totalPrice: Total price for this item (number)
+  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days from invoice date, for packaged goods use 6-12 months, for non-perishables use 1-2 years. If the invoice shows an expiry date, use that.
+
+Return ONLY the JSON object, no markdown formatting.`
+                    },
+                    {
+                        type: "image_url",
+                        image_url: {
+                            "url": dataUrl,
+                        },
+                    },
+                ];
+            }
+
+            console.log('🤖 Initializing OpenAI client...');
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+            console.log('🚀 Sending request to OpenAI API...');
+            const response = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "user",
+                        content: promptContent,
+                    },
+                ],
+                response_format: { type: "json_object" },
+            });
+
+            const content = response.choices[0].message.content;
+            if (!content) throw new Error('No content returned from OpenAI');
+
+            const data = JSON.parse(content);
+            console.log('✅ OpenAI Response received');
+
+            // Normalize data types
+            return {
+                vendorName: data.vendorName || 'Unknown Vendor',
+                invoiceNumber: data.invoiceNumber || `INV-${Date.now()}`,
+                invoiceDate: data.invoiceDate ? new Date(data.invoiceDate) : new Date(),
+                totalAmount: Number(data.totalAmount) || 0,
+                items: Array.isArray(data.items) ? data.items.map((item: any) => ({
+                    description: item.description || 'Item',
+                    category: item.category || 'General',
+                    quantity: Number(item.quantity) || 1,
+                    unitPrice: Number(item.unitPrice) || 0,
+                    totalPrice: Number(item.totalPrice) || 0,
+                    expiryDate: item.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default: 30 days from now
+                })) : [],
+            };
+
+        } catch (error) {
+            console.error('❌ OCR Service Error:', error);
+            throw error; // Propagate error only, do NOT failover to mock data
+        }
+    }
+
+    private getMockInvoiceData() {
         return {
-            vendorName: 'Mock Vendor',
+            vendorName: 'Mock Vendor (OCR Failed)',
             invoiceNumber: `INV-${Date.now()}`,
             invoiceDate: new Date(),
             items: [
                 {
                     description: 'Sample Product',
+                    category: 'General',
                     quantity: 10,
                     unitPrice: 25.00,
                     totalPrice: 250.00,
+                    expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
                 },
+                {
+                    description: 'Fresh Item',
+                    category: 'Perishable',
+                    quantity: 5,
+                    unitPrice: 10.00,
+                    totalPrice: 50.00,
+                    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                }
             ],
-            totalAmount: 250.00,
+            totalAmount: 300.00,
         };
     }
 }

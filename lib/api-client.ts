@@ -3,13 +3,16 @@ export const apiClient = {
 
     async request(endpoint: string, options: RequestInit = {}) {
         const token = localStorage.getItem('access_token');
-        const headers = {
-            'Content-Type': 'application/json',
+        let headers: any = {
             ...options.headers,
         };
 
+        if (!(options.body instanceof FormData)) {
+            headers['Content-Type'] = 'application/json';
+        }
+
         if (token) {
-            (headers as any)['Authorization'] = 'Bearer ' + token;
+            headers['Authorization'] = 'Bearer ' + token;
         }
 
         const hostname = window.location.hostname;
@@ -41,14 +44,14 @@ export const apiClient = {
     post(endpoint: string, body: any) {
         return this.request(endpoint, {
             method: 'POST',
-            body: JSON.stringify(body),
+            body: body instanceof FormData ? body : JSON.stringify(body),
         });
     },
 
     put(endpoint: string, body: any) {
         return this.request(endpoint, {
             method: 'PUT',
-            body: JSON.stringify(body),
+            body: body instanceof FormData ? body : JSON.stringify(body),
         });
     },
 

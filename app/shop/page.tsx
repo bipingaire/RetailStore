@@ -61,14 +61,15 @@ export default function ShopHome() {
   useEffect(() => {
     async function loadProducts() {
       try {
-        const response = await apiClient.get('/products');
+        const productsData = await apiClient.get('/products');
+        const dataArray = Array.isArray(productsData) ? productsData : [];
 
         // Map backend response to our Product type
-        const mappedProducts = response.data.map((p: any) => ({
+        const mappedProducts = dataArray.map((p: any) => ({
           id: p.id,
-          price: p.price,
+          price: p.price || 0,
           name: p.name,
-          imageUrl: p.imageUrl,
+          imageUrl: p.imageUrl || p.image, // Handle both potential keys
           category: p.category,
           manufacturer: p.manufacturer || 'Unknown'
         }));

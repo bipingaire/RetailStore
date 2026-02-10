@@ -11,6 +11,7 @@ import { VendorModule } from './vendor/vendor.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { AuditModule } from './audit/audit.module';
 import { PurchaseOrderModule } from './purchase-order/purchase-order.module';
+import { CampaignModule } from './campaign/campaign.module';
 import { ProfitController } from './reports/profit.controller';
 import { ProfitService } from './reports/profit.service';
 import { TenantPrismaService } from './prisma/tenant-prisma.service';
@@ -29,6 +30,7 @@ import { TenantPrismaService } from './prisma/tenant-prisma.service';
     InvoiceModule,
     AuditModule,
     PurchaseOrderModule,
+    CampaignModule,
   ],
   controllers: [ProfitController],
   providers: [ProfitService, TenantPrismaService],

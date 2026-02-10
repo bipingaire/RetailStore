@@ -19,65 +19,71 @@ let AuditController = class AuditController {
     constructor(auditService) {
         this.auditService = auditService;
     }
-    async startSession(body) {
-        return this.auditService.startAuditSession(body.userId, body.notes);
+    async startSession(subdomain, body) {
+        return this.auditService.startAuditSession(subdomain, body.userId, body.notes);
     }
-    async addCount(id, body) {
-        return this.auditService.addAuditCount(id, body.productId, body.countedQuantity, body.reason);
+    async addCount(subdomain, id, body) {
+        return this.auditService.addAuditCount(subdomain, id, body.productId, body.countedQuantity, body.reason);
     }
-    async completeSession(id) {
-        return this.auditService.completeAuditSession(id);
+    async completeSession(subdomain, id) {
+        return this.auditService.completeAuditSession(subdomain, id);
     }
-    async getSession(id) {
-        return this.auditService.getAuditSession(id);
+    async getSession(subdomain, id) {
+        return this.auditService.getAuditSession(subdomain, id);
     }
-    async getAllSessions() {
-        return this.auditService.getAllAuditSessions();
+    async getAllSessions(subdomain) {
+        return this.auditService.getAllAuditSessions(subdomain);
     }
-    async getVariances() {
-        return this.auditService.getVarianceReport();
+    async getVariances(subdomain) {
+        return this.auditService.getVarianceReport(subdomain);
     }
 };
 exports.AuditController = AuditController;
 __decorate([
     (0, common_1.Post)('session/start'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], AuditController.prototype, "startSession", null);
-__decorate([
-    (0, common_1.Post)('session/:id/count'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
+], AuditController.prototype, "startSession", null);
+__decorate([
+    (0, common_1.Post)('session/:id/count'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
 ], AuditController.prototype, "addCount", null);
 __decorate([
     (0, common_1.Post)('session/:id/complete'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], AuditController.prototype, "completeSession", null);
 __decorate([
     (0, common_1.Get)('session/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], AuditController.prototype, "getSession", null);
 __decorate([
     (0, common_1.Get)('sessions'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AuditController.prototype, "getAllSessions", null);
 __decorate([
     (0, common_1.Get)('variances'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AuditController.prototype, "getVariances", null);
 exports.AuditController = AuditController = __decorate([

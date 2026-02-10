@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Headers } from '@nestjs/common';
 import { ProfitService } from './profit.service';
 
 @Controller('reports/profit')
@@ -6,12 +6,16 @@ export class ProfitController {
     constructor(private readonly profitService: ProfitService) { }
 
     @Post('calculate')
-    async calculate(@Body() body: {
-        startDate: string;
-        endDate: string;
-        period: 'daily' | 'weekly' | 'monthly';
-    }) {
+    async calculate(
+        @Headers('x-tenant') subdomain: string,
+        @Body() body: {
+            startDate: string;
+            endDate: string;
+            period: 'daily' | 'weekly' | 'monthly';
+        }
+    ) {
         return this.profitService.calculateProfit(
+            subdomain,
             new Date(body.startDate),
             new Date(body.endDate),
             body.period,
@@ -19,31 +23,45 @@ export class ProfitController {
     }
 
     @Get()
-    async getReports(@Query('period') period?: string) {
-        return this.profitService.getProfitReports(period);
+    async getReports(
+        @Headers('x-tenant') subdomain: string,
+        @Query('period') period?: string
+    ) {
+        return this.profitService.getProfitReports(subdomain, period);
     }
 
     @Get('trends')
-    async getTrends(@Query('days') days?: string) {
-        return this.profitService.getProfitTrends(days ? parseInt(days) : 30);
+    async getTrends(
+        @Headers('x-tenant') subdomain: string,
+        @Query('days') days?: string
+    ) {
+        return this.profitService.getProfitTrends(subdomain, days ? parseInt(days) : 30);
     }
 
     @Get('category-breakdown')
-    async getCategoryBreakdown(@Query() query: { startDate: string; endDate: string }) {
+    async getCategoryBreakdown(
+        @Headers('x-tenant') subdomain: string,
+        @Query() query: { startDate: string; endDate: string }
+    ) {
         return this.profitService.getCategoryBreakdown(
+            subdomain,
             new Date(query.startDate),
             new Date(query.endDate),
         );
     }
 
     @Post('expense')
-    async addExpense(@Body() body: {
-        category: string;
-        amount: number;
-        description?: string;
-        expenseDate?: string;
-    }) {
+    async addExpense(
+        @Headers('x-tenant') subdomain: string,
+        @Body() body: {
+            category: string;
+            amount: number;
+            description?: string;
+            expenseDate?: string;
+        }
+    ) {
         return this.profitService.addExpense(
+            subdomain,
             body.category,
             body.amount,
             body.description,
@@ -52,10 +70,13 @@ export class ProfitController {
     }
 
     @Get('expenses')
-    async getExpenses(@Query() query: { startDate?: string; endDate?: string }) {
+    async getExpenses(
+        @Headers('x-tenant') subdomain: string,
+        @Query() query: { startDate?: string; endDate?: string }
+    ) {
         const startDate = query.startDate ? new Date(query.startDate) : undefined;
         const endDate = query.endDate ? new Date(query.endDate) : undefined;
 
-        return this.profitService.getExpenses(startDate, endDate);
+        return this.profitService.getExpenses(subdomain, startDate, endDate);
     }
 }

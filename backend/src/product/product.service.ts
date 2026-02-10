@@ -98,6 +98,9 @@ export class ProductService {
       name: p.name,
       sku: p.sku || 'N/A',
       image: p.imageUrl || null,
+      category: p.category,
+      description: p.description,
+      price: p.price,
       total_qty: p.stock,
       batches: (p.Batches || []).map(b => ({
         id: b.id,

@@ -103,6 +103,9 @@ export declare class ProductService {
         name: string;
         sku: string;
         image: string;
+        category: string;
+        description: string;
+        price: import("src/generated/tenant-client/runtime/library").Decimal;
         total_qty: number;
         batches: {
             id: string;

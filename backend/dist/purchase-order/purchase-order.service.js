@@ -12,14 +12,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PurchaseOrderService = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
+const tenant_service_1 = require("../tenant/tenant.service");
 let PurchaseOrderService = class PurchaseOrderService {
-    constructor(prisma) {
-        this.prisma = prisma;
+    constructor(tenantPrisma, tenantService) {
+        this.tenantPrisma = tenantPrisma;
+        this.tenantService = tenantService;
     }
-    async createPurchaseOrder(vendorId, items, notes) {
+    async createPurchaseOrder(subdomain, vendorId, items, notes) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
         const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.unitCost, 0);
         const orderNumber = `PO-${Date.now()}`;
-        return this.prisma.purchaseOrder.create({
+        return client.purchaseOrder.create({
             data: {
                 vendorId,
                 orderNumber,
@@ -33,6 +37,7 @@ let PurchaseOrderService = class PurchaseOrderService {
                         totalCost: item.quantity * item.unitCost,
                     })),
                 },
+                status: 'draft',
             },
             include: {
                 vendor: true,
@@ -40,8 +45,10 @@ let PurchaseOrderService = class PurchaseOrderService {
             },
         });
     }
-    async getPurchaseOrder(id) {
-        return this.prisma.purchaseOrder.findUnique({
+    async getPurchaseOrder(subdomain, id) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.purchaseOrder.findUnique({
             where: { id },
             include: {
                 vendor: true,
@@ -49,22 +56,28 @@ let PurchaseOrderService = class PurchaseOrderService {
             },
         });
     }
-    async getAllPurchaseOrders(status) {
+    async getAllPurchaseOrders(subdomain, status) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
         const where = status ? { status } : {};
-        return this.prisma.purchaseOrder.findMany({
+        return client.purchaseOrder.findMany({
             where,
             include: { vendor: true, items: true },
             orderBy: { createdAt: 'desc' },
         });
     }
-    async updateStatus(id, status) {
-        return this.prisma.purchaseOrder.update({
+    async updateStatus(subdomain, id, status) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.purchaseOrder.update({
             where: { id },
             data: { status },
         });
     }
-    async sendPurchaseOrder(id) {
-        return this.prisma.purchaseOrder.update({
+    async sendPurchaseOrder(subdomain, id) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.purchaseOrder.update({
             where: { id },
             data: {
                 status: 'sent',
@@ -72,14 +85,16 @@ let PurchaseOrderService = class PurchaseOrderService {
             },
         });
     }
-    async receivePurchaseOrder(id) {
-        const po = await this.prisma.purchaseOrder.findUnique({
+    async receivePurchaseOrder(subdomain, id) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        const po = await client.purchaseOrder.findUnique({
             where: { id },
             include: { items: true },
         });
         if (!po)
             throw new Error('Purchase order not found');
-        await this.prisma.$transaction(async (tx) => {
+        await client.$transaction(async (tx) => {
             for (const item of po.items) {
                 await tx.product.update({
                     where: { id: item.productId },
@@ -90,8 +105,7 @@ let PurchaseOrderService = class PurchaseOrderService {
                         productId: item.productId,
                         type: 'IN',
                         quantity: item.quantity,
-                        reason: `PO ${po.orderNumber}`,
-                        date: new Date(),
+                        description: `PO ${po.orderNumber}`,
                     },
                 });
             }
@@ -103,12 +117,13 @@ let PurchaseOrderService = class PurchaseOrderService {
                 },
             });
         });
-        return this.getPurchaseOrder(id);
+        return this.getPurchaseOrder(subdomain, id);
     }
 };
 exports.PurchaseOrderService = PurchaseOrderService;
 exports.PurchaseOrderService = PurchaseOrderService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [tenant_prisma_service_1.TenantPrismaService])
+    __metadata("design:paramtypes", [tenant_prisma_service_1.TenantPrismaService,
+        tenant_service_1.TenantService])
 ], PurchaseOrderService);
 //# sourceMappingURL=purchase-order.service.js.map
