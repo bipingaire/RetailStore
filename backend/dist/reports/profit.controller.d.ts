@@ -9,44 +9,44 @@ export declare class ProfitController {
     }): Promise<{
         id: string;
         createdAt: Date;
+        period: string;
         startDate: Date;
         endDate: Date;
-        period: string;
-        revenue: import("src/generated/tenant-client/runtime/library").Decimal;
-        cogs: import("src/generated/tenant-client/runtime/library").Decimal;
-        grossProfit: import("src/generated/tenant-client/runtime/library").Decimal;
-        grossMargin: import("src/generated/tenant-client/runtime/library").Decimal;
-        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
-        netProfit: import("src/generated/tenant-client/runtime/library").Decimal;
-        metadata: import("src/generated/tenant-client/runtime/library").JsonValue | null;
+        revenue: import("dist/generated/tenant-client/runtime/library").Decimal;
+        cogs: import("dist/generated/tenant-client/runtime/library").Decimal;
+        grossProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
+        grossMargin: import("dist/generated/tenant-client/runtime/library").Decimal;
+        expenses: import("dist/generated/tenant-client/runtime/library").Decimal;
+        netProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
+        metadata: import("dist/generated/tenant-client/runtime/library").JsonValue | null;
     }>;
     getReports(subdomain: string, period?: string): Promise<{
         id: string;
         createdAt: Date;
+        period: string;
         startDate: Date;
         endDate: Date;
-        period: string;
-        revenue: import("src/generated/tenant-client/runtime/library").Decimal;
-        cogs: import("src/generated/tenant-client/runtime/library").Decimal;
-        grossProfit: import("src/generated/tenant-client/runtime/library").Decimal;
-        grossMargin: import("src/generated/tenant-client/runtime/library").Decimal;
-        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
-        netProfit: import("src/generated/tenant-client/runtime/library").Decimal;
-        metadata: import("src/generated/tenant-client/runtime/library").JsonValue | null;
+        revenue: import("dist/generated/tenant-client/runtime/library").Decimal;
+        cogs: import("dist/generated/tenant-client/runtime/library").Decimal;
+        grossProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
+        grossMargin: import("dist/generated/tenant-client/runtime/library").Decimal;
+        expenses: import("dist/generated/tenant-client/runtime/library").Decimal;
+        netProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
+        metadata: import("dist/generated/tenant-client/runtime/library").JsonValue | null;
     }[]>;
     getTrends(subdomain: string, days?: string): Promise<{
         id: string;
         createdAt: Date;
+        period: string;
         startDate: Date;
         endDate: Date;
-        period: string;
-        revenue: import("src/generated/tenant-client/runtime/library").Decimal;
-        cogs: import("src/generated/tenant-client/runtime/library").Decimal;
-        grossProfit: import("src/generated/tenant-client/runtime/library").Decimal;
-        grossMargin: import("src/generated/tenant-client/runtime/library").Decimal;
-        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
-        netProfit: import("src/generated/tenant-client/runtime/library").Decimal;
-        metadata: import("src/generated/tenant-client/runtime/library").JsonValue | null;
+        revenue: import("dist/generated/tenant-client/runtime/library").Decimal;
+        cogs: import("dist/generated/tenant-client/runtime/library").Decimal;
+        grossProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
+        grossMargin: import("dist/generated/tenant-client/runtime/library").Decimal;
+        expenses: import("dist/generated/tenant-client/runtime/library").Decimal;
+        netProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
+        metadata: import("dist/generated/tenant-client/runtime/library").JsonValue | null;
     }[]>;
     getCategoryBreakdown(subdomain: string, query: {
         startDate: string;
@@ -63,10 +63,10 @@ export declare class ProfitController {
         expenseDate?: string;
     }): Promise<{
         id: string;
-        createdAt: Date;
         category: string;
         description: string | null;
-        amount: import("src/generated/tenant-client/runtime/library").Decimal;
+        createdAt: Date;
+        amount: import("dist/generated/tenant-client/runtime/library").Decimal;
         expenseDate: Date;
     }>;
     getExpenses(subdomain: string, query: {
@@ -74,10 +74,10 @@ export declare class ProfitController {
         endDate?: string;
     }): Promise<{
         id: string;
-        createdAt: Date;
         category: string;
         description: string | null;
-        amount: import("src/generated/tenant-client/runtime/library").Decimal;
+        createdAt: Date;
+        amount: import("dist/generated/tenant-client/runtime/library").Decimal;
         expenseDate: Date;
     }[]>;
 }

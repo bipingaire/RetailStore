@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
+import { MasterCatalogService } from '../master-catalog/master-catalog.service';
 
 @Injectable()
 export class ProductService {
@@ -9,6 +10,7 @@ export class ProductService {
     private tenantService: TenantService,
     private tenantPrisma: TenantPrismaService,
     private masterPrisma: MasterPrismaService,
+    private masterCatalogService: MasterCatalogService,
   ) { }
 
   async createProduct(subdomain: string, data: any) {
@@ -67,7 +69,25 @@ export class ProductService {
   async update(subdomain: string, id: string, data: any) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    return client.product.update({ where: { id }, data });
+
+    // 1. Update Local
+    const updated = await client.product.update({ where: { id }, data });
+
+    // 2. Sync to Master (Global Catalog)
+    // We only sync if there is an SKU.
+    if (updated.sku) {
+      await this.masterCatalogService.upsertProduct({
+        sku: updated.sku,
+        productName: updated.name, // Mapping 'name' to 'productName'
+        category: updated.category,
+        description: updated.description,
+        basePrice: Number(updated.price),
+        imageUrl: updated.imageUrl,
+        tenantId: tenant.id // We need tenant ID for the sync
+      });
+    }
+
+    return updated;
   }
 
   async delete(subdomain: string, id: string) {
@@ -110,6 +130,30 @@ export class ProductService {
         status: 'GOOD'
       }))
     }));
+  }
+
+  async syncAll(subdomain: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    const allProducts = await client.product.findMany();
+    let count = 0;
+
+    for (const p of allProducts) {
+      if (p.sku) {
+        await this.masterCatalogService.upsertProduct({
+          sku: p.sku,
+          productName: p.name,
+          category: p.category,
+          description: p.description,
+          basePrice: Number(p.price),
+          imageUrl: p.imageUrl,
+          tenantId: tenant.id
+        });
+        count++;
+      }
+    }
+    return { success: true, synced: count };
   }
 
   // --- Legacy / Compatibility Methods ---

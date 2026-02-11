@@ -22,17 +22,15 @@ let InvoiceController = class InvoiceController {
     }
     async uploadInvoice(subdomain, file, body) {
         console.log('📥 Upload invoice request received');
-        console.log('Vendor ID:', body.vendorId);
-        console.log('Invoice Number:', body.invoiceNumber);
-        console.log('Invoice Date:', body.invoiceDate);
-        console.log('Total Amount:', body.totalAmount);
         let items = [];
         if (body.items) {
-            items = JSON.parse(body.items);
-            console.log('📦 Items received:', items.length);
-            items.forEach((item, idx) => {
-                console.log(`  ${idx + 1}. ${item.description} - Category: ${item.category}, Expiry: ${item.expiryDate}`);
-            });
+            try {
+                items = JSON.parse(body.items);
+                console.log('📦 Items parsed:', items.length);
+            }
+            catch (e) {
+                console.error('Failed to parse items JSON', e);
+            }
         }
         let fileUrl;
         if (file) {
@@ -48,26 +46,25 @@ let InvoiceController = class InvoiceController {
                 fs.writeFileSync(filepath, file.buffer);
             }
             else if (file.path) {
-                console.log('File has no buffer, using path:', file.path);
                 fs.copyFileSync(file.path, filepath);
             }
-            else {
-                console.warn('File upload has no buffer or path');
-            }
             fileUrl = `/uploads/invoices/${filename}`;
-            console.log('✅ File saved:', fileUrl);
         }
-        return {
-            id: `inv-${Date.now()}`,
-            vendorId: body.vendorId,
-            invoiceNumber: body.invoiceNumber,
-            invoiceDate: body.invoiceDate,
-            totalAmount: parseFloat(body.totalAmount),
-            fileUrl,
-            items: items,
-            status: 'saved',
-            message: 'Invoice and items logged. Inventory integration pending.'
-        };
+        try {
+            const result = await this.invoiceService.uploadInvoice(subdomain, body.vendorId, body.invoiceNumber, new Date(body.invoiceDate), parseFloat(body.totalAmount), items, fileUrl);
+            return {
+                ...result,
+                message: 'Invoice parsed, saved, and inventory updated successfully.'
+            };
+        }
+        catch (error) {
+            console.error('Error saving invoice:', error);
+            throw new common_1.HttpException({
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Failed to save invoice',
+                message: error.message
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     testEndpoint() {
         return { success: true, message: 'Invoice controller is working!' };

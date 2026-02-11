@@ -21,6 +21,9 @@ let ProductController = class ProductController {
     constructor(productService) {
         this.productService = productService;
     }
+    syncAll(subdomain) {
+        return this.productService.syncAll(subdomain);
+    }
     create(subdomain, dto) {
         return this.productService.create(subdomain, dto);
     }
@@ -41,6 +44,14 @@ let ProductController = class ProductController {
     }
 };
 exports.ProductController = ProductController;
+__decorate([
+    (0, common_1.Post)('force-sync'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ProductController.prototype, "syncAll", null);
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

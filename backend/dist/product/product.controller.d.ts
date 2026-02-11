@@ -3,6 +3,10 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 export declare class ProductController {
     private productService;
     constructor(productService: ProductService);
+    syncAll(subdomain: string): Promise<{
+        success: boolean;
+        synced: number;
+    }>;
     create(subdomain: string, dto: CreateProductDto): Promise<{
         id: string;
         isActive: boolean;
@@ -12,11 +16,11 @@ export declare class ProductController {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     findAll(subdomain: string): Promise<{
@@ -54,11 +58,11 @@ export declare class ProductController {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     update(subdomain: string, id: string, dto: UpdateProductDto): Promise<{
@@ -70,11 +74,11 @@ export declare class ProductController {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     delete(subdomain: string, id: string): Promise<{
@@ -86,11 +90,11 @@ export declare class ProductController {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     updateStock(subdomain: string, id: string, dto: {

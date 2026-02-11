@@ -30,18 +30,15 @@ export class InvoiceController {
         @Body() body: { vendorId: string; invoiceNumber: string; invoiceDate: string; totalAmount: string; items?: string },
     ) {
         console.log('📥 Upload invoice request received');
-        console.log('Vendor ID:', body.vendorId);
-        console.log('Invoice Number:', body.invoiceNumber);
-        console.log('Invoice Date:', body.invoiceDate);
-        console.log('Total Amount:', body.totalAmount);
 
         let items = [];
         if (body.items) {
-            items = JSON.parse(body.items);
-            console.log('📦 Items received:', items.length);
-            items.forEach((item: any, idx: number) => {
-                console.log(`  ${idx + 1}. ${item.description} - Category: ${item.category}, Expiry: ${item.expiryDate}`);
-            });
+            try {
+                items = JSON.parse(body.items);
+                console.log('📦 Items parsed:', items.length);
+            } catch (e) {
+                console.error('Failed to parse items JSON', e);
+            }
         }
 
         let fileUrl: string | undefined;
@@ -57,32 +54,40 @@ export class InvoiceController {
 
             const filename = `${Date.now()}-${file.originalname}`;
             const filepath = path.join(uploadDir, filename);
+
             if (file.buffer) {
                 fs.writeFileSync(filepath, file.buffer);
             } else if (file.path) {
-                console.log('File has no buffer, using path:', file.path);
                 fs.copyFileSync(file.path, filepath);
-            } else {
-                console.warn('File upload has no buffer or path');
             }
 
             fileUrl = `/uploads/invoices/${filename}`;
-            console.log('✅ File saved:', fileUrl);
         }
 
-        // Return success response without calling tenant service (which is failing)
-        // TODO: Implement proper inventory saving to tenant database
-        return {
-            id: `inv-${Date.now()}`,
-            vendorId: body.vendorId,
-            invoiceNumber: body.invoiceNumber,
-            invoiceDate: body.invoiceDate,
-            totalAmount: parseFloat(body.totalAmount),
-            fileUrl,
-            items: items,
-            status: 'saved',
-            message: 'Invoice and items logged. Inventory integration pending.'
-        };
+        // Call the real service which now handles auto-creation and stock updates
+        try {
+            const result = await this.invoiceService.uploadInvoice(
+                subdomain,
+                body.vendorId,
+                body.invoiceNumber,
+                new Date(body.invoiceDate),
+                parseFloat(body.totalAmount),
+                items,
+                fileUrl
+            );
+
+            return {
+                ...result,
+                message: 'Invoice parsed, saved, and inventory updated successfully.'
+            };
+        } catch (error) {
+            console.error('Error saving invoice:', error);
+            throw new HttpException({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Failed to save invoice',
+                message: error.message
+            }, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Get('test')

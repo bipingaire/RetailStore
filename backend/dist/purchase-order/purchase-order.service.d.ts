@@ -9,129 +9,129 @@ export declare class PurchaseOrderService {
         quantity: number;
         unitCost: number;
     }>, notes?: string): Promise<{
-        vendor: {
-            id: string;
-            isActive: boolean;
-            name: string;
-            email: string | null;
-            phone: string | null;
-            address: string | null;
-            contactPerson: string | null;
-        };
         items: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;
             productId: string;
             quantity: number;
-            unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
-            totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitCost: import("dist/generated/tenant-client/runtime/library").Decimal;
+            totalCost: import("dist/generated/tenant-client/runtime/library").Decimal;
             purchaseOrderId: string;
         })[];
+        vendor: {
+            id: string;
+            name: string;
+            isActive: boolean;
+            contactPerson: string | null;
+            email: string | null;
+            phone: string | null;
+            address: string | null;
+        };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
         status: string;
-        notes: string | null;
         vendorId: string;
+        totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
         orderNumber: string;
         orderDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        notes: string | null;
         sentAt: Date | null;
         receivedAt: Date | null;
     }>;
     getPurchaseOrder(subdomain: string, id: string): Promise<{
-        vendor: {
-            id: string;
-            isActive: boolean;
-            name: string;
-            email: string | null;
-            phone: string | null;
-            address: string | null;
-            contactPerson: string | null;
-        };
         items: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;
             productId: string;
             quantity: number;
-            unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
-            totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitCost: import("dist/generated/tenant-client/runtime/library").Decimal;
+            totalCost: import("dist/generated/tenant-client/runtime/library").Decimal;
             purchaseOrderId: string;
         })[];
+        vendor: {
+            id: string;
+            name: string;
+            isActive: boolean;
+            contactPerson: string | null;
+            email: string | null;
+            phone: string | null;
+            address: string | null;
+        };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
         status: string;
-        notes: string | null;
         vendorId: string;
+        totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
         orderNumber: string;
         orderDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        notes: string | null;
         sentAt: Date | null;
         receivedAt: Date | null;
     }>;
     getAllPurchaseOrders(subdomain: string, status?: string): Promise<({
-        vendor: {
-            id: string;
-            isActive: boolean;
-            name: string;
-            email: string | null;
-            phone: string | null;
-            address: string | null;
-            contactPerson: string | null;
-        };
         items: {
             id: string;
             productId: string;
             quantity: number;
-            unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
-            totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitCost: import("dist/generated/tenant-client/runtime/library").Decimal;
+            totalCost: import("dist/generated/tenant-client/runtime/library").Decimal;
             purchaseOrderId: string;
         }[];
+        vendor: {
+            id: string;
+            name: string;
+            isActive: boolean;
+            contactPerson: string | null;
+            email: string | null;
+            phone: string | null;
+            address: string | null;
+        };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
         status: string;
-        notes: string | null;
         vendorId: string;
+        totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
         orderNumber: string;
         orderDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        notes: string | null;
         sentAt: Date | null;
         receivedAt: Date | null;
     })[]>;
@@ -140,11 +140,11 @@ export declare class PurchaseOrderService {
         createdAt: Date;
         updatedAt: Date;
         status: string;
-        notes: string | null;
         vendorId: string;
+        totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
         orderNumber: string;
         orderDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        notes: string | null;
         sentAt: Date | null;
         receivedAt: Date | null;
     }>;
@@ -153,59 +153,59 @@ export declare class PurchaseOrderService {
         createdAt: Date;
         updatedAt: Date;
         status: string;
-        notes: string | null;
         vendorId: string;
+        totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
         orderNumber: string;
         orderDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        notes: string | null;
         sentAt: Date | null;
         receivedAt: Date | null;
     }>;
     receivePurchaseOrder(subdomain: string, id: string): Promise<{
-        vendor: {
-            id: string;
-            isActive: boolean;
-            name: string;
-            email: string | null;
-            phone: string | null;
-            address: string | null;
-            contactPerson: string | null;
-        };
         items: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;
             productId: string;
             quantity: number;
-            unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
-            totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitCost: import("dist/generated/tenant-client/runtime/library").Decimal;
+            totalCost: import("dist/generated/tenant-client/runtime/library").Decimal;
             purchaseOrderId: string;
         })[];
+        vendor: {
+            id: string;
+            name: string;
+            isActive: boolean;
+            contactPerson: string | null;
+            email: string | null;
+            phone: string | null;
+            address: string | null;
+        };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
         status: string;
-        notes: string | null;
         vendorId: string;
+        totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
         orderNumber: string;
         orderDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        notes: string | null;
         sentAt: Date | null;
         receivedAt: Date | null;
     }>;

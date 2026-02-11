@@ -5,7 +5,14 @@ export declare class InvoiceService {
     private readonly tenantPrisma;
     private readonly tenantService;
     constructor(tenantPrisma: TenantPrismaService, tenantService: TenantService);
-    uploadInvoice(subdomain: string, vendorId: string, invoiceNumber: string, invoiceDate: Date, totalAmount: number, fileUrl?: string): Promise<{
+    uploadInvoice(subdomain: string, vendorId: string, invoiceNumber: string, invoiceDate: Date, totalAmount: number, items: Array<{
+        description: string;
+        category: string;
+        quantity: number;
+        unitPrice: number;
+        totalPrice: number;
+        expiryDate?: string;
+    }>, fileUrl?: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -36,11 +43,11 @@ export declare class InvoiceService {
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {
@@ -116,11 +123,11 @@ export declare class InvoiceService {
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {

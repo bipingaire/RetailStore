@@ -216,7 +216,7 @@ export default function InvoicesPage() {
 
       const invoice = await apiClient.post('/invoices/upload', formDataToSend);
       toast.success('✅ Saved to inventory!');
-      setEditingInvoice(invoice.id);
+      setEditingInvoice(null);
       setShowUploadModal(false);
       setSelectedFile(null);
       setParsedData(null);
@@ -322,7 +322,7 @@ export default function InvoicesPage() {
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(invoice.invoiceDate).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-mono">${invoice.totalAmount.toFixed(2)}</td>
+                <td className="px-6 py-4 text-sm text-gray-900 font-mono">${Number(invoice.totalAmount).toFixed(2)}</td>
                 <td className="px-6 py-4">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${invoice.status === 'committed'
@@ -518,7 +518,7 @@ export default function InvoicesPage() {
 
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <p className="text-xs text-gray-500 font-medium mb-1">Total Amount</p>
-                          <p className="text-base font-semibold text-green-600">${formData.totalAmount.toFixed(2)}</p>
+                          <p className="text-base font-semibold text-green-600">${Number(formData.totalAmount).toFixed(2)}</p>
                         </div>
                       </div>
 
@@ -572,7 +572,7 @@ export default function InvoicesPage() {
                                       <td className="px-4 py-3 font-medium text-gray-900">{item.description}</td>
                                       <td className="px-4 py-3 text-gray-600">{item.category || '-'}</td>
                                       <td className="px-4 py-3 text-gray-600">{item.quantity}</td>
-                                      <td className="px-4 py-3 text-gray-600">${item.unitPrice.toFixed(2)}</td>
+                                      <td className="px-4 py-3 text-gray-600">${Number(item.unitPrice).toFixed(2)}</td>
                                       <td className="px-4 py-3">
                                         <input
                                           type="date"

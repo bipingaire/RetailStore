@@ -7,6 +7,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class ProductController {
   constructor(private productService: ProductService) { }
 
+  @Post('force-sync')
+  @UseGuards(JwtAuthGuard)
+  syncAll(@Headers('x-tenant') subdomain: string) {
+    return this.productService.syncAll(subdomain);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   create(@Headers('x-tenant') subdomain: string, @Body() dto: CreateProductDto) {
@@ -22,6 +28,8 @@ export class ProductController {
   findOne(@Headers('x-tenant') subdomain: string, @Param('id') id: string) {
     return this.productService.findOne(subdomain, id);
   }
+
+
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)

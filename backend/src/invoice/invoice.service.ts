@@ -19,20 +19,112 @@ export class InvoiceService {
         invoiceNumber: string,
         invoiceDate: Date,
         totalAmount: number,
+        items: Array<{
+            description: string;
+            category: string;
+            quantity: number;
+            unitPrice: number;
+            totalPrice: number;
+            expiryDate?: string;
+        }>,
         fileUrl?: string,
     ) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
 
-        return client.vendorInvoice.create({
-            data: {
-                vendorId,
-                invoiceNumber,
-                invoiceDate,
-                totalAmount,
-                fileUrl,
-                status: 'pending',
-            },
+        // Use interactive transaction for atomicity
+        return client.$transaction(async (tx) => {
+            // 1. Create the Invoice first
+            const invoice = await tx.vendorInvoice.create({
+                data: {
+                    vendorId,
+                    invoiceNumber,
+                    invoiceDate,
+                    totalAmount,
+                    fileUrl,
+                    status: 'committed', // Auto-commit
+                },
+            });
+
+            // 2. Process each item
+            for (const item of items) {
+                // Try to find existing product by name (case-insensitive)
+                let product = await tx.product.findFirst({
+                    where: {
+                        name: {
+                            equals: item.description,
+                            mode: 'insensitive',
+                        },
+                    },
+                });
+
+                // If not found, create new product
+                if (!product) {
+                    product = await tx.product.create({
+                        data: {
+                            name: item.description,
+                            sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                            category: item.category,
+                            description: item.description,
+                            price: new Prisma.Decimal(item.unitPrice * 1.5), // Default markup
+                            costPrice: new Prisma.Decimal(item.unitPrice),
+                            stock: 0, // Starts at 0, inventory logic will add
+                            reorderLevel: 10,
+                            isActive: true,
+                        },
+                    });
+                }
+
+                // 3. Create Invoice Item Link
+                await tx.vendorInvoiceItem.create({
+                    data: {
+                        invoiceId: invoice.id,
+                        productId: product.id,
+                        quantity: item.quantity,
+                        unitCost: new Prisma.Decimal(item.unitPrice),
+                        totalCost: new Prisma.Decimal(item.totalPrice),
+                    },
+                });
+
+                // 4. Update Product Stock & Cost
+                await tx.product.update({
+                    where: { id: product.id },
+                    data: {
+                        stock: { increment: item.quantity },
+                        costPrice: new Prisma.Decimal(item.unitPrice), // Update latest cost
+                    },
+                });
+
+                // 5. Log Stock Movement
+                await tx.stockMovement.create({
+                    data: {
+                        productId: product.id,
+                        type: 'IN',
+                        quantity: item.quantity,
+                        description: `Invoice: ${invoiceNumber}`,
+                    },
+                });
+
+                // 6. Create Product Batch (Critical for Inventory Pulse Health)
+                // Default to 1 year expiry if not specified
+                const expiry = item.expiryDate
+                    ? new Date(item.expiryDate)
+                    : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+                await tx.productBatch.create({
+                    data: {
+                        productId: product.id,
+                        sku: product.sku,
+                        quantity: item.quantity,
+                        expiryDate: expiry,
+                        receivedDate: new Date(),
+                    }
+                });
+            }
+
+            return invoice;
+        }, {
+            timeout: 20000, // Increase timeout for many items
         });
     }
 

@@ -19,6 +19,38 @@ let MasterCatalogService = class MasterCatalogService {
     async syncProduct(tenantId, product) {
         console.log('Sync to master deprecated, handled in ProductService');
     }
+    async upsertProduct(data) {
+        if (!data.sku) {
+            console.warn("Skipping sync: No SKU provided");
+            return;
+        }
+        try {
+            return await this.prisma.sharedCatalog.upsert({
+                where: { sku: data.sku },
+                update: {
+                    productName: data.productName,
+                    category: data.category,
+                    description: data.description,
+                    basePrice: data.basePrice,
+                    imageUrl: data.imageUrl,
+                    syncedAt: new Date(),
+                },
+                create: {
+                    sku: data.sku,
+                    productName: data.productName,
+                    category: data.category,
+                    description: data.description,
+                    basePrice: data.basePrice,
+                    imageUrl: data.imageUrl,
+                    tenantId: data.tenantId,
+                    syncedAt: new Date(),
+                },
+            });
+        }
+        catch (error) {
+            console.error("Failed to sync to Master Catalog:", error);
+        }
+    }
     async getSharedCatalog(filters) {
         const where = {};
         if (filters?.category) {

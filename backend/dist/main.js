@@ -18,7 +18,7 @@ async function bootstrap() {
     }));
     app.setGlobalPrefix('api');
     await app.listen(3001);
-    console.log('🚀 Server running on http://localhost:3001');
+    console.log('🚀 Server running on http://localhost:3001 (Backend Restarted)');
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

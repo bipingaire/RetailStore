@@ -1,11 +1,13 @@
 import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
+import { MasterCatalogService } from '../master-catalog/master-catalog.service';
 export declare class ProductService {
     private tenantService;
     private tenantPrisma;
     private masterPrisma;
-    constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService, masterPrisma: MasterPrismaService);
+    private masterCatalogService;
+    constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService, masterPrisma: MasterPrismaService, masterCatalogService: MasterCatalogService);
     createProduct(subdomain: string, data: any): Promise<{
         id: string;
         isActive: boolean;
@@ -15,11 +17,11 @@ export declare class ProductService {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     create(subdomain: string, data: any): Promise<{
@@ -31,11 +33,11 @@ export declare class ProductService {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     findOne(subdomain: string, id: string): Promise<{
@@ -56,11 +58,11 @@ export declare class ProductService {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     update(subdomain: string, id: string, data: any): Promise<{
@@ -72,11 +74,11 @@ export declare class ProductService {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     delete(subdomain: string, id: string): Promise<{
@@ -88,11 +90,11 @@ export declare class ProductService {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
     updateStock(subdomain: string, id: string, quantity: number, type: string): Promise<{
@@ -115,6 +117,10 @@ export declare class ProductService {
             status: string;
         }[];
     }[]>;
+    syncAll(subdomain: string): Promise<{
+        success: boolean;
+        synced: number;
+    }>;
     commitInventory(tenantId: string, items: any[]): Promise<{
         success: boolean;
         processed: number;

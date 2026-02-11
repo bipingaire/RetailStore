@@ -29,11 +29,11 @@ export declare class LegacyApiController {
         sku: string;
         category: string | null;
         description: string | null;
+        imageUrl: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
-        imageUrl: string | null;
         barcode: string | null;
     }>;
 }

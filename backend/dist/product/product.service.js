@@ -14,11 +14,13 @@ const common_1 = require("@nestjs/common");
 const tenant_service_1 = require("../tenant/tenant.service");
 const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
 const master_prisma_service_1 = require("../prisma/master-prisma.service");
+const master_catalog_service_1 = require("../master-catalog/master-catalog.service");
 let ProductService = class ProductService {
-    constructor(tenantService, tenantPrisma, masterPrisma) {
+    constructor(tenantService, tenantPrisma, masterPrisma, masterCatalogService) {
         this.tenantService = tenantService;
         this.tenantPrisma = tenantPrisma;
         this.masterPrisma = masterPrisma;
+        this.masterCatalogService = masterCatalogService;
     }
     async createProduct(subdomain, data) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
@@ -67,7 +69,19 @@ let ProductService = class ProductService {
     async update(subdomain, id, data) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-        return client.product.update({ where: { id }, data });
+        const updated = await client.product.update({ where: { id }, data });
+        if (updated.sku) {
+            await this.masterCatalogService.upsertProduct({
+                sku: updated.sku,
+                productName: updated.name,
+                category: updated.category,
+                description: updated.description,
+                basePrice: Number(updated.price),
+                imageUrl: updated.imageUrl,
+                tenantId: tenant.id
+            });
+        }
+        return updated;
     }
     async delete(subdomain, id) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
@@ -102,6 +116,27 @@ let ProductService = class ProductService {
                 status: 'GOOD'
             }))
         }));
+    }
+    async syncAll(subdomain) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        const allProducts = await client.product.findMany();
+        let count = 0;
+        for (const p of allProducts) {
+            if (p.sku) {
+                await this.masterCatalogService.upsertProduct({
+                    sku: p.sku,
+                    productName: p.name,
+                    category: p.category,
+                    description: p.description,
+                    basePrice: Number(p.price),
+                    imageUrl: p.imageUrl,
+                    tenantId: tenant.id
+                });
+                count++;
+            }
+        }
+        return { success: true, synced: count };
     }
     async commitInventory(tenantId, items) {
         const tenant = await this.masterPrisma.tenant.findUnique({ where: { id: tenantId } });
@@ -141,6 +176,7 @@ exports.ProductService = ProductService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [tenant_service_1.TenantService,
         tenant_prisma_service_1.TenantPrismaService,
-        master_prisma_service_1.MasterPrismaService])
+        master_prisma_service_1.MasterPrismaService,
+        master_catalog_service_1.MasterCatalogService])
 ], ProductService);
 //# sourceMappingURL=product.service.js.map

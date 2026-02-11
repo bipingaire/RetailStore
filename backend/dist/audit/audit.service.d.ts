@@ -26,19 +26,19 @@ export declare class AuditService {
         counts: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;
@@ -53,19 +53,19 @@ export declare class AuditService {
         adjustments: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;
@@ -88,19 +88,19 @@ export declare class AuditService {
         counts: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;
@@ -115,19 +115,19 @@ export declare class AuditService {
         adjustments: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;
@@ -178,19 +178,19 @@ export declare class AuditService {
         adjustments: ({
             product: {
                 id: string;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
                 name: string;
                 sku: string;
                 category: string | null;
                 description: string | null;
-                price: import("src/generated/tenant-client/runtime/library").Decimal;
-                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                price: import("dist/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
                 imageUrl: string | null;
                 barcode: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
             };
         } & {
             id: string;

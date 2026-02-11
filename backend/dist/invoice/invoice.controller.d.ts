@@ -9,15 +9,16 @@ export declare class InvoiceController {
         totalAmount: string;
         items?: string;
     }): Promise<{
-        id: string;
-        vendorId: string;
-        invoiceNumber: string;
-        invoiceDate: string;
-        totalAmount: number;
-        fileUrl: string;
-        items: any[];
-        status: string;
         message: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
     testEndpoint(): {
         success: boolean;
@@ -33,77 +34,77 @@ export declare class InvoiceController {
     getAllInvoices(subdomain: string, status?: string): Promise<({
         vendor: {
             id: string;
+            isActive: boolean;
             name: string;
-            contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
+            contactPerson: string | null;
         };
         items: {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
             totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
         }[];
     } & {
         id: string;
-        vendorId: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     })[]>;
     getInvoice(subdomain: string, id: string): Promise<{
         vendor: {
             id: string;
+            isActive: boolean;
             name: string;
-            contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
+            contactPerson: string | null;
         };
         items: ({
             product: {
                 id: string;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 name: string;
-                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
             totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
         })[];
     } & {
         id: string;
-        vendorId: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
     addItems(subdomain: string, id: string, body: {
         items: Array<{
@@ -115,47 +116,47 @@ export declare class InvoiceController {
     commitInvoice(subdomain: string, id: string): Promise<{
         vendor: {
             id: string;
+            isActive: boolean;
             name: string;
-            contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
+            contactPerson: string | null;
         };
         items: ({
             product: {
                 id: string;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 name: string;
-                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
             totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
         })[];
     } & {
         id: string;
-        vendorId: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
 }

@@ -1,14 +1,19 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal, Edit3, Trash2 } from 'lucide-react';
 import PromotionModal from './promotion-modal';
+import EditProductModal from './edit-product-modal';
+import { toast } from 'sonner';
 
 // 1. Types
 type ProductRow = {
   id: string; // store_inventory_id
   name: string;
   sku: string;
+  category: string;
+  description: string;
+  price: number;
   image: string;
   total_qty: number;
   batches: Batch[];
@@ -31,6 +36,36 @@ export default function InventoryDashboard() {
   // State to manage the Promotion Pop-up
   const [promoTarget, setPromoTarget] = useState<{ product: ProductRow, batch?: Batch } | null>(null);
 
+  // State for Editing
+  const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null);
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"? This cannot be undone.`)) return;
+
+    try {
+      await apiClient.delete(`/products/${id}`);
+      toast.success("Product deleted successfully");
+      setProducts(prev => prev.filter(p => p.id !== id));
+    } catch (error: any) {
+      console.error("Delete failed:", error);
+      toast.error("Failed to delete product");
+    }
+  };
+
+  const handleSaveProduct = (updatedItem: any) => {
+    // Refresh the list or update local state
+    setProducts(prev => prev.map(p =>
+      p.id === updatedItem.id ? {
+        ...p,
+        name: updatedItem.name,
+        category: updatedItem.category,
+        price: updatedItem.price,
+        total_qty: updatedItem.total_qty
+      } : p
+    ));
+    setEditingProduct(null);
+  };
+
   // 2. Fetch Data
   useEffect(() => {
     async function fetchData() {
@@ -39,19 +74,35 @@ export default function InventoryDashboard() {
 
         // Backend returns mapped data, but we clarify shape here
         const processed: ProductRow[] = (data || []).map((item: any) => {
+          const batches = (item.batches || []).map((b: any) => {
+            const expiryDate = new Date(b.expiry);
+            const today = new Date();
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const days_left = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let status = 'GOOD';
+            if (days_left <= 7) status = 'CRITICAL';
+            else if (days_left <= 30) status = 'WARNING';
+
+            return {
+              id: b.id,
+              qty: b.qty,
+              expiry: b.expiry,
+              days_left,
+              status
+            };
+          }).sort((a: any, b: any) => a.days_left - b.days_left);
+
           return {
             id: item.id,
             name: item.name,
             sku: item.sku,
+            category: item.category || 'Uncategorized',
+            description: item.description || '',
+            price: Number(item.price) || 0,
             image: item.image,
             total_qty: item.total_qty,
-            batches: (item.batches || []).map((b: any) => ({
-              id: b.id,
-              qty: b.qty,
-              expiry: b.expiry,
-              days_left: b.days_left,
-              status: b.status
-            }))
+            batches: batches
           };
         });
 
@@ -119,6 +170,9 @@ export default function InventoryDashboard() {
               <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3">Product</th>
+                  <th className="px-6 py-3">Category</th>
+                  <th className="px-6 py-3">Description</th>
+                  <th className="px-6 py-3">Price</th>
                   <th className="px-6 py-3">Total Stock</th>
                   <th className="px-6 py-3">Health Status</th>
                   <th className="px-6 py-3 text-right">Action</th>
@@ -127,7 +181,7 @@ export default function InventoryDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {products.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-12 text-center text-gray-400">
+                    <td colSpan={7} className="p-12 text-center text-gray-400">
                       <div className="flex flex-col items-center gap-2">
                         <Package size={32} className="text-gray-300" />
                         <span>No inventory found. Try scanning an invoice.</span>
@@ -158,10 +212,24 @@ export default function InventoryDashboard() {
                             </div>
                           </div>
                         </td>
+                        <td className="px-6 py-4 text-gray-500 text-sm">
+                          {product.category}
+                        </td>
+                        <td className="px-6 py-4 text-gray-500 text-sm max-w-[150px] truncate" title={product.description}>
+                          {product.description || '—'}
+                        </td>
+                        <td className="px-6 py-4 text-gray-900 font-medium">
+                          ${product.price.toFixed(2)}
+                        </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-gray-900">{product.total_qty}</span>
-                            <span className="text-gray-400 text-xs">units</span>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">{product.total_qty}</span>
+                              <span className="text-gray-400 text-xs">units</span>
+                            </div>
+                            {product.batches.length > 0 && (
+                              <span className="text-[10px] text-gray-500">in {product.batches.length} batches</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -175,20 +243,36 @@ export default function InventoryDashboard() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingProduct(product); }}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                              title="Edit Product"
+                            >
+                              <Edit3 size={16} />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDelete(product.id, product.name); }}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                              title="Delete Product"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                            <button className="text-gray-400 hover:text-gray-600 transition-colors ml-2">
+                              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                            </button>
+                          </div>
                         </td>
                       </tr>
 
                       {/* EXPANDED DETAILS (BATCH VIEW) */}
                       {isExpanded && (
                         <tr className="bg-gray-50/50">
-                          <td colSpan={4} className="px-6 py-4">
+                          <td colSpan={7} className="px-6 py-4">
                             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden p-4 ml-14">
                               <div className="flex justify-between items-center mb-4">
                                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                                  <Calendar size={14} /> Batch Breakdown
+                                  <Package size={14} /> Stock Items (Batches)
                                 </h4>
                                 <button
                                   onClick={(e) => {
@@ -247,12 +331,20 @@ export default function InventoryDashboard() {
           </div>
         )}
 
-        {/* PROMOTION MODAL RENDERED HERE */}
         {promoTarget && (
           <PromotionModal
             product={promoTarget.product}
             batch={promoTarget.batch}
             onClose={() => setPromoTarget(null)}
+          />
+        )}
+
+        {/* EDIT MODAL RENDERED HERE */}
+        {editingProduct && (
+          <EditProductModal
+            product={editingProduct}
+            onClose={() => setEditingProduct(null)}
+            onSave={handleSaveProduct}
           />
         )}
 

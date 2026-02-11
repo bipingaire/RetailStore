@@ -1,7 +1,9 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
-import { Search, Filter, Package, Truck, ArrowUpDown, Info, Edit3, Save, X, Plus, Globe, CheckCircle2, Sparkles, RefreshCcw } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
+import { useEffect, useState } from 'react';
+import { Search, Package, Edit3, Plus, Globe, CheckCircle2, Sparkles, RefreshCcw, Trash2, ArrowRightLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import EditProductModal from '../edit-product-modal';
 
 // 1. Definition of Types based on Schema
 type InventoryItem = {
@@ -11,31 +13,19 @@ type InventoryItem = {
   sku: string;
   image: string;
   category: string;
+  description: string;
   manufacturer: string;
   total_qty: number;
   sales_price: number;
   is_enriched: boolean;
 };
 
-type GlobalProduct = {
-  product_id: string;
-  name: string;
-  sku: string;
-  image: string;
-  category: string;
-  brand: string;
-  manufacturer: string;
-  is_active: boolean;
-  is_enriched: boolean;
-};
-
 export default function MasterInventoryPage() {
-  // Supabase removed - refactor needed
   const [activeTab, setActiveTab] = useState<'my-inventory' | 'global-catalog'>('my-inventory');
 
   // Inventory State
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [globalItems, setGlobalItems] = useState<GlobalProduct[]>([]);
+  const [globalItems, setGlobalItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -50,61 +40,21 @@ export default function MasterInventoryPage() {
     setLoading(true);
     try {
       if (activeTab === 'my-inventory') {
-        // Mock user check (removed broken Supabase code)
-        const mockUser = { id: 'mock-user-id' };
-        if (!mockUser) return;
+        const data = await apiClient.get('/products');
 
-        // Mock inventory data
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        const mockData = [
-          {
-            'inventory-id': 'inv-001',
-            'current-stock-quantity': 25,
-            'selling-price-amount': 99.99,
-            'custom-product-name': 'Sample Product A',
-            'override-image-url': '',
-            'global-product-master-catalog': {
-              'product-id': 'prod-001',
-              'product-name': 'Sample Product A',
-              'upc-ean-code': '123456789012',
-              'image-url': '',
-              'category-name': 'Electronics',
-              'manufacturer-name': 'Sample Mfg',
-              'enriched-by-superadmin': true
-            }
-          },
-          {
-            'inventory-id': 'inv-002',
-            'current-stock-quantity': 10,
-            'selling-price-amount': 49.99,
-            'custom-product-name': null,
-            'override-image-url': null,
-            'global-product-master-catalog': {
-              'product-id': 'prod-002',
-              'product-name': 'Sample Product B',
-              'upc-ean-code': '987654321098',
-              'image-url': '',
-              'category-name': 'Home & Garden',
-              'manufacturer-name': 'Another Mfg',
-              'enriched-by-superadmin': false
-            }
-          }
-        ];
-
-        const processed: InventoryItem[] = (mockData || []).map((row: any) => {
-          const gp = row['global-product-master-catalog'] || {};
+        const processed: InventoryItem[] = (data || []).map((item: any) => {
           return {
-            inventory_id: row['inventory-id'],
-            product_id: gp['product-id'],
-            name: row['custom-product-name'] || gp['product-name'] || 'Unknown',
-            sku: gp['upc-ean-code'] || 'N/A',
-            image: row['override-image-url'] || gp['image-url'] || '',
-            category: gp['category-name'] || 'Uncategorized',
-            manufacturer: gp['manufacturer-name'] || 'N/A',
-            total_qty: row['current-stock-quantity'] || 0,
-            sales_price: row['selling-price-amount'] || 0,
-            is_enriched: gp['enriched-by-superadmin'] || false
+            inventory_id: item.id,
+            product_id: item.id, // Treating local ID as master ID for now
+            name: item.name,
+            sku: item.sku || 'N/A',
+            image: item.image || '',
+            category: item.category || 'Uncategorized',
+            description: item.description || '',
+            manufacturer: 'N/A', // Backend doesn't store this yet
+            total_qty: item.total_qty || 0,
+            sales_price: item.price || 0,
+            is_enriched: false // Default to false
           };
         });
 
@@ -112,44 +62,21 @@ export default function MasterInventoryPage() {
         setExistingProductIds(new Set(processed.map(i => i.product_id)));
 
       } else {
-        // Mock global catalog data
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Fetch real Global Catalog data
+        const data = await apiClient.get('/master-catalog');
 
-        const mockGlobal = [
-          {
-            'product-id': 'global-001',
-            'product-name': 'Global Product X',
-            'upc-ean-code': '111222333444',
-            'image-url': '',
-            'category-name': 'Sports',
-            'brand-name': 'Global Sports',
-            'manufacturer-name': 'Global Sports Inc',
-            'is-active': true,
-            'enriched-by-superadmin': true
-          },
-          {
-            'product-id': 'global-002',
-            'product-name': 'Global Product Y',
-            'upc-ean-code': '555666777888',
-            'image-url': '',
-            'category-name': 'Toys',
-            'brand-name': 'ToyBrand',
-            'manufacturer-name': 'Toy Makers Ltd',
-            'is-active': true,
-            'enriched-by-superadmin': false
-          }
-        ];
-
-        const processed: GlobalProduct[] = (mockGlobal || []).map((row: any) => ({
-          product_id: row['product-id'],
-          name: row['product-name'],
-          sku: row['upc-ean-code'],
-          image: row['image-url'],
-          category: row['category-name'],
-          brand: row['brand-name'],
-          manufacturer: row['manufacturer-name'],
-          is_active: row['is-active'],
-          is_enriched: row['enriched-by-superadmin']
+        const processed: InventoryItem[] = (data || []).map((item: any) => ({
+          inventory_id: item.sku, // Use SKU as ID for catalog items
+          product_id: item.sku,
+          name: item.productName,
+          sku: item.sku,
+          image: item.imageUrl || '',
+          category: item.category || 'Uncategorized',
+          description: item.description || '',
+          manufacturer: 'Global Supplier',
+          total_qty: 0, // Catalog items don't have stock
+          sales_price: Number(item.basePrice) || 0,
+          is_enriched: false
         }));
 
         setGlobalItems(processed);
@@ -162,45 +89,53 @@ export default function MasterInventoryPage() {
     }
   }
 
-  const handleAddToStore = async (product: GlobalProduct) => {
+  const handleAddToStore = async (product: InventoryItem) => {
     try {
-      // Mock user (removed broken Supabase code)
-      const user = { id: 'mock-user-id' };
-      if (!user) return;
+      await apiClient.post('/products', {
+        name: product.name,
+        sku: product.sku,
+        category: product.category,
+        description: product.description,
+        price: product.sales_price,
+        stock: 0 // Start with 0 stock
+      });
 
-
-
-      // Mock tenant data
-      const roleData = { 'tenant-id': 'mock-tenant-id' };
-      if (!roleData) return;
-
-
-
-      // Mock insert (no actual database call)
-      const error = null;
-
-      if (error) throw error;
-
-
-      toast.success("Product added to your inventory!");
+      toast.success(`"${product.name}" added to your inventory!`);
+      // Update local state to show it's in store
       setExistingProductIds(prev => new Set(prev).add(product.product_id));
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Failed to add product");
+
+    } catch (error: any) {
+      console.error("Failed to add product:", error);
+      toast.error("Failed to add product to store");
     }
+  };
+
+  const [editingProduct, setEditingProduct] = useState<InventoryItem | null>(null);
+
+  const handleDelete = async (item: InventoryItem) => {
+    if (!confirm(`Are you sure you want to delete "${item.name}"? This cannot be undone.`)) return;
+
+    try {
+      const id = item.inventory_id || item.product_id;
+      await apiClient.delete(`/products/${id}`);
+      toast.success("Product deleted successfully");
+      setInventoryItems(prev => prev.filter(i => (i.inventory_id !== id && i.product_id !== id)));
+    } catch (error: any) {
+      console.error("Delete failed:", error);
+      toast.error("Failed to delete product");
+    }
+  };
+
+  const handleSaveProduct = (updatedItem: any) => {
+    setInventoryItems(prev => prev.map(i =>
+      (i.inventory_id === updatedItem.id || i.product_id === updatedItem.id) ? { ...i, ...updatedItem, sales_price: updatedItem.price } : i
+    ));
+    setEditingProduct(null);
   };
 
   const [enrichingId, setEnrichingId] = useState<string | null>(null);
 
   const handleEnrich = async (item: any) => {
-    // If it's a linked inventory item, we need the global product ID.
-    // The current mapping might have 'product_id' or 'inventory_id'.
-    // globalItems have 'product_id'. inventoryItems have 'product_id' inside the join but flattened?
-    // Let's check the data fetching logic. 
-    // inventoryItems map: id: i['inventory-id'], product_id: i.product?.['product-id'] ...
-
-    // Wait, I need to check how I mapped the IDs in loadData. 
-    // Assuming item.product_id is available even activeTab is 'my-inventory'
     const pid = item.product_id;
     if (!pid) {
       toast.error("Cannot enrich: Missing Product ID");
@@ -230,6 +165,20 @@ export default function MasterInventoryPage() {
       toast.error("Network error during enrichment");
     } finally {
       setEnrichingId(null);
+    }
+  };
+
+  const handleSyncCatalog = async () => {
+    console.log("Sync Catalog Triggered", new Date().toISOString());
+    const toastId = toast.loading("Syncing catalog...");
+    try {
+      await apiClient.post('/products/force-sync', {});
+      toast.success("Catalog synced successfully!", { id: toastId });
+      if (activeTab === 'global-catalog') {
+        fetchData();
+      }
+    } catch (e) {
+      toast.error("Failed to sync catalog", { id: toastId });
     }
   };
 
@@ -263,6 +212,13 @@ export default function MasterInventoryPage() {
             >
               <Globe size={14} /> Global Catalog
             </button>
+            <button
+              onClick={handleSyncCatalog}
+              className="px-3 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-blue-600 hover:bg-white transition-all ml-2"
+              title="Force Sync to Global Catalog"
+            >
+              <ArrowRightLeft size={16} />
+            </button>
           </div>
         </div>
 
@@ -287,11 +243,13 @@ export default function MasterInventoryPage() {
               <tr>
                 <th className="px-6 py-3 font-medium">Product</th>
                 <th className="px-6 py-3 font-medium">Category</th>
+                <th className="px-6 py-3 font-medium">Description</th>
                 <th className="px-6 py-3 font-medium">Manufacturer</th>
                 {activeTab === 'my-inventory' ? (
                   <>
                     <th className="px-6 py-3 font-medium text-right">Price</th>
                     <th className="px-6 py-3 font-medium text-center">Stock</th>
+                    <th className="px-6 py-3 font-medium text-right">Actions</th>
                   </>
                 ) : (
                   <th className="px-6 py-3 font-medium text-right">Action</th>
@@ -300,9 +258,9 @@ export default function MasterInventoryPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="p-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={7} className="p-12 text-center text-gray-400">Loading...</td></tr>
               ) : displayedItems.length === 0 ? (
-                <tr><td colSpan={5} className="p-12 text-center text-gray-400">No items found.</td></tr>
+                <tr><td colSpan={7} className="p-12 text-center text-gray-400">No items found.</td></tr>
               ) : displayedItems.map((item: any) => (
                 <tr key={item.inventory_id || item.product_id} className="hover:bg-blue-50/30 transition-colors group">
                   <td className="px-6 py-3">
@@ -328,12 +286,31 @@ export default function MasterInventoryPage() {
                     </div>
                   </td>
                   <td className="px-6 py-3 text-gray-600">{item.category}</td>
+                  <td className="px-6 py-3 text-gray-500 text-sm max-w-xs truncate" title={item.description}>{item.description || '—'}</td>
                   <td className="px-6 py-3 text-gray-600">{item.manufacturer}</td>
 
                   {activeTab === 'my-inventory' ? (
                     <>
-                      <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${item.sales_price.toFixed(2)}</td>
+                      <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${Number(item.sales_price).toFixed(2)}</td>
                       <td className="px-6 py-3 text-center font-bold text-gray-900">{item.total_qty}</td>
+                      <td className="px-6 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingProduct(item); }}
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                            title="Edit Product"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(item); }}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            title="Delete Product"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
                     </>
                   ) : (
                     <td className="px-6 py-3 text-right">
@@ -358,6 +335,16 @@ export default function MasterInventoryPage() {
         </div>
 
       </div>
+
+      {/* EDIT MODAL */}
+      {editingProduct && (
+        <EditProductModal
+          product={editingProduct}
+          onClose={() => setEditingProduct(null)}
+          onSave={handleSaveProduct}
+        />
+      )}
+
     </div>
   );
 }

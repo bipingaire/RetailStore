@@ -13,6 +13,7 @@ exports.InvoiceService = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
 const tenant_service_1 = require("../tenant/tenant.service");
+const tenant_client_1 = require("../generated/tenant-client");
 const openai_1 = require("openai");
 const fs = require("fs");
 const path = require("path");
@@ -21,18 +22,84 @@ let InvoiceService = class InvoiceService {
         this.tenantPrisma = tenantPrisma;
         this.tenantService = tenantService;
     }
-    async uploadInvoice(subdomain, vendorId, invoiceNumber, invoiceDate, totalAmount, fileUrl) {
+    async uploadInvoice(subdomain, vendorId, invoiceNumber, invoiceDate, totalAmount, items, fileUrl) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-        return client.vendorInvoice.create({
-            data: {
-                vendorId,
-                invoiceNumber,
-                invoiceDate,
-                totalAmount,
-                fileUrl,
-                status: 'pending',
-            },
+        return client.$transaction(async (tx) => {
+            const invoice = await tx.vendorInvoice.create({
+                data: {
+                    vendorId,
+                    invoiceNumber,
+                    invoiceDate,
+                    totalAmount,
+                    fileUrl,
+                    status: 'committed',
+                },
+            });
+            for (const item of items) {
+                let product = await tx.product.findFirst({
+                    where: {
+                        name: {
+                            equals: item.description,
+                            mode: 'insensitive',
+                        },
+                    },
+                });
+                if (!product) {
+                    product = await tx.product.create({
+                        data: {
+                            name: item.description,
+                            sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                            category: item.category,
+                            description: item.description,
+                            price: new tenant_client_1.Prisma.Decimal(item.unitPrice * 1.5),
+                            costPrice: new tenant_client_1.Prisma.Decimal(item.unitPrice),
+                            stock: 0,
+                            reorderLevel: 10,
+                            isActive: true,
+                        },
+                    });
+                }
+                await tx.vendorInvoiceItem.create({
+                    data: {
+                        invoiceId: invoice.id,
+                        productId: product.id,
+                        quantity: item.quantity,
+                        unitCost: new tenant_client_1.Prisma.Decimal(item.unitPrice),
+                        totalCost: new tenant_client_1.Prisma.Decimal(item.totalPrice),
+                    },
+                });
+                await tx.product.update({
+                    where: { id: product.id },
+                    data: {
+                        stock: { increment: item.quantity },
+                        costPrice: new tenant_client_1.Prisma.Decimal(item.unitPrice),
+                    },
+                });
+                await tx.stockMovement.create({
+                    data: {
+                        productId: product.id,
+                        type: 'IN',
+                        quantity: item.quantity,
+                        description: `Invoice: ${invoiceNumber}`,
+                    },
+                });
+                const expiry = item.expiryDate
+                    ? new Date(item.expiryDate)
+                    : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+                await tx.productBatch.create({
+                    data: {
+                        productId: product.id,
+                        sku: product.sku,
+                        quantity: item.quantity,
+                        expiryDate: expiry,
+                        receivedDate: new Date(),
+                    }
+                });
+            }
+            return invoice;
+        }, {
+            timeout: 20000,
         });
     }
     async getInvoice(subdomain, id) {
