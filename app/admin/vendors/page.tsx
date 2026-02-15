@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { Users, Search, Phone, Mail, Globe, MapPin, Building, ArrowRight } from 'lucide-react';
+import { Users, Search, Phone, Mail, Globe, MapPin, Building, ArrowRight, Plus, X } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 type VendorProfile = {
   id?: string;
@@ -36,6 +37,22 @@ export default function VendorDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddVendorOpen, setIsAddVendorOpen] = useState(false);
+  const [newVendorName, setNewVendorName] = useState('');
+
+  async function handleAddVendor() {
+    if (!newVendorName.trim()) return;
+    try {
+      const newVendor = await apiClient.post('/vendors', { name: newVendorName });
+      toast.success('Vendor added successfully');
+      setIsAddVendorOpen(false);
+      setNewVendorName('');
+      // Reload data
+      window.location.reload(); // Simple reload for now, ideally strictly refetch
+    } catch (error) {
+      toast.error('Failed to add vendor');
+    }
+  }
 
   useEffect(() => {
     async function loadVendorData() {
@@ -111,12 +128,59 @@ export default function VendorDashboard() {
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* HEADER */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="text-purple-600" /> Vendor Relations
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Manage suppliers, contacts, and order history.</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Users className="text-purple-600" /> Vendor Relations
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">Manage suppliers, contacts, and order history.</p>
+          </div>
+          <button
+            onClick={() => setIsAddVendorOpen(true)}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold hover:bg-purple-700 transition-colors"
+          >
+            <Plus size={16} /> Add Vendor
+          </button>
         </div>
+
+        {/* ADD VENDOR MODAL */}
+        {isAddVendorOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">Add New Vendor</h3>
+                <button onClick={() => setIsAddVendorOpen(false)}><X size={20} className="text-gray-400 hover:text-gray-600" /></button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Name</label>
+                  <input
+                    type="text"
+                    value={newVendorName}
+                    onChange={e => setNewVendorName(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none"
+                    placeholder="e.g. Acme Corp"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    onClick={() => setIsAddVendorOpen(false)}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddVendor}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700"
+                  >
+                    Create Vendor
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

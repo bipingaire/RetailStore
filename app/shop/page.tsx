@@ -67,7 +67,7 @@ export default function ShopHome() {
         // Map backend response to our Product type
         const mappedProducts = dataArray.map((p: any) => ({
           id: p.id,
-          price: p.price || 0,
+          price: Number(p.price) || 0,
           name: p.name,
           imageUrl: p.imageUrl || p.image, // Handle both potential keys
           category: p.category,

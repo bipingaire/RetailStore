@@ -47,4 +47,12 @@ export class AuditController {
     async getVariances(@Headers('x-tenant') subdomain: string) {
         return this.auditService.getVarianceReport(subdomain);
     }
+
+    @Post('submit-bulk')
+    async submitBulk(
+        @Headers('x-tenant') subdomain: string,
+        @Body() body: { userId: string; items: { productId: string; quantity: number }[]; notes?: string }
+    ) {
+        return this.auditService.submitBulkAudit(subdomain, body.userId, body.items, body.notes);
+    }
 }

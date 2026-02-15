@@ -37,6 +37,9 @@ let AuditController = class AuditController {
     async getVariances(subdomain) {
         return this.auditService.getVarianceReport(subdomain);
     }
+    async submitBulk(subdomain, body) {
+        return this.auditService.submitBulkAudit(subdomain, body.userId, body.items, body.notes);
+    }
 };
 exports.AuditController = AuditController;
 __decorate([
@@ -86,6 +89,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AuditController.prototype, "getVariances", null);
+__decorate([
+    (0, common_1.Post)('submit-bulk'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], AuditController.prototype, "submitBulk", null);
 exports.AuditController = AuditController = __decorate([
     (0, common_1.Controller)('audit'),
     __metadata("design:paramtypes", [audit_service_1.AuditService])

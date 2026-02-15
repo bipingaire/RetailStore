@@ -4,21 +4,21 @@ export declare class CampaignController {
     constructor(campaignService: CampaignService);
     create(tenantId: string, body: any): Promise<{
         id: string;
-        name: string;
-        createdAt: Date;
-        status: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        status: string;
+        name: string;
         type: string;
         budget: import("dist/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     findAll(tenantId: string): Promise<{
         id: string;
-        name: string;
-        createdAt: Date;
-        status: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        status: string;
+        name: string;
         type: string;
         budget: import("dist/generated/tenant-client/runtime/library").Decimal | null;
     }[]>;

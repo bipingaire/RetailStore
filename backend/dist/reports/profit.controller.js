@@ -39,6 +39,9 @@ let ProfitController = class ProfitController {
         const endDate = query.endDate ? new Date(query.endDate) : undefined;
         return this.profitService.getExpenses(subdomain, startDate, endDate);
     }
+    async getDashboardStats(subdomain) {
+        return this.profitService.getDashboardStats(subdomain);
+    }
 };
 exports.ProfitController = ProfitController;
 __decorate([
@@ -89,6 +92,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProfitController.prototype, "getExpenses", null);
+__decorate([
+    (0, common_1.Get)('dashboard-stats'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "getDashboardStats", null);
 exports.ProfitController = ProfitController = __decorate([
     (0, common_1.Controller)('reports/profit'),
     __metadata("design:paramtypes", [profit_service_1.ProfitService])

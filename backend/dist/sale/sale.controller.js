@@ -44,6 +44,9 @@ let SaleController = class SaleController {
     cancel(subdomain, id, req) {
         return this.saleService.cancelSale(subdomain, id, req.user.id);
     }
+    updateStatus(subdomain, id, body) {
+        return this.saleService.updateSaleStatus(subdomain, id, body.status);
+    }
 };
 exports.SaleController = SaleController;
 __decorate([
@@ -95,6 +98,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], SaleController.prototype, "cancel", null);
+__decorate([
+    (0, common_1.Patch)(':id/status'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], SaleController.prototype, "updateStatus", null);
 exports.SaleController = SaleController = __decorate([
     (0, common_1.Controller)('sales'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

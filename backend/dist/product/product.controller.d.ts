@@ -9,19 +9,19 @@ export declare class ProductController {
     }>;
     create(subdomain: string, dto: CreateProductDto): Promise<{
         id: string;
-        isActive: boolean;
         createdAt: Date;
-        updatedAt: Date;
         name: string;
-        sku: string;
+        updatedAt: Date;
         category: string | null;
         description: string | null;
-        imageUrl: string | null;
-        price: import("src/generated/tenant-client/runtime/library").Decimal;
-        costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+        sku: string;
+        price: import("dist/generated/tenant-client/runtime/library").Decimal;
+        costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
+        isActive: boolean;
     }>;
     findAll(subdomain: string): Promise<{
         id: string;
@@ -30,7 +30,7 @@ export declare class ProductController {
         image: string;
         category: string;
         description: string;
-        price: import("src/generated/tenant-client/runtime/library").Decimal;
+        price: import("dist/generated/tenant-client/runtime/library").Decimal;
         total_qty: number;
         batches: {
             id: string;
@@ -51,51 +51,51 @@ export declare class ProductController {
         }[];
     } & {
         id: string;
-        isActive: boolean;
         createdAt: Date;
-        updatedAt: Date;
         name: string;
-        sku: string;
+        updatedAt: Date;
         category: string | null;
         description: string | null;
-        imageUrl: string | null;
-        price: import("src/generated/tenant-client/runtime/library").Decimal;
-        costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+        sku: string;
+        price: import("dist/generated/tenant-client/runtime/library").Decimal;
+        costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
+        isActive: boolean;
     }>;
     update(subdomain: string, id: string, dto: UpdateProductDto): Promise<{
         id: string;
-        isActive: boolean;
         createdAt: Date;
-        updatedAt: Date;
         name: string;
-        sku: string;
+        updatedAt: Date;
         category: string | null;
         description: string | null;
-        imageUrl: string | null;
-        price: import("src/generated/tenant-client/runtime/library").Decimal;
-        costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+        sku: string;
+        price: import("dist/generated/tenant-client/runtime/library").Decimal;
+        costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
+        isActive: boolean;
     }>;
     delete(subdomain: string, id: string): Promise<{
         id: string;
-        isActive: boolean;
         createdAt: Date;
-        updatedAt: Date;
         name: string;
-        sku: string;
+        updatedAt: Date;
         category: string | null;
         description: string | null;
-        imageUrl: string | null;
-        price: import("src/generated/tenant-client/runtime/library").Decimal;
-        costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+        sku: string;
+        price: import("dist/generated/tenant-client/runtime/library").Decimal;
+        costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
+        isActive: boolean;
     }>;
     updateStock(subdomain: string, id: string, dto: {
         quantity: number;

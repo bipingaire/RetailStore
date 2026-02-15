@@ -65,4 +65,12 @@ export class SaleController {
   ) {
     return this.saleService.cancelSale(subdomain, id, req.user.id);
   }
+  @Patch(':id/status')
+  updateStatus(
+    @Headers('x-tenant') subdomain: string,
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
+    return this.saleService.updateSaleStatus(subdomain, id, body.status);
+  }
 }

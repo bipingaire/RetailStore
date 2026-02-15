@@ -10,10 +10,10 @@ export declare class AuthService {
         tenantId: string;
         subdomain: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
-        updatedAt: Date;
         name: string | null;
+        updatedAt: Date;
+        isActive: boolean;
         email: string;
         role: string;
     }>;

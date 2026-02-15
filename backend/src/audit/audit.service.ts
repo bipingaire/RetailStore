@@ -119,4 +119,65 @@ export class AuditService {
 
         return sessions;
     }
+    async submitBulkAudit(subdomain: string, userId: string, items: { productId: string; quantity: number }[], notes?: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.$transaction(async (tx) => {
+            // 1. Create Session
+            const session = await tx.auditSession.create({
+                data: {
+                    userId,
+                    notes,
+                    status: 'in-progress', // Will complete immediately, but good for tracking
+                },
+            });
+
+            // 2. Process Items
+            for (const item of items) {
+                const product = await tx.product.findUnique({ where: { id: item.productId } });
+                if (!product) continue; // Skip invalid products
+
+                const variance = item.quantity - product.stock;
+
+                // Record Count
+                await tx.auditCount.create({
+                    data: {
+                        auditSessionId: session.id,
+                        productId: item.productId,
+                        systemQuantity: product.stock,
+                        countedQuantity: item.quantity,
+                        variance,
+                        varianceReason: variance !== 0 ? 'Bulk Audit Adjustment' : null,
+                    },
+                });
+
+                // Update Inventory if variance
+                if (variance !== 0) {
+                    await tx.inventoryAdjustment.create({
+                        data: {
+                            auditSessionId: session.id,
+                            productId: item.productId,
+                            quantityChange: variance,
+                            reason: 'Bulk Audit',
+                        },
+                    });
+
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: item.quantity },
+                    });
+                }
+            }
+
+            // 3. Complete Session
+            const completedSession = await tx.auditSession.update({
+                where: { id: session.id },
+                data: { status: 'completed', completedAt: new Date() },
+                include: { counts: true }
+            });
+
+            return { success: true, varianceFound: completedSession.counts.filter(c => c.variance !== 0).length };
+        });
+    }
 }

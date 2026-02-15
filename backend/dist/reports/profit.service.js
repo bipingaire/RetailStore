@@ -129,6 +129,49 @@ let ProfitService = class ProfitService {
             orderBy: { expenseDate: 'desc' },
         });
     }
+    async getDashboardStats(subdomain) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const allTimeSales = await client.sale.aggregate({
+            _sum: { total: true }
+        });
+        const pendingPO = await client.purchaseOrder.count({
+            where: { status: { in: ['sent', 'confirmed'] } }
+        });
+        const pendingSales = await client.sale.count({
+            where: { status: 'PENDING' }
+        });
+        const totalPending = pendingPO + pendingSales;
+        const lowStock = await client.product.count({
+            where: { stock: { lte: 10 } }
+        });
+        const allProducts = await client.product.findMany({ select: { stock: true, reorderLevel: true } });
+        const lowStockCount = allProducts.filter(p => p.stock <= p.reorderLevel).length;
+        const activeCampaigns = await client.campaign.count({
+            where: { status: 'ACTIVE' }
+        });
+        const recentOrders = await client.sale.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: { customer: true }
+        });
+        return {
+            revenue: Number(allTimeSales._sum.total || 0),
+            pendingOrders: totalPending,
+            lowStock: lowStockCount,
+            activeCampaigns,
+            recentOrders: recentOrders.map(o => ({
+                id: o.id,
+                orderNumber: o.saleNumber,
+                customer: o.customer?.name || 'Guest',
+                amount: Number(o.total),
+                status: o.status,
+                date: o.createdAt
+            }))
+        };
+    }
 };
 exports.ProfitService = ProfitService;
 exports.ProfitService = ProfitService = __decorate([

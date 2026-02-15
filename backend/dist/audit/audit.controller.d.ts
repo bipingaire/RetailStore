@@ -7,11 +7,11 @@ export declare class AuditController {
         notes?: string;
     }): Promise<{
         id: string;
-        status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        status: string;
+        notes: string | null;
     }>;
     addCount(subdomain: string, id: string, body: {
         productId: string;
@@ -19,19 +19,20 @@ export declare class AuditController {
         reason?: string;
     }): Promise<{
         id: string;
-        createdAt: Date;
-        productId: string;
         systemQuantity: number;
         countedQuantity: number;
         variance: number;
         varianceReason: string | null;
+        createdAt: Date;
         auditSessionId: string;
+        productId: string;
     }>;
     completeSession(subdomain: string, id: string): Promise<{
         counts: ({
             product: {
                 id: string;
                 name: string;
+                createdAt: Date;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -42,23 +43,23 @@ export declare class AuditController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
                 updatedAt: Date;
             };
         } & {
             id: string;
-            createdAt: Date;
-            productId: string;
             systemQuantity: number;
             countedQuantity: number;
             variance: number;
             varianceReason: string | null;
+            createdAt: Date;
             auditSessionId: string;
+            productId: string;
         })[];
         adjustments: ({
             product: {
                 id: string;
                 name: string;
+                createdAt: Date;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -69,31 +70,31 @@ export declare class AuditController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
                 updatedAt: Date;
             };
         } & {
             id: string;
-            createdAt: Date;
-            productId: string;
             notes: string | null;
+            createdAt: Date;
             auditSessionId: string | null;
+            productId: string;
             quantityChange: number;
             reason: string;
         })[];
     } & {
         id: string;
-        status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        status: string;
+        notes: string | null;
     }>;
     getSession(subdomain: string, id: string): Promise<{
         counts: ({
             product: {
                 id: string;
                 name: string;
+                createdAt: Date;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -104,23 +105,23 @@ export declare class AuditController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
                 updatedAt: Date;
             };
         } & {
             id: string;
-            createdAt: Date;
-            productId: string;
             systemQuantity: number;
             countedQuantity: number;
             variance: number;
             varianceReason: string | null;
+            createdAt: Date;
             auditSessionId: string;
+            productId: string;
         })[];
         adjustments: ({
             product: {
                 id: string;
                 name: string;
+                createdAt: Date;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -131,59 +132,59 @@ export declare class AuditController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
                 updatedAt: Date;
             };
         } & {
             id: string;
-            createdAt: Date;
-            productId: string;
             notes: string | null;
+            createdAt: Date;
             auditSessionId: string | null;
+            productId: string;
             quantityChange: number;
             reason: string;
         })[];
     } & {
         id: string;
-        status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        status: string;
+        notes: string | null;
     }>;
     getAllSessions(subdomain: string): Promise<({
         counts: {
             id: string;
-            createdAt: Date;
-            productId: string;
             systemQuantity: number;
             countedQuantity: number;
             variance: number;
             varianceReason: string | null;
+            createdAt: Date;
             auditSessionId: string;
+            productId: string;
         }[];
         adjustments: {
             id: string;
-            createdAt: Date;
-            productId: string;
             notes: string | null;
+            createdAt: Date;
             auditSessionId: string | null;
+            productId: string;
             quantityChange: number;
             reason: string;
         }[];
     } & {
         id: string;
-        status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        status: string;
+        notes: string | null;
     })[]>;
     getVariances(subdomain: string): Promise<({
         adjustments: ({
             product: {
                 id: string;
                 name: string;
+                createdAt: Date;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -194,24 +195,34 @@ export declare class AuditController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
                 updatedAt: Date;
             };
         } & {
             id: string;
-            createdAt: Date;
-            productId: string;
             notes: string | null;
+            createdAt: Date;
             auditSessionId: string | null;
+            productId: string;
             quantityChange: number;
             reason: string;
         })[];
     } & {
         id: string;
-        status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        status: string;
+        notes: string | null;
     })[]>;
+    submitBulk(subdomain: string, body: {
+        userId: string;
+        items: {
+            productId: string;
+            quantity: number;
+        }[];
+        notes?: string;
+    }): Promise<{
+        success: boolean;
+        varianceFound: number;
+    }>;
 }

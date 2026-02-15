@@ -63,7 +63,15 @@ let SaleService = class SaleService {
     async findAll(subdomain, options) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-        return client.sale.findMany({ include: { items: true } });
+        return client.sale.findMany({
+            include: {
+                items: {
+                    include: { product: true }
+                },
+                customer: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
     }
     async findOne(subdomain, id) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
@@ -83,6 +91,14 @@ let SaleService = class SaleService {
     }
     async syncSalesFromImage(tenantId, imageUrl) {
         return { success: true, count: 0, raw: [] };
+    }
+    async updateSaleStatus(subdomain, id, status) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.sale.update({
+            where: { id },
+            data: { status }
+        });
     }
 };
 exports.SaleService = SaleService;

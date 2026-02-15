@@ -60,7 +60,15 @@ export class SaleService {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
     // basic mock of options implementation
-    return client.sale.findMany({ include: { items: true } });
+    return client.sale.findMany({
+      include: {
+        items: {
+          include: { product: true }
+        },
+        customer: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   async findOne(subdomain: string, id: string) {
@@ -84,5 +92,13 @@ export class SaleService {
   async syncSalesFromImage(tenantId: string, imageUrl: string) {
     // Stub implementation
     return { success: true, count: 0, raw: [] };
+  }
+  async updateSaleStatus(subdomain: string, id: string, status: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    return client.sale.update({
+      where: { id },
+      data: { status }
+    });
   }
 }

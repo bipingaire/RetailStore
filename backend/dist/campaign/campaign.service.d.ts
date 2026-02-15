@@ -6,21 +6,21 @@ export declare class CampaignService {
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
     createCampaign(subdomain: string, data: any): Promise<{
         id: string;
-        name: string;
-        createdAt: Date;
-        status: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        status: string;
+        name: string;
         type: string;
         budget: import("dist/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     listCampaigns(subdomain: string): Promise<{
         id: string;
-        name: string;
-        createdAt: Date;
-        status: string;
         startDate: Date | null;
         endDate: Date | null;
+        createdAt: Date;
+        status: string;
+        name: string;
         type: string;
         budget: import("dist/generated/tenant-client/runtime/library").Decimal | null;
     }[]>;

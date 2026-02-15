@@ -110,6 +110,55 @@ let AuditService = class AuditService {
         });
         return sessions;
     }
+    async submitBulkAudit(subdomain, userId, items, notes) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.$transaction(async (tx) => {
+            const session = await tx.auditSession.create({
+                data: {
+                    userId,
+                    notes,
+                    status: 'in-progress',
+                },
+            });
+            for (const item of items) {
+                const product = await tx.product.findUnique({ where: { id: item.productId } });
+                if (!product)
+                    continue;
+                const variance = item.quantity - product.stock;
+                await tx.auditCount.create({
+                    data: {
+                        auditSessionId: session.id,
+                        productId: item.productId,
+                        systemQuantity: product.stock,
+                        countedQuantity: item.quantity,
+                        variance,
+                        varianceReason: variance !== 0 ? 'Bulk Audit Adjustment' : null,
+                    },
+                });
+                if (variance !== 0) {
+                    await tx.inventoryAdjustment.create({
+                        data: {
+                            auditSessionId: session.id,
+                            productId: item.productId,
+                            quantityChange: variance,
+                            reason: 'Bulk Audit',
+                        },
+                    });
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: item.quantity },
+                    });
+                }
+            }
+            const completedSession = await tx.auditSession.update({
+                where: { id: session.id },
+                data: { status: 'completed', completedAt: new Date() },
+                include: { counts: true }
+            });
+            return { success: true, varianceFound: completedSession.counts.filter(c => c.variance !== 0).length };
+        });
+    }
 };
 exports.AuditService = AuditService;
 exports.AuditService = AuditService = __decorate([

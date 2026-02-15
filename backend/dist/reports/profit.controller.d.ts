@@ -8,7 +8,6 @@ export declare class ProfitController {
         period: 'daily' | 'weekly' | 'monthly';
     }): Promise<{
         id: string;
-        createdAt: Date;
         period: string;
         startDate: Date;
         endDate: Date;
@@ -19,10 +18,10 @@ export declare class ProfitController {
         expenses: import("dist/generated/tenant-client/runtime/library").Decimal;
         netProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
         metadata: import("dist/generated/tenant-client/runtime/library").JsonValue | null;
+        createdAt: Date;
     }>;
     getReports(subdomain: string, period?: string): Promise<{
         id: string;
-        createdAt: Date;
         period: string;
         startDate: Date;
         endDate: Date;
@@ -33,10 +32,10 @@ export declare class ProfitController {
         expenses: import("dist/generated/tenant-client/runtime/library").Decimal;
         netProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
         metadata: import("dist/generated/tenant-client/runtime/library").JsonValue | null;
+        createdAt: Date;
     }[]>;
     getTrends(subdomain: string, days?: string): Promise<{
         id: string;
-        createdAt: Date;
         period: string;
         startDate: Date;
         endDate: Date;
@@ -47,6 +46,7 @@ export declare class ProfitController {
         expenses: import("dist/generated/tenant-client/runtime/library").Decimal;
         netProfit: import("dist/generated/tenant-client/runtime/library").Decimal;
         metadata: import("dist/generated/tenant-client/runtime/library").JsonValue | null;
+        createdAt: Date;
     }[]>;
     getCategoryBreakdown(subdomain: string, query: {
         startDate: string;
@@ -63,10 +63,10 @@ export declare class ProfitController {
         expenseDate?: string;
     }): Promise<{
         id: string;
-        category: string;
-        description: string | null;
         createdAt: Date;
+        category: string;
         amount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        description: string | null;
         expenseDate: Date;
     }>;
     getExpenses(subdomain: string, query: {
@@ -74,10 +74,24 @@ export declare class ProfitController {
         endDate?: string;
     }): Promise<{
         id: string;
-        category: string;
-        description: string | null;
         createdAt: Date;
+        category: string;
         amount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        description: string | null;
         expenseDate: Date;
     }[]>;
+    getDashboardStats(subdomain: string): Promise<{
+        revenue: number;
+        pendingOrders: number;
+        lowStock: number;
+        activeCampaigns: number;
+        recentOrders: {
+            id: string;
+            orderNumber: string;
+            customer: string;
+            amount: number;
+            status: string;
+            date: Date;
+        }[];
+    }>;
 }

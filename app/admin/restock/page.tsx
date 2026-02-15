@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Send, Package, CheckCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { apiClient } from '@/lib/api-client';
 
 type Product = {
     id: string;
@@ -31,21 +32,34 @@ export default function RestockPage() {
 
     async function loadData() {
         try {
-            const [productsRes, vendorsRes, posRes] = await Promise.all([
-                fetch('/api/products'),
-                fetch('/api/vendors'),
-                fetch('/api/purchase-orders'),
+            const [productsData, vendorsData, posData] = await Promise.all([
+                apiClient.get('/products'),
+                apiClient.get('/vendors'),
+                apiClient.get('/purchase-orders'),
             ]);
 
-            if (productsRes.ok) {
-                const allProducts = await productsRes.json();
-                // Filter low stock items
-                const lowStock = allProducts.filter((p: Product) => p.stock <= p.reorderLevel);
-                setLowStockProducts(lowStock);
+            if (productsData) {
+                const allProducts = Array.isArray(productsData) ? productsData : [];
+                // Filter low stock items. Backend Product entity has 'stock' and 'reorderLevel' (check ProductService)
+                // Note: Frontend type expects 'stock', backend returns 'stock' (mapped from quantity?)
+                // Actually ProductService returns 'total_qty' for list, but let's check exact shape.
+                // ProductService.findAll returns { id, name, sku, items... total_qty } 
+                // We need to match that.
+
+                const lowStock = allProducts.filter((p: any) => (p.total_qty || 0) <= (p.reorderLevel || 10)); // Default reorder level if missing
+
+                setLowStockProducts(lowStock.map((p: any) => ({
+                    id: p.id,
+                    name: p.name,
+                    sku: p.sku,
+                    stock: p.total_qty || 0,
+                    reorderLevel: p.reorderLevel || 10,
+                    costPrice: p.costPrice || p.price * 0.6 || 0 // Fallback cost price
+                })));
             }
 
-            if (vendorsRes.ok) setVendors(await vendorsRes.json());
-            if (posRes.ok) setPurchaseOrders(await posRes.json());
+            if (vendorsData) setVendors(Array.isArray(vendorsData) ? vendorsData : []);
+            if (posData) setPurchaseOrders(Array.isArray(posData) ? posData : []);
         } catch (error) {
             console.error('Error loading data:', error);
             toast.error('Failed to load data');
@@ -87,22 +101,15 @@ export default function RestockPage() {
             }));
 
         try {
-            const res = await fetch('/api/purchase-orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    vendorId: selectedVendor,
-                    items,
-                    notes: 'Restock order for low inventory items',
-                }),
+            const po = await apiClient.post('/purchase-orders', {
+                vendorId: selectedVendor,
+                items,
+                notes: 'Restock order for low inventory items',
             });
 
-            if (res.ok) {
-                const po = await res.json();
-                toast.success(`Purchase Order ${po.orderNumber} created!`);
-                setSelectedItems(new Map());
-                loadData();
-            }
+            toast.success(`Purchase Order ${po.orderNumber} created!`);
+            setSelectedItems(new Map());
+            loadData();
         } catch (error) {
             toast.error('Failed to create purchase order');
         }
@@ -110,14 +117,9 @@ export default function RestockPage() {
 
     async function sendPO(poId: string) {
         try {
-            const res = await fetch(`/api/purchase-orders/${poId}/send`, {
-                method: 'POST',
-            });
-
-            if (res.ok) {
-                toast.success('Purchase order sent to vendor!');
-                loadData();
-            }
+            await apiClient.post(`/purchase-orders/${poId}/send`, {});
+            toast.success('Purchase order sent to vendor!');
+            loadData();
         } catch (error) {
             toast.error('Failed to send PO');
         }
@@ -127,14 +129,9 @@ export default function RestockPage() {
         if (!confirm('Mark this PO as received? This will update inventory.')) return;
 
         try {
-            const res = await fetch(`/api/purchase-orders/${poId}/receive`, {
-                method: 'POST',
-            });
-
-            if (res.ok) {
-                toast.success('Purchase order received! Inventory updated.');
-                loadData();
-            }
+            await apiClient.post(`/purchase-orders/${poId}/receive`, {});
+            toast.success('Purchase order received! Inventory updated.');
+            loadData();
         } catch (error) {
             toast.error('Failed to receive PO');
         }
@@ -288,10 +285,10 @@ export default function RestockPage() {
                                         </div>
                                         <span
                                             className={`px-2 py-1 rounded-full text-xs font-medium ${po.status === 'received'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : po.status === 'sent'
-                                                        ? 'bg-blue-100 text-blue-800'
-                                                        : 'bg-yellow-100 text-yellow-800'
+                                                ? 'bg-green-100 text-green-800'
+                                                : po.status === 'sent'
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
                                                 }`}
                                         >
                                             {po.status}

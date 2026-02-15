@@ -26,7 +26,7 @@ export declare class VendorService {
         'invoice-id': string;
         'invoice-number': string;
         'invoice-date': Date;
-        'total-amount-value': import("src/generated/tenant-client/runtime/library").Decimal;
+        'total-amount-value': import("dist/generated/tenant-client/runtime/library").Decimal;
         'processing-status': string;
         'supplier-name': string;
     }[]>;

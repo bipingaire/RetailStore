@@ -3,59 +3,75 @@ import { useEffect, useState } from 'react';
 import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign, Loader2, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { apiClient } from '@/lib/api-client';
+
 export default function OrderManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
-  // Load mock data
+  // Load real data
   useEffect(() => {
     async function init() {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      try {
+        setLoading(true);
+        // Fetch sales with customer info
+        // The findAll endpoint includes items. We might need to ensure it includes customer too.
+        // Let's assume standard findAll returns what we need or update service if customer is missing.
+        // backend findAll uses prisma include items. Customer is relation on Sale.
+        // I need to check if customer is included. SaleService.findAll currently only includes items.
+        // I will update SaleService.findAll to include customer as well in a separate step if needed, 
+        // but for now let's try to fetch and see. 
+        // Actually, looking at SaleService.findAll in previous step: `include: { items: true }`.
+        // It does NOT include customer.
+        // I should probably update Backend first to include Customer, otherwise 'customer-name' will be empty.
+        // But let's proceed with frontend mapping first and use 'Guest' if missing, then fix backend.
 
-      setTenantId('mock-tenant-id');
+        const sales = await apiClient.get('/sales');
 
-      const mockOrders = [
-        {
-          'order-id': 'ord-123',
-          'customer-name': 'John Doe',
-          'customer-phone': '555-0123',
-          'final-amount': 150.00,
-          'created-at': new Date().toISOString(),
-          'order-status-code': 'pending',
-          'fulfillment-type': 'delivery',
-          items: [
-            { 'quantity-ordered': 2, 'product-name': 'Widget A' },
-            { 'quantity-ordered': 1, 'product-name': 'Widget B' }
-          ]
-        },
-        {
-          'order-id': 'ord-124',
-          'customer-name': 'Jane Smith',
-          'customer-phone': '555-0124',
-          'final-amount': 85.50,
-          'created-at': new Date(Date.now() - 3600000).toISOString(),
-          'order-status-code': 'completed',
-          'fulfillment-type': 'pickup',
-          items: [
-            { 'quantity-ordered': 1, 'product-name': 'Gadget X' }
-          ]
+        if (Array.isArray(sales)) {
+          const mappedOrders = sales.map((sale: any) => ({
+            'order-id': sale.id,
+            'customer-name': sale.customer?.name || 'Guest Customer',
+            'customer-phone': sale.customer?.phone || 'No Phone',
+            'final-amount': Number(sale.total),
+            'created-at': sale.createdAt,
+            'order-status-code': sale.status?.toLowerCase() || 'pending',
+            'fulfillment-type': 'delivery', // identifying fulfillment type isn't in schema yet, default to delivery
+            items: sale.items?.map((item: any) => ({
+              'quantity-ordered': item.quantity,
+              'product-name': item.product?.name || 'Unknown Product' // Include product in findAll logic
+            }))
+          }));
+          // Sort by date desc
+          setOrders(mappedOrders.sort((a, b) => new Date(b['created-at']).getTime() - new Date(a['created-at']).getTime()));
         }
-      ];
-
-      setOrders(mockOrders);
-      setLoading(false);
+      } catch (error) {
+        console.error("Failed to load orders", error);
+        toast.error("Failed to load orders");
+      } finally {
+        setLoading(false);
+      }
     }
 
     init();
   }, []);
 
-  // Update order status (mocked)
+  // Update order status with API
   const updateStatus = async (id: string, newStatus: string) => {
+    // Optimistic update
+    const previousOrders = [...orders];
     setOrders(prev => prev.map(o =>
       o['order-id'] === id ? { ...o, 'order-status-code': newStatus } : o
     ));
-    toast.success(`Order marked as ${newStatus}`);
+
+    try {
+      await apiClient.patch(`/sales/${id}/status`, { status: newStatus.toUpperCase() });
+      toast.success(`Order marked as ${newStatus}`);
+    } catch (error) {
+      toast.error("Failed to update status");
+      setOrders(previousOrders); // Revert
+    }
   };
 
   if (loading && !tenantId) {
@@ -87,14 +103,14 @@ export default function OrderManager() {
 
               {/* Header */}
               <div className={`px-5 py-4 border-b border-gray-100 flex justify-between items-start bg-gradient-to-r ${order['order-status-code'] === 'pending' ? 'from-yellow-50 to-white' :
-                  order['order-status-code'] === 'confirmed' ? 'from-blue-50 to-white' :
-                    'from-gray-50 to-white'
+                order['order-status-code'] === 'confirmed' ? 'from-blue-50 to-white' :
+                  'from-gray-50 to-white'
                 }`}>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${order['order-status-code'] === 'pending' ? 'bg-yellow-100 border-yellow-200 text-yellow-800' :
-                        order['order-status-code'] === 'completed' ? 'bg-green-100 border-green-200 text-green-800' :
-                          'bg-gray-100 border-gray-200 text-gray-600'
+                      order['order-status-code'] === 'completed' ? 'bg-green-100 border-green-200 text-green-800' :
+                        'bg-gray-100 border-gray-200 text-gray-600'
                       }`}>
                       {order['order-status-code']}
                     </span>

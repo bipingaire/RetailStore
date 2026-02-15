@@ -79,4 +79,9 @@ export class ProfitController {
 
         return this.profitService.getExpenses(subdomain, startDate, endDate);
     }
+
+    @Get('dashboard-stats')
+    async getDashboardStats(@Headers('x-tenant') subdomain: string) {
+        return this.profitService.getDashboardStats(subdomain);
+    }
 }

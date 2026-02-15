@@ -151,4 +151,70 @@ export class ProfitService {
             orderBy: { expenseDate: 'desc' },
         });
     }
+    async getDashboardStats(subdomain: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 1. Total Revenue (All Time)
+        const allTimeSales = await client.sale.aggregate({
+            _sum: { total: true }
+        });
+
+        // 2. Pending Orders (PO + Sales)
+        const pendingPO = await client.purchaseOrder.count({
+            where: { status: { in: ['sent', 'confirmed'] } }
+        });
+
+        const pendingSales = await client.sale.count({
+            where: { status: 'PENDING' }
+        });
+
+        const totalPending = pendingPO + pendingSales;
+
+        // 3. Low Stock Items
+        const lowStock = await client.product.count({
+            where: { stock: { lte: 10 } } // employing fixed reorder level or use db raw query for dynamic
+        });
+
+        // Better: use findMany and filter in memory if volume is low, or raw query. 
+        // Prisma doesn't support field comparison in where clause easily.
+        // Let's just use a fixed threshold of 10 for now as 'Low Stock' generic indicator,
+        // or fetch all active products and count.
+        // Actually, we can just recount 'stock' <= 'reorderLevel' using raw query if needed, 
+        // but for simplicity let's stick to fixed 10 or fetch all.
+        // Let's fetch all products to check dynamic reorderLevel.
+        const allProducts = await client.product.findMany({ select: { stock: true, reorderLevel: true } });
+        const lowStockCount = allProducts.filter(p => p.stock <= p.reorderLevel).length;
+
+
+        // 4. Active Campaigns
+        const activeCampaigns = await client.campaign.count({
+            where: { status: 'ACTIVE' }
+        });
+
+        // 5. Recent Orders (Sales)
+        const recentOrders = await client.sale.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: { customer: true }
+        });
+
+        return {
+            revenue: Number(allTimeSales._sum.total || 0),
+            pendingOrders: totalPending,
+            lowStock: lowStockCount,
+            activeCampaigns,
+            recentOrders: recentOrders.map(o => ({
+                id: o.id,
+                orderNumber: o.saleNumber,
+                customer: o.customer?.name || 'Guest',
+                amount: Number(o.total),
+                status: o.status,
+                date: o.createdAt
+            }))
+        };
+    }
 }

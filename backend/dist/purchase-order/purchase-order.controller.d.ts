@@ -14,10 +14,12 @@ export declare class PurchaseOrderController {
         items: ({
             product: {
                 id: string;
+                createdAt: Date;
                 name: string;
-                sku: string;
+                updatedAt: Date;
                 category: string | null;
                 description: string | null;
+                sku: string;
                 price: import("dist/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
@@ -25,8 +27,6 @@ export declare class PurchaseOrderController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
             };
         } & {
             id: string;
@@ -40,18 +40,18 @@ export declare class PurchaseOrderController {
             id: string;
             name: string;
             isActive: boolean;
-            contactPerson: string | null;
             email: string | null;
             phone: string | null;
+            contactPerson: string | null;
             address: string | null;
         };
     } & {
         id: string;
         createdAt: Date;
-        updatedAt: Date;
         status: string;
         vendorId: string;
         totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        updatedAt: Date;
         orderNumber: string;
         orderDate: Date;
         notes: string | null;
@@ -71,18 +71,18 @@ export declare class PurchaseOrderController {
             id: string;
             name: string;
             isActive: boolean;
-            contactPerson: string | null;
             email: string | null;
             phone: string | null;
+            contactPerson: string | null;
             address: string | null;
         };
     } & {
         id: string;
         createdAt: Date;
-        updatedAt: Date;
         status: string;
         vendorId: string;
         totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        updatedAt: Date;
         orderNumber: string;
         orderDate: Date;
         notes: string | null;
@@ -93,10 +93,12 @@ export declare class PurchaseOrderController {
         items: ({
             product: {
                 id: string;
+                createdAt: Date;
                 name: string;
-                sku: string;
+                updatedAt: Date;
                 category: string | null;
                 description: string | null;
+                sku: string;
                 price: import("dist/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
@@ -104,8 +106,6 @@ export declare class PurchaseOrderController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
             };
         } & {
             id: string;
@@ -119,18 +119,18 @@ export declare class PurchaseOrderController {
             id: string;
             name: string;
             isActive: boolean;
-            contactPerson: string | null;
             email: string | null;
             phone: string | null;
+            contactPerson: string | null;
             address: string | null;
         };
     } & {
         id: string;
         createdAt: Date;
-        updatedAt: Date;
         status: string;
         vendorId: string;
         totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        updatedAt: Date;
         orderNumber: string;
         orderDate: Date;
         notes: string | null;
@@ -142,10 +142,10 @@ export declare class PurchaseOrderController {
     }): Promise<{
         id: string;
         createdAt: Date;
-        updatedAt: Date;
         status: string;
         vendorId: string;
         totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        updatedAt: Date;
         orderNumber: string;
         orderDate: Date;
         notes: string | null;
@@ -155,10 +155,10 @@ export declare class PurchaseOrderController {
     send(subdomain: string, id: string): Promise<{
         id: string;
         createdAt: Date;
-        updatedAt: Date;
         status: string;
         vendorId: string;
         totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        updatedAt: Date;
         orderNumber: string;
         orderDate: Date;
         notes: string | null;
@@ -169,10 +169,12 @@ export declare class PurchaseOrderController {
         items: ({
             product: {
                 id: string;
+                createdAt: Date;
                 name: string;
-                sku: string;
+                updatedAt: Date;
                 category: string | null;
                 description: string | null;
+                sku: string;
                 price: import("dist/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("dist/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
@@ -180,8 +182,6 @@ export declare class PurchaseOrderController {
                 imageUrl: string | null;
                 barcode: string | null;
                 isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
             };
         } & {
             id: string;
@@ -195,18 +195,18 @@ export declare class PurchaseOrderController {
             id: string;
             name: string;
             isActive: boolean;
-            contactPerson: string | null;
             email: string | null;
             phone: string | null;
+            contactPerson: string | null;
             address: string | null;
         };
     } & {
         id: string;
         createdAt: Date;
-        updatedAt: Date;
         status: string;
         vendorId: string;
         totalAmount: import("dist/generated/tenant-client/runtime/library").Decimal;
+        updatedAt: Date;
         orderNumber: string;
         orderDate: Date;
         notes: string | null;
