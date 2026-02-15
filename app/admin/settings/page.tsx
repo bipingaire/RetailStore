@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react';
 import {
   Building, Globe, CreditCard, Share2, Users, Palette,
   Save, Phone, Mail, Plus, Trash2, Check, X, Search,
-  Loader2, ExternalLink, ShieldCheck, MapPin
+  Loader2, ExternalLink, ShieldCheck, MapPin, DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 
 
@@ -21,7 +22,7 @@ type Plan = { id: string; name: string; price: number; features: string[]; recom
 
 export default function SettingsPage() {
   // Supabase removed - refactor needed
-  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social' | 'payment'>('profile');
   const [loading, setLoading] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
@@ -50,6 +51,12 @@ export default function SettingsPage() {
 
   // Social Media State
   const [socialAccounts, setSocialAccounts] = useState<any[]>([]);
+
+  // Payment State
+  const [paymentConfig, setPaymentConfig] = useState({
+    stripe_publishable_key: '',
+    stripe_secret_key: ''
+  });
 
   useEffect(() => {
     async function loadSettings() {
@@ -113,6 +120,18 @@ export default function SettingsPage() {
         { id: 'social-002', platform: 'Instagram', account_name: '@demostore', connected: false }
       ];
       setSocialAccounts(mockSocial);
+
+      try {
+        const pubKey = await apiClient.get('/settings/stripe_publishable_key');
+        const secKey = await apiClient.get('/settings/stripe_secret_key');
+        setPaymentConfig({
+          stripe_publishable_key: pubKey || '',
+          stripe_secret_key: secKey || ''
+        });
+      } catch (e) {
+        console.error("Failed to load payment settings", e);
+      }
+
       setLoading(false);
     }
 
@@ -163,6 +182,19 @@ export default function SettingsPage() {
     // Simulating OAuth redirect
   };
 
+  const handleSavePayment = async () => {
+    setLoading(true);
+    try {
+      await apiClient.post('/settings', { key: 'stripe_publishable_key', value: paymentConfig.stripe_publishable_key });
+      await apiClient.post('/settings', { key: 'stripe_secret_key', value: paymentConfig.stripe_secret_key });
+      toast.success('Payment settings saved');
+    } catch (e) {
+      toast.error('Failed to save payment settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
 
   return (
@@ -192,6 +224,9 @@ export default function SettingsPage() {
             </button>
             <button onClick={() => setActiveTab('billing')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'billing' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
               <CreditCard size={16} /> Billing
+            </button>
+            <button onClick={() => setActiveTab('payment')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'payment' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+              <DollarSign size={16} /> Payment
             </button>
           </div>
 
@@ -379,6 +414,46 @@ export default function SettingsPage() {
                       Connect
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* PAYMENT TAB */}
+            {activeTab === 'payment' && (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <CreditCard className="text-blue-600" size={20} /> Payment Configuration
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">Configure payment gateways for your store checkout.</p>
+
+                  <div className="grid grid-cols-1 gap-4 max-w-lg">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Stripe Publishable Key</label>
+                      <input
+                        type="text"
+                        value={paymentConfig.stripe_publishable_key}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, stripe_publishable_key: e.target.value })}
+                        placeholder="pk_test_..."
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Stripe Secret Key</label>
+                      <input
+                        type="password"
+                        value={paymentConfig.stripe_secret_key}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, stripe_secret_key: e.target.value })}
+                        placeholder="sk_test_..."
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-100">
+                  <button onClick={handleSavePayment} disabled={loading} className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
+                    {loading ? 'Saving...' : 'Save Configuration'}
+                  </button>
                 </div>
               </div>
             )}

@@ -2,7 +2,8 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
-import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -10,7 +11,41 @@ export class AuthService {
     private jwtService: JwtService,
     private tenantService: TenantService,
     private tenantPrisma: TenantPrismaService,
+    private prisma: PrismaService,
   ) { }
+
+  async validateSuperAdmin(email: string, password: string) {
+    const admin = await this.prisma.superAdmin.findUnique({ where: { email } });
+
+    if (!admin || !await bcrypt.compare(password, admin.password)) {
+      throw new UnauthorizedException('Invalid superadmin credentials');
+    }
+
+    // Check if user also exists in tenant DB? Not needed for master console.
+    // We strictly use the Master DB SuperAdmin table.
+
+    // But wait, the previous seed combined User and SuperAdminUser in Master DB.
+    // The SuperAdmin model I verified in schema-master is `model SuperAdmin`.
+    // So this is correct.
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...result } = admin;
+    return result;
+  }
+
+  async loginSuperAdmin(admin: any) {
+    const payload = {
+      email: admin.email,
+      sub: admin.id,
+      role: 'SUPERADMIN',
+      // No tenantId or subdomain for superadmin
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: admin,
+    };
+  }
 
   async validateUser(subdomain: string, email: string, password: string) {
     console.log(`[AuthService] Validating user for subdomain: ${subdomain}, email: ${email}`);

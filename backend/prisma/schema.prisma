@@ -45,8 +45,7 @@ model RetailStoreTenant {
   isActive Boolean @default(true) @map("is-active")
   ownerUserId String? @map("owner-user-id")
   
-  isActive Boolean @default(true) @map("is-active")
-  ownerUserId String? @map("owner-user-id")
+
   
   owner User? @relation("Owner", fields: [ownerUserId], references: [id])
   

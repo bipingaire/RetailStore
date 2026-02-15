@@ -13,9 +13,11 @@ import { InvoiceModule } from './invoice/invoice.module';
 import { AuditModule } from './audit/audit.module';
 import { PurchaseOrderModule } from './purchase-order/purchase-order.module';
 import { CampaignModule } from './campaign/campaign.module';
+import { SettingsModule } from './settings/settings.module';
 import { ProfitController } from './reports/profit.controller';
 import { ProfitService } from './reports/profit.service';
 import { TenantPrismaService } from './prisma/tenant-prisma.service';
+import { SuperAdminModule } from './super-admin/super-admin.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { TenantPrismaService } from './prisma/tenant-prisma.service';
     AuditModule,
     PurchaseOrderModule,
     CampaignModule,
+    SettingsModule,
+    SuperAdminModule,
   ],
   controllers: [ProfitController],
   providers: [ProfitService, TenantPrismaService],

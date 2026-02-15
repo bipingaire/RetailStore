@@ -4,92 +4,39 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Database, Lock, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 export default function SuperadminLogin() {
-    const [email, setEmail] = useState('superadmin@retailos.com');
+    const [email, setEmail] = useState('superadmin@retailstore.com');
     const [password, setPassword] = useState('password123');
     const [loading, setLoading] = useState(false);
-    const [showSetup, setShowSetup] = useState(false);
     const router = useRouter();
-    // Supabase removed - refactor needed
-
-    const handleSetupAccount = async () => {
-        setLoading(true);
-        try {
-            // Sign up the master account
-            const { data: signUpData, error: signUpError } = // await // supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: {
-                        full_name: 'Master Superadmin'
-                    }
-                }
-            });
-
-            if (signUpError) throw signUpError;
-
-            if (!signUpData.user) {
-                throw new Error('Account creation failed');
-            }
-
-            // Insert into superadmin-users table
-            const { error: insertError } = await supabase
-                .from('superadmin-users')
-                .insert({
-                    'user-id': signUpData.user.id,
-                    'full-name': 'Master Superadmin',
-                    'email': email,
-                    'permissions-json': {
-                        manage_stores: true,
-                        manage_products: true,
-                        manage_users: true,
-                        view_analytics: true,
-                        global_admin: true
-                    },
-                    'is-active': true
-                });
-
-            if (insertError) {
-                console.error('Failed to add to superadmin table:', insertError);
-                // Continue anyway - they can add manually
-            }
-
-            toast.success('Master Account Created! Logging you in...');
-
-            // Auto-login
-            router.push('/super-admin');
-            router.refresh();
-
-        } catch (error: any) {
-            console.error('Setup error:', error);
-            toast.error(error.message || 'Account setup failed');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
-            const { data, error } = // await // supabase.auth.signInWithPassword({
+            const data = await apiClient.post('/auth/super-admin/login', {
                 email,
                 password,
             });
 
-            if (error) {
-                throw error;
-            }
+            if (data.access_token) {
+                localStorage.setItem('accessToken', data.access_token);
+                // Also store user info if needed
+                localStorage.setItem('user', JSON.stringify(data.user));
 
-            toast.success('Welcome back, Owner.');
-            router.push('/super-admin');
-            router.refresh();
+                toast.success('Welcome back, Superadmin.');
+                router.push('/super-admin');
+                router.refresh();
+            } else {
+                throw new Error('Login failed: No access token received');
+            }
 
         } catch (error: any) {
             console.error('Login error:', error);
-            toast.error(error.message || 'Invalid credentials. Try creating the account first.');
+            toast.error(error.message || 'Invalid credentials.');
         } finally {
             setLoading(false);
         }
@@ -144,23 +91,8 @@ export default function SuperadminLogin() {
                         </button>
                     </form>
 
-                    <div className="mt-4 pt-4 border-t border-gray-800">
-                        <button
-                            onClick={handleSetupAccount}
-                            disabled={loading}
-                            className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Database size={18} />}
-                            Create Master Account (First Time Setup)
-                        </button>
-                        <p className="text-xs text-gray-600 text-center mt-2">Click this if you haven't created the superadmin account yet</p>
-                    </div>
-                </div>
-
-                <div className="mt-8 text-center">
-                    <div className="inline-flex items-center gap-2 text-xs text-gray-600 bg-gray-900/50 px-3 py-1.5 rounded-full border border-gray-800">
-                        <AlertCircle size={12} />
-                        <span>Unauthorized access attempts are logged.</span>
+                    <div className="mt-8 text-center text-xs text-gray-600">
+                        <p>Unauthorized access attempts are logged.</p>
                     </div>
                 </div>
 

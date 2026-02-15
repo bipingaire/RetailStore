@@ -6,6 +6,10 @@ import {
     Loader2, ShoppingBag, Calendar, Truck
 } from 'lucide-react';
 import Link from 'next/link';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import StripePaymentForm from './StripePaymentForm';
+import { apiClient } from '@/lib/api-client';
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -33,6 +37,17 @@ export default function CheckoutPage() {
     const [state, setState] = useState('');
     const [zipCode, setZipCode] = useState('');
     const [deliveryInstructions, setDeliveryInstructions] = useState('');
+
+    // Stripe State
+    const [stripePromise, setStripePromise] = useState<any>(null);
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+    // Load Stripe Key
+    useEffect(() => {
+        apiClient.get('/settings/stripe_publishable_key').then(key => {
+            if (key) setStripePromise(loadStripe(key));
+        }).catch(err => console.error("Failed to load Stripe key", err));
+    }, []);
 
     useEffect(() => {
         checkUser();
@@ -93,6 +108,17 @@ export default function CheckoutPage() {
     const deliveryFee = fulfillmentType === 'delivery' ? 5.99 : 0;
     const total = subtotal + tax + deliveryFee;
 
+    // Fetch Payment Intent when entering Payment Step
+    useEffect(() => {
+        if (step === 2 && paymentMethod === 'card' && total > 0) {
+            // Debounce or check if already fetched for this amount? 
+            // For simplicity, fetch.
+            apiClient.post('/sales/payment-intent', { amount: total, currency: 'usd' })
+                .then(res => setClientSecret(res.clientSecret))
+                .catch(err => console.error("Failed to init payment", err));
+        }
+    }, [step, paymentMethod, total]);
+
     const validateStep1 = () => {
         if (!customerName || !customerEmail || !customerPhone) {
             alert('Please fill in all customer details');
@@ -105,7 +131,7 @@ export default function CheckoutPage() {
         return true;
     };
 
-    const handlePlaceOrder = async () => {
+    const handlePlaceOrder = async (externalPaymentDetails?: any) => {
         if (step === 1) {
             if (!validateStep1()) return;
             setStep(2);
@@ -113,6 +139,11 @@ export default function CheckoutPage() {
         }
 
         if (step === 2) {
+            // IF Card but no external details, STOP (StripeForm handles it)
+            if (paymentMethod === 'card' && !externalPaymentDetails) {
+                return;
+            }
+
             setLoading(true);
 
             try {
@@ -124,13 +155,17 @@ export default function CheckoutPage() {
                 if (!tenantId) throw new Error("System Error: Tenant ID not configured.");
 
                 // Prepare payment details JSON
-                let paymentDetails = {};
-                if (paymentMethod === 'wallet') {
-                    paymentDetails = { type: 'wallet', provider: 'paypal' }; // Simplified for now, can be dynamic
-                } else if (paymentMethod === 'bank_transfer') {
-                    paymentDetails = { type: 'bank_transfer', bank: 'InduBank Corp' };
-                } else if (paymentMethod === 'card') {
-                    paymentDetails = { type: 'card', provider: 'stripe_mock' };
+                let paymentDetails = externalPaymentDetails || {};
+
+                if (!externalPaymentDetails) {
+                    if (paymentMethod === 'wallet') {
+                        paymentDetails = { type: 'wallet', provider: 'paypal' };
+                    } else if (paymentMethod === 'bank_transfer') {
+                        paymentDetails = { type: 'bank_transfer', bank: 'InduBank Corp' };
+                    } else if (paymentMethod === 'card') {
+                        // Should not happen due to check above, but fallback
+                        paymentDetails = { type: 'card', provider: 'stripe_mock' };
+                    }
                 }
 
                 // Create order in database
@@ -148,7 +183,8 @@ export default function CheckoutPage() {
                         'fulfillment-type': fulfillmentType,
                         'payment-method': paymentMethod,
                         'payment-details': paymentDetails, // New Field
-                        'payment-status': paymentMethod === 'cash' ? 'pending' : 'paid',
+                        // If external (Stripe) says paid, mark paid. Else pending (cash/bank).
+                        'payment-status': (externalPaymentDetails?.status === 'paid' || paymentMethod === 'wallet') ? 'paid' : 'pending',
                         'order-status-code': 'confirmed',
                     })
                     .select()
@@ -436,14 +472,19 @@ export default function CheckoutPage() {
                                         </div>
                                         {paymentMethod === 'card' && (
                                             <div className="mt-4 pl-14">
-                                                {/* Mock Card Input UI */}
-                                                <div className="bg-white border rounded-lg p-3 text-sm text-gray-400">
-                                                    Card number (Mock Element)
-                                                </div>
-                                                <div className="flex gap-2 mt-2">
-                                                    <div className="bg-white border rounded-lg p-3 text-sm text-gray-400 w-1/2">MM/YY</div>
-                                                    <div className="bg-white border rounded-lg p-3 text-sm text-gray-400 w-1/2">CVC</div>
-                                                </div>
+                                                {clientSecret && stripePromise ? (
+                                                    <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                                                        <StripePaymentForm
+                                                            clientSecret={clientSecret}
+                                                            totalAmount={total}
+                                                            onSuccess={(details) => handlePlaceOrder(details)}
+                                                        />
+                                                    </Elements>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-gray-400 text-sm p-4 border rounded-lg bg-gray-50">
+                                                        <Loader2 className="animate-spin" size={16} /> Secure payment details loading...
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </button>
@@ -581,30 +622,37 @@ export default function CheckoutPage() {
                                     </button>
                                 )}
 
-                                <button
-                                    onClick={handlePlaceOrder}
-                                    disabled={loading}
-                                    className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2"
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="animate-spin" size={20} />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            {step === 1 ? 'Continue to Payment' : 'Place Order'}
-                                            <ArrowRight size={20} />
-                                        </>
-                                    )}
-                                </button>
+                                {!(step === 2 && paymentMethod === 'card') && (
+                                    <button
+                                        onClick={() => handlePlaceOrder()}
+                                        disabled={loading}
+                                        className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2"
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2 className="animate-spin" size={20} />
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                {step === 1 ? 'Continue to Payment' : 'Place Order'}
+                                                <ArrowRight size={20} />
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                                {step === 2 && paymentMethod === 'card' && (
+                                    <div className="text-center text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                        Please complete payment in the secure form to place your order.
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 

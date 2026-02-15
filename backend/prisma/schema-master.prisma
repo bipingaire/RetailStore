@@ -19,6 +19,9 @@ model Tenant {
   updatedAt DateTime @updatedAt
 
   SharedCatalog SharedCatalog[]
+  PendingProductAdditions PendingProductAddition[]
+  TenantSubscriptions TenantSubscription[]
+  BillingTransactions BillingTransaction[]
 
   @@map("tenants")
 }
@@ -30,10 +33,79 @@ model SharedCatalog {
   description String?
   basePrice Decimal @db.Decimal(10, 2)
   imageUrl String?
+  aiEnrichedAt DateTime? @map("ai-enriched-at")
   syncedAt DateTime @default(now())
 
   tenantId String
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
   @@map("shared_catalog")
+}
+
+model SuperAdmin {
+  id String @id @default(uuid())
+  email String @unique
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("super_admins")
+}
+
+model PendingProductAddition {
+  id String @id @default(uuid()) @map("pending-id")
+  productName String @map("product-name")
+  upcEanCode String @map("upc-ean-code")
+  brandName String @map("brand-name")
+  categoryName String @map("category-name")
+  descriptionText String? @map("description-text")
+  imageUrl String? @map("image-url")
+  aiConfidenceScore Float @map("ai-confidence-score")
+  addedByUserId String @map("added-by-user-id")
+  tenantId String @map("tenant-id")
+  status String @default("pending") // pending, approved, rejected
+  suggestedMatchProductId String? @map("suggested-match-product-id")
+  createdAt DateTime @default(now()) @map("created-at")
+  
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("pending-product-additions")
+}
+
+model MasterWebsiteConfig {
+  id String @id @default(uuid())
+  primaryDomain String @default("retailstore.com") @map("primary-domain")
+  sslEnabled Boolean @default(true) @map("ssl-enabled")
+  dnsConfigured Boolean @default(true) @map("dns-configured")
+  updatedAt DateTime @updatedAt @map("updated-at")
+
+  @@map("master-website-config")
+}
+
+model TenantSubscription {
+  id String @id @default(uuid())
+  tenantId String @map("tenant-id")
+  planType String @map("plan-type") // free, beta, pro, enterprise
+  monthlyPrice Decimal @db.Decimal(10, 2) @map("monthly-price")
+  status String @default("active")
+  startDate DateTime @default(now()) @map("start-date")
+  endDate DateTime? @map("end-date")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("tenant-subscriptions")
+}
+
+model BillingTransaction {
+  id String @id @default(uuid()) @map("transaction-id")
+  tenantId String @map("tenant-id")
+  amount Decimal @db.Decimal(10, 2)
+  transactionDate DateTime @default(now()) @map("transaction-date")
+  status String @default("paid")
+  paymentMethod String @map("payment-method")
+  description String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("billing-transactions")
 }

@@ -73,4 +73,12 @@ export class SaleController {
   ) {
     return this.saleService.updateSaleStatus(subdomain, id, body.status);
   }
+
+  @Post('payment-intent')
+  createPaymentIntent(
+    @Headers('x-tenant') subdomain: string,
+    @Body() body: { amount: number; currency?: string },
+  ) {
+    return this.saleService.createPaymentIntent(subdomain, body.amount, body.currency);
+  }
 }

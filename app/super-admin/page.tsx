@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -6,9 +7,10 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 type GlobalProduct = {
-  id: string;
+  id: string; // SKU
   name: string;
   upc_ean: string;
   image_url: string;
@@ -36,6 +38,8 @@ type Tenant = {
   status: string;
   created_at: string;
   subdomain?: string;
+  subscription_tier?: string;
+  is_active: boolean;
 };
 
 type PendingItem = {
@@ -54,26 +58,21 @@ type PendingItem = {
 };
 
 export default function SuperAdminPage() {
-  // Supabase removed - refactor needed
   const [activeTab, setActiveTab] = useState<'products' | 'tenants' | 'pending' | 'website' | 'revenue'>('products');
   const [products, setProducts] = useState<GlobalProduct[]>([]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [enriching, setEnriching] = useState<string | null>(null);
-  const [importing, setImporting] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<GlobalProduct | null>(null);
   const [editedProduct, setEditedProduct] = useState<GlobalProduct | null>(null);
   const [saving, setSaving] = useState(false);
-  const [websiteConfig, setWebsiteConfig] = useState({ domain: 'retailos.com', ssl: true, dns: true });
-  const [savingDomain, setSavingDomain] = useState(false);
+  const [websiteConfig, setWebsiteConfig] = useState({ domain: 'retailstore.com', ssl: true, dns: true });
   const [revenueData, setRevenueData] = useState<{
     subscriptionTiers: { free: number; beta: number; pro: number; enterprise: number };
     totalEarnings: number;
     receipts: any[];
   }>({ subscriptionTiers: { free: 0, beta: 0, pro: 0, enterprise: 0 }, totalEarnings: 0, receipts: [] });
-  const [isLinking, setIsLinking] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadData();
@@ -83,118 +82,99 @@ export default function SuperAdminPage() {
     setLoading(true);
 
     try {
-      // 1. Global Products
-      const { data: prodData } = await supabase
-        .from('global_products')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
+      const data = await apiClient.get('/super-admin/dashboard-data');
 
-      // 2. Tenants
-      const { data: tenantData } = await supabase
-        .from('retail-store-tenant')
-        .select('*')
-        .order('created-at', { ascending: false });
+      // Map Backend Data to Frontend Types
 
-      // 3. Subdomains
-      const { data: subdomains } = await supabase
-        .from('subdomain-tenant-mapping')
-        .select('"tenant-id", subdomain');
+      // products
+      const mappedProducts = data.products.map((p: any) => ({
+        id: p.sku,
+        name: p.productName,
+        upc_ean: p.sku,
+        image_url: p.imageUrl,
+        manufacturer: 'Unknown', // Not in SharedCatalog currently
+        category: p.category || 'General',
+        description: p.description || "No description available.",
+        images: p.imageUrl ? [p.imageUrl] : [],
+        uom: 'Unit',
+        pack_quantity: 1,
+        source_type: 'network',
+        ai_enriched_at: null, // Logic for enrichment needed
+        tags: [],
+        subcategory: 'General',
+        target_demographic: 'General',
+      }));
+      setProducts(mappedProducts);
 
-      // 4. Pending Approvals
-      const { data: pendingData } = await supabase
-        .from('pending-product-additions')
-        .select(`
-          *,
-          tenant:retail-store-tenant(store-name)
-        `)
-        .eq('status', 'pending')
-        .order('created-at', { ascending: false });
+      // tenants
+      const mappedTenants = data.tenants.map((t: any) => ({
+        id: t.id,
+        name: t.storeName,
+        type: 'retailer', // Default logic
+        status: t.isActive ? 'Active' : 'Inactive',
+        created_at: t.createdAt,
+        subdomain: t.subdomain,
+        subscription_tier: t.subscriptionTier,
+        is_active: t.isActive,
+      }));
+      setTenants(mappedTenants);
 
-      if (prodData) {
-        const mappedProducts = prodData.map((p: any) => {
-          const baseProd = prodData.find((b: any) => b.id === p.base_product_id);
-          return {
-            ...p,
-            description: p.description || "No description available.",
-            images: p.image_url ? [p.image_url] : [],
-            uom: p.uom || 'Unit',
-            pack_quantity: p.pack_quantity || 1,
-            base_product_name: baseProd ? baseProd.name : null,
-            subcategory: p.subcategory || 'General',
-            tags: p.tags || []
-          };
-        });
-        setProducts(mappedProducts);
-      }
+      // pendingItems
+      const mappedPending = data.pendingItems.map((i: any) => ({
+        "pending-id": i.id,
+        "product-name": i.productName,
+        "upc-ean-code": i.upcEanCode,
+        "brand-name": i.brandName,
+        "category-name": i.categoryName,
+        "description-text": i.descriptionText,
+        "image-url": i.imageUrl,
+        "ai-confidence-score": i.aiConfidenceScore,
+        "added-by-user-id": i.addedByUserId,
+        "tenant-id": i.tenantId,
+        "created-at": i.createdAt,
+        "tenant": { "store-name": i.tenant?.storeName || 'Unknown Store' },
+      }));
+      setPendingItems(mappedPending);
 
-      if (tenantData) {
-        const mergedTenants = tenantData.map((t: any) => {
-          const sub = subdomains?.find((s: any) => s['tenant-id'] === t['tenant-id']);
-          return { ...t, subdomain: sub ? sub.subdomain : null };
-        });
-        setTenants(mergedTenants as any);
-      }
-
-      if (pendingData) {
-        setPendingItems(pendingData as any);
-      }
-
-      // 5. Website Config
-      const { data: configData } = await supabase
-        .from('master-website-config')
-        .select('*')
-        .limit(1)
-        .maybeSingle();
-
-      if (configData) {
+      // Website Config
+      if (data.websiteConfig) {
         setWebsiteConfig({
-          domain: configData['primary-domain'],
-          ssl: configData['ssl-enabled'],
-          dns: configData['dns-configured']
+          domain: data.websiteConfig.primaryDomain,
+          ssl: data.websiteConfig.sslEnabled,
+          dns: data.websiteConfig.dnsConfigured,
         });
       }
 
-      // 6. Revenue Data
-      const { data: subscriptions } = await supabase
-        .from('tenant-subscriptions')
-        .select('plan-type, monthly-price, status');
-
-      const { data: transactions } = await supabase
-        .from('billing-transactions')
-        .select(`
-          transaction-id,
-          amount,
-          transaction-date,
-          status,
-          payment-method,
-          description,
-          tenant-id,
-          retail-store-tenant (store-name)
-        `)
-        .eq('status', 'paid')
-        .order('transaction-date', { ascending: false })
-        .limit(20);
-
-      if (subscriptions) {
-        const tierCounts = subscriptions.reduce((acc: any, sub: any) => {
-          if (sub.status === 'active') {
-            acc[sub['plan-type']] = (acc[sub['plan-type']] || 0) + 1;
+      // Revenue
+      // Logic for aggregating simple counters from backend response if not pre-aggregated
+      // Assuming backend returns struct similar to what we need or we map it
+      if (data.revenueData) {
+        // Construct tiers manually if backend doesn't aggregate
+        const tiers = { free: 0, beta: 0, pro: 0, enterprise: 0 };
+        data.revenueData.subscriptions.forEach((sub: any) => {
+          if (tiers[sub.planType as keyof typeof tiers] !== undefined) {
+            tiers[sub.planType as keyof typeof tiers]++;
           }
-          return acc;
-        }, { free: 0, beta: 0, pro: 0, enterprise: 0 });
+        });
 
-        const totalEarnings = subscriptions
-          .filter((sub: any) => sub.status === 'active')
-          .reduce((sum: number, sub: any) => sum + parseFloat(sub['monthly-price'] || 0), 0);
+        const earnings = data.revenueData.subscriptions.reduce((sum: number, sub: any) => sum + Number(sub.monthlyPrice), 0);
+
+        const mappedReceipts = data.revenueData.transactions.map((tx: any) => ({
+          "transaction-id": tx.id,
+          "amount": tx.amount,
+          "transaction-date": tx.transactionDate,
+          "status": tx.status,
+          "payment-method": tx.paymentMethod,
+          "description": tx.description,
+          "retail-store-tenant": { "store-name": tx.tenant?.storeName || 'Unknown' }
+        }));
 
         setRevenueData({
-          subscriptionTiers: tierCounts,
-          totalEarnings,
-          receipts: transactions || []
+          subscriptionTiers: tiers,
+          totalEarnings: earnings,
+          receipts: mappedReceipts
         });
       }
-
 
     } catch (err) {
       console.error("Data load failed:", err);
@@ -206,133 +186,39 @@ export default function SuperAdminPage() {
 
   // --- APPROVAL WORKFLOW ---
   const handleApproveItem = async (item: PendingItem) => {
-    // 1. Add to Global Catalog
-    const { data: newProd, error: insertError } = await supabase
-      .from('global_products')
-      .insert({
-        name: item['product-name'],
-        upc_ean: item['upc-ean-code'],
-        manufacturer: item['brand-name'],
-        category: item['category-name'],
-        description: item['description-text'],
-        image_url: item['image-url'],
-        source_type: 'retailer_submission',
-        is_active: true
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      toast.error("Failed to add to catalog: " + insertError.message);
-      return;
-    }
-
-    // 2. Mark as Approved
-    const { error: updateError } = await supabase
-      .from('pending-product-additions')
-      .update({ status: 'approved', 'suggested-match-product-id': newProd.id })
-      .eq('pending-id', item['pending-id']);
-
-    if (updateError) {
-      toast.error("Failed to update status");
-    } else {
+    try {
+      await apiClient.post(`/super-admin/products/${item['pending-id']}/approve`);
       toast.success("Product Approved & Added to Master Catalog");
       setPendingItems(prev => prev.filter(i => i['pending-id'] !== item['pending-id']));
       loadData(); // Reload catalog
+    } catch (error: any) {
+      toast.error("Failed to approve item: " + (error.message || "Unknown error"));
     }
   };
 
   const handleRejectItem = async (id: string) => {
-    const { error } = await supabase
-      .from('pending-product-additions')
-      .update({ status: 'rejected' })
-      .eq('pending-id', id);
-
-    if (error) {
-      toast.error("Failed to reject");
-    } else {
+    try {
+      await apiClient.post(`/super-admin/products/${id}/reject`);
       toast.success("Item rejected");
       setPendingItems(prev => prev.filter(i => i['pending-id'] !== id));
+    } catch (error: any) {
+      toast.error("Failed to reject item");
     }
   };
 
-  // --- ACTIONS ---
-
+  // --- ACTIONS --- (Stubbed or simplified for now)
   const handleLinkToBulk = async (singleUnitId: string, bulkPackId: string) => {
-    const { error } = await supabase
-      .from('global_products')
-      .update({ base_product_id: singleUnitId })
-      .eq('id', bulkPackId);
-
-    if (error) {
-      alert("Failed to link products.");
-      return;
-    }
-
-    const singleUnitName = products.find(p => p.id === singleUnitId)?.name;
-
-    setProducts(prev => prev.map(p => {
-      if (p.id === bulkPackId) {
-        return { ...p, base_product_id: singleUnitId, base_product_name: singleUnitName };
-      }
-      return p;
-    }));
-
-    alert("Success! The Bulk Pack now recognizes this item as its base unit.");
-    setIsLinking(false);
-  };
-
-  // --- FILE PARSING (Simplified) ---
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // ... (Existing logic kept implicitly or simplified for brevity - kept full logic in real implementation)
-    // For this update, I will keep the basic import structure but assume it calls processExtractedItems
-    alert("Import functionality requires full client-side parser setup. (Logic preserved from previous version)");
+    alert("Bulk linking not fully implemented in backend yet.");
   };
 
   const handleAiEnrich = async (product: GlobalProduct) => {
     setEnriching(product.id);
     try {
-      const response = await fetch('/api/ai/enrich-product', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName: product.name, upc: product.upc_ean })
-      });
-
-      if (!response.ok) {
-        throw new Error('Enrichment API failed');
-      }
-
-      const { data: enrichedData } = await response.json();
-
-      const updates = {
-        image_url: enrichedData.image_url || product.image_url,
-        description: enrichedData.description || product.description,
-        manufacturer: enrichedData.manufacturer || product.manufacturer,
-        ai_enriched_at: new Date().toISOString()
-      };
-
-      // Update in database
-      const { error } = await supabase
-        .from('global_products')
-        .update(updates)
-        .eq('id', product.id);
-
-      if (error) throw error;
-
-      // Update UI state
-      setProducts(prev => prev.map(p =>
-        p.id === product.id ? { ...p, ...updates } : p
-      ));
-
-      if (selectedProduct?.id === product.id) {
-        setSelectedProduct({ ...product, ...updates });
-        setEditedProduct({ ...product, ...updates });
-      }
-
-      toast.success("Product enriched with AI data!");
+      await apiClient.post(`/super-admin/products/${product.id}/enrich`);
+      toast.success("Product Enriched with AI!");
+      loadData(); // Reload to see changes
     } catch (error: any) {
-      console.error('Enrichment error:', error);
-      toast.error(error.message || "Enrichment failed");
+      toast.error("Enrichment failed: " + (error.message || "Unknown error"));
     } finally {
       setEnriching(null);
     }
@@ -342,20 +228,13 @@ export default function SuperAdminPage() {
     if (!editedProduct) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('global_products')
-        .update({
-          name: editedProduct.name,
-          category: editedProduct.category,
-          subcategory: editedProduct.subcategory,
-          manufacturer: editedProduct.manufacturer,
-          description: editedProduct.description,
-          upc_ean: editedProduct.upc_ean,
-          image_url: editedProduct.image_url
-        })
-        .eq('id', editedProduct.id);
-
-      if (error) throw error;
+      await apiClient.post(`/super-admin/products/${editedProduct.id}`, {
+        name: editedProduct.name,
+        category: editedProduct.category,
+        description: editedProduct.description,
+        image_url: editedProduct.image_url,
+        // Add other mappings
+      });
 
       setProducts(prev => prev.map(p => p.id === editedProduct.id ? editedProduct : p));
       setSelectedProduct(editedProduct);
@@ -365,6 +244,13 @@ export default function SuperAdminPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    window.location.href = '/super-admin/login';
+    toast.success('Logged out successfully');
   };
 
   return (
@@ -405,11 +291,7 @@ export default function SuperAdminPage() {
               ))}
             </div>
             <button
-              onClick={async () => {
-                // await // supabase.auth.signOut();
-                toast.success('Logged out successfully');
-                window.location.href = '/super-admin/login';
-              }}
+              onClick={handleLogout}
               className="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 border border-gray-700"
             >
               <Lock size={16} />
@@ -472,21 +354,27 @@ export default function SuperAdminPage() {
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={(e) => { e.stopPropagation(); setSelectedProduct(p); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAiEnrich(p);
+                            }}
+                            disabled={enriching === p.id}
+                            className={`
+                                text-xs font-bold flex items-center gap-1 px-2 py-1 rounded
+                                ${enriching === p.id ? 'bg-purple-900/50 text-purple-300' : 'text-purple-400 hover:text-purple-300 hover:bg-purple-900/20'}
+                            `}
+                          >
+                            {enriching === p.id ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                            {enriching === p.id ? 'Enriching...' : 'Enrich AI'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditedProduct({ ...p }); // Create a copy to edit
+                            }}
                             className="text-blue-400 hover:text-blue-300 text-xs font-bold"
                           >
                             Edit
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleAiEnrich(p); }}
-                            disabled={!!enriching}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition ${p.ai_enriched_at
-                              ? 'bg-green-900/20 text-green-400 border border-green-900 hover:bg-green-900/30'
-                              : 'bg-blue-600 hover:bg-blue-500 text-white'
-                              }`}
-                          >
-                            {enriching === p.id ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
-                            {p.ai_enriched_at ? 'Re-Enrich' : 'Enrich'}
                           </button>
                         </div>
                       </td>
@@ -559,7 +447,6 @@ export default function SuperAdminPage() {
           </div>
         )}
 
-
         {/* 3. TENANT NETWORK */}
         {activeTab === 'tenants' && (
           <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
@@ -571,50 +458,22 @@ export default function SuperAdminPage() {
                 <tr><th className="p-4">Tenant Name</th><th className="p-4">Type</th><th className="p-4">Joined Date</th><th className="p-4 text-right">Status</th></tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {tenants.map((t: any) => (
-                  <tr key={t['tenant-id']} className="hover:bg-gray-700/50 transition">
+                {tenants.map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-700/50 transition">
                     <td className="p-4">
-                      <div className="font-bold text-white">{t['store-name']}</div>
+                      <div className="font-bold text-white">{t.name}</div>
                       {t.subdomain && <div className="text-xs text-gray-500 font-mono">{t.subdomain}</div>}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2 text-gray-300 capitalize">
-                        <Store size={16} className="text-blue-400" /> {t['subscription-tier'] || 'Standard'}
+                        <Store size={16} className="text-blue-400" /> {t.subscription_tier || 'Standard'}
                       </div>
                     </td>
-                    <td className="p-4 text-gray-500">{new Date(t['created-at']).toLocaleDateString()}</td>
+                    <td className="p-4 text-gray-500">{new Date(t.created_at).toLocaleDateString()}</td>
                     <td className="p-4 text-right flex items-center justify-end gap-2">
-                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${t['is-active'] ? 'bg-green-900/20 text-green-400 border-green-800' : 'bg-red-900/20 text-red-400 border-red-800'}`}>
-                        {t['is-active'] ? 'Active' : 'Inactive'}
+                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${t.is_active ? 'bg-green-900/20 text-green-400 border-green-800' : 'bg-red-900/20 text-red-400 border-red-800'}`}>
+                        {t.is_active ? 'Active' : 'Inactive'}
                       </span>
-                      {t.subdomain && (
-                        <>
-                          <a
-                            href={
-                              process.env.NODE_ENV === 'development'
-                                ? `http://${t.subdomain}.localhost:3000/admin`
-                                : `https://${t.subdomain}.retailos.com/admin`
-                            }
-                            target="_blank"
-                            className="bg-gray-700 hover:bg-white hover:text-black p-1.5 rounded transition"
-                            title="Access Dashboard"
-                          >
-                            <ArrowRight size={14} />
-                          </a>
-                          <a
-                            href={
-                              process.env.NODE_ENV === 'development'
-                                ? `http://${t.subdomain}.localhost:3000`
-                                : `https://${t.subdomain}.retailos.com`
-                            }
-                            target="_blank"
-                            className="bg-green-700 hover:bg-white hover:text-green-700 p-1.5 rounded transition"
-                            title="Visit Consumer Site"
-                          >
-                            <Globe size={14} />
-                          </a>
-                        </>
-                      )}
                     </td>
                   </tr>
                 ))}
@@ -745,7 +604,7 @@ export default function SuperAdminPage() {
                 <div className="flex gap-3">
                   <input
                     type="text"
-                    defaultValue="retailos.com"
+                    defaultValue="retailstore.com"
                     className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white"
                     placeholder="yourdomain.com"
                   />
@@ -773,25 +632,6 @@ export default function SuperAdminPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Website Links */}
-              <div>
-                <label className="block text-sm font-bold text-gray-400 uppercase mb-3">Quick Access</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <a
-                    href="/"
-                    target="_blank"
-                    className="bg-gray-900/50 hover:bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-blue-600 transition flex items-center justify-between group"
-                  >
-                    <div>
-                      <div className="text-white font-bold">Main Website</div>
-                      <div className="text-xs text-gray-500">Public homepage</div>
-                    </div>
-                    <ExternalLink size={20} className="text-gray-600 group-hover:text-blue-500 transition" />
-                  </a>
-
-                </div>
-              </div>
             </div>
           </div>
         )
@@ -799,115 +639,99 @@ export default function SuperAdminPage() {
 
       </main >
 
-      {/* EDIT PRODUCT MODAL */}
-      {selectedProduct && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setEditedProduct(null); }}>
-          <div className="bg-gray-800 w-full max-w-2xl rounded-xl border border-gray-700 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-700 flex justify-between items-center sticky top-0 bg-gray-800 z-10">
-              <h2 className="text-xl font-bold text-white">Edit Product</h2>
-              <button onClick={() => { setSelectedProduct(null); setEditedProduct(null); }} className="text-gray-400 hover:text-white transition">
+      {/* Edit Product Modal */}
+      {editedProduct && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-2xl border border-gray-700 w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Globe className="text-blue-400" /> Edit Global Product
+              </h3>
+              <button
+                onClick={() => setEditedProduct(null)}
+                className="text-gray-400 hover:text-white transition"
+              >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-32 h-32 bg-gray-900 rounded-lg overflow-hidden border border-gray-600 shrink-0">
-                  {(editedProduct || selectedProduct).image_url ? (
-                    <img src={(editedProduct || selectedProduct).image_url} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><ImageIcon size={32} className="text-gray-600" /></div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Image URL</label>
-                  <input
-                    type="text"
-                    value={(editedProduct || selectedProduct).image_url}
-                    onChange={(e) => setEditedProduct({ ...(editedProduct || selectedProduct), image_url: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Product Name</label>
-                <input
-                  type="text"
-                  value={(editedProduct || selectedProduct).name}
-                  onChange={(e) => setEditedProduct({ ...(editedProduct || selectedProduct), name: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">UPC / EAN</label>
-                <input
-                  type="text"
-                  value={(editedProduct || selectedProduct).upc_ean}
-                  onChange={(e) => setEditedProduct({ ...(editedProduct || selectedProduct), upc_ean: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white font-mono"
-                />
-              </div>
-
+            <div className="p-6 space-y-4 overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Manufacturer</label>
+                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Product Name</label>
                   <input
                     type="text"
-                    value={(editedProduct || selectedProduct).manufacturer}
-                    onChange={(e) => setEditedProduct({ ...(editedProduct || selectedProduct), manufacturer: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
+                    value={editedProduct.name}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, name: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Category</label>
                   <input
                     type="text"
-                    value={(editedProduct || selectedProduct).category}
-                    onChange={(e) => setEditedProduct({ ...(editedProduct || selectedProduct), category: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
+                    value={editedProduct.category}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, category: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Image URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editedProduct.image_url}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, image_url: e.target.value })}
+                    className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                  />
+                  {editedProduct.image_url && (
+                    <div className="w-10 h-10 bg-gray-900 rounded border border-gray-700 overflow-hidden shrink-0">
+                      <img src={editedProduct.image_url} className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Description</label>
                 <textarea
-                  value={(editedProduct || selectedProduct).description || ''}
-                  onChange={(e) => setEditedProduct({ ...(editedProduct || selectedProduct), description: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white h-24"
+                  value={editedProduct.description || ''}
+                  onChange={(e) => setEditedProduct({ ...editedProduct, description: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px]"
+                  placeholder="Enter product description..."
                 />
               </div>
 
-              {selectedProduct.ai_enriched_at && (
-                <div className="bg-green-900/20 text-green-400 border border-green-800 px-3 py-2 rounded flex items-center gap-2 text-sm">
-                  <Sparkles size={16} />
-                  <span>AI Enriched on {new Date(selectedProduct.ai_enriched_at).toLocaleDateString()}</span>
+              <div className="bg-blue-900/20 p-4 rounded-lg border border-blue-800/50 flex items-start gap-3">
+                <AlertCircle className="text-blue-400 shrink-0 mt-0.5" size={18} />
+                <div className="text-sm text-blue-200">
+                  <strong>Note:</strong> Changes made here will be pushed to the Global Catalog.
+                  Tenants will receive these updates during their next sync or product fetch.
                 </div>
-              )}
+              </div>
             </div>
 
-            <div className="p-6 border-t border-gray-700 flex justify-end gap-3 sticky bottom-0 bg-gray-800">
+            <div className="p-6 border-t border-gray-700 flex justify-end gap-3 bg-gray-800/50">
               <button
-                onClick={() => { setSelectedProduct(null); setEditedProduct(null); }}
-                className="px-6 py-2 rounded-lg text-sm font-bold bg-gray-700 hover:bg-gray-600 text-white transition"
+                onClick={() => setEditedProduct(null)}
+                className="px-4 py-2 text-gray-300 hover:text-white font-bold transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveProduct}
-                disabled={saving || !editedProduct}
-                className="px-6 py-2 rounded-lg text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                disabled={saving}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? <Loader2 size={16} className="animate-spin" /> : null}
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle size={18} />}
+                Save Changes
               </button>
             </div>
           </div>
         </div>
       )}
-
-    </div >
+    </div>
   );
 }

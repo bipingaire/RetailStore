@@ -16,4 +16,10 @@ export class AuthController {
   async register(@Headers('x-tenant') subdomain: string, @Body() dto: RegisterDto) {
     return this.authService.register(subdomain, dto.email, dto.password, dto.name);
   }
+
+  @Post('super-admin/login')
+  async loginSuperAdmin(@Body() dto: LoginDto) {
+    const admin = await this.authService.validateSuperAdmin(dto.email, dto.password);
+    return this.authService.loginSuperAdmin(admin);
+  }
 }

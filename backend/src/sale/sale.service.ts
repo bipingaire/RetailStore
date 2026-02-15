@@ -3,11 +3,15 @@ import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import OpenAI from 'openai';
 
+import { SettingsService } from '../settings/settings.service';
+import Stripe from 'stripe';
+
 @Injectable()
 export class SaleService {
   constructor(
     private tenantService: TenantService,
     private tenantPrisma: TenantPrismaService,
+    private settingsService: SettingsService,
   ) { }
 
   async createSale(subdomain: string, data: any) {
@@ -100,5 +104,28 @@ export class SaleService {
       where: { id },
       data: { status }
     });
+  }
+
+  async createPaymentIntent(subdomain: string, amount: number, currency: string = 'usd') {
+    const secretKey = await this.settingsService.getSetting(subdomain, 'stripe_secret_key');
+    if (!secretKey) {
+      throw new NotFoundException('Stripe not configured for this tenant');
+    }
+
+    const stripe = new Stripe(secretKey, {
+      apiVersion: '2024-11-20.acacia' as any,
+    });
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+    };
   }
 }
