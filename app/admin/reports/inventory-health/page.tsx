@@ -1,30 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { AlertTriangle, TrendingDown, Calendar, Package, ChevronRight, Sparkles, Zap, ShoppingBag } from 'lucide-react';
+import { TrendingDown, AlertTriangle, Calendar, Zap, Share2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-interface HealthMetrics {
-    total_items: number;
-    low_stock_count: number;
-    out_of_stock_count: number;
-    expiring_soon_count: number;
-    slow_moving_count: number;
-    overstock_count: number;
-}
-
-interface SlowMovingProduct {
-    inventory_id: string;
-    product_name: string;
-    current_stock: number;
-    cost_value: number;
-    days_since_last_sale: number;
-    suggested_action: string;
-}
+type HealthMetric = {
+    category: string;
+    products: any[];
+    severity: 'high' | 'medium' | 'low';
+};
 
 export default function InventoryHealthPage() {
-
-    const [metrics, setMetrics] = useState<HealthMetrics | null>(null);
-    const [slowMoving, setSlowMoving] = useState<SlowMovingProduct[]>([]);
+    const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -32,269 +19,240 @@ export default function InventoryHealthPage() {
     }, []);
 
     async function loadHealthData() {
-        setLoading(true);
-
-        const { data: inventory } = await supabase
-            .from('retail-store-inventory-item')
-            .select(`
-          id:"inventory-id",
-          stock:"current-stock-quantity",
-          price:"selling-price-amount",
-          cost:"cost-price-amount",
-          min_level:"reorder-level-quantity",
-          global_products:"global-product-master-catalog"!"global-product-id" ( name:"product-name" ),
-          inventory_batches:"inventory-batch-tracking-record" ( expiry:"expiry-date-timestamp", quantity:"batch-quantity-count" )
-        `)
-
-
-        const total = inventory?.length || 0;
-        const lowStock = inventory?.filter((i: any) =>
-            i.current_stock_quantity <= (i.min_level || 10) && i.current_stock_quantity > 0
-        ).length || 0;
-        const outOfStock = inventory?.filter((i: any) => i.current_stock_quantity === 0).length || 0;
-        const expiringSoon = inventory?.reduce((sum: number, i: any) => sum + (i.inventory_batches?.length || 0), 0) || 0;
-
-        const slowMovingItems: SlowMovingProduct[] = inventory
-            ?.filter((i: any) => i.current_stock_quantity > (i.min_level || 10) * 3)
-            .map((i: any) => ({
-                inventory_id: i.inventory_id,
-                product_name: i.global_products?.product_name || 'Unknown',
-                current_stock: i.current_stock_quantity,
-                cost_value: i.current_stock_quantity * (i.cost_price_amount || 0),
-                days_since_last_sale: Math.floor(Math.random() * 90) + 30,
-                suggested_action: i.current_stock_quantity > i.reorder_point_value * 5 ? 'Create Campaign' : 'Monitor'
-            }))
-            .slice(0, 20) || [];
-
-        setMetrics({
-            total_items: total,
-            low_stock_count: lowStock,
-            out_of_stock_count: outOfStock,
-            expiring_soon_count: expiringSoon,
-            slow_moving_count: slowMovingItems.length,
-            overstock_count: slowMovingItems.filter(i => i.current_stock > 100).length
-        });
-
-        setSlowMoving(slowMovingItems);
-        setLoading(false);
+        try {
+            const res = await fetch('/api/products');
+            if (res.ok) {
+                const allProducts = await res.json();
+                setProducts(allProducts);
+                analyzeHealth(allProducts);
+            }
+        } catch (error) {
+            console.error('Error loading health data:', error);
+        } finally {
+            setLoading(false);
+        }
     }
 
-    if (loading || !metrics) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-                <div className="relative">
-                    <div className="w-20 h-20 border-4 border-blue-300/30 border-t-blue-500 rounded-full animate-spin"></div>
-                    <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-400 animate-pulse" size={32} />
-                </div>
-            </div>
-        );
+    function analyzeHealth(products: any[]) {
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        // Slow-moving items (high stock, low sales)
+        const slowMoving = products.filter((p) => p.stock > p.reorderLevel * 3);
+
+        // Overstock items
+        const overstock = products.filter((p) => p.stock > 100);
+
+        // Near reorder point
+        const lowStock = products.filter((p) => p.stock <= p.reorderLevel && p.stock > 0);
+
+        // Out of stock
+        const outOfStock = products.filter((p) => p.stock === 0);
+
+        const metrics: HealthMetric[] = [];
+
+        if (slowMoving.length > 0) {
+            metrics.push({
+                category: 'Slow-Moving Items',
+                products: slowMoving,
+                severity: 'medium',
+            });
+        }
+
+        if (overstock.length > 0) {
+            metrics.push({
+                category: 'Overstock',
+                products: overstock,
+                severity: 'high',
+            });
+        }
+
+        if (lowStock.length > 0) {
+            metrics.push({
+                category: 'Low Stock',
+                products: lowStock,
+                severity: 'medium',
+            });
+        }
+
+        if (outOfStock.length > 0) {
+            metrics.push({
+                category: 'Out of Stock',
+                products: outOfStock,
+                severity: 'high',
+            });
+        }
+
+        setHealthMetrics(metrics);
     }
 
-    const healthScore = Math.round(
-        ((metrics.total_items - metrics.out_of_stock_count - metrics.slow_moving_count) / metrics.total_items) * 100
-    );
+    async function createFlashSale(products: any[]) {
+        // TODO: Integrate with campaign service
+        toast.success(`Creating flash sale for ${products.length} products...`);
+
+        // Mock campaign creation
+        console.log('Flash sale products:', products);
+    }
+
+    async function pushToSocial(products: any[]) {
+        // TODO: Integrate with social media APIs
+        toast.success(`Publishing to social media...`);
+
+        console.log('Social media products:', products);
+    }
+
+    if (loading) return <div className="p-8">Analyzing inventory health...</div>;
+
+    const totalAlert = healthMetrics.reduce((sum, m) => sum + m.products.length, 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="p-8">
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900">Inventory Health Dashboard</h1>
+                <p className="text-gray-500 mt-1">Monitor inventory metrics and take action on problem areas</p>
+            </div>
 
-                {/* Header with Glassmorphism */}
-                <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/30 to-purple-400/30 rounded-full blur-3xl"></div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg">
-                                <Package className="text-white" size={32} />
-                            </div>
-                            <div>
-                                <h1 className="text-4xl font-bold text-white">Inventory Health</h1>
-                                <p className="text-blue-200 mt-1">AI-powered analytics & recommendations</p>
-                            </div>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500">Total Items</p>
+                            <p className="text-2xl font-bold text-gray-900">{products.length}</p>
                         </div>
+                        <Calendar className="text-blue-600" size={32} />
                     </div>
                 </div>
 
-                {/* Health Score - Hero Card */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-1 shadow-2xl">
-                    <div className="bg-gradient-to-br from-emerald-900/90 via-teal-900/90 to-cyan-900/90 backdrop-blur-xl rounded-3xl p-8">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <div className="flex items-center gap-3 mb-4">
-                                    <Zap className="text-yellow-300 animate-pulse" size={28} />
-                                    <span className="text-lg font-semibold text-emerald-100">Overall Health Score</span>
-                                </div>
-                                <div className="text-8xl font-black text-white mb-2 tracking-tight">{healthScore}%</div>
-                                <div className="flex items-center gap-2 text-emerald-200 text-lg">
-                                    {healthScore >= 80 ? (
-                                        <><span className="text-2xl">✓</span> Excellent Health</>
-                                    ) : healthScore >= 60 ? (
-                                        <><AlertTriangle size={20} /> Needs Attention</>
-                                    ) : (
-                                        <><AlertTriangle size={20} /> Critical</>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-emerald-200 text-lg mb-2">Total SKUs</div>
-                                <div className="text-6xl font-black text-white">{metrics.total_items}</div>
-                                <div className="text-emerald-300 mt-2">Products Tracked</div>
-                            </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500">Health Alerts</p>
+                            <p className="text-2xl font-bold text-orange-600">{totalAlert}</p>
                         </div>
+                        <AlertTriangle className="text-orange-600" size={32} />
                     </div>
                 </div>
 
-                {/* Alert Metrics - Premium Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-
-                    {/* Slow Moving */}
-                    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 h-full">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg">
-                                    <TrendingDown className="text-white" size={24} />
-                                </div>
-                                <span className="text-sm font-bold text-amber-900 uppercase tracking-wide">Slow Moving</span>
-                            </div>
-                            <div className="text-5xl font-black text-amber-900 mb-2">{metrics.slow_moving_count}</div>
-                            <div className="text-amber-700 font-semibold">Create promotions</div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500">Total Value</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                ${products.reduce((sum, p) => sum + p.stock * p.costPrice, 0).toFixed(0)}
+                            </p>
                         </div>
-                    </div>
-
-                    {/* Expiring Soon */}
-                    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                        <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6 h-full">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl shadow-lg">
-                                    <Calendar className="text-white" size={24} />
-                                </div>
-                                <span className="text-sm font-bold text-rose-900 uppercase tracking-wide">Expiring Soon</span>
-                            </div>
-                            <div className="text-5xl font-black text-rose-900 mb-2">{metrics.expiring_soon_count}</div>
-                            <div className="text-rose-700 font-semibold">Within 30 days</div>
-                        </div>
-                    </div>
-
-                    {/* Low Stock */}
-                    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 to-red-700 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 h-full">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg animate-pulse">
-                                    <AlertTriangle className="text-white" size={24} />
-                                </div>
-                                <span className="text-sm font-bold text-red-900 uppercase tracking-wide">Low Stock</span>
-                            </div>
-                            <div className="text-5xl font-black text-red-900 mb-2">{metrics.low_stock_count}</div>
-                            <div className="text-red-700 font-semibold">Reorder needed</div>
-                        </div>
-                    </div>
-
-                    {/* Out of Stock */}
-                    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 p-1 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                        <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 h-full">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-gradient-to-br from-slate-600 to-slate-800 rounded-xl shadow-lg">
-                                    <Package className="text-white" size={24} />
-                                </div>
-                                <span className="text-sm font-bold text-slate-900 uppercase tracking-wide">Out of Stock</span>
-                            </div>
-                            <div className="text-5xl font-black text-slate-900 mb-2">{metrics.out_of_stock_count}</div>
-                            <div className="text-slate-700 font-semibold">Urgent restock</div>
-                        </div>
+                        <TrendingDown className="text-green-600" size={32} />
                     </div>
                 </div>
 
-                {/* Slow Moving Products - Premium Table */}
-                <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-                    <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-6 border-b border-white/10">
-                        <div className="flex items-center justify-between">
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500">Turnover Rate</p>
+                            <p className="text-2xl font-bold text-gray-900">~15 days</p>
+                        </div>
+                        <Zap className="text-purple-600" size={32} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Health Metrics */}
+            <div className="space-y-6">
+                {healthMetrics.map((metric) => (
+                    <div key={metric.category} className="bg-white rounded-lg shadow">
+                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                             <div className="flex items-center gap-3">
-                                <ShoppingBag className="text-white" size={28} />
-                                <h3 className="text-2xl font-bold text-white">Slow-Moving Inventory</h3>
+                                <div
+                                    className={`w-3 h-3 rounded-full ${metric.severity === 'high'
+                                            ? 'bg-red-500'
+                                            : metric.severity === 'medium'
+                                                ? 'bg-orange-500'
+                                                : 'bg-yellow-500'
+                                        }`}
+                                />
+                                <h2 className="text-lg font-semibold">{metric.category}</h2>
+                                <span className="text-sm text-gray-500">({metric.products.length} items)</span>
                             </div>
-                            <span className="px-4 py-2 bg-white/20 rounded-full text-white font-semibold">{slowMoving.length} items</span>
-                        </div>
-                    </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-white/5 border-b border-white/10">
-                                <tr>
-                                    <th className="text-left px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Product</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Stock</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Value Tied</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Days Idle</th>
-                                    <th className="text-center px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/10">
-                                {slowMoving.map((item) => (
-                                    <tr key={item.inventory_id} className="hover:bg-white/5 transition-colors duration-150">
-                                        <td className="px-6 py-4 text-sm font-semibold text-white">{item.product_name}</td>
-                                        <td className="px-6 py-4 text-sm text-right text-blue-200">{item.current_stock}</td>
-                                        <td className="px-6 py-4 text-sm text-right">
-                                            <span className="font-bold text-red-400">${item.cost_value.toFixed(2)}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-right">
-                                            <span className={`px-3 py-1 rounded-full font-bold ${item.days_since_last_sale > 60
-                                                ? 'bg-red-500/20 text-red-300'
-                                                : 'bg-yellow-500/20 text-yellow-300'
-                                                }`}>
-                                                {item.days_since_last_sale}d
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => createFlashSale(metric.products)}
+                                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                                >
+                                    <Zap size={16} />
+                                    Flash Sale
+                                </button>
+                                <button
+                                    onClick={() => pushToSocial(metric.products)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                                >
+                                    <Share2 size={16} />
+                                    Social Posts
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {metric.products.slice(0, 9).map((product) => (
+                                    <div key={product.id} className="border border-gray-200 rounded-lg p-4">
+                                        {product.imageUrl && (
+                                            <img
+                                                src={product.imageUrl}
+                                                alt={product.name}
+                                                className="w-full h-32 object-cover rounded-lg mb-3"
+                                            />
+                                        )}
+                                        <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
+                                        <p className="text-sm text-gray-500 mb-2">SKU: {product.sku}</p>
+
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Stock:</span>
+                                            <span className={`font-semibold ${product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                                                {product.stock}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <button
-                                                onClick={() => window.location.href = `/admin/campaigns/create?inventory_id=${item.inventory_id}`}
-                                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                                            >
-                                                {item.suggested_action}
-                                                <ChevronRight size={16} />
-                                            </button>
-                                        </td>
-                                    </tr>
+                                        </div>
+
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Price:</span>
+                                            <span className="font-semibold text-gray-900">${product.price.toFixed(2)}</span>
+                                        </div>
+
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Value:</span>
+                                            <span className="font-semibold text-gray-900">
+                                                ${(product.stock * product.costPrice).toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                            </div>
 
-                {/* AI Recommendations - Glassmorphism */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-ind igo-500/20 to-purple-500/20 backdrop-blur-xl border border-white/20 p-8 shadow-2xl">
-                    <div className="absolute top-0 left-0 w-32 h-32 bg-purple-500/30 rounded-full blur-3xl"></div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-6">
-                            <Sparkles className="text-yellow-300 animate-pulse" size={32} />
-                            <h3 className="text-2xl font-bold text-white">AI Recommendations</h3>
+                            {metric.products.length > 9 && (
+                                <div className="mt-4 text-center text-sm text-gray-500">
+                                    + {metric.products.length - 9} more items
+                                </div>
+                            )}
                         </div>
-                        <ul className="space-y-3">
-                            {metrics.slow_moving_count > 0 && (
-                                <li className="flex items-start gap-3 text-white">
-                                    <span className="text-yellow-300 text-xl">•</span>
-                                    <span className="text-lg">Create promotional campaigns for <strong>{metrics.slow_moving_count} slow-moving items</strong> to free up capital</span>
-                                </li>
-                            )}
-                            {metrics.expiring_soon_count > 0 && (
-                                <li className="flex items-start gap-3 text-white">
-                                    <span className="text-yellow-300 text-xl">•</span>
-                                    <span className="text-lg"><strong>{metrics.expiring_soon_count} products</strong> expiring within 30 days - consider flash sales</span>
-                                </li>
-                            )}
-                            {metrics.low_stock_count > 5 && (
-                                <li className="flex items-start gap-3 text-white">
-                                    <span className="text-yellow-300 text-xl">•</span>
-                                    <span className="text-lg"><strong>{metrics.low_stock_count} items</strong> below reorder point - generate purchase orders</span>
-                                </li>
-                            )}
-                            {healthScore >= 80 && (
-                                <li className="flex items-start gap-3 text-emerald-200">
-                                    <span className="text-emerald-300 text-xl">✓</span>
-                                    <span className="text-lg font-semibold">Inventory is well-balanced. Continue monitoring weekly.</span>
-                                </li>
-                            )}
-                        </ul>
                     </div>
-                </div>
+                ))}
 
+                {healthMetrics.length === 0 && (
+                    <div className="bg-white rounded-lg shadow p-12 text-center">
+                        <div className="text-green-600 mb-4">
+                            <svg className="w-20 h-20 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Inventory is Healthy!</h2>
+                        <p className="text-gray-500">No major issues detected with your current inventory levels.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

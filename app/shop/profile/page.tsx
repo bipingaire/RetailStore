@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { User, Gift, Clock, ChevronRight, LogOut, QrCode, Star, ShoppingBag } from 'lucide-react';
-
 
 // Mock User for MVP (In real app, use supabase.auth.user())
 const MOCK_USER = {
@@ -22,31 +21,37 @@ type OrderHistory = {
 };
 
 export default function ProfilePage() {
+  const supabase = createClientComponentClient();
   const [orders, setOrders] = useState<OrderHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchHistory() {
-      // Fetch orders for this phone number
-      // Fetch orders for this phone number
+    async function fetchOrders() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       const { data } = await supabase
         .from('customer-order-header')
-        .select('id:"order-id", total_amount:"final-amount", created_at, status:"order-status-code", items:"customer-order-line-item"(count)')
-        .eq('customer-phone', MOCK_USER.phone)
-        .order('created_at', { ascending: false });
+        .select('id, total_amount, order_date_time, status, order_items(count)') // Adjusted select to match OrderHistory type
+        .eq('customer-id', user.id)
+        .order('order_date_time', { ascending: false })
+        .limit(5);
 
       if (data) {
         setOrders(data.map((o: any) => ({
           id: o.id,
           total_amount: o.total_amount,
-          created_at: o.created_at,
+          created_at: o.order_date_time, // Map order_date_time to created_at
           status: o.status,
-          item_count: o.items[0]?.count || 0
+          item_count: o.order_items[0]?.count || 0 // Handle potential missing order_items
         })));
       }
       setLoading(false);
     }
-    fetchHistory();
+    fetchOrders();
   }, []);
 
   const qrValue = `CUST:${MOCK_USER.phone}`; // Simple format for POS scanner

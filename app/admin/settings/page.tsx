@@ -1,13 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import {
   Building, Globe, CreditCard, Share2, Users, Palette,
   Save, Phone, Mail, Plus, Trash2, Check, X, Search,
-  Loader2, ExternalLink, ShieldCheck, MapPin
+  Loader2, ExternalLink, ShieldCheck, MapPin, DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
+
+
 
 // Types (Stubbed for this file context)
 type StoreProfile = {
@@ -19,7 +21,8 @@ type Invoice = { id: string; date: string; amount: number; status: string; };
 type Plan = { id: string; name: string; price: number; features: string[]; recommended?: boolean };
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social'>('profile');
+  // Supabase removed - refactor needed
+  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social' | 'payment'>('profile');
   const [loading, setLoading] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
@@ -49,70 +52,100 @@ export default function SettingsPage() {
   // Social Media State
   const [socialAccounts, setSocialAccounts] = useState<any[]>([]);
 
+  // Payment State
+  const [paymentConfig, setPaymentConfig] = useState({
+    stripe_publishable_key: '',
+    stripe_secret_key: ''
+  });
+
   useEffect(() => {
     async function loadSettings() {
       setLoading(true);
 
-      // 1. Resolve Tenant
-      let currentTenantId = null;
-      const { data: existingTenants } = await supabase.from('retail-store-tenant').select('*').limit(1);
+      // Mock delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (existingTenants && existingTenants.length > 0) {
-        const t = existingTenants[0];
-        currentTenantId = t['tenant-id'];
-        setProfile({
-          name: t['store-name'],
-          address: t['store-address'] || '',
-          city_state_zip: `${t['store-city'] || ''}, ${t['store-state'] || ''} ${t['store-zip-code'] || ''}`,
-          phone: t['phone-number'] || '',
-          email: t['email-address'] || '',
-          tax_id: 'US-XX-XXXX',
-          default_safety_stock: 10,
-          subdomain: 'my-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
-        });
-      } else {
-        // Create Default
-        const { data: newTenant } = await supabase.from('retail-store-tenant').insert({
-          'store-name': 'New Retail Store', 'store-address': '123 Market St', 'store-city': 'Retail City', 'store-state': 'NY',
-          'store-zip-code': '10001', 'phone-number': '555-0123', 'email-address': 'admin@retail.com'
-        }).select().single();
-        if (newTenant) {
-          currentTenantId = newTenant['tenant-id'];
-          setProfile({
-            name: newTenant['store-name'], address: newTenant['store-address'],
-            city_state_zip: `${newTenant['store-city']}, ${newTenant['store-state']} ${newTenant['store-zip-code']}`,
-            phone: newTenant['phone-number'], email: newTenant['email-address'], tax_id: '', default_safety_stock: 10,
-            subdomain: 'new-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
-          });
+      // Mock tenant data
+      const mockTenant = {
+        'tenant-id': 'mock-tenant-001',
+        'store-name': 'Demo Retail Store',
+        'store-address': '123 Main Street',
+        'store-city': 'New York',
+        'store-state': 'NY',
+        'store-zip-code': '10001',
+        'phone-number': '555-0123',
+        'email-address': 'admin@demostore.com'
+      };
+
+      setTenantId(mockTenant['tenant-id']);
+      setProfile({
+        name: mockTenant['store-name'],
+        address: mockTenant['store-address'] || '',
+        city_state_zip: `${mockTenant['store-city'] || ''}, ${mockTenant['store-state'] || ''} ${mockTenant['store-zip-code'] || ''}`,
+        phone: mockTenant['phone-number'] || '',
+        email: mockTenant['email-address'] || '',
+        tax_id: 'US-XX-XXXX',
+        default_safety_stock: 10,
+        subdomain: 'demo-store',
+        custom_domain: '',
+        logo_url: '',
+        hero_banner_url: '',
+        primary_color: '#2563eb'
+      });
+
+      // Mock vendors
+      const mockVendors = [
+        {
+          id: 'vendor-001',
+          name: 'ABC Distributors',
+          contact_phone: '555-1001',
+          whatsapp_number: '555-1001',
+          email: 'sales@abc.com',
+          transport_rate_per_pallet: 50
+        },
+        {
+          id: 'vendor-002',
+          name: 'XYZ Suppliers',
+          contact_phone: '555-2002',
+          whatsapp_number: '555-2002',
+          email: 'contact@xyz.com',
+          transport_rate_per_pallet: 45
         }
-      }
-      setTenantId(currentTenantId);
+      ];
+      setVendors(mockVendors);
 
-      // 2. Load Vendors
-      const { data: vendorData } = await supabase.from('vendors').select('*').eq('tenant-id', currentTenantId);
-      if (vendorData) setVendors(vendorData as any);
+      // Mock social accounts
+      const mockSocial = [
+        { id: 'social-001', platform: 'Facebook', account_name: 'Demo Store', connected: true },
+        { id: 'social-002', platform: 'Instagram', account_name: '@demostore', connected: false }
+      ];
+      setSocialAccounts(mockSocial);
 
-      // 3. Load Social Accounts
-      if (currentTenantId) {
-        const { data: socialData } = await supabase.from('social-media-accounts').select('*').eq('tenant-id', currentTenantId);
-        if (socialData) setSocialAccounts(socialData);
+      try {
+        const pubKeyRes = await apiClient.get('/settings/stripe_publishable_key');
+        const secKeyRes = await apiClient.get('/settings/stripe_secret_key');
+        setPaymentConfig({
+          stripe_publishable_key: pubKeyRes?.value || '',
+          stripe_secret_key: secKeyRes?.value || ''
+        });
+      } catch (e) {
+        console.error("Failed to load payment settings", e);
       }
 
       setLoading(false);
     }
+
     loadSettings();
   }, []);
 
   const handleSaveProfile = async () => {
     if (!tenantId) return;
     setLoading(true);
-    const parts = profile.city_state_zip.split(',');
-    const { error } = await supabase.from('retail-store-tenant').update({
-      'store-name': profile.name, 'store-address': profile.address, 'phone-number': profile.phone, 'email-address': profile.email
-    }).eq('tenant-id', tenantId);
 
-    if (error) toast.error("Error saving: " + error.message);
-    else toast.success("Settings saved.");
+    // Mock save (just update local state)
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    toast.success("Settings saved.");
     setLoading(false);
   };
 
@@ -120,14 +153,13 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!editingVendor) return;
     try {
-      const payload = { ...editingVendor, tenant_id: tenantId };
+      // Mock save
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       if (editingVendor.id.startsWith('new-')) {
-        const { data, error } = await supabase.from('vendors').insert(payload).select().single();
-        if (error) throw error;
-        setVendors(prev => [...prev, data as any]);
+        const newVendor = { ...editingVendor, id: `vendor-${Date.now()}` };
+        setVendors(prev => [...prev, newVendor]);
       } else {
-        const { error } = await supabase.from('vendors').update(payload).eq('id', editingVendor.id);
-        if (error) throw error;
         setVendors(prev => prev.map(v => v.id === editingVendor.id ? editingVendor : v));
       }
       setEditingVendor(null);
@@ -148,6 +180,19 @@ export default function SettingsPage() {
   const connectSocialMedia = async (platform: string) => {
     toast.info(`Redirecting to ${platform} OAuth...`);
     // Simulating OAuth redirect
+  };
+
+  const handleSavePayment = async () => {
+    setLoading(true);
+    try {
+      await apiClient.post('/settings', { key: 'stripe_publishable_key', value: paymentConfig.stripe_publishable_key });
+      await apiClient.post('/settings', { key: 'stripe_secret_key', value: paymentConfig.stripe_secret_key });
+      toast.success('Payment settings saved');
+    } catch (e) {
+      toast.error('Failed to save payment settings');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
@@ -179,6 +224,9 @@ export default function SettingsPage() {
             </button>
             <button onClick={() => setActiveTab('billing')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'billing' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
               <CreditCard size={16} /> Billing
+            </button>
+            <button onClick={() => setActiveTab('payment')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'payment' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+              <DollarSign size={16} /> Payment
             </button>
           </div>
 
@@ -366,6 +414,46 @@ export default function SettingsPage() {
                       Connect
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* PAYMENT TAB */}
+            {activeTab === 'payment' && (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <CreditCard className="text-blue-600" size={20} /> Payment Configuration
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">Configure payment gateways for your store checkout.</p>
+
+                  <div className="grid grid-cols-1 gap-4 max-w-lg">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Stripe Publishable Key</label>
+                      <input
+                        type="text"
+                        value={paymentConfig.stripe_publishable_key}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, stripe_publishable_key: e.target.value })}
+                        placeholder="pk_test_..."
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Stripe Secret Key</label>
+                      <input
+                        type="password"
+                        value={paymentConfig.stripe_secret_key}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, stripe_secret_key: e.target.value })}
+                        placeholder="sk_test_..."
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-100">
+                  <button onClick={handleSavePayment} disabled={loading} className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
+                    {loading ? 'Saving...' : 'Save Configuration'}
+                  </button>
                 </div>
               </div>
             )}

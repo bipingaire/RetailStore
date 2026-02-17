@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function POST(req: Request) {
   console.log("--------------------------------");
@@ -21,18 +25,35 @@ export async function POST(req: Request) {
     for (const item of items) {
       console.log(`🔄 Processing: ${item.name}`);
 
-      // 1. Check Global Product
+      // 1. Check Global Product (By SKU first, then Name)
       let globalProductId = null;
-      const { data: existingProduct, error: fetchError } = await supabase
-        .from('global-product-master-catalog')
-        .select('product-id')
-        .eq('product-name', item.name)
-        .maybeSingle();
+      let existingProduct = null;
 
-      if (fetchError) throw fetchError;
+      // A. Try finding by SKU if available
+      if (item.sku) {
+        const { data: skuMatch } = await supabase
+          .from('global-product-master-catalog')
+          .select('product-id')
+          .eq('upc-ean-code', item.sku)
+          .maybeSingle();
+
+        if (skuMatch) existingProduct = skuMatch;
+      }
+
+      // B. If no SKU match, try Name
+      if (!existingProduct) {
+        const { data: nameMatch } = await supabase
+          .from('global-product-master-catalog')
+          .select('product-id')
+          .eq('product-name', item.name)
+          .maybeSingle();
+
+        if (nameMatch) existingProduct = nameMatch;
+      }
 
       if (existingProduct) {
         globalProductId = existingProduct['product-id'];
+        console.log(`   --> Found existing Global Product: ${globalProductId}`);
       } else {
         console.log("   --> Creating new Global Product");
         const { data: newProduct, error: createError } = await supabase
@@ -40,17 +61,20 @@ export async function POST(req: Request) {
           .insert({
             'product-name': item.name,
             'upc-ean-code': item.sku || null,
-            'data-source-origin': 'invoice_scan'
+            'enrichment-source': 'invoice'
           })
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error("❌ Global Product Create Error:", createError);
+          throw createError;
+        }
         globalProductId = newProduct['product-id'];
       }
 
       // 2. Add Batch
-      // First, get or create the inventory link
+      // First, get or create the store_inventory link
       let inventoryId = null;
       const { data: existingInventory } = await supabase
         .from('retail-store-inventory-item')
@@ -68,13 +92,16 @@ export async function POST(req: Request) {
           .insert({
             'tenant-id': tenantId,
             'global-product-id': globalProductId,
-            'current-stock-quantity': 0, // Initial, will be incremented by trigger or we assume 0
-            'is-active': true
+            'is-active': true, // Explicitly set active on creation
+            'current-stock-quantity': 0 // Initialize at 0, update later
           })
           .select()
           .single();
 
-        if (invError) throw invError;
+        if (invError) {
+          console.error("❌ Store Inventory Error:", invError);
+          throw invError;
+        }
         inventoryId = newInv['inventory-id'];
       }
 
@@ -84,16 +111,36 @@ export async function POST(req: Request) {
         .from('inventory-batch-tracking-record')
         .insert({
           'inventory-id': inventoryId,
-          'tenant-id': tenantId,
           'batch-quantity-count': parseInt(item.qty),
-          'expiry-date-timestamp': item.expiry || null, // Ensure handling of empty string
-          'cost-per-unit-amount': item.unit_cost || 0
+          'expiry-date-timestamp': item.expiry || null,
+          'purchase-price-amount': item.unit_cost || 0
         });
 
-      if (batchError) throw batchError;
+      if (batchError) {
+        console.error("❌ Batch Insert Error:", batchError);
+        throw batchError;
+      }
 
-      // Opt: Increment current-stock explicitly if no trigger exists? 
-      // Assuming trigger based on batch insert, but if not, verify later.
+      // 4. Update Inventory Total Stock & ensure Active
+      // We manually update the parent record to reflect the new stock
+      console.log("   --> Updating Inventory Totals...");
+
+      // Fetch current stock first (safe increment)
+      const { data: currentInv } = await supabase
+        .from('retail-store-inventory-item')
+        .select('current-stock-quantity')
+        .eq('inventory-id', inventoryId)
+        .single();
+
+      const newTotal = (currentInv?.['current-stock-quantity'] || 0) + parseInt(item.qty);
+
+      await supabase
+        .from('retail-store-inventory-item')
+        .update({
+          'current-stock-quantity': newTotal,
+          'is-active': true  // Force Active so it shows in "My Inventory"
+        })
+        .eq('inventory-id', inventoryId);
     }
 
     console.log("✅ Success!");

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { isSuperadmin } from '@/lib/auth/superadmin';
 import {
   LayoutDashboard,
   FileInput,
@@ -26,9 +26,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [posPending, setPosPending] = useState<number | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Default to false for security
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Supabase removed - refactor needed
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },
@@ -47,35 +48,94 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    localStorage.removeItem('accessToken');
+    document.cookie = 'access_token=; path=/; max-age=0';
     toast.success('Signed out successfully');
-    router.push('/login');
+    router.push('/admin/login');
   }
 
   useEffect(() => {
-    async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+    async function checkAccess() {
+      setIsLoading(true);
+
+      // Check if user has access token
+      const token = localStorage.getItem('accessToken');
+
+      if (!token) {
         setIsAuthenticated(false);
-        router.push('/login'); // Redirect to unified login
+        setIsLoading(false);
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+        return;
+      }
+
+      // If we have a token, grant access
+      setIsAuthenticated(true);
+      setIsLoading(false);
+    }
+
+    async function checkUserRole(userId: string, tenantId: string | null) {
+      // BYPASS FOR LOCALHOST DEV ENVIRONMENT
+      // If we are on localhost, and just testing, allow any logged in user
+      // This solves the "Stuck on Login" issue if DB doesn't have roles set up yet.
+      if (window.location.hostname === 'localhost' && !tenantId) {
+        console.log('Dev Mode: Allowing access bypass on localhost');
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+
+      let query = supabase
+        .from('tenant-user-role')
+        .select('role-type, tenant-id')
+        .eq('user-id', userId);
+
+      if (tenantId) {
+        query = query.eq('tenant-id', tenantId);
+      }
+
+      // If checking globally (localhost), just get any valid role
+      // If checking specific tenant, we expect one row
+      const { data: roleData, error } = await query.limit(1).maybeSingle();
+
+      if (error || !roleData) {
+        console.error('Access verification failed:', error);
+        // Only show toast if we are NOT on the login page (to avoid double toast or conflict)
+        if (pathname !== '/admin/login') {
+          toast.error('Unauthorized: You do not have access to this store.');
+        }
+        // Do not sign out immediately, might be a valid user just at wrong URL
+        // allow middleware/router to handle
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+        setIsAuthenticated(false);
       } else {
         setIsAuthenticated(true);
       }
       setIsLoading(false);
     }
-    checkSession();
-  }, [router, supabase]);
+
+    checkAccess();
+  }, [pathname, router]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <Loader2 className="animate-spin text-blue-500" size={32} />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="animate-spin text-blue-600" size={32} />
       </div>
     );
   }
 
-  // Strict Protection: Do not render ANYTHING if not authenticated
-  if (!isAuthenticated) return null;
+  // Login page bypass - render request content without admin shell
+  if (pathname === '/admin/login') {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {children}
+      </main>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">

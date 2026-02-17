@@ -26,7 +26,7 @@ test.describe('E-commerce Shop', () => {
     test('should display shop homepage', async ({ page }) => {
         await page.goto('/shop');
 
-        await expect(page).toHaveTitle(/IndyMart/);
+        await expect(page).toHaveTitle(/InduMart/);
     });
 
     test('should show products on shop page', async ({ page }) => {

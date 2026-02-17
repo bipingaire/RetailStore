@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+  // previewFeatures = ["multiSchema"] // Removed for local
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // schemas  = ["public", "auth"] // Removed for local
+}
+
+// =====================================================
+// USER & AUTH (Local)
+// =====================================================
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  password String // Added for local auth
+  name String?
+  role String @default("CASHIER")
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  RetailStoreTenants RetailStoreTenant[] @relation("Owner")
+  SuperAdminProfile SuperAdminUser?
+  
+  tenantId String? @map("tenant-id")
+  tenant RetailStoreTenant? @relation("TenantUsers", fields: [tenantId], references: [tenantId])
+
+  @@map("users")
+}
+
+// =====================================================
+// TENANT & DATA
+// =====================================================
+
+model RetailStoreTenant {
+  tenantId String @id @default(uuid()) @map("tenant-id")
+  storeName String @map("store-name")
+  subdomain String? @unique
+  isActive Boolean @default(true) @map("is-active")
+  ownerUserId String? @map("owner-user-id")
+  
+
+  
+  owner User? @relation("Owner", fields: [ownerUserId], references: [id])
+  
+  // Relations
+  InventoryItems RetailStoreInventoryItem[]
+  Orders CustomerOrderHeader[]
+  VendorInvoices VendorInvoices[]
+  Customers Customer[]
+  Users User[] @relation("TenantUsers")
+  
+  @@map("retail-store-tenant")
+}
+
+model GlobalProductMasterCatalog {
+  productId String @id @default(uuid()) @map("product-id")
+  productName String @map("product-name")
+  sku String? @unique @map("upc-ean-code") 
+  category String? @map("category-name")
+  description String? @map("description-text")
+  imageUrl String? @map("image-url")
+  isActive Boolean @default(true) @map("is-active")
+  
+  // Relations
+  InventoryItems RetailStoreInventoryItem[]
+  
+  @@map("global-product-master-catalog")
+}
+
+model RetailStoreInventoryItem {
+  inventoryId String @id @default(uuid()) @map("inventory-id")
+  tenantId String @map("tenant-id")
+  globalProductId String? @map("global-product-id")
+  currentStock Int @default(0) @map("current-stock-quantity")
+  reorderLevel Int @default(10) @map("reorder-level-quantity")
+  sellingPrice Decimal? @map("selling-price-amount") @db.Decimal(10, 2)
+  costPrice Decimal? @map("cost-price-amount") @db.Decimal(10, 2)
+  isActive Boolean @default(true) @map("is-active")
+  
+  tenant RetailStoreTenant @relation(fields: [tenantId], references: [tenantId])
+  globalProduct GlobalProductMasterCatalog? @relation(fields: [globalProductId], references: [productId])
+  
+  lineItems OrderLineItemDetail[] // Relation for order items
+  
+  @@map("retail-store-inventory-item")
+}
+
+model CustomerOrderHeader {
+  orderId String @id @default(uuid()) @map("order-id")
+  tenantId String @map("tenant-id")
+  customerId String? @map("customer-id")
+  orderNumber String? @default(uuid()) 
+  totalAmount Decimal @map("final-amount") @db.Decimal(10, 2)
+  status String @default("pending") @map("order-status-code")
+  createdAt DateTime @default(now()) @map("created-at")
+  
+  tenant RetailStoreTenant @relation(fields: [tenantId], references: [tenantId])
+  customer Customer? @relation(fields: [customerId], references: [id])
+  
+  lineItems OrderLineItemDetail[]
+
+  @@map("customer-order-header")
+}
+
+model OrderLineItemDetail {
+  lineItemId String @id @default(uuid()) @map("line-item-id")
+  orderId String @map("order-id")
+  inventoryId String? @map("inventory-id")
+  productName String @map("product-name")
+  quantity Int @map("quantity-ordered")
+  unitPrice Decimal @map("unit-price-amount") @db.Decimal(10, 2)
+  totalAmount Decimal @map("total-amount") @db.Decimal(10, 2)
+  
+  order CustomerOrderHeader @relation(fields: [orderId], references: [orderId])
+  inventory RetailStoreInventoryItem? @relation(fields: [inventoryId], references: [inventoryId])
+  
+  @@map("order-line-item-detail")
+}
+
+model RetailStoreCustomer {
+  customerId String @id @default(uuid()) @map("customer-id")
+  userId String? @unique @map("user-id")
+  walletBalance Decimal? @default(0) @map("wallet-balance") @db.Decimal(10, 2)
+  loyaltyPoints Int? @default(0) @map("loyalty-points")
+  createdAt DateTime @default(now()) @map("created-at")
+  
+  @@map("retail-store-customer")
+}
+
+model Customer {
+  id String @id @default(uuid()) @map("id")
+  tenantId String? @map("tenant-id")
+  fullName String? @map("full-name")
+  email String? @map("email")
+  phone String? @map("phone")
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now()) @map("created-at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated-at")
+  
+  tenant RetailStoreTenant? @relation(fields: [tenantId], references: [tenantId])
+  orders CustomerOrderHeader[]
+  
+  @@map("customers")
+}
+
+model VendorInvoices {
+  invoiceId String @id @default(uuid()) @map("invoice-id")
+  tenantId String @map("tenant-id")
+  vendorName String @map("vendor-name")
+  invoiceDate DateTime? @map("invoice-date")
+  totalAmount Decimal? @map("total-amount") @db.Decimal(10, 2)
+  status String @default("pending")
+  lineItems Json? @map("line-items-json")
+  
+  tenant RetailStoreTenant @relation(fields: [tenantId], references: [tenantId])
+  
+  @@map("vendor-invoices")
+}
+
+model SuperAdminUser {
+  id String @id @default(uuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  
+  @@map("super_admin_users")
+}

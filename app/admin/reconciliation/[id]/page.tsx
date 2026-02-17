@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,7 +27,7 @@ interface LineItem {
 export default function ReconciliationDetailPage() {
     const router = useRouter();
     const params = useParams();
-
+    const supabase = createClientComponentClient();
 
     const [reconciliation, setReconciliation] = useState<Reconciliation | null>(null);
     const [lineItems, setLineItems] = useState<LineItem[]>([]);

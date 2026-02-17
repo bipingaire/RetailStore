@@ -1,18 +1,59 @@
-version: '3'
+version: '3.8'
+
 services:
-  web:
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: retailstore_web
-    restart: always
+    container_name: retail_store_frontend
     ports:
       - "3000:3000"
     environment:
-      # Pass through env vars from the host's .env.local via the env_file directive
-      # or explicitly map them if needed.
-      # For now, we assume .env.local has the correct remote credentials.
-      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-    env_file:
-      - .env.local
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - retailos_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: retail_store_backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_master?schema=public
+      - TENANT_DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_tenant_default?schema=public
+      - JWT_SECRET=your-secret-key-change-in-production
+      - JWT_EXPIRATION=7d
+    depends_on:
+      - db
+    restart: always
+    networks:
+      - retailos_net
+
+  db:
+    image: postgres:15-alpine
+    container_name: retail_store_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: retail_store_master
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - retailos_net
+
+networks:
+  retailos_net:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:

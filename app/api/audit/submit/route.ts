@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function POST(req: Request) {
   try {
@@ -11,15 +16,14 @@ export async function POST(req: Request) {
 
     // 2. Create Audit Record
     const { data: audit, error: auditError } = await supabase
-      .from('inventory_audits')
+      .from('shelf-audit-record')
       .insert({
-        tenant_id: tenantId,
-        category_audited: category,
-        items_checked_count: items.length,
-        net_variance_value: 0, // We update this after calculating
-        performed_by: 'Manager' // In real app, get from session
+        'tenant-id': tenantId,
+        'total-items-checked': items.length,
+        'total-discrepancies': discrepancies.length,
+        'performed-by-user-id': null // Ideally get from session, but for now allow null
       })
-      .select()
+      .select('audit-id')
       .single();
 
     if (auditError) throw auditError;
@@ -31,12 +35,12 @@ export async function POST(req: Request) {
       netVarianceValue += dollarValue;
 
       // A. Log the line item
-      await supabase.from('audit_line_items').insert({
-        audit_id: audit.id,
-        store_inventory_id: item.id,
-        expected_qty: item.expected,
-        actual_qty: item.actual,
-        variance: variance
+      await supabase.from('shelf-audit-item').insert({
+        'audit-id': audit['audit-id'],
+        'inventory-id': item.id,
+        'expected-quantity': item.expected,
+        'actual-quantity': item.actual,
+        'reason-code': variance < 0 ? 'SHRINKAGE' : 'FOUND_STOCK'
       });
 
       // B. Adjust Inventory
@@ -46,7 +50,7 @@ export async function POST(req: Request) {
 
         const { data: batches } = await supabase
           .from('inventory-batch-tracking-record')
-          .select('*')
+          .select('batch-id, batch-quantity-count')
           .eq('inventory-id', item.id)
           .gt('batch-quantity-count', 0)
           .order('expiry-date-timestamp', { ascending: true });
@@ -54,34 +58,46 @@ export async function POST(req: Request) {
         if (batches) {
           for (const batch of batches) {
             if (qtyToRemove <= 0) break;
-            const currentQty = (batch as any)['batch-quantity-count'];
+            const currentQty = batch['batch-quantity-count'];
             const deduction = Math.min(currentQty, qtyToRemove);
 
             await supabase
               .from('inventory-batch-tracking-record')
               .update({ 'batch-quantity-count': currentQty - deduction })
-              .eq('batch-id', (batch as any)['batch-id']);
+              .eq('batch-id', batch['batch-id']);
 
             qtyToRemove -= deduction;
           }
         }
+
+        // Also update parent total
+        const { data: parent } = await supabase.from('retail-store-inventory-item').select('current-stock-quantity').eq('inventory-id', item.id).single();
+        if (parent) {
+          await supabase.from('retail-store-inventory-item')
+            .update({ 'current-stock-quantity': (parent['current-stock-quantity'] || 0) - Math.abs(variance) })
+            .eq('inventory-id', item.id);
+        }
+
       } else {
         // FOUND STOCK: Add a new batch
         await supabase.from('inventory-batch-tracking-record').insert({
           'inventory-id': item.id,
           'batch-quantity-count': variance,
-          'expiry-date-timestamp': new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Default 1y expiry for found items
-          'received-date-timestamp': new Date().toISOString(),
-          'status-code': 'audit_adjustment'
+          // 'expiry-date-timestamp': new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Optional
+          'purchase-price-amount': 0 // Found items have 0 cost basis usually? Or use avg cost.
         });
+
+        // Also update parent total
+        const { data: parent } = await supabase.from('retail-store-inventory-item').select('current-stock-quantity').eq('inventory-id', item.id).single();
+        if (parent) {
+          await supabase.from('retail-store-inventory-item')
+            .update({ 'current-stock-quantity': (parent['current-stock-quantity'] || 0) + variance })
+            .eq('inventory-id', item.id);
+        }
       }
     }
 
-    // 4. Update Final Value
-    await supabase
-      .from('inventory_audits')
-      .update({ net_variance_value: netVarianceValue })
-      .eq('id', audit.id);
+
 
     return NextResponse.json({ success: true, varianceFound: discrepancies.length });
 

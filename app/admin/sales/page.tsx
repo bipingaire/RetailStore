@@ -3,6 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { apiClient } from '@/lib/api-client';
+
+// CDN for PDF.js to avoid heavy local build config
+const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFJS_WORKER_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 export default function SalesSyncPage() {
   const { tenantId } = useTenant();
@@ -17,14 +22,53 @@ export default function SalesSyncPage() {
   const [posEndpoint, setPosEndpoint] = useState<string>('');
   const [posStatus, setPosStatus] = useState<string>('');
 
+  // Load Settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const provider = await apiClient.get('/settings/pos_provider');
+        const key = await apiClient.get('/settings/pos_api_key');
+        const endpoint = await apiClient.get('/settings/pos_endpoint');
+
+        if (provider?.value) setPosProvider(provider.value);
+        if (key?.value) setPosApiKey(key.value);
+        if (endpoint?.value) setPosEndpoint(endpoint.value);
+      } catch (e) {
+        console.error("Error loading settings", e);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const saveSettings = async () => {
+    try {
+      await apiClient.post('/settings', { key: 'pos_provider', value: posProvider });
+      await apiClient.post('/settings', { key: 'pos_api_key', value: posApiKey });
+      await apiClient.post('/settings', { key: 'pos_endpoint', value: posEndpoint });
+      toast.success('POS credentials saved to backend');
+      setPosStatus('Configuration saved.');
+    } catch (e) {
+      toast.error('Failed to save settings');
+    }
+  };
+
+  useEffect(() => {
+    // Load PDF.js worker
+    const script = document.createElement('script');
+    script.src = PDFJS_CDN;
+    script.async = true;
+    document.body.appendChild(script);
+    return () => { document.body.removeChild(script); };
+  }, []);
+
   const convertPdfToImages = async (file: File): Promise<string[]> => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async function () {
         try {
-          // Lazy load pdfjs-dist only on client side
-          const pdfjsLib = await import('pdfjs-dist');
-          pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+          // @ts-ignore
+          const pdfjsLib = window['pdfjs-dist/build/pdf'];
+          pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN;
           const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result as ArrayBuffer)).promise;
           const images: string[] = [];
           for (let i = 1; i <= pdf.numPages; i++) {
@@ -33,8 +77,7 @@ export default function SalesSyncPage() {
             const canvas = document.createElement('canvas');
             canvas.height = viewport.height;
             canvas.width = viewport.width;
-            const context = canvas.getContext('2d')!;
-            await page.render({ canvasContext: context, viewport, canvas }).promise;
+            await page.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise;
             images.push(canvas.toDataURL('image/jpeg'));
           }
           resolve(images);
@@ -74,12 +117,8 @@ export default function SalesSyncPage() {
       let aggregatedResults: any[] = [];
       for (let i = 0; i < imagesToProcess.length; i++) {
         setProcessingStatus(`Analyzing Page ${i + 1}/${imagesToProcess.length}...`);
-        const res = await fetch('/api/sales/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tenantId, imageUrl: imagesToProcess[i] }),
-        });
-        const data = await res.json();
+        // Call Backend API
+        const data = await apiClient.post('/sales/sync-image', { imageUrl: imagesToProcess[i] });
         if (data.processed) aggregatedResults = [...aggregatedResults, ...data.processed];
       }
 
@@ -87,6 +126,7 @@ export default function SalesSyncPage() {
       toast.success("Sync complete!");
     } catch (err: any) {
       toast.error("Sync failed: " + err.message);
+      console.error(err);
     } finally {
       setUploading(false);
       setProcessingStatus('');
@@ -154,7 +194,7 @@ export default function SalesSyncPage() {
             </div>
             <div className="flex justify-end">
               <button
-                onClick={() => { setPosStatus('Configuration saved locally.'); toast.success('POS credentials saved'); }}
+                onClick={saveSettings}
                 className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors"
               >
                 Save Configuration

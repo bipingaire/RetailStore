@@ -1,129 +1,106 @@
 'use client';
-import { useState, type FormEvent } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
-import { ShieldCheck, Lock, Mail, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
 
-export default function SuperAdminLoginPage() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Database, Lock, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
+
+export default function SuperadminLogin() {
+    const [email, setEmail] = useState('superadmin@retailstore.com');
+    const [password, setPassword] = useState('password123');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const [loading, setLoading] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-
-    const handleLogin = async (e: FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
 
         try {
-            const { data, error: authError } = await supabase.auth.signInWithPassword({
+            const data = await apiClient.post('/auth/super-admin/login', {
                 email,
                 password,
             });
 
-            if (authError) throw authError;
+            if (data.access_token) {
+                localStorage.setItem('accessToken', data.access_token);
+                // Also store user info if needed
+                localStorage.setItem('user', JSON.stringify(data.user));
 
-            // Schema Verification: Check against 'superadmin-users' table
-            const { data: superAdmin, error: roleError } = await supabase
-                .from('superadmin-users')
-                .select('superadmin-id, is-active')
-                .eq('user-id', data.user.id)
-                .eq('is-active', true)
-                .single();
+                // Set cookie for middleware
+                document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
 
-            if (roleError || !superAdmin) {
-                // Log them out immediately if not authorized
-                await supabase.auth.signOut();
-                throw new Error('Access Denied: Not a recognized Superadmin');
+                toast.success('Welcome back, Superadmin.');
+                router.push('/super-admin');
+                router.refresh();
+            } else {
+                throw new Error('Login failed: No access token received');
             }
 
-            toast.success('Welcome back, Superadmin');
-            router.push('/super-admin');
-            router.refresh();
-
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message || 'Authentication failed');
-            toast.error('Login failed');
+        } catch (error: any) {
+            console.error('Login error:', error);
+            toast.error(error.message || 'Invalid credentials.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans text-white">
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
 
-                {/* Header */}
-                <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-2xl mb-6 shadow-2xl shadow-blue-900/50">
-                        <ShieldCheck size={40} className="text-white" />
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600/20 text-blue-500 mb-6 border border-blue-600/30 shadow-lg shadow-blue-900/20">
+                        <Database size={32} />
                     </div>
-                    <h1 className="text-3xl font-black tracking-tight mb-2">Super Admin</h1>
-                    <p className="text-slate-400">RetailOS Platform Control</p>
+                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Master Console</h1>
+                    <p className="text-gray-400">Restricted Access • Superadmin Only</p>
                 </div>
 
-                {/* Card */}
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
-                    <form onSubmit={handleLogin} className="space-y-5">
-
-                        {error && (
-                            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center gap-3 text-red-400 text-sm font-medium">
-                                <AlertTriangle size={18} />
-                                {error}
-                            </div>
-                        )}
-
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
+                    <form onSubmit={handleLogin} className="space-y-6">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Email Address</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-3.5 text-slate-500" size={18} />
-                                <input
-                                    type="email"
-                                    required
-                                    placeholder="admin@retailos.cloud"
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Superadmin ID</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="admin@retailos.com"
+                                required
+                            />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-3.5 text-slate-500" size={18} />
-                                <input
-                                    type="password"
-                                    required
-                                    placeholder="••••••••••••"
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Security Key</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="••••••••••••"
+                                required
+                            />
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            {loading ? <Loader2 className="animate-spin" /> : 'Access Console'}
-                            {!loading && <ArrowRight size={18} />}
+                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
+                            {loading ? 'Verifying Credentials...' : 'Access Console'}
+                            {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                         </button>
-
                     </form>
-                </div>
 
-                <div className="text-center mt-8 text-xs text-slate-600 font-medium">
-                    Secure Environment • Authorized Personnel Only
+                    <div className="mt-8 text-center text-xs text-gray-600">
+                        <p>Unauthorized access attempts are logged.</p>
+                    </div>
                 </div>
 
             </div>
         </div>
     );
 }
+

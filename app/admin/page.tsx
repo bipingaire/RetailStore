@@ -1,16 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import {
-  TrendingUp, Users, Package, AlertCircle,
-  Clock, ArrowRight, DollarSign, ShoppingBag,
-  MoreHorizontal, ArrowUpRight, Search
+  TrendingUp, Package, AlertCircle, ArrowUpRight, ArrowRight, MoreHorizontal
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-
-import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api-client';
 
 export default function AdminDashboard() {
+  // Supabase removed - refactor needed
   const [stats, setStats] = useState({
     revenue: 0,
     orders: 0,
@@ -19,51 +17,34 @@ export default function AdminDashboard() {
   });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
+
+  const [storeName, setStoreName] = useState('My Store');
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        // 1. KPIs
-        // Low Stock
-        const { count: lowStock } = await supabase
-          .from('retail-store-inventory-item')
-          .select('reorder-level-quantity', { count: 'exact', head: true })
-
-          .lt('current-stock-quantity', 10); // Or use filter if comparison with column needed (RPC)
-
-        // Pending Orders
-        const { count: pendingOrders } = await supabase
-          .from('customer-order-header')
-          .select('*', { count: 'exact', head: true })
-          .eq('order-status-code', 'pending');
-
-        // Active Campaigns (Promos)
-        const { count: activeCampaigns } = await supabase
-          .from('marketing-campaign-master')
-          .select('*', { count: 'exact', head: true })
-          .eq('is-active-flag', true);
-
-        // 2. Recent Orders Table
-        const { data: orders } = await supabase
-          .from('customer-order-header')
-          .select('*')
-          .order('order-date-time', { ascending: false })
-          .limit(5);
-
-        // 3. Mock Revenue (until Sales Sync is full)
-        const mockRevenue = 12450.00;
+        // Fetch data from backend API
+        const data = await apiClient.get('/dashboard/overview');
 
         setStats({
-          revenue: mockRevenue,
-          orders: pendingOrders || 0,
-          lowStock: lowStock || 0,
-          activeCampaigns: activeCampaigns || 0
+          revenue: data.revenue || 0,
+          orders: data.orders || 0,
+          lowStock: data.lowStock || 0,
+          activeCampaigns: data.activeCampaigns || 0
         });
 
-        setRecentOrders(orders || []);
+        setStoreName('Anuj Store');
+        setRecentOrders(data.recentOrders || []);
+        setChartData(data.weeklyChartData || [0, 0, 0, 0, 0, 0, 0]);
+
       } catch (err) {
         console.error('Dashboard load error', err);
         toast.error('Failed to load dashboard data');
+        // Set default values on error
+        setStats({ revenue: 0, orders: 0, lowStock: 0, activeCampaigns: 0 });
+        setRecentOrders([]);
+        setChartData([0, 0, 0, 0, 0, 0, 0]);
       } finally {
         setLoading(false);
       }
@@ -72,10 +53,6 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, []);
 
-  // Simple CSS Chart Helper
-  const chartData = [45, 60, 75, 50, 80, 95, 85]; // Mock data
-  const maxVal = Math.max(...chartData);
-
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -83,7 +60,7 @@ export default function AdminDashboard() {
         {/* 1. HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{storeName} Dashboard</h1>
             <p className="text-sm text-gray-500">Overview of your retail performance.</p>
           </div>
           <div className="flex items-center gap-3">
@@ -220,22 +197,25 @@ export default function AdminDashboard() {
               <h3 className="font-semibold text-gray-900 mb-6">Weekly Sales Trend</h3>
 
               <div className="h-48 flex items-end justify-between gap-2">
-                {chartData.map((val, i) => (
-                  <div key={i} className="w-full flex flex-col justify-end group relative">
-                    <div
-                      className="w-full bg-blue-100 rounded-t-sm hover:bg-blue-500 transition-colors duration-300 relative group-hover:shadow-lg"
-                      style={{ height: `${(val / maxVal) * 100}%` }}
-                    >
-                      {/* Tooltip */}
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                        ${(val * 10).toFixed(0)}
+                {chartData.map((val, i) => {
+                  const maxVal = Math.max(...chartData, 1);
+                  return (
+                    <div key={i} className="w-full flex flex-col justify-end group relative">
+                      <div
+                        className="w-full bg-blue-100 rounded-t-sm hover:bg-blue-500 transition-colors duration-300 relative group-hover:shadow-lg"
+                        style={{ height: `${(val / maxVal) * 100}%` }}
+                      >
+                        {/* Tooltip */}
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          ${val.toFixed(0)}
+                        </div>
                       </div>
+                      <span className="text-xs text-center text-gray-400 mt-2">
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
+                      </span>
                     </div>
-                    <span className="text-xs text-center text-gray-400 mt-2">
-                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

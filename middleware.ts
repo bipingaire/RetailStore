@@ -1,71 +1,94 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse, type NextRequest } from 'next/server';
+import { extractSubdomain, getTenantFromSubdomain, isSuperadminDomain } from '@/lib/subdomain';
+
+const PROTECTED_PREFIXES = ['/admin', '/superadmin', '/super-admin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
-  const { data: { session } } = await supabase.auth.getSession();
-
-  const url = req.nextUrl;
   const hostname = req.headers.get('host') || '';
-  const path = url.pathname;
+  const { pathname, searchParams } = req.nextUrl;
 
-  // --- 1. DOMAIN IDENTIFICATION ---
-  // Default to 'indumart.us' logic if localhost for dev ease, or simple toggle
-  const isRetailOS = hostname.includes('retailos.cloud');
-  const isInduMart = hostname.includes('indumart.us') || hostname.includes('localhost');
-
-  // --- 2. RETAILOS.CLOUD ROUTING ---
-  if (isRetailOS) {
-    // Superadmin Rewrite
-    if (path.startsWith('/superadmin')) {
-      return NextResponse.rewrite(new URL(`/super-admin${path.replace('/superadmin', '')}`, req.url));
-    }
-
-    // Superadmin Protection
-    if (path.startsWith('/super-admin')) {
-      if (!session && path !== '/super-admin/login') {
-        return NextResponse.redirect(new URL('/super-admin/login', req.url));
+  // 1. Handle retailos.cloud (Business & Super Admin)
+  if (hostname.includes('retailos.cloud')) {
+    // Super Admin: we.retailos.cloud/super-admin or just /super-admin on this domain
+    if (hostname.startsWith('we.') || pathname.startsWith('/super-admin')) {
+      // Allow access to super-admin routes
+      // Check auth/session if needed (existing logic)
+      const sessionToken = req.cookies.get('access_token')?.value;
+      if (pathname.startsWith('/super-admin') && !sessionToken && !pathname.includes('/login')) {
+        const redirectUrl = new URL('/super-admin/login', req.url);
+        redirectUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(redirectUrl);
       }
-      return res;
+      return NextResponse.rewrite(new URL(pathname, req.url)); // Keep path as is
     }
 
-    // Admin Dashboard (Tenant Admin)
-    if (path.startsWith('/admin')) {
-      // Allow through, but ensure session exists or redirect to login
-      if (!session && path !== '/admin/login') {
-        // Redirect to the unified login page
-        return NextResponse.redirect(new URL('/login', req.url));
+    // Business Page: www.retailos.cloud -> /business
+    if (hostname.startsWith('www.') || hostname === 'retailos.cloud') {
+      if (pathname === '/') {
+        return NextResponse.rewrite(new URL('/business', req.url));
       }
-      return res;
-    }
-
-    // Root -> Business Landing Page
-    if (path === '/') {
-      return NextResponse.rewrite(new URL('/business', req.url));
     }
   }
 
-  // --- 3. INDUMART.US ROUTING ---
-  if (isInduMart) {
-    // Check for subdomain
-    const subdomain = hostname.split('.')[0];
-    const isRootDomain = subdomain === 'indumart' || subdomain === 'www' || hostname === 'localhost:3010' || hostname === 'localhost:3000'; // Adjust for local dev ports
-
-    // Root Domain -> Locator Page
-    if (isRootDomain && path === '/') {
-      return NextResponse.rewrite(new URL('/locator', req.url));
+  // 2. Handle indumart.us (Tenant Stores)
+  if (hostname.includes('indumart.us')) {
+    // Main Landing: www.indumart.us -> Nearest Store
+    if (hostname.startsWith('www.') || hostname === 'indumart.us') {
+      if (pathname === '/') {
+        return NextResponse.redirect(new URL('/find-store', req.url));
+      }
+      return res;
     }
 
-    // Subdomain (e.g. greensboro.indumart.us) -> Shop
-    // Next.js automatically maps '/' to 'app/page.tsx' which redirects to '/shop'
-    // But we can enable explicit rewrite if needed, or just let the default redirect handle it.
-    // Default 'app/page.tsx' does: redirect('/shop')
+    // Tenant Subdomains: store.indumart.us
+    const subdomain = extractSubdomain(hostname);
+    if (subdomain && subdomain !== 'www') {
+      // Verify Tenant
+      const tenantId = await getTenantFromSubdomain(subdomain);
+      if (!tenantId) {
+        return NextResponse.json({ error: 'Store not found' }, { status: 404 });
+      }
 
-    // Optimization: If on subdomain and hitting root, rewrite directly to /shop to save a client-side redirect?
-    // if (!isRootDomain && path === '/') {
-    //   return NextResponse.rewrite(new URL('/shop', req.url));
-    // }
+      const response = NextResponse.next();
+      response.headers.set('x-tenant-id', tenantId);
+      response.headers.set('x-subdomain', subdomain);
+
+      // Tenant Admin: store.indumart.us/admin
+      if (pathname.startsWith('/admin')) {
+        const sessionToken = req.cookies.get('access_token')?.value;
+        if (!sessionToken && !pathname.includes('/login')) {
+          const redirectUrl = new URL('/admin/login', req.url);
+          redirectUrl.searchParams.set('redirect', pathname);
+          return NextResponse.redirect(redirectUrl);
+        }
+        return response;
+      }
+
+      // Tenant Shop: store.indumart.us/shop
+      // If user goes to /shop, let them. 
+      // If user goes to root /, maybe redirect to /shop?
+      if (pathname === '/') {
+        return NextResponse.rewrite(new URL('/shop', req.url));
+      }
+
+      return response;
+    }
+  }
+
+  // Fallback / Dvelopment (Localhost)
+  // Keep existing logic for localhost development
+  if (hostname.includes('localhost')) {
+    const subdomain = extractSubdomain(hostname);
+    if (subdomain) {
+      const tenantId = await getTenantFromSubdomain(subdomain);
+      if (tenantId) {
+        const response = NextResponse.next();
+        response.headers.set('x-tenant-id', tenantId);
+        response.headers.set('x-subdomain', subdomain);
+        return response;
+      }
+    }
   }
 
   return res;
@@ -73,14 +96,12 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - api (API routes)
-     * - auth (Auth routes)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|api|auth|.*\\..*).*)',
+    '/admin/:path*',
+    '/superadmin/:path*',
+    '/super-admin/:path*',
+    '/supplier/:path*',
+    '/vendors/:path*',
+    '/pos-mapping/:path*',
+    '/test-parser/:path*',
   ],
 };

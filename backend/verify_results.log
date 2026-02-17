@@ -1,0 +1,11 @@
+--- Connecting to Master DB ---
+Found 2 tenants.
+
+Tenant: Anuj Store (anuj)
+DB URL: postgresql://postgres:123@localhost:5432/retail_store_anuj
+  > Products: 6
+
+Tenant: Local Dev Store (localhost)
+DB URL: postgresql://postgres:123@localhost:5432/retail_store_localhost?schema=public
+  > Products: 0
+    (No products found)

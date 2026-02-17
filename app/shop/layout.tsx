@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import { ShoppingBag, UserRound } from "lucide-react";
+import { ShoppingBag, UserRound, Package } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,7 @@ export default function ShopLayout({
   children: ReactNode;
   params?: { slug?: string };
 }) {
-  const storeName = params?.slug || "IndyMart";
+  const storeName = params?.slug || "InduMart";
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -28,6 +28,13 @@ export default function ShopLayout({
             >
               <ShoppingBag className="h-4 w-4" />
               Cart
+            </Link>
+            <Link
+              href="/shop/orders"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2")}
+            >
+              <Package className="h-4 w-4" />
+              My Orders
             </Link>
             <Link
               href="/shop/account"

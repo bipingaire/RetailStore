@@ -1,16 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { apiClient } from '@/lib/api-client';
+import { use } from 'react';
 import {
     Star, Heart, Share2, ShoppingCart, Package,
     CheckCircle, Plus, Minus, ArrowLeft, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { use } from 'react';
 
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    // const supabase = createClientComponentClient(); // Removed
     const { id } = use(params);
     const router = useRouter();
     const [product, setProduct] = useState<any>(null);
@@ -23,27 +24,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }, [id]);
 
     async function loadProduct() {
-        const { data, error } = await supabase
-            .from('retail-store-inventory-item')
-            .select(`
-        id:"inventory-id",
-        price:"selling-price-amount",
-        current_stock_quantity:"current-stock-quantity",
-        global_products:"global-product-master-catalog"!"global-product-id" (
-          name:"product-name",
-          image_url:"image-url",
-          category:"category-name",
-          manufacturer:"manufacturer-name",
-          description:"description-text",
-          package_size:"package-size"
-        )
-      `)
-            .eq('inventory-id', id)
-            .single();
-
-        if (data) {
-            setProduct(data);
-            loadRelatedProducts(data.global_products?.category);
+        try {
+            const data = await apiClient.get(`/products/${id}`);
+            if (data) {
+                // Map API response to Component State schema
+                // Note: API returns flat product object.
+                // Component expects nested `global_products` for display compatibility.
+                const adaptedProduct = {
+                    id: data.id,
+                    price: data.price, // API now returns price
+                    current_stock_quantity: data.stock, // API returns stock
+                    global_products: {
+                        name: data.name,
+                        image_url: data.imageUrl,
+                        category: data.category,
+                        description: data.description,
+                        // manufacturer: ... // Missing
+                        package_size: null
+                    }
+                };
+                setProduct(adaptedProduct);
+                loadRelatedProducts(data.category);
+            }
+        } catch (e) {
+            console.error(e);
         }
         setLoading(false);
     }
@@ -51,25 +55,26 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     async function loadRelatedProducts(category: string) {
         if (!category) return;
 
-        const { data } = await supabase
-            .from('retail-store-inventory-item')
-            .select(`
-          id:"inventory-id",
-          price:"selling-price-amount",
-          global_products:"global-product-master-catalog"!"global-product-id" (
-             name:"product-name",
-             image_url:"image-url",
-             category:"category-name"
-          )
-      `)
-            .eq('global_products.category-name', category)
-            .neq('inventory-id', id)
-            .limit(4);
+        try {
+            const allProducts = await apiClient.get('/products');
+            // Filter client-side
+            const related = allProducts
+                .filter((p: any) => p.category === category && p.id !== id)
+                .slice(0, 4)
+                .map((p: any) => ({
+                    id: p.id,
+                    price: p.price || 0,
+                    global_products: {
+                        name: p.name,
+                        image_url: p.image, // ProductService.findAll returns 'image' not 'imageUrl'
+                        category: p.category
+                    }
+                }));
 
-        if (data) setRelatedProducts(data.map((d: any) => ({
-            ...d,
-            price: Number(d.price ?? 0)
-        })));
+            if (related.length > 0) setRelatedProducts(related);
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     const addToCart = () => {

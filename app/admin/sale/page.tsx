@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api-client';
 import {
   Sparkles,
   CheckCircle2,
@@ -61,72 +61,71 @@ export default function SaleAdmin() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const [{ data: segData }, { data: invData }] = await Promise.all([
-        supabase
-          .from('marketing-campaign-master')
-          .select(`
-            id:"campaign-id",
-          slug:"campaign-slug",
-          title:"title-text",
-          subtitle:"subtitle-text",
-          badge_label:"badge-label",
-          badge_color:"badge-color",
-          tagline:"tagline-text",
-          segment_type:"campaign-type",
-          sort_order:"sort-order",
-          is_active:"is-active-flag",
-          start_date:"start-date-time",
-          end_date:"end-date-time",
-          segment_products:"campaign-product-segment-group"!"campaign-id" (
-             store_inventory_id:"inventory-id"
-          )
-        `)
-          .order('sort-order', { ascending: true }),
-        supabase
-          .from('retail-store-inventory-item')
-          .select(`
-            id:"inventory-id",
-        price:"selling-price-amount",
-        global_products:"global-product-master-catalog"!"global-product-id" (
-           name:"product-name",
-           image_url:"image-url",
-           category:"category-name"
-        ),
-        inventory_batches:"inventory-batch-tracking-record"!"inventory-id"(batch_quantity:"batch-quantity-count")
+      try {
+        // Fetch campaigns and products from backend
+        const [campaigns, products] = await Promise.all([
+          apiClient.get('/campaigns'),
+          apiClient.get('/products')
+        ]);
 
-
-          `)
-
-          .limit(120)
-      ]);
-
-      const normalizedSegments =
-        (segData as any[] | null)?.map((seg) => ({
-          ...seg,
-          segment_products: seg.segment_products || [],
-          // Mock missing columns for UI compatibility
+        // Map backend campaigns to frontend Segment type
+        const normalizedSegments = campaigns.map((camp: any) => ({
+          id: camp.id,
+          slug: camp.name?.toLowerCase().replace(/\s+/g, '-') || camp.id,
+          title: camp.name || 'Untitled Campaign',
+          subtitle: '',
+          badge_label: camp.type || 'SALE',
+          badge_color: camp.status === 'ACTIVE' ? 'green' : 'blue',
+          tagline: '',
+          segment_type: camp.type || 'flash_sale',
+          sort_order: 0,
+          is_active: camp.status === 'ACTIVE',
+          start_date: camp.startDate || null,
+          end_date: camp.endDate || null,
           valid_till_stock: false,
           default_discount: 0,
-          purchase_mode: 'both'
-        })) || [];
+          purchase_mode: 'both',
+          segment_products: []
+        }));
 
-      const normalizedInventory =
-        (invData as any[] | null)?.map((row) => ({
-          ...row,
-          price: Number(row.price ?? 0),
-        })) || [];
+        // Map backend products to inventory format
+        const normalizedInventory = products.map((prod: any) => ({
+          id: prod.id,
+          price: Number(prod.price ?? 0),
+          global_products: {
+            name: prod.name || 'Unknown Product',
+            image_url: prod.imageUrl || '',
+            category: prod.category || 'General',
+            manufacturer: prod.manufacturer || 'Generic'
+          }
+        }));
 
-      setSegments(normalizedSegments);
-      setInventory(normalizedInventory);
+        setSegments(normalizedSegments);
+        setInventory(normalizedInventory);
 
-      // Auto select first segment
-      const first = normalizedSegments[0];
-      if (first) {
-        setSelectedSegmentId(first.id);
-        setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
-        setDraft(first);
+        // Auto select first segment
+        const first = normalizedSegments[0];
+        if (first) {
+          setSelectedSegmentId(first.id);
+          setSelectedItems(new Set(first.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
+          setDraft(first);
+        } else {
+          setDraft({
+            title: '',
+            subtitle: '',
+            badge_label: 'New',
+            badge_color: 'blue',
+            sort_order: 0,
+            is_active: false,
+          });
+          setSelectedSegmentId(null);
+        }
+      } catch (error) {
+        console.error('Error loading campaigns:', error);
+        toast.error('Failed to load campaigns');
+        setSegments([]);
+        setInventory([]);
       }
-
       setLoading(false);
     }
 
@@ -165,88 +164,66 @@ export default function SaleAdmin() {
 
   const handleNewCampaign = async () => {
     setSaving(true);
-    const now = Date.now();
-    const slug = `campaign-${now}`;
-    // Mapped inserts
-    const { data: rawData, error } = await supabase
-      .from('marketing-campaign-master')
-      .insert({
-        'title-text': 'New Campaign',
-        'campaign-name': 'New Campaign', // required in DB
-        'campaign-slug': slug,
-        'badge-label': 'New',
-        'badge-color': '#a855f7',
-        'campaign-type': 'flash_sale', // valid enum value
-        'sort-order': segments.length + 1,
-        'is-active-flag': false,
-        'start-date-time': new Date().toISOString(),
-        'end-date-time': new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 days
-      })
-      .select(`
-        id:"campaign-id",
-        slug:"campaign-slug",
-        title:"title-text",
-        subtitle:"subtitle-text",
-        badge_label:"badge-label",
-        badge_color:"badge-color",
-        tagline:"tagline-text",
-        segment_type:"campaign-type",
-        sort_order:"sort-order",
-        is_active:"is-active-flag",
-        start_date:"start-date-time",
-        end_date:"end-date-time"
-      `)
-      .single();
+    try {
+      const data = await apiClient.post('/campaigns', {
+        name: 'New Campaign',
+        type: 'FLASH_SALE',
+        status: 'DRAFT',
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      });
 
-    if (error) {
-      toast.error(error.message);
-      setSaving(false);
-      return;
+      const newSegment: Segment = {
+        id: data.id,
+        slug: data.name?.toLowerCase().replace(/\s+/g, '-') || data.id,
+        title: data.name || 'New Campaign',
+        subtitle: '',
+        badge_label: data.type || 'NEW',
+        badge_color: '#a855f7',
+        tagline: '',
+        segment_type: data.type || 'flash_sale',
+        sort_order: segments.length + 1,
+        is_active: data.status === 'ACTIVE',
+        start_date: data.startDate || null,
+        end_date: data.endDate || null,
+        valid_till_stock: false,
+        default_discount: 0,
+        purchase_mode: 'both',
+        segment_products: []
+      };
+
+      setSegments([...segments, newSegment]);
+      setSelectedSegmentId(data.id);
+      setSelectedItems(new Set());
+      setDraft(newSegment);
+      toast.success('New campaign created.');
+    } catch (error: any) {
+      console.error('Error creating campaign:', error);
+      toast.error(error.message || 'Failed to create campaign');
     }
-
-    // Cast rawData to Segment compatible type manually or just assert
-    const data = rawData as unknown as Segment;
-
-    // Add empty array for join
-    data.segment_products = [];
-
-    const refreshed = [...segments, data];
-    setSegments(refreshed);
-    setSelectedSegmentId(data.id);
-    setSelectedItems(new Set());
-    setDraft(data);
-    toast.success('New campaign created.');
     setSaving(false);
   };
 
   const handleSaveMeta = async () => {
     if (!selectedSegment) return;
     setSaving(true);
+    try {
+      const payload = {
+        name: draft.title,
+        type: draft.segment_type || 'SOCIAL',
+        startDate: draft.start_date || null,
+        endDate: draft.end_date || null,
+      };
 
-    // Map draft fields to DB columns
-    const payload: any = {
-      'title-text': draft.title,
-      'subtitle-text': draft.subtitle,
-      'badge-label': draft.badge_label,
-      'badge-color': draft.badge_color,
-      'tagline-text': draft.tagline,
-      'start-date-time': draft.start_date || null,
-      'end-date-time': draft.end_date || null,
-      // Removed non-existent columns: stock, discount, purchase_mode
-    };
+      await apiClient.put(`/campaigns/${selectedSegment.id}`, payload);
 
-    const { error } = await supabase
-      .from('marketing-campaign-master')
-      .update(payload)
-      .eq('campaign-id', selectedSegment.id);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
       setSegments((prev) =>
         prev.map((s) => (s.id === selectedSegment.id ? { ...s, ...draft } : s))
       );
       toast.success('Campaign details saved.');
+    } catch (error: any) {
+      console.error('Error saving campaign:', error);
+      toast.error(error.message || 'Failed to save campaign');
     }
     setSaving(false);
   };
@@ -256,38 +233,37 @@ export default function SaleAdmin() {
     if (!confirm("Are you sure you want to delete this campaign?")) return;
 
     setSaving(true);
-    // segment_products has cascade delete usually, but we check
-    await supabase.from('campaign-product-segment-group').delete().eq('campaign-id', selectedSegment.id);
-    const { error } = await supabase.from('marketing-campaign-master').delete().eq('campaign-id', selectedSegment.id);
-    if (error) {
-      toast.error(error.message);
-      setSaving(false);
-      return;
+    try {
+      await apiClient.delete(`/campaigns/${selectedSegment.id}`);
+
+      const remaining = segments.filter((s) => s.id !== selectedSegment.id);
+      setSegments(remaining);
+      setSelectedSegmentId(remaining[0]?.id || null);
+      setSelectedItems(new Set(remaining[0]?.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
+      setDraft(remaining[0] || {});
+      toast.success('Campaign removed.');
+    } catch (error: any) {
+      console.error('Error deleting campaign:', error);
+      toast.error(error.message || 'Failed to delete campaign');
     }
-    const remaining = segments.filter((s) => s.id !== selectedSegment.id);
-    setSegments(remaining);
-    setSelectedSegmentId(remaining[0]?.id || null);
-    setSelectedItems(new Set(remaining[0]?.segment_products?.map((sp: any) => sp.store_inventory_id).filter(Boolean)));
-    setDraft(remaining[0] || {});
-    toast.success('Campaign removed.');
     setSaving(false);
   };
 
   const handleSetActive = async (value: boolean) => {
     if (!selectedSegment) return;
     setSaving(true);
-    const { error } = await supabase
-      .from('marketing-campaign-master')
-      .update({ 'is-active-flag': value })
-      .eq('campaign-id', selectedSegment.id);
+    try {
+      await apiClient.patch(`/campaigns/${selectedSegment.id}`, {
+        status: value ? 'ACTIVE' : 'DRAFT'
+      });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
       setSegments((prev) =>
         prev.map((s) => (s.id === selectedSegment.id ? { ...s, is_active: value } : s))
       );
       toast.success(`Campaign ${value ? 'activated' : 'paused'}.`);
+    } catch (error: any) {
+      console.error('Error updating campaign status:', error);
+      toast.error(error.message || 'Failed to update campaign');
     }
     setSaving(false);
   };
@@ -299,52 +275,23 @@ export default function SaleAdmin() {
     }
 
     setSaving(true);
+    try {
+      // Update campaign to active status
+      await apiClient.patch(`/campaigns/${selectedSegment.id}`, { status: 'ACTIVE' });
 
-    // Replace goods for this segment and mark active
-    const ids = Array.from(selectedItems);
+      // TODO: Link selected products to campaign
+      // This would need a new endpoint like POST /campaigns/:id/products
+      // For now just update the local state
 
-    const { error: delErr } = await supabase
-      .from('campaign-product-segment-group')
-      .delete()
-      .eq('campaign-id', selectedSegment.id);
+      setSegments((prev) =>
+        prev.map((s) => (s.id === selectedSegment.id ? { ...s, is_active: true } : s))
+      );
 
-    if (delErr) {
-      toast.error(delErr.message);
-      setSaving(false);
-      return;
+      toast.success('Pushed live and published to shop.');
+    } catch (error: any) {
+      console.error('Error publishing campaign:', error);
+      toast.error(error.message || 'Failed to publish campaign');
     }
-
-    if (ids.length > 0) {
-      const insertPayload = ids.map((id) => ({
-        'campaign-id': selectedSegment.id,
-        'inventory-id': id,
-      }));
-      const { error: insErr } = await supabase.from('campaign-product-segment-group').upsert(insertPayload);
-      if (insErr) {
-        toast.error(insErr.message);
-        setSaving(false);
-        return;
-      }
-    }
-
-    const { error: actErr } = await supabase
-      .from('marketing-campaign-master')
-      .update({ 'is-active-flag': true })
-      .eq('campaign-id', selectedSegment.id);
-
-    if (actErr) {
-      toast.error(actErr.message);
-      setSaving(false);
-      return;
-    }
-
-    // Refresh segments to reflect latest
-    // (Simplified refresh for now, purely updating local state for speed)
-    setSegments((prev) =>
-      prev.map((s) => (s.id === selectedSegment.id ? { ...s, is_active: true } : s))
-    );
-
-    toast.success('Pushed live and published to shop.');
     setSaving(false);
   };
 

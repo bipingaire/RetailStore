@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function POST(req: Request) {
   try {
@@ -33,11 +37,10 @@ export async function POST(req: Request) {
     const results = [];
 
     // 2. Process Each Sale
-    // 2. Process Each Sale
     for (const sale of sales) {
       let inventoryId = null;
 
-      // A. CHECK MAPPING TABLE
+      // A. CHECK MAPPING TABLE (Has this weird name been seen before?)
       const { data: existingMap } = await supabase
         .from('pos-item-mapping')
         .select('matched-inventory-id, last-sold-price')
@@ -45,51 +48,56 @@ export async function POST(req: Request) {
         .eq('pos-item-name', sale.name)
         .maybeSingle();
 
-      const map = existingMap as any;
-      if (map?.['matched-inventory-id']) {
-        inventoryId = map['matched-inventory-id'];
+      if (existingMap?.["matched-inventory-id"]) {
+        inventoryId = existingMap["matched-inventory-id"];
 
         // Update Price History
-        if (map['last-sold-price'] !== sale.sold_price) {
+        if (existingMap["last-sold-price"] !== sale.sold_price) {
           await supabase.from('pos-item-mapping').update({
-            'previous-sold-price': map['last-sold-price'], // Assuming previous-sold-price exists, implied pattern
             'last-sold-price': sale.sold_price
           }).eq('pos-item-name', sale.name).eq('tenant-id', tenantId);
         }
       }
       else {
         // B. NEW ITEM DISCOVERED - Fuzzy Match or Create Stub
-        // Try to find a clean inventory item with similar name
+        // Try to find a clean inventory item with similar name (fuzzy match via ILIKE)
         const { data: match } = await supabase
           .from('retail-store-inventory-item')
-          .select('inventory-id, global_products:global-product-master-catalog!inner(product-name)')
-          .ilike('global-product-master-catalog.product-name', `%${sale.name}%`)
+          .select('inventory-id, global:global-product-master-catalog!inner(product-name)')
+          .ilike('global.product-name', `%${sale.name}%`)
           .eq('tenant-id', tenantId)
           .limit(1)
           .maybeSingle();
 
         if (match) {
-          inventoryId = (match as any)['inventory-id'];
+          inventoryId = match['inventory-id'];
+          // Auto-verify? Let's verify it if we found a match to save time, but mark as unverified mapping
         } else {
           // C. CREATE STUB INVENTORY (The "Ghost" Item)
           // We create a temp global product so it shows up in inventory list
           const { data: newGlobal } = await supabase
             .from('global-product-master-catalog')
-            .insert({ 'product-name': sale.name + " (POS Import)", 'description-text': 'POS Stub' }) // source-type uncertain, using desc
-            .select()
+            .insert({
+              'product-name': sale.name + " (POS Import)",
+              'enrichment-source': 'pos_stub',
+              'is-active': true
+            })
+            .select('product-id')
             .single();
 
           const { data: newInv } = await supabase
             .from('retail-store-inventory-item')
             .insert({
               'tenant-id': tenantId,
-              'global-product-id': (newGlobal as any)['global-product-id'], // Assuming PK is global-product-id
-              'selling-price-amount': sale.sold_price
+              'global-product-id': newGlobal['product-id'],
+              'selling-price-amount': sale.sold_price,
+              'current-stock-quantity': 0, // Will become negative correctly below
+              'is-active': true
             })
-            .select()
+            .select('inventory-id')
             .single();
 
-          inventoryId = (newInv as any)['inventory-id'];
+          inventoryId = newInv['inventory-id'];
         }
 
         // Create the Mapping Record for future
@@ -99,7 +107,7 @@ export async function POST(req: Request) {
           'pos-item-code': sale.sku || null,
           'matched-inventory-id': inventoryId,
           'last-sold-price': sale.sold_price,
-          'is-verified': !!match // If we fuzzy matched, it's auto-verified? No, let's mark false to be safe.
+          'is-verified': !!match // If we fuzzy matched, it's a guess, so verified=false usually safer, but if accurate let's leave false
         });
       }
 
@@ -107,10 +115,10 @@ export async function POST(req: Request) {
       // First, try to eat existing positive batches
       const { data: batches } = await supabase
         .from('inventory-batch-tracking-record')
-        .select('*')
+        .select('batch-id, batch-quantity-count')
         .eq('inventory-id', inventoryId)
         .gt('batch-quantity-count', 0)
-        .order('expiry-date-timestamp', { ascending: true }); // Assuming expiry is used for FIFO
+        .order('expiry-date-timestamp', { ascending: true });
 
       let qtyRemainingToDeduct = sale.qty;
 
@@ -123,24 +131,29 @@ export async function POST(req: Request) {
           await supabase
             .from('inventory-batch-tracking-record')
             .update({ 'batch-quantity-count': currentQty - deduction })
-            .eq('batch-id', batch['batch-id']); // Assuming PK is batch-id
+            .eq('batch-id', batch['batch-id']);
 
           qtyRemainingToDeduct -= deduction;
         }
       }
 
-      // E. NEGATIVE BALANCE HANDLER
-      // If we still need to deduct (qtyRemainingToDeduct > 0), create a negative batch
-      if (qtyRemainingToDeduct > 0) {
-        await supabase.from('inventory-batch-tracking-record').insert({
-          'inventory-id': inventoryId,
-          'batch-quantity-count': -qtyRemainingToDeduct, // Negative value
-          'expiry-date-timestamp': new Date().toISOString(), // Required field probably?
-          // status?
-        });
+      // E. NEGATIVE BALANCE HANDLER / PARENT UPDATE
+      // Update the parent record total. Even if we didn't have batches, we subtract from total.
+      // (Simplified logic: We just blindly subtract the sold amount from the parent total)
+      const { data: parent } = await supabase.from('retail-store-inventory-item').select('current-stock-quantity').eq('inventory-id', inventoryId).single();
+
+      if (parent) {
+        await supabase
+          .from('retail-store-inventory-item')
+          .update({
+            'current-stock-quantity': (parent['current-stock-quantity'] || 0) - sale.qty
+          })
+          .eq('inventory-id', inventoryId);
       }
 
-      results.push({ name: sale.name, status: 'processed', qty: sale.qty });
+      // We don't necessarily create negative batches for oversell in this model, just tracking the parent total is enough for now.
+
+      results.push({ name: sale.name, status: 'processed', qty: sale.qty, qty_deducted: sale.qty });
     }
 
     return NextResponse.json({ success: true, processed: results });

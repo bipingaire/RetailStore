@@ -1,13 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Tag, X, Percent, DollarSign, Share2, Image as ImageIcon } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+
+
 
 type Campaign = { id: string; title: string; slug?: string };
 
 export default function PromotionModal({ product, batch, onClose }: any) {
-
+  // Supabase removed - refactor needed
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<'percentage' | 'fixed_price'>('percentage');
   const [value, setValue] = useState(30); // Default 30% off
@@ -18,10 +19,10 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
   useEffect(() => {
     supabase
-      .from('marketing-campaign-master')
-      .select('id:"campaign-id", title:"title-text", slug:"campaign-slug"')
-      .eq('is-active-flag', true)
-      .order('sort-order', { ascending: true })
+      .from('product_segments')
+      .select('id, title, slug')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
       .then(({ data }) => setCampaigns((data as any[]) || []));
   }, []);
 
@@ -33,7 +34,7 @@ export default function PromotionModal({ product, batch, onClose }: any) {
     endDate.setDate(endDate.getDate() + days);
 
     const { data: promoData, error } = await supabase
-      .from('promotions') // Keeping promotions for now as it might be separate, check implementation plan if needed
+      .from('promotions')
       .insert({
         tenant_id: 'PASTE_YOUR_COPIED_UUID_HERE', // <--- REMEMBER TO USE YOUR REAL ID
         store_inventory_id: product.id,
@@ -54,11 +55,11 @@ export default function PromotionModal({ product, batch, onClose }: any) {
       // Optionally attach to campaign
       if (campaignId) {
         await supabase
-          .from('campaign-product-segment-group')
+          .from('segment_products')
           .upsert({
-            'campaign-id': campaignId,
-            'inventory-id': product.id,
-            'highlight-label': batch ? 'Clearance' : 'Promo',
+            segment_id: campaignId,
+            store_inventory_id: product.id,
+            highlight_label: batch ? 'Clearance' : 'Promo',
           });
       }
       setStatus('✅ Promotion Live on Website' + (campaignId ? ' & Campaign' : ''));
