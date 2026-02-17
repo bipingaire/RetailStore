@@ -1,0 +1,37 @@
+C:\Users\hp\Desktop\RetailStore\backend\node_modules\ts-node\src\index.ts:859
+    return new TSError(diagnosticText, diagnosticCodes, diagnostics);
+           ^
+TSError: Γ¿» Unable to compile TypeScript:
+src/invoice/invoice.service.ts(388,25): error TS2304: Cannot find name 'type'.
+src/invoice/invoice.service.ts(389,25): error TS2552: Cannot find name 'text'. Did you mean 'ext'?
+src/invoice/invoice.service.ts(413,33): error TS2552: Cannot find name 'buffer'. Did you mean 'Buffer'?
+src/invoice/invoice.service.ts(414,30): error TS2552: Cannot find name 'ext'. Did you mean 'Text'?
+src/invoice/invoice.service.ts(418,13): error TS2304: Cannot find name 'promptContent'.
+src/invoice/invoice.service.ts(456,30): error TS2304: Cannot find name 'promptContent'.
+src/invoice/invoice.service.ts(490,13): error TS2304: Cannot find name 'getMockInvoiceData'.
+src/invoice/invoice.service.ts(388,29): error TS1005: ',' expected.
+src/invoice/invoice.service.ts(389,29): error TS1005: ',' expected.
+src/invoice/invoice.service.ts(408,25): error TS1005: ',' expected.
+src/invoice/invoice.service.ts(409,21): error TS1128: Declaration or statement expected.
+src/invoice/invoice.service.ts(411,11): error TS1472: 'catch' or 'finally' expected.
+src/invoice/invoice.service.ts(490,5): error TS1128: Declaration or statement expected.
+src/invoice/invoice.service.ts(490,34): error TS1005: ';' expected.
+src/invoice/invoice.service.ts(516,1): error TS1128: Declaration or statement expected.
+
+    at createTSError (C:\Users\hp\Desktop\RetailStore\backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (C:\Users\hp\Desktop\RetailStore\backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (C:\Users\hp\Desktop\RetailStore\backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (C:\Users\hp\Desktop\RetailStore\backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (C:\Users\hp\Desktop\RetailStore\backend\node_modules\ts-node\src\index.ts:1617:30)
+    at node:internal/modules/cjs/loader:1699:10
+    at Object.require.extensions.<computed> [as .ts] (C:\Users\hp\Desktop\RetailStore\backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+    at Function._load (node:internal/modules/cjs/loader:1123:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  diagnosticCodes: [
+    2304, 2552, 2552, 2552,
+    2304, 2304, 2304, 1005,
+    1005, 1005, 1128, 1472,
+    1128, 1005, 1128
+  ]
+}

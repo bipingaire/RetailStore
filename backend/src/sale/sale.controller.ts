@@ -81,4 +81,12 @@ export class SaleController {
   ) {
     return this.saleService.createPaymentIntent(subdomain, body.amount, body.currency);
   }
+
+  @Post('sync-image')
+  async syncSalesFromImage(
+    @Headers('x-tenant') subdomain: string,
+    @Body() body: { imageUrl: string },
+  ) {
+    return this.saleService.syncSalesFromImage(subdomain, body.imageUrl);
+  }
 }

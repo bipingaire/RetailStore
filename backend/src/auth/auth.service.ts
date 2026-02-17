@@ -49,20 +49,42 @@ export class AuthService {
 
   async validateUser(subdomain: string, email: string, password: string) {
     console.log(`[AuthService] Validating user for subdomain: ${subdomain}, email: ${email}`);
+
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    console.log(`[AuthService] Found tenant:`, tenant.id, tenant.subdomain);
+
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    console.log(`[AuthService] Got tenant client for database:`, tenant.databaseUrl);
 
     // Check if table exists? If not migrated, this will fail.
 
     const user = await client.user.findUnique({ where: { email } });
+    console.log(`[AuthService] User lookup result:`, user ? `Found user ${user.id}` : 'User not found');
 
-    if (!user || user.password.startsWith('$2b$') && !await bcrypt.compare(password, user.password)) {
+    if (!user) {
+      console.log(`[AuthService] User not found for email: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
-    // Fallback for plain text if any legacy data
-    if (user && !user.password.startsWith('$2b$') && user.password !== password) {
-      throw new UnauthorizedException('Invalid credentials');
+
+    console.log(`[AuthService] Password hash starts with:`, user.password.substring(0, 10));
+    console.log(`[AuthService] Password is hashed:`, user.password.startsWith('$2b$'));
+
+    // If password is bcrypt hashed, compare with bcrypt
+    if (user.password.startsWith('$2b$')) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      console.log(`[AuthService] Bcrypt comparison result:`, isPasswordValid);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+    } else {
+      // Fallback for plain text if any legacy data
+      console.log(`[AuthService] Using plain text comparison`);
+      if (user.password !== password) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
     }
+
+    console.log(`[AuthService] Authentication successful for user: ${email}`);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = user;

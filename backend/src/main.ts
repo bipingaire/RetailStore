@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import * as express from 'express';
 
 async function bootstrap() {
+  // app module initialized
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({

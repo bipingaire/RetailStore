@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Headers, Param } from '@nestjs/common';
 import { CampaignService } from './campaign.service';
 
 @Controller('campaigns')
@@ -13,6 +13,21 @@ export class CampaignController {
     @Get()
     async findAll(@Headers('x-tenant') tenantId: string) {
         return this.campaignService.listCampaigns(tenantId);
+    }
+
+    @Put(':id')
+    async update(@Headers('x-tenant') tenantId: string, @Param('id') id: string, @Body() body: any) {
+        return this.campaignService.updateCampaign(tenantId, id, body);
+    }
+
+    @Patch(':id')
+    async partialUpdate(@Headers('x-tenant') tenantId: string, @Param('id') id: string, @Body() body: any) {
+        return this.campaignService.updateCampaign(tenantId, id, body);
+    }
+
+    @Delete(':id')
+    async delete(@Headers('x-tenant') tenantId: string, @Param('id') id: string) {
+        return this.campaignService.deleteCampaign(tenantId, id);
     }
 
     @Post('generate')

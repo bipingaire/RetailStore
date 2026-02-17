@@ -661,7 +661,7 @@ export default function SuperAdminPage() {
                   <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Product Name</label>
                   <input
                     type="text"
-                    value={editedProduct.name}
+                    value={editedProduct.name || ''}
                     onChange={(e) => setEditedProduct({ ...editedProduct, name: e.target.value })}
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   />
@@ -670,7 +670,7 @@ export default function SuperAdminPage() {
                   <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Category</label>
                   <input
                     type="text"
-                    value={editedProduct.category}
+                    value={editedProduct.category || ''}
                     onChange={(e) => setEditedProduct({ ...editedProduct, category: e.target.value })}
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   />
@@ -682,7 +682,7 @@ export default function SuperAdminPage() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    value={editedProduct.image_url}
+                    value={editedProduct.image_url || ''}
                     onChange={(e) => setEditedProduct({ ...editedProduct, image_url: e.target.value })}
                     className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
                   />

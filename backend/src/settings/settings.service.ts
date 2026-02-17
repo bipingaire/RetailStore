@@ -18,7 +18,7 @@ export class SettingsService {
             where: { key },
         });
 
-        return setting ? setting.value : null;
+        return setting ? setting.value : '';
     }
 
     async saveSetting(subdomain: string, key: string, value: string) {

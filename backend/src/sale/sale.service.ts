@@ -93,9 +93,121 @@ export class SaleService {
     return client.sale.update({ where: { id }, data: { status: 'CANCELLED' } });
   }
 
-  async syncSalesFromImage(tenantId: string, imageUrl: string) {
-    // Stub implementation
-    return { success: true, count: 0, raw: [] };
+  async syncSalesFromImage(subdomain: string, imageUrl: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    // 1. AI Parsing with OpenAI
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `Extract sold items from this POS Sales Report Image.
+          Return JSON: { "sales": [ { "name": "Raw POS Name", "sku": "POS Code", "qty": 5, "sold_price": 2.50 } ] }.
+          Ignore totals/tax lines.`
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Parse this sales report." },
+            { type: "image_url", image_url: { url: imageUrl } },
+          ],
+        },
+      ],
+    });
+
+    const cleanJson = completion.choices[0].message.content?.replace(/```json/g, '').replace(/```/g, '').trim();
+    const { sales } = JSON.parse(cleanJson || '{ "sales": [] }');
+    const results = [];
+
+    // 2. Process Each Sale Transactionally
+    // Note: We process each item individually to allow partial success/reporting
+    for (const sale of sales) {
+      try {
+        await client.$transaction(async (tx) => {
+          let productId = null;
+
+          // A. CHECK MAPPING
+          const existingMap = await tx.pOSItemMapping.findFirst({
+            where: { posItemName: sale.name }
+          });
+
+          if (existingMap) {
+            productId = existingMap.matchedInventoryId;
+            // Update Price History if changed
+            if (Number(existingMap.lastSoldPrice) !== sale.sold_price) {
+              await tx.pOSItemMapping.update({
+                where: { id: existingMap.id },
+                data: { lastSoldPrice: sale.sold_price }
+              });
+            }
+          } else {
+            // B. NEW ITEM - FUZZY MATCH (Simple ILIKE equivalent via contains)
+            // Prisma doesn't support ILIKE directly in all modes easily without raw, but we can try insensitive contains
+            const itemDescription = sale.name.replace(/[^a-zA-Z0-9 ]/g, ''); // simplistic cleaning
+
+            // Try to find a match - strict first
+            let match = await tx.product.findFirst({
+              where: { name: { contains: itemDescription, mode: 'insensitive' } }
+            });
+
+            if (match) {
+              productId = match.id;
+            } else {
+              // C. CREATE STUB PRODUCT
+              const newProduct = await tx.product.create({
+                data: {
+                  name: `${sale.name} (POS Import)`,
+                  sku: `POS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                  price: sale.sold_price,
+                  costPrice: 0, // Unknown
+                  stock: 0,
+                  isActive: true
+                }
+              });
+              productId = newProduct.id;
+            }
+
+            // Create Mapping
+            await tx.pOSItemMapping.create({
+              data: {
+                tenantId: tenant.id,
+                posItemName: sale.name,
+                product: { connect: { id: productId! } },
+                lastSoldPrice: sale.sold_price,
+                confidenceScore: match ? 0.8 : 1.0,
+              }
+            });
+          }
+
+          // D. DEDUCT STOCK & TRACK MOVEMENT
+          if (productId) {
+            await tx.product.update({
+              where: { id: productId },
+              data: { stock: { decrement: sale.qty } }
+            });
+
+            await tx.stockMovement.create({
+              data: {
+                productId: productId,
+                type: 'OUT',
+                quantity: sale.qty,
+                description: `POS Sync: ${sale.name}`
+              }
+            });
+          }
+
+          results.push({ name: sale.name, status: 'processed', qty: sale.qty, qty_deducted: sale.qty });
+        });
+      } catch (error: any) {
+        console.error(`Error processing item ${sale.name}:`, error);
+        results.push({ name: sale.name, status: 'failed', error: error.message });
+      }
+    }
+
+    return { success: true, processed: results };
   }
   async updateSaleStatus(subdomain: string, id: string, status: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);

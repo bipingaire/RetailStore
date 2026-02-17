@@ -300,14 +300,96 @@ export class InvoiceService {
                 const pdfText = pdfData.text;
                 console.log(`  - Extracted ${pdfText.length} characters of text`);
 
-                if (!pdfText || pdfText.trim().length === 0) {
-                    throw new Error('PDF contains no extractable text (it might be a scanned image). Please upload an image instead.');
-                }
+                // Check if PDF is scanned (insufficient text)
+                if (!pdfText || pdfText.trim().length < 50) {
+                    console.warn('⚠️ PDF contains insufficient text. Attempting to convert to image for OCR using native Canvas...');
 
-                promptContent = [
-                    {
-                        type: "text",
-                        text: `Analyze this invoice TEXT and extract the following fields in JSON format:
+                    try {
+                        // Use native canvas + pdfjs-dist (via pdf-parse) to avoid external dependency issues
+                        // We need to require these safely
+                        const { createCanvas } = require('canvas');
+                        const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+
+                        // Disable worker for Node.js environment
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+
+                        // Load the PDF document
+                        // pdfjs-dist expects Uint8Array
+                        const uint8Array = new Uint8Array(buffer);
+                        const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+                        const pdfDocument = await loadingTask.promise;
+
+                        // Get the first page
+                        const page = await pdfDocument.getPage(1);
+
+                        // Set scale for high resolution (2.0 = 200% size, good for OCR)
+                        const viewport = page.getViewport({ scale: 2.0 });
+
+                        // Create canvas
+                        const canvas = createCanvas(viewport.width, viewport.height);
+                        const context = canvas.getContext('2d');
+
+                        // Render PDF page to canvas
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        await page.render(renderContext).promise;
+
+                        console.log('  - Successfully rendered PDF page 1 to Canvas');
+
+                        // Convert canvas to PNG buffer
+                        const base64Image = canvas.toBuffer('image/png').toString('base64');
+                        const mimeType = 'image/png';
+                        const dataUrl = `data:${mimeType};base64,${base64Image}`;
+
+                        promptContent = [
+                            {
+                                type: "text",
+                                text: `Analyze this invoice image (converted from PDF) and extract the following fields in JSON format.
+CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
+
+- vendorName: The vendor/supplier name
+- invoiceNumber: The invoice number
+- invoiceDate: Invoice date in YYYY-MM-DD format
+- totalAmount: Total amount (number)
+- items: Array of items, each with:
+  - description: Item name/description
+  - category: Product category (e.g., "Dairy", "Bakery", "Beverages", "Snacks", "Produce", "Frozen", "Household", "Electronics", etc.)
+  - quantity: Quantity (number)
+  - unitPrice: Unit price (number)
+  - totalPrice: Total price for this item (number)
+  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format.
+Return ONLY the JSON object.`
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: dataUrl
+                                }
+                            }
+                        ];
+
+                    } catch (conversionError) {
+                        console.error('❌ PDF-to-Image native conversion failed:', conversionError);
+                        throw new Error(`PDF contains insufficient text and could not be converted to image (Error: ${conversionError.message}). Please upload a clear image (JPG/PNG) instead.`);
+                    }
+                } else {
+                    // Text-based PDF handling (existing logic)
+                    // [...]
+                    // Truncate text to avoid OpenAI Token Limits (429 Errors)
+                    // 50,000 chars is roughly 10k-12k tokens, well within limits
+                    const truncatedText = pdfText.slice(0, 50000);
+                    if (pdfText.length > 50000) {
+                        console.log(`  - Text truncated from ${pdfText.length} to 50000 characters`);
+                    }
+
+                    promptContent = [
+                        {
+                            type: "text",
+                            text: `Analyze this invoice TEXT and extract the following fields in JSON format.
+CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
+
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
@@ -323,9 +405,10 @@ export class InvoiceService {
 Return ONLY the JSON object, no markdown formatting.
 
 INVOICE TEXT:
-${pdfText}`
-                    }
-                ];
+${truncatedText}`
+                        }
+                    ];
+                }
             } else {
                 // Image handling
                 const base64Image = buffer.toString('base64');
@@ -336,7 +419,9 @@ ${pdfText}`
                 promptContent = [
                     {
                         type: "text",
-                        text: `Analyze this invoice image and extract the following fields in JSON format:
+                        text: `Analyze this invoice image and extract the following fields in JSON format.
+CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
+
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
@@ -382,19 +467,28 @@ Return ONLY the JSON object, no markdown formatting.`
             console.log('✅ OpenAI Response received');
 
             // Normalize data types
+            const items = Array.isArray(data.items) ? data.items.map((item: any) => ({
+                description: item.description || 'Item',
+                category: item.category || 'General',
+                quantity: Number(item.quantity) || 1,
+                unitPrice: Number(item.unitPrice) || 0,
+                totalPrice: Number(item.totalPrice) || 0,
+                expiryDate: item.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default: 30 days from now
+            })) : [];
+
+            // Calculate total amount from items if it's missing or 0
+            let totalAmount = Number(data.totalAmount) || 0;
+            if (totalAmount === 0 && items.length > 0) {
+                totalAmount = items.reduce((sum: number, item: any) => sum + item.totalPrice, 0);
+                console.log(`⚠️ Total amount missing/zero. Calculated from items: ${totalAmount}`);
+            }
+
             return {
                 vendorName: data.vendorName || 'Unknown Vendor',
                 invoiceNumber: data.invoiceNumber || `INV-${Date.now()}`,
                 invoiceDate: data.invoiceDate ? new Date(data.invoiceDate) : new Date(),
-                totalAmount: Number(data.totalAmount) || 0,
-                items: Array.isArray(data.items) ? data.items.map((item: any) => ({
-                    description: item.description || 'Item',
-                    category: item.category || 'General',
-                    quantity: Number(item.quantity) || 1,
-                    unitPrice: Number(item.unitPrice) || 0,
-                    totalPrice: Number(item.totalPrice) || 0,
-                    expiryDate: item.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default: 30 days from now
-                })) : [],
+                totalAmount: totalAmount,
+                items: items,
             };
 
         } catch (error) {

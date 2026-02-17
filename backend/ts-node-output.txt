@@ -1,0 +1,1502 @@
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +56ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMulterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +27ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTenantModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMasterCatalogModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuditModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPurchaseOrderModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCampaignModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPosMappingModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mLegacyApiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInvoiceModule dependencies initialized[39m[38;5;3m +0ms[39m
+SuperAdminController Initialized
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSettingsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCustomerModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVendorModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDashboardModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mProductModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSuperAdminModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSaleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mProfitController {/api/reports/profit}:[39m[38;5;3m +6ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/calculate, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/trends, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/category-breakdown, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/expense, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/expenses, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/dashboard-stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/api/auth}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/super-admin/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTenantController {/api/tenants}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tenants, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tenants, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tenants/:subdomain, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mProductController {/api/products}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/force-sync, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id/stock, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMasterCatalogController {/api/master-catalog}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/master-catalog, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSaleController {/api/sales}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/stats, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/:id/cancel, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/payment-intent, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/sync-image, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSettingsController {/api/settings}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/settings/:key, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/settings, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCustomerController {/api/customers}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id/loyalty-points, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mLegacyApiController {/api}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/commit, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/sync, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/admin/products/add-new, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVendorController {/api/vendors}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/vendors, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/vendors, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/vendors/invoices, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInvoiceController {/api/invoices}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/upload, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/test, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/parse, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/:id/items, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/:id/commit, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuditController {/api/audit}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/start, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/:id/count, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/:id/complete, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/sessions, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/variances, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/submit-bulk, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPurchaseOrderController {/api/purchase-orders}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id/status, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id/send, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id/receive, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCampaignController {/api/campaigns}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/:id, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/generate, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSuperAdminController {/api/super-admin}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/dashboard-data, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id/approve, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id/reject, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id/enrich, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mDashboardController {/api/dashboard}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/dashboard/overview, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/dashboard/sales-chart, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/dashboard/product-analytics, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPosMappingController {/api/pos-mappings}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/pos-mappings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/pos-mappings/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/pos-mappings/:id/verify, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 24448  - [39m02/17/2026, 1:13:41 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +97ms[39m
+≡ƒÜÇ Server running on http://localhost:3001 (Backend Restarted)
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 0 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 0 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 0 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 0 invoices
+≡ƒôä Parse invoice request received
+File: CrystalFoods22.pdf (11973496 bytes)
+File keys: [
+  'fieldname',
+  'originalname',
+  'encoding',
+  'mimetype',
+  'destination',
+  'filename',
+  'path',
+  'size'
+]
+Saving file to: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771270264825-CrystalFoods22.pdf
+File has no buffer, using path: uploads\invoices\1771270264585-870374106-CrystalFoods22.pdf
+Γ£à File saved successfully
+≡ƒñû Calling OpenAI OCR with fileUrl: /uploads/temp/1771270264825-CrystalFoods22.pdf
+≡ƒöæ Using OpenAI Key: sk-proj-79... (Length: 164)
+≡ƒôé Resolving file path...
+  - Public Dir: C:\Users\hp\Desktop\RetailStore\public
+  - Relative Path: uploads/temp/1771270264825-CrystalFoods22.pdf
+  - Full File Path: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771270264825-CrystalFoods22.pdf
+≡ƒôû Reading file...
+  - File read, size: 11973496 bytes
+≡ƒôä PDF detected. Extracting text...
+pdfParse type: function
+pdfParse keys: []
+  - Extracted 9165 characters of text
+≡ƒñû Initializing OpenAI client...
+≡ƒÜÇ Sending request to OpenAI API...
+Γ£à OpenAI Response received
+Γ£à OCR result: {
+  vendorName: 'Crystal Foods, Inc.',
+  invoiceNumber: '37294',
+  invoiceDate: 2022-04-09T00:00:00.000Z,
+  totalAmount: 5385.21,
+  items: [
+    {
+      description: 'National Achar Gosht 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Beef Biryani Masala 45 x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Broast Masala 100 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Chapli Kabab 100 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Fish Masala 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Haleem Masala 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Kofta Masala 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 11.5,
+      totalPrice: 11.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Lahori Chargha 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Malai Tikka 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Masalaydar Bombay Biryani 70 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Murgh Cholay 50gx12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Mutton Biryani Masala 45 x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 11.5,
+      totalPrice: 11.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Nehari Masala 65 gms x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Paya Masala 45 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Pulao Biryani 50 gms x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 11.5,
+      totalPrice: 11.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Qeema Masala 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 11.5,
+      totalPrice: 11.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Sabji Bhujia 100 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Seekh Kabab 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 11.5,
+      totalPrice: 11.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Shami Kabab 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Tikka Boti Seekh Kabab 50 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Vegetable Bombay Biryani 70 g x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National White Karahi 45 gms x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Biryani Masala 90 x12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 15.5,
+      totalPrice: 46.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Bombay Biryani 140gx12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 15.5,
+      totalPrice: 46.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Butter Chicken Masala 100gx12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 15.5,
+      totalPrice: 46.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Chicken Biryani Masala 90g x12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 15.5,
+      totalPrice: 46.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Chicken 65 95gms x 12 (Single Pack)',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 11.5,
+      totalPrice: 23,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Karahi Gosht 100gx12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 15.5,
+      totalPrice: 46.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Quorma Masala 100gx12',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 15.5,
+      totalPrice: 31,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Pulao 140gx12',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 15.5,
+      totalPrice: 31,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Sindhi Biryani 100gx12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 15.5,
+      totalPrice: 46.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Tandoori Chicken Masala 100gx12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 15.5,
+      totalPrice: 46.5,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Chana Chat 110 gms x 12',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 13.99,
+      totalPrice: 27.98,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Chat Masala 110 gms x 12',
+      category: 'Spices',
+      quantity: 36,
+      unitPrice: 13.99,
+      totalPrice: 41.97,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Pakora Mix 150 gms x 12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 13.99,
+      totalPrice: 13.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Dahi Bara Powder 150gms x 12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 13.99,
+      totalPrice: 13.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Fruit Chat Masala 100 gms x 12',
+      category: 'Spices',
+      quantity: 24,
+      unitPrice: 13.99,
+      totalPrice: 27.98,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Chili powder 1000 gms',
+      category: 'Spices',
+      quantity: 6,
+      unitPrice: 7.49,
+      totalPrice: 44.94,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Chili Powder 200gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 23.99,
+      totalPrice: 23.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Coriander Powder 400gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 38.99,
+      totalPrice: 38.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Cumin Seed Powder 400gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 38.99,
+      totalPrice: 38.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Garam Masala Powder 200gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 39.99,
+      totalPrice: 39.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Garam masala powder 400gm x 12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 69.99,
+      totalPrice: 69.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Ginger Powder 100gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 17.99,
+      totalPrice: 17.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Garlic Powder 100x12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 16.99,
+      totalPrice: 16.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Kasuri Methi Leave 100gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 15.99,
+      totalPrice: 15.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Kasuri Methi Leaves 50gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 10.99,
+      totalPrice: 10.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Turmeric Powder 200gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 19.99,
+      totalPrice: 19.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Turmeric Powder 400gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 37.99,
+      totalPrice: 37.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Haleem Mix Danedar 375gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 28.99,
+      totalPrice: 28.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Haleem MIX Quick Cook 345gx12',
+      category: 'Spices',
+      quantity: 12,
+      unitPrice: 28.99,
+      totalPrice: 28.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'National Custard Banana 300gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 15.99,
+      totalPrice: 15.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Custard Mango 300gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 15.99,
+      totalPrice: 15.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Custard Vanilla 300gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 15.99,
+      totalPrice: 15.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Jelly Crystals Strawberry 90gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 8.49,
+      totalPrice: 8.49,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Firni Mix 155gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 12.99,
+      totalPrice: 12.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Kheer Mix 155 gms x 12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 13.99,
+      totalPrice: 13.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Kheer pistachio 155gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 13.99,
+      totalPrice: 13.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Sheer Khurma Mix 160gx12',
+      category: 'Packaged Goods',
+      quantity: 24,
+      unitPrice: 13.99,
+      totalPrice: 27.98,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Vermicelli 150gms x 48',
+      category: 'Packaged Goods',
+      quantity: 48,
+      unitPrice: 16.95,
+      totalPrice: 16.95,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Carrot Pickle 1000gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 41,
+      totalPrice: 41,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Extra Hot Mango Pickle 1000gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 41,
+      totalPrice: 41,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Extra Hot Mix Pickle 1000gx12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 41,
+      totalPrice: 41,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Karela 1000g x 12',
+      category: 'Packaged Goods',
+      quantity: 0.5,
+      unitPrice: 41,
+      totalPrice: 20.5,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Kasundi Pickle 1000gx12',
+      category: 'Packaged Goods',
+      quantity: 0.5,
+      unitPrice: 41,
+      totalPrice: 20.5,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Mixed Pickle 1000gx12',
+      category: 'Packaged Goods',
+      quantity: 0.5,
+      unitPrice: 41,
+      totalPrice: 20.5,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Mango Pickle 1000x12',
+      category: 'Packaged Goods',
+      quantity: 12,
+      unitPrice: 41,
+      totalPrice: 41,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Carrot Pickle 320x12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Extra Hot Mix Pickle 320gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Extra Hot Mango Pickle 320gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Kasundi Pickle 320gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Mixed Hyderabadi pickle 320gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Mango Hyderabadi Pickle 320gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Mango Pickle 320gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Mixed Pickle 320gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 18.99,
+      totalPrice: 18.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Ginger & Garlic Mix Paste 750g x 12',
+      category: 'Packaged Goods',
+      quantity: 5,
+      unitPrice: 43.99,
+      totalPrice: 219.95,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Green Chilli Sauce 800gx6',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21.5,
+      totalPrice: 21.5,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Hot & Spicy Sauce 800g X 6',
+      category: 'Packaged Goods',
+      quantity: 2,
+      unitPrice: 21.5,
+      totalPrice: 43,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Red Chilli Sauce 850g X 6',
+      category: 'Packaged Goods',
+      quantity: 2,
+      unitPrice: 17.99,
+      totalPrice: 35.98,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Samosa Chutney 850gx6',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21.5,
+      totalPrice: 21.5,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Tamarind Chutney 325gx12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21,
+      totalPrice: 21,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Tamarind Chutney 850gx6',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21.5,
+      totalPrice: 21.5,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Green Chilli Sauce 300g x12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21,
+      totalPrice: 21,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Hot & Spicy Sauce 300x12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21,
+      totalPrice: 21,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Mango chilli Sauce 300x12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21,
+      totalPrice: 21,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Red Chilli Sauce 300 gms x 12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21,
+      totalPrice: 21,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'National Samosa Chutney 300 gms x 12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 21,
+      totalPrice: 21,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'Al Shifa Acacia Honey 250 gms x 12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 65,
+      totalPrice: 65,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'Al Shifa Natural Honey 250 gms x 12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 41.99,
+      totalPrice: 41.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'Al Shifa Natural Honey 500 gms x 12',
+      category: 'Packaged Goods',
+      quantity: 1,
+      unitPrice: 67.99,
+      totalPrice: 67.99,
+      expiryDate: '2023-04-09'
+    },
+    {
+      description: 'Vital Masala Black Tea (25 Tea Bags) 50 gms x 12',
+      category: 'Beverages',
+      quantity: 1,
+      unitPrice: 15.99,
+      totalPrice: 15.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'Vital Tea (Jar) 450 gms x 12',
+      category: 'Beverages',
+      quantity: 1,
+      unitPrice: 29.99,
+      totalPrice: 29.99,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'Vital Tea (Zipper Pouch) 900 gms x 12',
+      category: 'Beverages',
+      quantity: 2,
+      unitPrice: 57.99,
+      totalPrice: 115.98,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'Vital Peshaweri Kehwa Jar (220 gms x 12)',
+      category: 'Beverages',
+      quantity: 1,
+      unitPrice: 32,
+      totalPrice: 32,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'Vital Green Tea Jar 250 gms x 12',
+      category: 'Beverages',
+      quantity: 1,
+      unitPrice: 32,
+      totalPrice: 32,
+      expiryDate: '2023-10-09'
+    },
+    {
+      description: 'Mezban Chicken Seekh Kabab (8 pcs) 280 gms X 12',
+      category: 'Frozen',
+      quantity: 1,
+      unitPrice: 80.99,
+      totalPrice: 80.99,
+      expiryDate: '2022-04-29'
+    },
+    {
+      description: 'Mezban Chicken Tikka 300 gms x 12',
+      category: 'Frozen',
+      quantity: 1,
+      unitPrice: 93.99,
+      totalPrice: 93.99,
+      expiryDate: '2022-04-29'
+    },
+    {
+      description: 'Mezban Chicken Seekh Kabab 16 pcs (Family Pack) 560 gms x 12',
+      category: 'Frozen',
+      quantity: 1,
+      unitPrice: 123.99,
+      totalPrice: 123.99,
+      expiryDate: '2022-04-29'
+    },
+    {
+      description: 'Mezban Chicken Seekh Kabab MILD 16 pcs (Family Pack) 560 gms x 12',
+      category: 'Frozen',
+      quantity: 1,
+      unitPrice: 123.99,
+      totalPrice: 123.99,
+      expiryDate: '2022-04-29'
+    },
+    {
+      description: 'Mezban Chicken Puff Pastry 12 pieces (Party Pack) 540 gms x 12',
+      category: 'Frozen',
+      quantity: 1,
+      unitPrice: 86.99,
+      totalPrice: 86.99,
+      expiryDate: '2022-04-29'
+    },
+    ... 34 more items
+  ]
+}
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 0 invoices
+≡ƒôÑ Upload invoice request received
+≡ƒôª Items parsed: 134
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+Fetching dashboard data...
+Dashboard data fetched successfully.
+Fetching dashboard data...
+Dashboard data fetched successfully.
+[AuthService] Validating user for subdomain: anuj, email: admin@anuj.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: User not found
+[AuthService] User not found for email: admin@anuj.com
+[AuthService] Validating user for subdomain: anuj, email: admin@anuj.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: User not found
+[AuthService] User not found for email: admin@anuj.com
+[AuthService] Validating user for subdomain: anuj, email: admin@anuj.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: User not found
+[AuthService] User not found for email: admin@anuj.com
+[AuthService] Validating user for subdomain: anuj, email: admin@retailos.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: User not found
+[AuthService] User not found for email: admin@retailos.com
+[AuthService] Validating user for subdomain: anuj, email: admin@retailos.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: User not found
+[AuthService] User not found for email: admin@retailos.com
+[AuthService] Validating user for subdomain: anuj, email: admin@retailos.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: User not found
+[AuthService] User not found for email: admin@retailos.com
+[AuthService] Validating user for subdomain: anuj, email: admin@retailos.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: Found user 524c7705-f4a1-4f3c-a28e-9cf9d1008f7e
+[AuthService] Password hash starts with: $2b$10$kcu
+[AuthService] Password is hashed: true
+[AuthService] Bcrypt comparison result: true
+[AuthService] Authentication successful for user: admin@retailos.com
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+[AuthService] Validating user for subdomain: anuj, email: admin@anuj.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: User not found
+[AuthService] User not found for email: admin@anuj.com
+[AuthService] Validating user for subdomain: anuj, email: admin@retailos.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: Found user 524c7705-f4a1-4f3c-a28e-9cf9d1008f7e
+[AuthService] Password hash starts with: $2b$10$kcu
+[AuthService] Password is hashed: true
+[AuthService] Bcrypt comparison result: true
+[AuthService] Authentication successful for user: admin@retailos.com
+[AuthService] Validating user for subdomain: anuj, email: admin@retailos.com
+[AuthService] Found tenant: af18c346-1bce-4f02-a979-26f505b2a175 anuj
+[AuthService] Got tenant client for database: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+[AuthService] User lookup result: Found user 524c7705-f4a1-4f3c-a28e-9cf9d1008f7e
+[AuthService] Password hash starts with: $2b$10$kcu
+[AuthService] Password is hashed: true
+[AuthService] Bcrypt comparison result: true
+[AuthService] Authentication successful for user: admin@retailos.com
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+≡ƒôä Parse invoice request received
+File: mmm.pdf (2088859 bytes)
+File keys: [
+  'fieldname',
+  'originalname',
+  'encoding',
+  'mimetype',
+  'destination',
+  'filename',
+  'path',
+  'size'
+]
+Saving file to: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771272877087-mmm.pdf
+File has no buffer, using path: uploads\invoices\1771272876899-297413599-mmm.pdf
+Γ£à File saved successfully
+≡ƒñû Calling OpenAI OCR with fileUrl: /uploads/temp/1771272877087-mmm.pdf
+≡ƒöæ Using OpenAI Key: sk-proj-79... (Length: 164)
+≡ƒôé Resolving file path...
+  - Public Dir: C:\Users\hp\Desktop\RetailStore\public
+  - Relative Path: uploads/temp/1771272877087-mmm.pdf
+  - Full File Path: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771272877087-mmm.pdf
+≡ƒôû Reading file...
+  - File read, size: 2088859 bytes
+≡ƒôä PDF detected. Extracting text...
+pdfParse type: function
+pdfParse keys: []
+  - Extracted 2 characters of text
+Γ¥î OCR Service Error: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)
+Γ¥î Error in parseInvoice: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)
+≡ƒôä Parse invoice request received
+File: IMOVE.pdf (3623496 bytes)
+File keys: [
+  'fieldname',
+  'originalname',
+  'encoding',
+  'mimetype',
+  'destination',
+  'filename',
+  'path',
+  'size'
+]
+Saving file to: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771272896910-IMOVE.pdf
+File has no buffer, using path: uploads\invoices\1771272896835-710292764-IMOVE.pdf
+Γ£à File saved successfully
+≡ƒñû Calling OpenAI OCR with fileUrl: /uploads/temp/1771272896910-IMOVE.pdf
+≡ƒöæ Using OpenAI Key: sk-proj-79... (Length: 164)
+≡ƒôé Resolving file path...
+  - Public Dir: C:\Users\hp\Desktop\RetailStore\public
+  - Relative Path: uploads/temp/1771272896910-IMOVE.pdf
+  - Full File Path: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771272896910-IMOVE.pdf
+≡ƒôû Reading file...
+  - File read, size: 3623496 bytes
+≡ƒôä PDF detected. Extracting text...
+pdfParse type: function
+pdfParse keys: []
+  - Extracted 2078065 characters of text
+≡ƒñû Initializing OpenAI client...
+≡ƒÜÇ Sending request to OpenAI API...
+Γ¥î OCR Service Error: RateLimitError: 429 Request too large for gpt-4o in organization org-Cz3VzMr1P8gnmZbfOm1U5ynl on tokens per min (TPM): Limit 450000, Requested 519737. The input or output tokens must be reduced in order to run successfully. Visit https://platform.openai.com/account/rate-limits to learn more.
+    at Function.generate (C:\Users\hp\Desktop\RetailStore\backend\node_modules\openai\src\core\error.ts:96:14)
+    at OpenAI.makeStatusError (C:\Users\hp\Desktop\RetailStore\backend\node_modules\openai\src\client.ts:478:28)
+    at OpenAI.makeRequest (C:\Users\hp\Desktop\RetailStore\backend\node_modules\openai\src\client.ts:728:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:367:30)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28) {
+  status: 429,
+  headers: Headers {
+    date: 'Mon, 16 Feb 2026 20:15:20 GMT',
+    'content-type': 'application/json; charset=utf-8',
+    'content-length': '407',
+    connection: 'keep-alive',
+    vary: 'Origin',
+    'x-ratelimit-limit-requests': '5000',
+    'x-ratelimit-limit-tokens': '450000',
+    'x-ratelimit-remaining-requests': '4999',
+    'x-ratelimit-remaining-tokens': '450000',
+    'x-ratelimit-reset-requests': '12ms',
+    'x-ratelimit-reset-tokens': '0s',
+    'x-request-id': 'req_0e92a765456441359fc76e22264f45c6',
+    'x-openai-proxy-wasm': 'v0.1',
+    server: 'cloudflare',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=qiYKK_hYfKcldeFLpSmEsLAf10V1tTenbilWLG.hXIM-1771272916.1824512-1.0.1.1-OmmnMLw5LoUCkmCQqo7sLnHUsC6Cb517A5I0TGxWfLUaHxxAnO3Lg70Q5dID9QuMV_pH1FiN8cjouP3Dj5JaRwr5uYBR2IQ2W2uzwlMBkmYw2zyW38L7_6zfmrY.E159; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 16 Feb 2026 20:45:20 GMT, _cfuvid=aOcYJN56_LLXJuoN_Qg6ROMewmqIWcz3jyvqDm8MYc4-1771272916.1824512-1.0.1.1-A9Mu3GafMJAvfcS.rtK74pkBC7mK2ke9IPfj.s8V8jU; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.openai.com',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'x-content-type-options': 'nosniff',
+    'cf-ray': '9cefb74e2edb86dd-KTM',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_0e92a765456441359fc76e22264f45c6',
+  error: {
+    message: 'Request too large for gpt-4o in organization org-Cz3VzMr1P8gnmZbfOm1U5ynl on tokens per min (TPM): Limit 450000, Requested 519737. The input or output tokens must be reduced in order to run successfully. Visit https://platform.openai.com/account/rate-limits to learn more.',
+    type: 'tokens',
+    param: null,
+    code: 'rate_limit_exceeded'
+  },
+  code: 'rate_limit_exceeded',
+  param: null,
+  type: 'tokens'
+}
+Γ¥î Error in parseInvoice: RateLimitError: 429 Request too large for gpt-4o in organization org-Cz3VzMr1P8gnmZbfOm1U5ynl on tokens per min (TPM): Limit 450000, Requested 519737. The input or output tokens must be reduced in order to run successfully. Visit https://platform.openai.com/account/rate-limits to learn more.
+    at Function.generate (C:\Users\hp\Desktop\RetailStore\backend\node_modules\openai\src\core\error.ts:96:14)
+    at OpenAI.makeStatusError (C:\Users\hp\Desktop\RetailStore\backend\node_modules\openai\src\client.ts:478:28)
+    at OpenAI.makeRequest (C:\Users\hp\Desktop\RetailStore\backend\node_modules\openai\src\client.ts:728:24)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:367:30)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28) {
+  status: 429,
+  headers: Headers {
+    date: 'Mon, 16 Feb 2026 20:15:20 GMT',
+    'content-type': 'application/json; charset=utf-8',
+    'content-length': '407',
+    connection: 'keep-alive',
+    vary: 'Origin',
+    'x-ratelimit-limit-requests': '5000',
+    'x-ratelimit-limit-tokens': '450000',
+    'x-ratelimit-remaining-requests': '4999',
+    'x-ratelimit-remaining-tokens': '450000',
+    'x-ratelimit-reset-requests': '12ms',
+    'x-ratelimit-reset-tokens': '0s',
+    'x-request-id': 'req_0e92a765456441359fc76e22264f45c6',
+    'x-openai-proxy-wasm': 'v0.1',
+    server: 'cloudflare',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=qiYKK_hYfKcldeFLpSmEsLAf10V1tTenbilWLG.hXIM-1771272916.1824512-1.0.1.1-OmmnMLw5LoUCkmCQqo7sLnHUsC6Cb517A5I0TGxWfLUaHxxAnO3Lg70Q5dID9QuMV_pH1FiN8cjouP3Dj5JaRwr5uYBR2IQ2W2uzwlMBkmYw2zyW38L7_6zfmrY.E159; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 16 Feb 2026 20:45:20 GMT, _cfuvid=aOcYJN56_LLXJuoN_Qg6ROMewmqIWcz3jyvqDm8MYc4-1771272916.1824512-1.0.1.1-A9Mu3GafMJAvfcS.rtK74pkBC7mK2ke9IPfj.s8V8jU; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.openai.com',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'x-content-type-options': 'nosniff',
+    'cf-ray': '9cefb74e2edb86dd-KTM',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_0e92a765456441359fc76e22264f45c6',
+  error: {
+    message: 'Request too large for gpt-4o in organization org-Cz3VzMr1P8gnmZbfOm1U5ynl on tokens per min (TPM): Limit 450000, Requested 519737. The input or output tokens must be reduced in order to run successfully. Visit https://platform.openai.com/account/rate-limits to learn more.',
+    type: 'tokens',
+    param: null,
+    code: 'rate_limit_exceeded'
+  },
+  code: 'rate_limit_exceeded',
+  param: null,
+  type: 'tokens'
+}
+≡ƒÜ¿ OpenAI QUOTA EXCEEDED - Billing issue!
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+≡ƒôä Parse invoice request received
+File: mmm.pdf (2088859 bytes)
+File keys: [
+  'fieldname',
+  'originalname',
+  'encoding',
+  'mimetype',
+  'destination',
+  'filename',
+  'path',
+  'size'
+]
+Saving file to: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771273397213-mmm.pdf
+File has no buffer, using path: uploads\invoices\1771273396991-578445532-mmm.pdf
+Γ£à File saved successfully
+≡ƒñû Calling OpenAI OCR with fileUrl: /uploads/temp/1771273397213-mmm.pdf
+≡ƒöæ Using OpenAI Key: sk-proj-79... (Length: 164)
+≡ƒôé Resolving file path...
+  - Public Dir: C:\Users\hp\Desktop\RetailStore\public
+  - Relative Path: uploads/temp/1771273397213-mmm.pdf
+  - Full File Path: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771273397213-mmm.pdf
+≡ƒôû Reading file...
+  - File read, size: 2088859 bytes
+≡ƒôä PDF detected. Extracting text...
+pdfParse type: function
+pdfParse keys: []
+  - Extracted 2 characters of text
+Γ¥î OCR Service Error: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)
+Γ¥î Error in parseInvoice: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+≡ƒôä Parse invoice request received
+File: mmm.pdf (2088859 bytes)
+File keys: [
+  'fieldname',
+  'originalname',
+  'encoding',
+  'mimetype',
+  'destination',
+  'filename',
+  'path',
+  'size'
+]
+Saving file to: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771273948190-mmm.pdf
+File has no buffer, using path: uploads\invoices\1771273948084-337762344-mmm.pdf
+Γ£à File saved successfully
+≡ƒñû Calling OpenAI OCR with fileUrl: /uploads/temp/1771273948190-mmm.pdf
+≡ƒöæ Using OpenAI Key: sk-proj-79... (Length: 164)
+≡ƒôé Resolving file path...
+  - Public Dir: C:\Users\hp\Desktop\RetailStore\public
+  - Relative Path: uploads/temp/1771273948190-mmm.pdf
+  - Full File Path: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771273948190-mmm.pdf
+≡ƒôû Reading file...
+  - File read, size: 2088859 bytes
+≡ƒôä PDF detected. Extracting text...
+pdfParse type: function
+pdfParse keys: []
+  - Extracted 2 characters of text
+Γ¥î OCR Service Error: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)
+Γ¥î Error in parseInvoice: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+≡ƒôä Parse invoice request received
+File: mmm.pdf (2088859 bytes)
+File keys: [
+  'fieldname',
+  'originalname',
+  'encoding',
+  'mimetype',
+  'destination',
+  'filename',
+  'path',
+  'size'
+]
+Saving file to: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771274879535-mmm.pdf
+File has no buffer, using path: uploads\invoices\1771274879466-508520872-mmm.pdf
+Γ£à File saved successfully
+≡ƒñû Calling OpenAI OCR with fileUrl: /uploads/temp/1771274879535-mmm.pdf
+≡ƒöæ Using OpenAI Key: sk-proj-79... (Length: 164)
+≡ƒôé Resolving file path...
+  - Public Dir: C:\Users\hp\Desktop\RetailStore\public
+  - Relative Path: uploads/temp/1771274879535-mmm.pdf
+  - Full File Path: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771274879535-mmm.pdf
+≡ƒôû Reading file...
+  - File read, size: 2088859 bytes
+≡ƒôä PDF detected. Extracting text...
+pdfParse type: function
+pdfParse keys: []
+  - Extracted 2 characters of text
+Γ¥î OCR Service Error: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)
+Γ¥î Error in parseInvoice: Error: PDF contains no extractable text (it might be a scanned image). Please upload an image instead.
+    at InvoiceService.parseInvoiceOCR (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:304:27)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InvoiceController.parseInvoice (C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:146:28)

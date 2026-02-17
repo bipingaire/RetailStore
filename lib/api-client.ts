@@ -2,7 +2,7 @@ export const apiClient = {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
 
     async request(endpoint: string, options: RequestInit = {}) {
-        const token = localStorage.getItem('access_token');
+        const token = localStorage.getItem('accessToken');
         let headers: any = {
             ...options.headers,
         };

@@ -25,6 +25,31 @@ export class CampaignService {
         });
     }
 
+    async updateCampaign(subdomain: string, id: string, data: any) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const updateData: any = {};
+        if (data.name !== undefined) updateData.name = data.name;
+        if (data.type !== undefined) updateData.type = data.type;
+        if (data.status !== undefined) updateData.status = data.status;
+        if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate);
+        if (data.endDate !== undefined) updateData.endDate = new Date(data.endDate);
+        if (data.budget !== undefined) updateData.budget = data.budget;
+
+        return client.campaign.update({
+            where: { id },
+            data: updateData,
+        });
+    }
+
+    async deleteCampaign(subdomain: string, id: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.campaign.delete({ where: { id } });
+    }
+
     async listCampaigns(subdomain: string) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);

@@ -354,6 +354,68 @@ export default function ShopHome() {
           </div>
         </Link>
       )}
+
+      {/* FOOTER */}
+      <footer className="bg-white border-t border-gray-100 mt-20">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            {/* Brand Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-green-600 text-white p-2 rounded-lg">
+                  <ShoppingBag size={20} />
+                </div>
+                <span className="text-xl font-black text-gray-900">Indu<span className="text-green-600">Mart</span></span>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">Fresh products delivered to your door.</p>
+              <p className="text-sm text-gray-700 font-semibold">123 Market Street, NY</p>
+              <p className="text-xs text-gray-500">support@indumart.com</p>
+            </div>
+
+            {/* Account Section */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4">Account</h3>
+              <ul className="space-y-2">
+                <li><Link href="/shop/profile" className="text-sm text-gray-600 hover:text-green-600 transition">My Profile</Link></li>
+                <li><Link href="/shop/orders" className="text-sm text-gray-600 hover:text-green-600 transition">Order History</Link></li>
+                <li><Link href="/shop/account" className="text-sm text-gray-600 hover:text-green-600 transition">Wishlist</Link></li>
+              </ul>
+            </div>
+
+            {/* Help Section */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4">Help</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-sm text-gray-600 hover:text-green-600 transition">Shipping Info</a></li>
+                <li><a href="#" className="text-sm text-gray-600 hover:text-green-600 transition">Returns</a></li>
+                <li><a href="#" className="text-sm text-gray-600 hover:text-green-600 transition">FAQ</a></li>
+              </ul>
+            </div>
+
+            {/* Newsletter Section */}
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4">Newsletter</h3>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                />
+                <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition">
+                  Join
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom Copyright */}
+          <div className="border-t border-gray-100 mt-8 pt-6 text-center">
+            <p className="text-xs text-gray-500">© 2024 InduMart. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,0 +1,581 @@
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +81ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMulterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +19ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTenantModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMasterCatalogModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuditModule dependencies initialized[39m[38;5;3m +4ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPurchaseOrderModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCampaignModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPosMappingModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mLegacyApiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInvoiceModule dependencies initialized[39m[38;5;3m +0ms[39m
+SuperAdminController Initialized
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSettingsModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCustomerModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVendorModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDashboardModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mProductModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSuperAdminModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSaleModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mProfitController {/api/reports/profit}:[39m[38;5;3m +10ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/calculate, POST} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/trends, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/category-breakdown, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/expense, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/expenses, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/reports/profit/dashboard-stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/api/auth}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/super-admin/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTenantController {/api/tenants}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tenants, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tenants, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/tenants/:subdomain, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mProductController {/api/products}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/force-sync, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/products/:id/stock, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMasterCatalogController {/api/master-catalog}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/master-catalog, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSaleController {/api/sales}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/:id/cancel, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/payment-intent, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/sync-image, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSettingsController {/api/settings}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/settings/:key, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/settings, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCustomerController {/api/customers}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/customers/:id/loyalty-points, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mLegacyApiController {/api}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/commit, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/sales/sync, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/admin/products/add-new, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVendorController {/api/vendors}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/vendors, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/vendors, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/vendors/invoices, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInvoiceController {/api/invoices}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/upload, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/test, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/parse, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/:id/items, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/invoices/:id/commit, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuditController {/api/audit}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/start, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/:id/count, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/:id/complete, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/session/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/sessions, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/variances, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/audit/submit-bulk, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPurchaseOrderController {/api/purchase-orders}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id/status, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id/send, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/purchase-orders/:id/receive, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCampaignController {/api/campaigns}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/:id, PATCH} route[39m[38;5;3m +18ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/:id, DELETE} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/campaigns/generate, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSuperAdminController {/api/super-admin}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/dashboard-data, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id/approve, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id/reject, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/super-admin/products/:id/enrich, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mDashboardController {/api/dashboard}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/dashboard/overview, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/dashboard/sales-chart, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/dashboard/product-analytics, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPosMappingController {/api/pos-mappings}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/pos-mappings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/pos-mappings/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:41 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/pos-mappings/:id/verify, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 14328  - [39m02/17/2026, 3:05:42 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +883ms[39m
+≡ƒÜÇ Server running on http://localhost:3001 (Backend Restarted)
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 1 invoices
+≡ƒôä Parse invoice request received
+File: mmm.pdf (2088859 bytes)
+File keys: [
+  'fieldname',
+  'originalname',
+  'encoding',
+  'mimetype',
+  'destination',
+  'filename',
+  'path',
+  'size'
+]
+Saving file to: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771276916884-mmm.pdf
+File has no buffer, using path: uploads\invoices\1771276916792-824434988-mmm.pdf
+Γ£à File saved successfully
+≡ƒñû Calling OpenAI OCR with fileUrl: /uploads/temp/1771276916884-mmm.pdf
+≡ƒöæ Using OpenAI Key: sk-proj-79... (Length: 164)
+≡ƒôé Resolving file path...
+  - Public Dir: C:\Users\hp\Desktop\RetailStore\public
+  - Relative Path: uploads/temp/1771276916884-mmm.pdf
+  - Full File Path: C:\Users\hp\Desktop\RetailStore\public\uploads\temp\1771276916884-mmm.pdf
+≡ƒôû Reading file...
+  - File read, size: 2088859 bytes
+≡ƒôä PDF detected. Extracting text...
+pdfParse type: function
+pdfParse keys: []
+  - Extracted 2 characters of text
+ΓÜá∩╕Å PDF contains insufficient text. Attempting to convert to image for OCR using native Canvas...
+  - Successfully rendered PDF page 1 to Canvas
+≡ƒñû Initializing OpenAI client...
+≡ƒÜÇ Sending request to OpenAI API...
+Γ£à OpenAI Response received
+ΓÜá∩╕Å Total amount missing/zero. Calculated from items: 9993.349999999997
+Γ£à OCR result: {
+  vendorName: 'INDU GROCERY',
+  invoiceNumber: 'INV-1771277039623',
+  invoiceDate: 2025-12-30T00:00:00.000Z,
+  totalAmount: 9993.349999999997,
+  items: [
+    {
+      description: 'ALOO PUFF PATTIES 2 PACK',
+      category: 'Snacks',
+      quantity: 24,
+      unitPrice: 1.99,
+      totalPrice: 47.76,
+      expiryDate: '2023-01-23'
+    },
+    {
+      description: 'HIDE & SEEK EACH',
+      category: 'Snacks',
+      quantity: 36,
+      unitPrice: 0.99,
+      totalPrice: 35.64,
+      expiryDate: '2023-01-23'
+    },
+    {
+      description: 'TEA TIME CAKE 1 LB',
+      category: 'Bakery',
+      quantity: 19,
+      unitPrice: 3.99,
+      totalPrice: 75.81,
+      expiryDate: '2023-02-21'
+    },
+    {
+      description: 'YELLOW MOONG DAL LOOSE',
+      category: 'Produce',
+      quantity: 48,
+      unitPrice: 1.49,
+      totalPrice: 71.52,
+      expiryDate: '2023-03-21'
+    },
+    {
+      description: 'KOKUM 8 OZ',
+      category: 'Spices',
+      quantity: 23,
+      unitPrice: 2.99,
+      totalPrice: 68.77,
+      expiryDate: '2023-02-19'
+    },
+    {
+      description: 'NANGESAR PONNI RICE 45LB',
+      category: 'Produce',
+      quantity: 19,
+      unitPrice: 47.99,
+      totalPrice: 911.81,
+      expiryDate: '2023-02-21'
+    },
+    {
+      description: 'DAANA BEGUN NAME 2 LB',
+      category: 'Produce',
+      quantity: 39,
+      unitPrice: 3.99,
+      totalPrice: 155.61,
+      expiryDate: '2023-12-16'
+    },
+    {
+      description: 'IDLI RICE 10LB',
+      category: 'Produce',
+      quantity: 12,
+      unitPrice: 13.99,
+      totalPrice: 167.88,
+      expiryDate: '2023-12-14'
+    },
+    {
+      description: 'BANSI THOOR DAL LOOSE 12LB',
+      category: 'Produce',
+      quantity: 38,
+      unitPrice: 12.49,
+      totalPrice: 474.62,
+      expiryDate: '2024-09-23'
+    },
+    {
+      description: 'LAL MASOOR SPLIT DAL 1LB',
+      category: 'Produce',
+      quantity: 12,
+      unitPrice: 3.49,
+      totalPrice: 38.28,
+      expiryDate: '2023-11-20'
+    },
+    {
+      description: 'PANI PURI 6 PCK REG 400G',
+      category: 'Snacks',
+      quantity: 20,
+      unitPrice: 4.99,
+      totalPrice: 99.8,
+      expiryDate: '2023-09-24'
+    },
+    {
+      description: 'LAJJA PAPAD 200G',
+      category: 'Snacks',
+      quantity: 1,
+      unitPrice: 2.49,
+      totalPrice: 2.49,
+      expiryDate: '2023-06-25'
+    },
+    {
+      description: 'GITS IDLI MIX 500G',
+      category: 'Snacks',
+      quantity: 9,
+      unitPrice: 2.99,
+      totalPrice: 26.91,
+      expiryDate: '2024-04-21'
+    },
+    {
+      description: 'BANSI PLAKITRIRICE 2 LB',
+      category: 'Produce',
+      quantity: 19,
+      unitPrice: 1.49,
+      totalPrice: 28.31,
+      expiryDate: '2023-12-19'
+    },
+    {
+      description: 'ROJA A1 SHIRMA 200G',
+      category: 'Snacks',
+      quantity: 38,
+      unitPrice: 1.99,
+      totalPrice: 75.62,
+      expiryDate: '2023-03-30'
+    },
+    {
+      description: 'NANDINI GHEE 200G',
+      category: 'Snacks',
+      quantity: 28,
+      unitPrice: 5.99,
+      totalPrice: 167.72,
+      expiryDate: '2023-02-14'
+    },
+    {
+      description: 'LUDEKUCHA 250G',
+      category: 'Snacks',
+      quantity: 16,
+      unitPrice: 2.99,
+      totalPrice: 47.84,
+      expiryDate: '2023-01-31'
+    },
+    {
+      description: '30 FRAGANCIFRENCE STICK',
+      category: 'Household',
+      quantity: 5,
+      unitPrice: 1.49,
+      totalPrice: 7.45,
+      expiryDate: '2023-04-22'
+    },
+    {
+      description: 'SUPARIBBS',
+      category: 'Snacks',
+      quantity: 3,
+      unitPrice: 2.99,
+      totalPrice: 8.97,
+      expiryDate: '2023-03-20'
+    },
+    {
+      description: 'POP STICKS BIG 6 PCS',
+      category: 'Snacks',
+      quantity: 19,
+      unitPrice: 1.49,
+      totalPrice: 28.31,
+      expiryDate: '2024-09-22'
+    },
+    {
+      description: 'Y San Marcano Spicy Sa',
+      category: 'Snacks',
+      quantity: 6,
+      unitPrice: 7.99,
+      totalPrice: 47.94,
+      expiryDate: '2023-06-23'
+    },
+    {
+      description: 'APPLE INDIAFRAGY 200G',
+      category: 'Snacks',
+      quantity: 19,
+      unitPrice: 5.99,
+      totalPrice: 113.81,
+      expiryDate: '2024-08-22'
+    },
+    {
+      description: "U'PINDI RICE PARBLD 2LB",
+      category: 'Produce',
+      quantity: 3,
+      unitPrice: 4.99,
+      totalPrice: 14.97,
+      expiryDate: '2023-01-16'
+    },
+    {
+      description: 'IDLI RICHUCKY RICE 10LB',
+      category: 'Produce',
+      quantity: 10,
+      unitPrice: 9.99,
+      totalPrice: 99.9,
+      expiryDate: '2023-07-15'
+    },
+    {
+      description: 'PAKKI RATRICE 2LB',
+      category: 'Produce',
+      quantity: 4,
+      unitPrice: 2.99,
+      totalPrice: 11.96,
+      expiryDate: '2023-01-21'
+    },
+    {
+      description: 'PILLSBURY MULTIGRAIN',
+      category: 'Produce',
+      quantity: 6,
+      unitPrice: 4.99,
+      totalPrice: 29.94,
+      expiryDate: '2023-01-04'
+    },
+    {
+      description: "U'PINDI RICE SELLA 20 LB",
+      category: 'Produce',
+      quantity: 22,
+      unitPrice: 17.99,
+      totalPrice: 395.78,
+      expiryDate: '2022-12-25'
+    },
+    {
+      description: 'FREEKSEARCH 6 4 ONZ',
+      category: 'Snacks',
+      quantity: 3,
+      unitPrice: 1.49,
+      totalPrice: 4.47,
+      expiryDate: '2023-03-19'
+    },
+    {
+      description: 'DEEP BRAND RICE 20LB',
+      category: 'Produce',
+      quantity: 6,
+      unitPrice: 18.99,
+      totalPrice: 113.94,
+      expiryDate: '2023-06-18'
+    },
+    {
+      description: 'LAXHMI BIRTU RICE 57LB',
+      category: 'Produce',
+      quantity: 29,
+      unitPrice: 29.99,
+      totalPrice: 869.71,
+      expiryDate: '2023-02-20'
+    },
+    {
+      description: "U'DILY GONGTHED 20LB",
+      category: 'Produce',
+      quantity: 20,
+      unitPrice: 14.99,
+      totalPrice: 299.8,
+      expiryDate: '2023-10-19'
+    },
+    {
+      description: 'AMBLEE RICE 20LB',
+      category: 'Produce',
+      quantity: 5,
+      unitPrice: 23.99,
+      totalPrice: 119.95,
+      expiryDate: '2023-01-25'
+    },
+    {
+      description: 'SA&#769EE RATEDSHO 1 LB',
+      category: 'Produce',
+      quantity: 44,
+      unitPrice: 1.99,
+      totalPrice: 87.56,
+      expiryDate: '2023-08-16'
+    },
+    {
+      description: 'SA&amp;PUNISURWEET 72PKEE',
+      category: 'Snacks',
+      quantity: 41,
+      unitPrice: 3.99,
+      totalPrice: 163.59,
+      expiryDate: '2023-12-11'
+    },
+    {
+      description: 'HELTHENTONONE ORP RICE 20LB',
+      category: 'Produce',
+      quantity: 23,
+      unitPrice: 18.99,
+      totalPrice: 436.77,
+      expiryDate: '2023-03-29'
+    },
+    {
+      description: 'DEEP EXPRESS MT RIC 20LB',
+      category: 'Produce',
+      quantity: 6,
+      unitPrice: 23.99,
+      totalPrice: 143.94,
+      expiryDate: '2023-02-25'
+    },
+    {
+      description: 'BHOGBUTTI RICE 20LB',
+      category: 'Produce',
+      quantity: 8,
+      unitPrice: 18.99,
+      totalPrice: 151.92,
+      expiryDate: '2023-02-22'
+    },
+    {
+      description: 'SUDOSHORDIMONT RICE 20LB',
+      category: 'Produce',
+      quantity: 12,
+      unitPrice: 18.99,
+      totalPrice: 227.88,
+      expiryDate: '2024-04-30'
+    },
+    {
+      description: 'DEEP EXTRA LONG BASMAT 20 LB',
+      category: 'Produce',
+      quantity: 6,
+      unitPrice: 25.99,
+      totalPrice: 155.94,
+      expiryDate: '2025-12-20'
+    },
+    {
+      description: 'JEERAKASHIDETH 20LB',
+      category: 'Produce',
+      quantity: 15,
+      unitPrice: 27.99,
+      totalPrice: 419.85,
+      expiryDate: '2023-04-18'
+    },
+    {
+      description: 'DEEP RICE JASMINE 20LB',
+      category: 'Produce',
+      quantity: 2,
+      unitPrice: 21.99,
+      totalPrice: 43.98,
+      expiryDate: '2024-10-23'
+    },
+    {
+      description: 'ARIELLINAMTEXSTASS 20LB',
+      category: 'Produce',
+      quantity: 27,
+      unitPrice: 3.99,
+      totalPrice: 107.73,
+      expiryDate: '2023-07-13'
+    },
+    {
+      description: 'SURABIANABRATHI RICE 20LB',
+      category: 'Produce',
+      quantity: 10,
+      unitPrice: 19.99,
+      totalPrice: 199.9,
+      expiryDate: '2025-10-10'
+    },
+    {
+      description: 'SPRING LIMITED HOME DAR',
+      category: 'Household',
+      quantity: 4,
+      unitPrice: 5.99,
+      totalPrice: 23.96,
+      expiryDate: '2023-05-03'
+    },
+    {
+      description: 'TATA RICE MATSTRIC 2LB',
+      category: 'Produce',
+      quantity: 13,
+      unitPrice: 5.99,
+      totalPrice: 77.87,
+      expiryDate: '2023-11-30'
+    },
+    {
+      description: 'FREEFISH BASMATI R 20 LB',
+      category: 'Produce',
+      quantity: 18,
+      unitPrice: 29.99,
+      totalPrice: 539.82,
+      expiryDate: '2025-11-24'
+    },
+    {
+      description: 'URBAN GCYNPNAI 20LB',
+      category: 'Produce',
+      quantity: 50,
+      unitPrice: 49.99,
+      totalPrice: 2499.5,
+      expiryDate: '2025-09-03'
+    },
+    {
+      description: 'KRING REALE FES',
+      category: 'Household',
+      quantity: 10,
+      unitPrice: 2.99,
+      totalPrice: 29.9,
+      expiryDate: '2023-06-02'
+    },
+    {
+      description: 'FINDIA WARA 1PK',
+      category: 'Snacks',
+      quantity: 5,
+      unitPrice: 3.99,
+      totalPrice: 19.95,
+      expiryDate: '2023-08-24'
+    }
+  ]
+}
+≡ƒôÑ Upload invoice request received
+≡ƒôª Items parsed: 49
+getAllInvoices called for subdomain: anuj
+Tenant found: af18c346-1bce-4f02-a979-26f505b2a175, DB: postgresql://postgres:123@localhost:5432/retail_tenant_v2?schema=public
+Got tenant client
+Found 2 invoices

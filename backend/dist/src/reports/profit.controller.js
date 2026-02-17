@@ -1,0 +1,106 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProfitController = void 0;
+const common_1 = require("@nestjs/common");
+const profit_service_1 = require("./profit.service");
+let ProfitController = class ProfitController {
+    constructor(profitService) {
+        this.profitService = profitService;
+    }
+    async calculate(subdomain, body) {
+        return this.profitService.calculateProfit(subdomain, new Date(body.startDate), new Date(body.endDate), body.period);
+    }
+    async getReports(subdomain, period) {
+        return this.profitService.getProfitReports(subdomain, period);
+    }
+    async getTrends(subdomain, days) {
+        return this.profitService.getProfitTrends(subdomain, days ? parseInt(days) : 30);
+    }
+    async getCategoryBreakdown(subdomain, query) {
+        return this.profitService.getCategoryBreakdown(subdomain, new Date(query.startDate), new Date(query.endDate));
+    }
+    async addExpense(subdomain, body) {
+        return this.profitService.addExpense(subdomain, body.category, body.amount, body.description, body.expenseDate ? new Date(body.expenseDate) : undefined);
+    }
+    async getExpenses(subdomain, query) {
+        const startDate = query.startDate ? new Date(query.startDate) : undefined;
+        const endDate = query.endDate ? new Date(query.endDate) : undefined;
+        return this.profitService.getExpenses(subdomain, startDate, endDate);
+    }
+    async getDashboardStats(subdomain) {
+        return this.profitService.getDashboardStats(subdomain);
+    }
+};
+exports.ProfitController = ProfitController;
+__decorate([
+    (0, common_1.Post)('calculate'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "calculate", null);
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)('period')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "getReports", null);
+__decorate([
+    (0, common_1.Get)('trends'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)('days')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "getTrends", null);
+__decorate([
+    (0, common_1.Get)('category-breakdown'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "getCategoryBreakdown", null);
+__decorate([
+    (0, common_1.Post)('expense'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "addExpense", null);
+__decorate([
+    (0, common_1.Get)('expenses'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "getExpenses", null);
+__decorate([
+    (0, common_1.Get)('dashboard-stats'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ProfitController.prototype, "getDashboardStats", null);
+exports.ProfitController = ProfitController = __decorate([
+    (0, common_1.Controller)('reports/profit'),
+    __metadata("design:paramtypes", [profit_service_1.ProfitService])
+], ProfitController);
+//# sourceMappingURL=profit.controller.js.map

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 export default function AdminDashboard() {
   // Supabase removed - refactor needed
@@ -23,43 +24,27 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        // TODO: Replace with actual Backend API calls
-        // Currently mocking data to remove Supabase dependency and fix build errors
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Fetch data from backend API
+        const data = await apiClient.get('/dashboard/overview');
 
         setStats({
-          revenue: 15420, // Mock revenue
-          orders: 12,     // Mock pending orders
-          lowStock: 3,    // Mock low stock
-          activeCampaigns: 2 // Mock campaigns
+          revenue: data.revenue || 0,
+          orders: data.orders || 0,
+          lowStock: data.lowStock || 0,
+          activeCampaigns: data.activeCampaigns || 0
         });
 
         setStoreName('Anuj Store');
-
-        setRecentOrders([
-          {
-            'order-id': 'ORD-001-MOCK',
-            'customer-phone': '9876543210',
-            'order-date-time': new Date().toISOString(),
-            'status': 'completed',
-            'final-amount': 150.00
-          },
-          {
-            'order-id': 'ORD-002-MOCK',
-            'customer-phone': 'Guest',
-            'order-date-time': new Date().toISOString(),
-            'status': 'pending',
-            'final-amount': 85.50
-          }
-        ]);
-
-        setChartData([1200, 1900, 1500, 2100, 1800, 2400, 2200]);
+        setRecentOrders(data.recentOrders || []);
+        setChartData(data.weeklyChartData || [0, 0, 0, 0, 0, 0, 0]);
 
       } catch (err) {
         console.error('Dashboard load error', err);
         toast.error('Failed to load dashboard data');
+        // Set default values on error
+        setStats({ revenue: 0, orders: 0, lowStock: 0, activeCampaigns: 0 });
+        setRecentOrders([]);
+        setChartData([0, 0, 0, 0, 0, 0, 0]);
       } finally {
         setLoading(false);
       }

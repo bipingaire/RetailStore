@@ -27,6 +27,9 @@ export default function SuperadminLogin() {
                 // Also store user info if needed
                 localStorage.setItem('user', JSON.stringify(data.user));
 
+                // Set cookie for middleware
+                document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+
                 toast.success('Welcome back, Superadmin.');
                 router.push('/super-admin');
                 router.refresh();

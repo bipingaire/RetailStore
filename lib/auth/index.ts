@@ -9,7 +9,7 @@ export async function login(email: string, password: string) {
 
         if (access_token) {
             // 1. Store in LocalStorage (for Client Side Requests)
-            localStorage.setItem('access_token', access_token);
+            localStorage.setItem('accessToken', access_token);
 
             // 2. Set Cookie (for Server Components / Middleware)
             // Note: Middleware checks 'access_token' cookie.

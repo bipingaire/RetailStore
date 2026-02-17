@@ -122,11 +122,11 @@ export default function SettingsPage() {
       setSocialAccounts(mockSocial);
 
       try {
-        const pubKey = await apiClient.get('/settings/stripe_publishable_key');
-        const secKey = await apiClient.get('/settings/stripe_secret_key');
+        const pubKeyRes = await apiClient.get('/settings/stripe_publishable_key');
+        const secKeyRes = await apiClient.get('/settings/stripe_secret_key');
         setPaymentConfig({
-          stripe_publishable_key: pubKey || '',
-          stripe_secret_key: secKey || ''
+          stripe_publishable_key: pubKeyRes?.value || '',
+          stripe_secret_key: secKeyRes?.value || ''
         });
       } catch (e) {
         console.error("Failed to load payment settings", e);

@@ -171,6 +171,12 @@ export class InvoiceController {
                     error: 'Missing Configuration',
                     message: 'OpenAI API Key is missing in server configuration.'
                 }, HttpStatus.BAD_REQUEST);
+            } else if (error?.message?.includes('PDF contains insufficient text')) {
+                throw new HttpException({
+                    status: HttpStatus.BAD_REQUEST,
+                    error: 'Unreadable PDF',
+                    message: error.message
+                }, HttpStatus.BAD_REQUEST);
             }
 
             throw new HttpException({

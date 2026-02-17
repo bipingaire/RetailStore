@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   async function handleSignOut() {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem('accessToken');
     document.cookie = 'access_token=; path=/; max-age=0';
     toast.success('Signed out successfully');
     router.push('/admin/login');
@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setIsLoading(true);
 
       // Check if user has access token
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('accessToken');
 
       if (!token) {
         setIsAuthenticated(false);

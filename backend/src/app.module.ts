@@ -18,6 +18,8 @@ import { ProfitController } from './reports/profit.controller';
 import { ProfitService } from './reports/profit.service';
 import { TenantPrismaService } from './prisma/tenant-prisma.service';
 import { SuperAdminModule } from './super-admin/super-admin.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { PosMappingModule } from './pos-mapping/pos-mapping.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
     CampaignModule,
     SettingsModule,
     SuperAdminModule,
+    DashboardModule,
+    PosMappingModule,
   ],
   controllers: [ProfitController],
   providers: [ProfitService, TenantPrismaService],

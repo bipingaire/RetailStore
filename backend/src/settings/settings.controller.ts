@@ -12,7 +12,8 @@ export class SettingsController {
         @Headers('x-tenant') subdomain: string,
         @Param('key') key: string,
     ) {
-        return this.settingsService.getSetting(subdomain, key);
+        const value = await this.settingsService.getSetting(subdomain, key);
+        return { value };
     }
 
     @Post()

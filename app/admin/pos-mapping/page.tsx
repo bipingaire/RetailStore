@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api-client';
 import { Link as LinkIcon, AlertCircle, CheckCircle, Edit2, X, RefreshCw, Bot, Sparkles, Check } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { toast } from 'sonner';
 
 // 1. Updated Types to match DB Schema
 type PosMap = {
@@ -59,84 +60,43 @@ export default function PosMappingPage() {
   const loadData = async (tid: string) => {
     setLoading(true);
     try {
-      // Mock delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Fetch mappings and products from backend
+      const [mappingsData, productsData] = await Promise.all([
+        apiClient.get('/pos-mappings'),
+        apiClient.get('/products')
+      ]);
 
-      // Mock POS mapping data
-      const mockMapData = [
-        {
-          'mapping-id': 'map-001',
-          'pos-item-name': 'POS Item 1',
-          'pos-item-code': 'POS001',
-          'last-sold-price': 99.99,
-          'is-verified': false,
-          'inventory_link': {
-            'inventory-id': 'inv-001',
-            'global_product': {
-              'product-name': 'Sample Product A',
-              'image-url': ''
-            }
+      // Map backend data to frontend format
+      const mapped: PosMap[] = mappingsData.map((m: any) => ({
+        mapping_id: m.id,
+        pos_item_name: m.posItemName,
+        pos_item_code: m.posItemCode || '',
+        last_sold_price: Number(m.lastSoldPrice),
+        is_verified: m.confidenceScore >= 1.0, // High confidence = verified
+        inventory_link: m.product ? {
+          inventory_id: m.product.id,
+          global_product: {
+            product_name: m.product.name,
+            image_url: m.product.imageUrl || ''
           }
-        },
-        {
-          'mapping-id': 'map-002',
-          'pos-item-name': 'POS Item 2',
-          'pos-item-code': 'POS002',
-          'last-sold-price': 49.99,
-          'is-verified': true,
-          'inventory_link': null
-        }
-      ];
+        } : null
+      }));
 
-      // Mock inventory data
-      const mockInvData = [
-        {
-          'inventory-id': 'inv-001',
-          'selling-price-amount': 99.99,
-          'global': {
-            'product-name': 'Sample Product A',
-            'upc-ean-code': '123456789012'
-          }
-        },
-        {
-          'inventory-id': 'inv-002',
-          'selling-price-amount': 49.99,
-          'global': {
-            'product-name': 'Sample Product B',
-            'upc-ean-code': '987654321098'
-          }
-        }
-      ];
+      setMappings(mapped);
+      setPendingCount(mapped.filter(m => !m.is_verified).length);
 
-      if (mockMapData) {
-        const mapped: PosMap[] = mockMapData.map((m: any) => ({
-          mapping_id: m['mapping-id'],
-          pos_item_name: m['pos-item-name'],
-          pos_item_code: m['pos-item-code'],
-          last_sold_price: m['last-sold-price'],
-          is_verified: m['is-verified'],
-          inventory_link: m.inventory_link ? {
-            inventory_id: m.inventory_link['inventory-id'],
-            global_product: {
-              product_name: m.inventory_link.global_product?.['product-name'],
-              image_url: m.inventory_link.global_product?.['image-url']
-            }
-          } : null
-        }));
-        setMappings(mapped);
-        setPendingCount(mapped.filter(m => !m.is_verified).length);
-      }
-
-      if (mockInvData) {
-        setInventoryList(mockInvData.map((i: any) => ({
-          id: i['inventory-id'],
-          name: i.global?.['product-name'] || 'Unknown',
-          sku: i.global?.['upc-ean-code'] || '',
-          price: i['selling-price-amount'] || 0
-        })));
-      }
+      // Map products to inventory format
+      setInventoryList(productsData.map((p: any) => ({
+        id: p.id,
+        name: p.name || 'Unknown',
+        sku: p.sku || '',
+        price: Number(p.price || 0)
+      })));
     } catch (e) {
       console.error("Load Error:", e);
+      toast.error('Failed to load POS mappings');
+      setMappings([]);
+      setInventoryList([]);
     } finally {
       setLoading(false);
     }
@@ -145,38 +105,52 @@ export default function PosMappingPage() {
   // ... (rest of functions need updates too)
 
   const handleRemap = async (mapId: string, newInventoryId: string) => {
-    const current = mappings.find((m) => m.mapping_id === mapId);
+    try {
+      await apiClient.put(`/pos-mappings/${mapId}`, {
+        inventoryId: newInventoryId,
+        confidenceScore: 1.0 // Mark as verified
+      });
 
-    // Mock update (just update local state)
-    setMappings(prev => prev.map(m =>
-      m.mapping_id === mapId
-        ? {
-          ...m, is_verified: true, inventory_link: inventoryList.find(inv => inv.id === newInventoryId) ? {
-            inventory_id: newInventoryId,
-            global_product: {
-              product_name: inventoryList.find(inv => inv.id === newInventoryId)?.name || '',
-              image_url: ''
-            }
-          } : null
-        }
-        : m
-    ));
+      // Update local state
+      const newProduct = inventoryList.find(inv => inv.id === newInventoryId);
+      setMappings(prev => prev.map(m =>
+        m.mapping_id === mapId
+          ? {
+            ...m,
+            is_verified: true,
+            inventory_link: newProduct ? {
+              inventory_id: newInventoryId,
+              global_product: {
+                product_name: newProduct.name,
+                image_url: ''
+              }
+            } : null
+          }
+          : m
+      ));
 
-    toast.success('Mapping updated');
-    setEditingId(null);
+      toast.success('Mapping updated');
+      setEditingId(null);
+    } catch (error: any) {
+      console.error('Error updating mapping:', error);
+      toast.error(error.message || 'Failed to update mapping');
+    }
   };
 
   const verifyMap = async (id: string) => {
-    await supabase
-      .from('pos-item-mapping')
-      .update({ 'is-verified': true })
-      .eq('mapping-id', id);
+    try {
+      await apiClient.patch(`/pos-mappings/${id}/verify`);
 
-    setMappings(prev => {
-      const next = prev.map(m => m.mapping_id === id ? { ...m, is_verified: true } : m);
-      setPendingCount(next.filter((m) => !m.is_verified).length);
-      return next;
-    });
+      setMappings(prev => {
+        const next = prev.map(m => m.mapping_id === id ? { ...m, is_verified: true } : m);
+        setPendingCount(next.filter((m) => !m.is_verified).length);
+        return next;
+      });
+      toast.success('Mapping verified');
+    } catch (error: any) {
+      console.error('Error verifying mapping:', error);
+      toast.error(error.message || 'Failed to verify mapping');
+    }
   };
 
   const filteredInventory = useMemo(() => inventoryList.filter((i) => (i.name || '').toLowerCase().includes(searchInv.toLowerCase())), [inventoryList, searchInv]);
