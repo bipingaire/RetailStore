@@ -35,34 +35,31 @@ function LoginContent() {
         setError('');
 
         try {
-            // Login via backend API
-            await apiClient.post('/auth/login', {
-                email,
-                password,
-            });
+            const res: any = await apiClient.post('/auth/login', { email, password });
+
+            // Persist auth state so checkout and other pages can read it
+            if (res.access_token) {
+                localStorage.setItem('retail_token', res.access_token);
+                localStorage.setItem('accessToken', res.access_token);
+            }
+            if (res.user) {
+                localStorage.setItem('retail_user', JSON.stringify(res.user));
+            }
 
             // Check for pending cart item
             const pendingItem = sessionStorage.getItem('pending_cart_item');
-
             if (pendingItem) {
-                // Add item to cart
                 const existingCart = localStorage.getItem('retail_cart');
                 const cart = existingCart ? JSON.parse(existingCart) : {};
                 cart[pendingItem] = (cart[pendingItem] || 0) + 1;
                 localStorage.setItem('retail_cart', JSON.stringify(cart));
-
-                // Clear pending item
                 sessionStorage.removeItem('pending_cart_item');
-
-                // Redirect to cart
-                console.log('✅ Login successful! Pending cart item added, redirecting to cart');
                 router.push('/shop/cart');
             } else {
-                console.log('✅ Login successful! Redirecting to:', redirectTo);
                 router.push(redirectTo);
             }
         } catch (err: any) {
-            const message = err.response?.data?.message || err.message || 'Login failed';
+            const message = err.message?.replace('API Error: ', '') || 'Login failed';
             setError(message);
             setLoading(false);
         }

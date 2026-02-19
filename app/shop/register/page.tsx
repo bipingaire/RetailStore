@@ -32,29 +32,37 @@ function RegisterContent() {
             return;
         }
 
-        if (formData.password.length < 6) {
-            setError('Password must be at least 6 characters');
+        if (formData.password.length < 8) {
+            setError('Password must be at least 8 characters');
             setLoading(false);
             return;
         }
 
         try {
-            // Register via backend API
-            await apiClient.post('/auth/register', {
+            const res: any = await apiClient.post('/auth/register', {
                 email: formData.email,
                 password: formData.password,
                 name: formData.fullName,
-                phone: formData.phone
             });
+
+            // Save auth state — register returns same payload as login
+            if (res.access_token) {
+                localStorage.setItem('retail_token', res.access_token);
+                localStorage.setItem('accessToken', res.access_token);
+            }
+            if (res.user) {
+                localStorage.setItem('retail_user', JSON.stringify(res.user));
+            }
 
             setSuccess(true);
 
-            // Redirect to login after 2 seconds
+            // Redirect directly to destination (no need to go through login)
             setTimeout(() => {
-                router.push(`/shop/login?redirect=${redirectTo}`);
-            }, 2000);
+                router.push(redirectTo);
+            }, 1500);
         } catch (err: any) {
-            const message = err.response?.data?.message || err.message || 'Registration failed';
+            const raw = err?.message || 'Registration failed';
+            const message = raw.includes('already exists') ? 'An account with this email already exists. Please sign in instead.' : raw.replace('API Error: ', '');
             setError(message);
             setLoading(false);
         }
