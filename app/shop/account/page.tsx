@@ -261,7 +261,7 @@ export default function AccountPage() {
                       </div>
 
                       <div className="text-purple-200 text-sm">
-                        Payment: <span className="text-white font-semibold">{(order.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase()}</span>
+                        Payment: <span className="text-white font-semibold">{(order.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</span>
                       </div>
                     </div>
                   ))}
