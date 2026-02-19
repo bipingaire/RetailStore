@@ -1,3 +1,4 @@
+// v2: safe databaseUrl derivation + error handling
 import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
