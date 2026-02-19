@@ -9,6 +9,19 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install app dependencies
+# We need to install python3, make, and g++ for node-gyp (required by canvas)
+# and cairo/pango/jpeg/giflib dependencies for canvas functionality
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    build-base \
+    cairo-dev \
+    pango-dev \
+    jpeg-dev \
+    giflib-dev \
+    librsvg-dev
+
 RUN npm install
 
 # Bundle app source
