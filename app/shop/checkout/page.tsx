@@ -538,7 +538,7 @@ function CheckoutContent() {
                                 {cart.map((item) => (
                                     <div key={item.id} className="flex gap-3">
                                         <img
-                                            src={item.global_products.image_url || 'https://via.placeholder.com/60'}
+                                            src={item.global_products.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='%239ca3af'%3ENo img%3C/text%3E%3C/svg%3E"}
                                             alt={item.global_products.name}
                                             className="w-16 h-16 object-cover rounded-lg"
                                         />

@@ -300,7 +300,7 @@ export default function ShopHome() {
 
                   <div className="aspect-square bg-gray-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                     <img
-                      src={prod.imageUrl || 'https://via.placeholder.com/200?text=No+Image'}
+                      src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
                       className="w-full h-full object-cover"
                       alt={prod.name}
                     />

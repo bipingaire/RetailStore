@@ -130,7 +130,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     <div className="bg-white rounded-2xl p-8 shadow-sm">
                         <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-4">
                             <img
-                                src={product.global_products?.image_url || 'https://via.placeholder.com/600'}
+                                src={product.global_products?.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
                                 alt={product.global_products?.name}
                                 className="w-full h-full object-cover"
                             />
@@ -140,7 +140,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                             {[1, 2, 3, 4].map((i) => (
                                 <div key={i} className="w-20 h-20 rounded-lg bg-gray-100 border-2 border-transparent hover:border-green-500 cursor-pointer">
                                     <img
-                                        src={product.global_products?.image_url || 'https://via.placeholder.com/80'}
+                                        src={product.global_products?.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3C/svg%3E"}
                                         alt={`View ${i}`}
                                         className="w-full h-full object-cover rounded-lg"
                                     />
@@ -289,7 +289,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                                 >
                                     <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
                                         <img
-                                            src={related.global_products?.image_url || 'https://via.placeholder.com/200'}
+                                            src={related.global_products?.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3C/svg%3E"}
                                             alt={related.global_products?.name}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                                         />
