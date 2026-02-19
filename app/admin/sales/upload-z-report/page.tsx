@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Upload, FileText, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 
 export default function ZReportUploadPage() {
     // Supabase removed - refactor needed
@@ -17,47 +18,30 @@ export default function ZReportUploadPage() {
         setResult(null);
 
         try {
-            // 1. Upload file to storage
-            const fileExt = file.name.split('.').pop();
-            const fileName = `z-reports/${Date.now()}.${fileExt}`;
+            // 1. Create FormData
+            const formData = new FormData();
+            formData.append('file', file);
 
-            const { data: uploadData, error: uploadError } = // await // supabase.storage
-                .from('documents')
-                .upload(fileName, file);
-
-            if (uploadError) throw uploadError;
-
-            // 2. Get public URL
-            const { data: { publicUrl } } = // supabase.storage
-                .from('documents')
-                .getPublicUrl(fileName);
-
-            // 3. Call AI parsing endpoint
-            const response = await fetch('/api/parse-z-report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fileUrl: publicUrl })
+            // 2. Call Backend API
+            const response = await apiClient.post('/reports/z-report/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
 
-            const parseResult = await response.json();
-
-            if (!response.ok) {
-                throw new Error(parseResult.error || 'Parsing failed');
+            // 3. Set Result
+            // Backend returns: { message: string, data: { ...report, lineItems: [] } }
+            // We need to match the UI expectations.
+            // If backend returns data inside `data` property of response.data:
+            if (response.data && response.data.data) {
+                setResult(response.data.data);
+            } else {
+                setResult(response.data);
             }
 
-            setResult(parseResult);
-
-            // 4. Save to database
-            // await // supabase.from('daily_sales_z_report_data').insert({
-                report_date: parseResult.reportDate,
-                total_sales_amount: parseResult.totalSales,
-                transaction_count: parseResult.transactionCount,
-                file_url_path: publicUrl,
-                processing_status: 'processed'
-            });
-
         } catch (err: any) {
-            setError(err.message);
+            console.error("Upload error:", err);
+            setError(err.response?.data?.message || err.message || 'Upload failed');
         } finally {
             setUploading(false);
         }
@@ -148,14 +132,14 @@ export default function ZReportUploadPage() {
                         <div className="bg-white rounded-lg p-4 border border-green-200">
                             <div className="text-sm text-gray-600 mb-1">Total Sales</div>
                             <div className="text-lg font-bold text-green-600">
-                                ${result.totalSales?.toFixed(2)}
+                                ${typeof result.totalSales === 'number' ? result.totalSales.toFixed(2) : parseFloat(result.totalSales || '0').toFixed(2)}
                             </div>
                         </div>
 
                         <div className="bg-white rounded-lg p-4 border border-green-200">
                             <div className="text-sm text-gray-600 mb-1">Transactions</div>
                             <div className="text-lg font-bold text-gray-900">
-                                {result.transactionCount}
+                                {result.transactionCount || 0}
                             </div>
                         </div>
                     </div>
@@ -179,7 +163,7 @@ export default function ZReportUploadPage() {
                                                 <td className="px-4 py-2 font-mono text-xs">{item.skuCode}</td>
                                                 <td className="px-4 py-2">{item.productName}</td>
                                                 <td className="px-4 py-2 text-right font-semibold">{item.quantitySold}</td>
-                                                <td className="px-4 py-2 text-right">${item.totalAmount?.toFixed(2)}</td>
+                                                <td className="px-4 py-2 text-right">${typeof item.totalAmount === 'number' ? item.totalAmount.toFixed(2) : item.totalAmount}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -199,4 +183,3 @@ export default function ZReportUploadPage() {
         </div>
     );
 }
-

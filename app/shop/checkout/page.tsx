@@ -59,18 +59,20 @@ export default function CheckoutPage() {
     }, []);
 
     async function checkUser() {
-        const { data: { session } } = // await // supabase.auth.getSession();
-        if (!session) {
-            // Redirect to login if not authenticated
+        const storedUser = localStorage.getItem('retail_user');
+        const token = localStorage.getItem('retail_token');
+
+        if (!storedUser || !token) {
             router.push(`/shop/login?redirect=/shop/checkout`);
             return;
         }
-        setUser(session.user);
 
-        // Pre-fill details if available
-        if (session.user.email) setCustomerEmail(session.user.email);
-        if (session.user.user_metadata?.full_name) setCustomerName(session.user.user_metadata.full_name);
-        if (session.user.user_metadata?.phone) setCustomerPhone(session.user.user_metadata.phone);
+        const userSession = JSON.parse(storedUser);
+        setUser(userSession);
+
+        if (userSession.email) setCustomerEmail(userSession.email);
+        if (userSession.name) setCustomerName(userSession.name);
+        if (userSession.phone) setCustomerPhone(userSession.phone);
 
         setCheckingAuth(false);
     }
@@ -79,27 +81,26 @@ export default function CheckoutPage() {
         const ids = Object.keys(cartData);
         if (ids.length === 0) return;
 
-        const { data } = await supabase
-            .from('retail-store-inventory-item')
-            .select(`
-                id:inventory-id, 
-                price:selling-price-amount, 
-                global_product:global-product-master-catalog ( name:product-name, image:image-url )
-            `)
-            .in('inventory-id', ids);
+        try {
+            // Fetch all products (temporary workaround as no batch endpoint exists)
+            const allProducts: any[] = await apiClient.get('/products');
 
-        if (data) {
-            const items = data.map((item: any) => ({
-                id: item.id,
-                price: item.price || 0,
-                quantity: cartData[item.id] || 0,
-                // Map to existing JSX structure
-                global_products: {
-                    name: item.global_product?.name || 'Unknown Item',
-                    image_url: item.global_product?.image
-                }
-            }));
+            // Filter locally
+            const items = allProducts
+                .filter(p => ids.includes(p.id))
+                .map(p => ({
+                    id: p.id,
+                    price: p.price || 0,
+                    quantity: cartData[p.id] || 0,
+                    global_products: {
+                        name: p.name || 'Unknown Item',
+                        image_url: p.image || null
+                    }
+                }));
+
             setCart(items);
+        } catch (error) {
+            console.error("Failed to load cart items", error);
         }
     }
 
@@ -111,8 +112,6 @@ export default function CheckoutPage() {
     // Fetch Payment Intent when entering Payment Step
     useEffect(() => {
         if (step === 2 && paymentMethod === 'card' && total > 0) {
-            // Debounce or check if already fetched for this amount? 
-            // For simplicity, fetch.
             apiClient.post('/sales/payment-intent', { amount: total, currency: 'usd' })
                 .then(res => setClientSecret(res.clientSecret))
                 .catch(err => console.error("Failed to init payment", err));
@@ -139,7 +138,6 @@ export default function CheckoutPage() {
         }
 
         if (step === 2) {
-            // IF Card but no external details, STOP (StripeForm handles it)
             if (paymentMethod === 'card' && !externalPaymentDetails) {
                 return;
             }
@@ -147,85 +145,38 @@ export default function CheckoutPage() {
             setLoading(true);
 
             try {
-                // Get Tenant ID from env or fallback (IMPORTANT: Must be set for RLS)
-                // Get Tenant ID from env or fallback
-                // FORCED FIX: Use the ID we just seeded to guarantee match
-                const tenantId = '11111111-1111-1111-1111-111111111111';
-                // const tenantId = process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || '11111111-1111-1111-1111-111111111111';
-                if (!tenantId) throw new Error("System Error: Tenant ID not configured.");
+                // Map Payment Method to Backend Enum
+                // 'CASH' | 'CARD' | 'MOBILE_MONEY' | 'BANK_TRANSFER'
+                let backendPaymentMethod = 'CASH';
+                if (paymentMethod === 'card') backendPaymentMethod = 'CARD';
+                else if (paymentMethod === 'bank_transfer') backendPaymentMethod = 'BANK_TRANSFER';
+                else if (paymentMethod === 'wallet') backendPaymentMethod = 'MOBILE_MONEY';
 
-                // Prepare payment details JSON
-                let paymentDetails = externalPaymentDetails || {};
+                const salePayload = {
+                    items: cart.map(item => ({
+                        productId: item.id,
+                        quantity: item.quantity,
+                        unitPrice: item.price,
+                        subtotal: item.price * item.quantity
+                    })),
+                    subtotal: subtotal,
+                    tax: tax,
+                    total: total,
+                    amountPaid: total, // Assuming full payment or pay-on-delivery
+                    paymentMethod: backendPaymentMethod,
+                    customerId: user?.id,
+                    notes: fulfillmentType === 'delivery'
+                        ? `Delivery to: ${addressLine1}, ${addressLine2}, ${city}, ${state} ${zipCode}. Instructions: ${deliveryInstructions}`
+                        : 'Pickup Order'
+                };
 
-                if (!externalPaymentDetails) {
-                    if (paymentMethod === 'wallet') {
-                        paymentDetails = { type: 'wallet', provider: 'paypal' };
-                    } else if (paymentMethod === 'bank_transfer') {
-                        paymentDetails = { type: 'bank_transfer', bank: 'InduBank Corp' };
-                    } else if (paymentMethod === 'card') {
-                        // Should not happen due to check above, but fallback
-                        paymentDetails = { type: 'card', provider: 'stripe_mock' };
-                    }
-                }
-
-                // Create order in database
-                const { data: orderData, error: orderError } = await supabase
-                    .from('customer-order-header')
-                    .insert({
-                        'tenant-id': tenantId,
-                        'customer-id': user?.id, // Link to authenticated user
-                        'customer-name': customerName,
-                        'customer-email': customerEmail,
-                        'customer-phone': customerPhone,
-                        'total-amount-value': subtotal,
-                        'tax-amount': tax,
-                        'final-amount': total,
-                        'fulfillment-type': fulfillmentType,
-                        'payment-method': paymentMethod,
-                        'payment-details': paymentDetails, // New Field
-                        // If external (Stripe) says paid, mark paid. Else pending (cash/bank).
-                        'payment-status': (externalPaymentDetails?.status === 'paid' || paymentMethod === 'wallet') ? 'paid' : 'pending',
-                        'order-status-code': 'confirmed',
-                    })
-                    .select()
-                    .single();
-
-                if (orderError) throw orderError;
-
-                // Create order line items
-                for (const item of cart) {
-                    await supabase
-                        .from('order-line-item-detail')
-                        .insert({
-                            'order-id': orderData['order-id'],
-                            'inventory-id': item.id,
-                            'product-name': item.global_products.name,
-                            'quantity-ordered': item.quantity,
-                            'unit-price-amount': item.price,
-                            'total-amount': item.price * item.quantity,
-                        });
-                }
-
-                // Create delivery address if delivery
-                if (fulfillmentType === 'delivery') {
-                    await supabase
-                        .from('delivery-address-information')
-                        .insert({
-                            'order-id': orderData['order-id'],
-                            'address-line-1': addressLine1,
-                            'address-line-2': addressLine2,
-                            'city-name': city,
-                            'state-code': state,
-                            'zip-code': zipCode,
-                            'delivery-instructions': deliveryInstructions,
-                        });
-                }
+                const orderData = await apiClient.post('/sales', salePayload);
 
                 // Clear cart
                 localStorage.removeItem('retail_cart');
 
                 // Redirect to success page
-                router.push(`/shop/checkout/success?orderId=${orderData['order-id']}`);
+                router.push(`/shop/checkout/success?orderId=${orderData.id}`);
 
             } catch (error: any) {
                 console.error('Order error:', error);
@@ -236,9 +187,7 @@ export default function CheckoutPage() {
         }
     };
 
-    // Non-blocking Render: We allow the UI to show while checking auth
-    // If not authenticated, the useEffect will redirect.
-    // This satisfies the requirement for "Direct Navigation" without a loading screen.
+    // Non-blocking Render
     // if (checkingAuth) return <Loader... />  <-- REMOVED
 
     if (cart.length === 0) {
