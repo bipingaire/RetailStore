@@ -60,13 +60,11 @@ function CheckoutSuccessContent() {
         doc.setTextColor(...gray);
         doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 50);
         doc.text(`Status: ${order.status || 'COMPLETED'}`, 14, 56);
-        const paymentDisplay = (order.paymentMethod || 'CASH').replace('_', ' ').toUpperCase();
-        doc.text(`Payment: ${paymentDisplay}`, 140, 44);
-        doc.text(`Method: ${paymentDisplay === 'CARD' ? 'Credit/Debit Card' : paymentDisplay}`, 140, 50);
-
+        const paymentMethodDisp = (order.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
+        doc.text(`Payment: ${paymentMethodDisp}`, 140, 44);
         if (order.notes) {
             const noteLines = doc.splitTextToSize(`Note: ${order.notes}`, 65);
-            doc.text(noteLines, 140, 56);
+            doc.text(noteLines, 140, 50);
         }
 
         // Items table
@@ -78,7 +76,7 @@ function CheckoutSuccessContent() {
         ]);
 
         autoTable(doc, {
-            startY: 85,
+            startY: 65,
             head: [['Product', 'Qty', 'Unit Price', 'Subtotal']],
             body: rows,
             foot: [
@@ -138,7 +136,7 @@ function CheckoutSuccessContent() {
                     <div className="grid grid-cols-2 gap-px bg-gray-100">
                         <div className="bg-white p-4">
                             <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><Wallet size={12} /> Payment</p>
-                            <p className="font-bold text-gray-800 capitalize text-sm">{(order?.paymentMethod || 'CASH').replace('_', ' ')}</p>
+                            <p className="font-bold text-gray-800 capitalize text-sm">{(order?.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase()}</p>
                         </div>
                         <div className="bg-white p-4">
                             <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><Package size={12} /> Status</p>
