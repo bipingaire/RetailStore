@@ -30,6 +30,12 @@ function CheckoutContent() {
     );
     const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash' | 'bank_transfer' | 'wallet'>('card');
 
+    // Pickup only allows cash payment
+    const handleFulfillmentChange = (type: 'delivery' | 'pickup') => {
+        setFulfillmentType(type);
+        if (type === 'pickup') setPaymentMethod('cash');
+    };
+
     // Address state
     const [addressLine1, setAddressLine1] = useState('');
     const [addressLine2, setAddressLine2] = useState('');
@@ -42,10 +48,11 @@ function CheckoutContent() {
     const [stripePromise, setStripePromise] = useState<any>(null);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
 
-    // Load Stripe Key
+    // Load Stripe Key — endpoint returns { value: 'pk_...' }
     useEffect(() => {
-        apiClient.get('/settings/stripe_publishable_key').then(key => {
-            if (key) setStripePromise(loadStripe(key));
+        apiClient.get('/settings/stripe_publishable_key').then((res: any) => {
+            const key = typeof res === 'string' ? res : res?.value;
+            if (key && typeof key === 'string') setStripePromise(loadStripe(key));
         }).catch(err => console.error("Failed to load Stripe key", err));
     }, []);
 
@@ -90,7 +97,7 @@ function CheckoutContent() {
                 .filter(p => ids.includes(p.id))
                 .map(p => ({
                     id: p.id,
-                    price: p.price || 0,
+                    price: parseFloat(p.price) || 0,  // Prisma Decimal → JS number
                     quantity: cartData[p.id] || 0,
                     global_products: {
                         name: p.name || 'Unknown Item',
@@ -283,7 +290,7 @@ function CheckoutContent() {
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <button
-                                            onClick={() => setFulfillmentType('delivery')}
+                                            onClick={() => handleFulfillmentChange('delivery')}
                                             className={`p-4 rounded-lg border-2 transition ${fulfillmentType === 'delivery'
                                                 ? 'border-green-600 bg-green-50'
                                                 : 'border-gray-200 hover:border-gray-300'
@@ -291,11 +298,11 @@ function CheckoutContent() {
                                         >
                                             <Truck className={`mx-auto mb-2 ${fulfillmentType === 'delivery' ? 'text-green-600' : 'text-gray-400'}`} />
                                             <div className="font-bold text-sm">Delivery</div>
-                                            <div className="text-xs text-gray-500">$5.99</div>
+                                            <div className="text-xs text-gray-500">$5.99 — Card, Bank, Wallet, Cash</div>
                                         </button>
 
                                         <button
-                                            onClick={() => setFulfillmentType('pickup')}
+                                            onClick={() => handleFulfillmentChange('pickup')}
                                             className={`p-4 rounded-lg border-2 transition ${fulfillmentType === 'pickup'
                                                 ? 'border-green-600 bg-green-50'
                                                 : 'border-gray-200 hover:border-gray-300'
@@ -303,7 +310,7 @@ function CheckoutContent() {
                                         >
                                             <Package className={`mx-auto mb-2 ${fulfillmentType === 'pickup' ? 'text-green-600' : 'text-gray-400'}`} />
                                             <div className="font-bold text-sm">Pickup</div>
-                                            <div className="text-xs text-gray-500">Free</div>
+                                            <div className="text-xs text-gray-500">Free — Cash only</div>
                                         </button>
                                     </div>
                                 </div>
@@ -399,8 +406,17 @@ function CheckoutContent() {
                                 </h2>
 
                                 <div className="space-y-4">
-                                    {/* Stripe / Card */}
-                                    <button
+
+                                    {/* Pickup info banner */}
+                                    {fulfillmentType === 'pickup' && (
+                                        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm">
+                                            <Package size={18} className="text-amber-600 flex-shrink-0" />
+                                            <span><strong>Pickup orders</strong> are cash only. Please bring exact change when collecting your order.</span>
+                                        </div>
+                                    )}
+
+                                    {/* Stripe / Card — delivery only */}
+                                    {fulfillmentType === 'delivery' && <button
                                         onClick={() => setPaymentMethod('card')}
                                         className={`w-full p-4 rounded-xl border-2 text-left transition-all ${paymentMethod === 'card'
                                             ? 'border-emerald-600 bg-emerald-50 shadow-md transform scale-[1.01]'
@@ -435,8 +451,8 @@ function CheckoutContent() {
                                         )}
                                     </button>
 
-                                    {/* Bank Transfer */}
-                                    <button
+                                    {/* Bank Transfer — delivery only */}
+                                    {fulfillmentType === 'delivery' && <button
                                         onClick={() => setPaymentMethod('bank_transfer')}
                                         className={`w-full p-4 rounded-xl border-2 text-left transition-all ${paymentMethod === 'bank_transfer'
                                             ? 'border-emerald-600 bg-emerald-50 shadow-md transform scale-[1.01]'
@@ -463,8 +479,8 @@ function CheckoutContent() {
                                         )}
                                     </button>
 
-                                    {/* Wallet */}
-                                    <button
+                                    {/* Wallet — delivery only */}
+                                    {fulfillmentType === 'delivery' && <button
                                         onClick={() => setPaymentMethod('wallet')}
                                         className={`w-full p-4 rounded-xl border-2 text-left transition-all ${paymentMethod === 'wallet'
                                             ? 'border-emerald-600 bg-emerald-50 shadow-md transform scale-[1.01]'
