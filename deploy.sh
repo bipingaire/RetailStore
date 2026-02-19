@@ -9,10 +9,10 @@ echo "==> Tearing down everything..."
 docker-compose down --remove-orphans 2>/dev/null || true
 
 # Force-remove any leftover named containers from previous runs
-docker rm -f retail_store_backend retail_store_frontend retail_store_db 2>/dev/null || true
+docker rm -f retail_store_nginx retail_store_backend retail_store_frontend retail_store_db 2>/dev/null || true
 
 # Stop and remove any OTHER container using our ports (Docker holds port at daemon level)
-for PORT in 3010 3011; do
+for PORT in 80 5435; do
   CONTAINERS=$(docker ps -q --filter "publish=$PORT" 2>/dev/null || true)
   if [ -n "$CONTAINERS" ]; then
     echo "  Removing Docker containers holding port $PORT: $CONTAINERS"
@@ -21,7 +21,7 @@ for PORT in 3010 3011; do
 done
 
 # Also kill any non-Docker OS processes still bound to those ports
-for PORT in 3010 3011 5432; do
+for PORT in 80 5435; do
   PIDS=$(lsof -ti tcp:$PORT 2>/dev/null || true)
   if [ -n "$PIDS" ]; then
     echo "  Killing OS processes on port $PORT: $PIDS"
@@ -39,10 +39,20 @@ echo "==> Starting containers..."
 docker-compose up -d
 
 echo "==> Waiting for containers to start..."
-sleep 15
+sleep 20
 
 echo "==> Running Database Migrations..."
 docker exec retail_store_backend npx prisma db push --schema prisma/schema-master.prisma
 docker exec retail_store_backend npx prisma db push --schema prisma/schema.prisma
 
-echo "Deployment Complete!"
+echo "==> Seeding InduMart tenants (highpoint + greensboro)..."
+node scripts/seed-indumart-tenants.js || echo "  ⚠️  Seeding skipped (may already exist)"
+
+echo ""
+echo "✅ Deployment Complete!"
+echo ""
+echo "  🌐 retailos.cloud        → Landing + Super Admin"
+echo "  🏪 indumart.us           → Nearest store redirect"
+echo "  🏬 highpoint.indumart.us → Highpoint NC store"
+echo "  🏬 greensboro.indumart.us→ Greensboro NC store"
+echo ""

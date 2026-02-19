@@ -1,43 +1,62 @@
 version: '3.8'
 
 services:
+  # ── Nginx reverse proxy: routes retailos.cloud + indumart.us ──────────
+  nginx:
+    image: nginx:alpine
+    container_name: retail_store_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: always
+    networks:
+      - retailos_net
+
+  # ── Next.js frontend ───────────────────────────────────────────────────
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: retail_store_frontend
-    ports:
-      - "3010:3000"
+    # No longer exposed directly to host — nginx routes to it
+    expose:
+      - "3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_APP_URL=http://localhost:3010
-      - NEXT_PUBLIC_API_URL=http://localhost:3011/api
+      - NEXT_PUBLIC_APP_URL=https://indumart.us
+      - NEXT_PUBLIC_API_URL=http://backend:3001/api
     depends_on:
       - backend
     restart: always
     networks:
       - retailos_net
 
+  # ── NestJS backend ─────────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: retail_store_backend
-    ports:
-      - "3011:3001"
+    expose:
+      - "3001"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_master?schema=public
       - TENANT_DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_tenant_default?schema=public
       - JWT_SECRET=your-secret-key-change-in-production
       - JWT_EXPIRATION=7d
-      - FRONTEND_URL=http://localhost:3010
+      - FRONTEND_URL=https://indumart.us
     depends_on:
       - db
     restart: always
     networks:
       - retailos_net
 
+  # ── PostgreSQL ─────────────────────────────────────────────────────────
   db:
     image: postgres:15-alpine
     container_name: retail_store_db

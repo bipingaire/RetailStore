@@ -1,107 +1,84 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { extractSubdomain, getTenantFromSubdomain, isSuperadminDomain } from '@/lib/subdomain';
-
-const PROTECTED_PREFIXES = ['/admin', '/superadmin', '/super-admin', '/supplier', '/vendors', '/pos-mapping', '/test-parser'];
+import { extractSubdomain } from '@/lib/subdomain';
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
   const hostname = req.headers.get('host') || '';
-  const { pathname, searchParams } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
-  // 1. Handle retailos.cloud (Business & Super Admin)
+  // ─── 1. retailos.cloud ────────────────────────────────────────────────
   if (hostname.includes('retailos.cloud')) {
-    // Super Admin: we.retailos.cloud/super-admin or just /super-admin on this domain
-    if (hostname.startsWith('we.') || pathname.startsWith('/super-admin')) {
-      // Allow access to super-admin routes
-      // Check auth/session if needed (existing logic)
+    // Super Admin section — require auth token
+    if (pathname.startsWith('/super-admin')) {
       const sessionToken = req.cookies.get('access_token')?.value;
-      if (pathname.startsWith('/super-admin') && !sessionToken && !pathname.includes('/login')) {
+      if (!sessionToken && !pathname.includes('/login')) {
         const redirectUrl = new URL('/super-admin/login', req.url);
         redirectUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(redirectUrl);
       }
-      return NextResponse.rewrite(new URL(pathname, req.url)); // Keep path as is
+      return NextResponse.next();
     }
 
-    // Business Page: www.retailos.cloud -> /business
-    if (hostname.startsWith('www.') || hostname === 'retailos.cloud') {
-      if (pathname === '/') {
-        return NextResponse.rewrite(new URL('/business', req.url));
-      }
+    // Root → business landing page
+    if (pathname === '/') {
+      return NextResponse.rewrite(new URL('/business', req.url));
     }
+
+    return NextResponse.next();
   }
 
-  // 2. Handle indumart.us (Tenant Stores)
-  if (hostname.includes('indumart.us')) {
-    // Main Landing: www.indumart.us -> Nearest Store
-    if (hostname.startsWith('www.') || hostname === 'indumart.us') {
-      if (pathname === '/') {
-        return NextResponse.redirect(new URL('/find-store', req.url));
-      }
-      return res;
+  // ─── 2. indumart.us root domain ────────────────────────────────────────
+  if (hostname === 'indumart.us' || hostname === 'www.indumart.us') {
+    // Always rewrite root to find-store geolocation page
+    return NextResponse.rewrite(new URL('/find-store', req.url));
+  }
+
+  // ─── 3. *.indumart.us tenant subdomains ────────────────────────────────
+  if (hostname.endsWith('.indumart.us')) {
+    const subdomain = extractSubdomain(hostname);
+
+    if (!subdomain || subdomain === 'www') {
+      return NextResponse.redirect(new URL('https://indumart.us'));
     }
 
-    // Tenant Subdomains: store.indumart.us
+    // Inject tenant headers
+    const response = NextResponse.next();
+    response.headers.set('x-subdomain', subdomain);
+    response.headers.set('x-tenant', subdomain);
+
+    // Tenant Admin: subdomain.indumart.us/admin → auth gate
+    if (pathname.startsWith('/admin')) {
+      const sessionToken = req.cookies.get('access_token')?.value;
+      if (!sessionToken && !pathname.includes('/login')) {
+        const redirectUrl = new URL('/admin/login', req.url);
+        redirectUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(redirectUrl);
+      }
+      return response;
+    }
+
+    // Root → /shop storefront
+    if (pathname === '/') {
+      return NextResponse.rewrite(new URL('/shop', req.url));
+    }
+
+    return response;
+  }
+
+  // ─── 4. Localhost development ──────────────────────────────────────────
+  if (hostname.includes('localhost')) {
     const subdomain = extractSubdomain(hostname);
-    if (subdomain && subdomain !== 'www') {
-      // Verify Tenant
-      const tenantId = await getTenantFromSubdomain(subdomain);
-      if (!tenantId) {
-        return NextResponse.json({ error: 'Store not found' }, { status: 404 });
-      }
-
+    if (subdomain) {
       const response = NextResponse.next();
-      response.headers.set('x-tenant-id', tenantId);
       response.headers.set('x-subdomain', subdomain);
-
-      // Tenant Admin: store.indumart.us/admin
-      if (pathname.startsWith('/admin')) {
-        const sessionToken = req.cookies.get('access_token')?.value;
-        if (!sessionToken && !pathname.includes('/login')) {
-          const redirectUrl = new URL('/admin/login', req.url);
-          redirectUrl.searchParams.set('redirect', pathname);
-          return NextResponse.redirect(redirectUrl);
-        }
-        return response;
-      }
-
-      // Tenant Shop: store.indumart.us/shop
-      // If user goes to /shop, let them. 
-      // If user goes to root /, maybe redirect to /shop?
-      if (pathname === '/') {
-        return NextResponse.rewrite(new URL('/shop', req.url));
-      }
-
+      response.headers.set('x-tenant', subdomain);
       return response;
     }
   }
 
-  // Fallback / Dvelopment (Localhost)
-  // Keep existing logic for localhost development
-  if (hostname.includes('localhost')) {
-    const subdomain = extractSubdomain(hostname);
-    if (subdomain) {
-      const tenantId = await getTenantFromSubdomain(subdomain);
-      if (tenantId) {
-        const response = NextResponse.next();
-        response.headers.set('x-tenant-id', tenantId);
-        response.headers.set('x-subdomain', subdomain);
-        return response;
-      }
-    }
-  }
-
-  return res;
+  return NextResponse.next();
 }
 
+// Match ALL paths except Next.js internals
 export const config = {
-  matcher: [
-    '/admin/:path*',
-    '/superadmin/:path*',
-    '/super-admin/:path*',
-    '/supplier/:path*',
-    '/vendors/:path*',
-    '/pos-mapping/:path*',
-    '/test-parser/:path*',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
