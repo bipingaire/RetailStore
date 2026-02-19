@@ -18,21 +18,48 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load cart from localStorage
-    const stored = localStorage.getItem('retail_cart');
-    const counts: Record<string, number> = stored ? JSON.parse(stored) : {};
+    async function loadCart() {
+      const stored = localStorage.getItem('retail_cart');
+      const counts: Record<string, number> = stored ? JSON.parse(stored) : {};
+      const ids = Object.keys(counts);
 
-    // For now, create mock items from localStorage IDs
-    // In a real app, you'd fetch product details from backend
-    const items: CartItem[] = Object.entries(counts).map(([id, quantity]) => ({
-      id,
-      name: `Product ${id}`,
-      price: 0, // Would come from API
-      quantity
-    }));
+      if (ids.length === 0) {
+        setCartItems([]);
+        setLoading(false);
+        return;
+      }
 
-    setCartItems(items);
-    setLoading(false);
+      try {
+        // Fetch all products and find our cart items by ID
+        const { apiClient } = await import('@/lib/api-client');
+        const res: any = await apiClient.get('/products');
+        const allProducts: any[] = Array.isArray(res) ? res : (res?.data || res?.products || []);
+
+        const items: CartItem[] = ids
+          .map(id => {
+            const product = allProducts.find((p: any) => p.id === id);
+            if (!product) return null;
+            return {
+              id,
+              name: product.name || product.global_products?.name || `Product ${id.slice(0, 8)}`,
+              price: parseFloat(product.price ?? product.sellingPrice ?? 0),
+              imageUrl: product.imageUrl || product.image_url || product.global_products?.image_url || undefined,
+              quantity: counts[id],
+            };
+          })
+          .filter(Boolean) as CartItem[];
+
+        setCartItems(items);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+        // Fallback: show IDs (better than nothing)
+        const items: CartItem[] = ids.map(id => ({ id, name: `Item (${id.slice(0, 8)})`, price: 0, quantity: counts[id] }));
+        setCartItems(items);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCart();
   }, []);
 
   const updateQuantity = (id: string, delta: number) => {
