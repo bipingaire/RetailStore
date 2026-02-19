@@ -1,34 +1,19 @@
 version: '3.8'
 
 services:
-  # ── Nginx reverse proxy: routes retailos.cloud + indumart.us ──────────
-  nginx:
-    image: nginx:alpine
-    container_name: retail_store_nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - frontend
-      - backend
-    restart: always
-    networks:
-      - retailos_net
-
   # ── Next.js frontend ───────────────────────────────────────────────────
+  # Exposed on 3010 to host — system nginx reverse-proxies here
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: retail_store_frontend
-    # No longer exposed directly to host — nginx routes to it
-    expose:
-      - "3000"
+    ports:
+      - "3010:3000"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=https://indumart.us
-      - NEXT_PUBLIC_API_URL=http://backend:3001/api
+      - NEXT_PUBLIC_API_URL=https://indumart.us/api
     depends_on:
       - backend
     restart: always
@@ -36,13 +21,14 @@ services:
       - retailos_net
 
   # ── NestJS backend ─────────────────────────────────────────────────────
+  # Exposed on 3011 to host — system nginx reverse-proxies /api here
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: retail_store_backend
-    expose:
-      - "3001"
+    ports:
+      - "3011:3001"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_master?schema=public

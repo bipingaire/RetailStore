@@ -5,32 +5,19 @@ echo "Deploying RetailOS..."
 echo "==> Pulling latest code..."
 git pull
 
-echo "==> Tearing down everything..."
+echo "==> Tearing down Docker containers..."
 docker-compose down --remove-orphans 2>/dev/null || true
-
-# Force-remove any leftover named containers from previous runs
-docker rm -f retail_store_nginx retail_store_backend retail_store_frontend retail_store_db 2>/dev/null || true
-
-# Stop and remove any OTHER container using our ports (Docker holds port at daemon level)
-for PORT in 80 5435; do
-  CONTAINERS=$(docker ps -q --filter "publish=$PORT" 2>/dev/null || true)
-  if [ -n "$CONTAINERS" ]; then
-    echo "  Removing Docker containers holding port $PORT: $CONTAINERS"
-    docker rm -f $CONTAINERS 2>/dev/null || true
-  fi
-done
-
-# Also kill any non-Docker OS processes still bound to those ports
-for PORT in 80 5435; do
-  PIDS=$(lsof -ti tcp:$PORT 2>/dev/null || true)
-  if [ -n "$PIDS" ]; then
-    echo "  Killing OS processes on port $PORT: $PIDS"
-    echo "$PIDS" | xargs kill -9 2>/dev/null || true
-  fi
-done
+docker rm -f retail_store_backend retail_store_frontend retail_store_db 2>/dev/null || true
 
 echo "==> Pruning stopped containers..."
 docker container prune -f
+
+echo "==> Installing nginx reverse proxy config..."
+cp nginx/retailos.conf /etc/nginx/sites-available/retailos.conf
+# Enable the site if not already linked
+ln -sf /etc/nginx/sites-available/retailos.conf /etc/nginx/sites-enabled/retailos.conf
+# Test config and reload (does NOT kill nginx, just reloads — zero downtime)
+nginx -t && systemctl reload nginx && echo "  ✅ nginx reloaded (zero downtime)"
 
 echo "==> Building images..."
 docker-compose build --no-cache
@@ -49,10 +36,14 @@ echo "==> Seeding InduMart tenants (highpoint + greensboro)..."
 node scripts/seed-indumart-tenants.js || echo "  ⚠️  Seeding skipped (may already exist)"
 
 echo ""
-echo "✅ Deployment Complete!"
+echo "✅ Deployment Complete! Traffic routing:"
 echo ""
-echo "  🌐 retailos.cloud        → Landing + Super Admin"
-echo "  🏪 indumart.us           → Nearest store redirect"
-echo "  🏬 highpoint.indumart.us → Highpoint NC store"
-echo "  🏬 greensboro.indumart.us→ Greensboro NC store"
+echo "  System nginx (port 80):"
+echo "    retailos.cloud         → localhost:3010 (frontend)"
+echo "    indumart.us            → localhost:3010 (frontend)"
+echo "    *.indumart.us          → localhost:3010 (frontend)"
+echo ""
+echo "  Docker containers:"
+echo "    retail_store_frontend  → localhost:3010"
+echo "    retail_store_backend   → localhost:3011"
 echo ""
