@@ -6,7 +6,8 @@ echo "==> Pulling latest code..."
 git pull
 
 echo "==> Tearing down Docker containers..."
-docker-compose down --remove-orphans 2>/dev/null || true
+# Use the NEW docker compose plugin (space, not hyphen) to avoid ContainerConfig bug in old v1.29.2
+docker compose down --remove-orphans 2>/dev/null || true
 docker rm -f retail_store_backend retail_store_frontend retail_store_db 2>/dev/null || true
 
 echo "==> Pruning stopped containers..."
@@ -27,10 +28,10 @@ ln -sf /etc/nginx/sites-available/retailos.conf /etc/nginx/sites-enabled/retailo
 nginx -t && systemctl reload nginx && echo "  ✅ nginx reloaded (zero downtime)"
 
 echo "==> Building images..."
-docker-compose build --no-cache
+docker compose build --no-cache
 
 echo "==> Starting containers..."
-docker-compose up -d
+docker compose up -d
 
 echo "==> Waiting for backend to become healthy..."
 for i in $(seq 1 30); do
