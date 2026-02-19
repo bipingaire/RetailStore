@@ -29,6 +29,8 @@ services:
     container_name: retail_store_backend
     ports:
       - "3011:3001"
+    env_file:
+      - ./backend/.env
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_master?schema=public
