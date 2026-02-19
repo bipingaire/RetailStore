@@ -449,7 +449,7 @@ function CheckoutContent() {
                                                 )}
                                             </div>
                                         )}
-                                    </button>
+                                    </button>}
 
                                     {/* Bank Transfer — delivery only */}
                                     {fulfillmentType === 'delivery' && <button
@@ -477,7 +477,7 @@ function CheckoutContent() {
                                                 <p className="text-xs text-emerald-600 mt-2 font-medium">Please upload valid proof after order.</p>
                                             </div>
                                         )}
-                                    </button>
+                                    </button>}
 
                                     {/* Wallet — delivery only */}
                                     {fulfillmentType === 'delivery' && <button
@@ -503,7 +503,7 @@ function CheckoutContent() {
                                                 <button className="py-2 px-1 bg-white border border-gray-300 text-gray-700 text-xs font-bold rounded hover:bg-gray-50">GPay</button>
                                             </div>
                                         )}
-                                    </button>
+                                    </button>}
 
                                     {/* Cash */}
                                     <button
