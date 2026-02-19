@@ -5,7 +5,7 @@ import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 export class ZReportService {
     constructor(private prisma: TenantPrismaService) { }
 
-    async processZReport(subdomain: string, file: Express.Multer.File) {
+    async processZReport(subdomain: string, file: any) {
         // 1. Simulate Parsing (Replace with actual OCR/Text parsing logic later)
         // For now, we generate random data or static mock data
         const parsedData = this.mockParseZReport(file);
@@ -18,13 +18,15 @@ export class ZReportService {
 
         const reportNumber = `Z-${Date.now()}`;
 
-        const savedReport = await this.prisma.getTenantClient(subdomain).zReport.create({
+        const tenantClient = await this.prisma.getTenantClient(subdomain);
+
+        const savedReport = await tenantClient.zReport.create({
             data: {
                 reportDate: new Date(parsedData.reportDate),
                 reportNumber: reportNumber,
                 totalSales: parsedData.totalSales,
                 totalTax: parsedData.totalTax,
-                fileUrl: 'http://mock-storage-url.com/' + file.originalname, // Placeholder
+                fileUrl: 'http://mock-storage-url.com/' + (file.originalname || 'report.pdf'),
                 status: 'processed',
                 processedAt: new Date(),
             }
@@ -40,12 +42,13 @@ export class ZReportService {
     }
 
     async getZReports(subdomain: string) {
-        return this.prisma.getTenantClient(subdomain).zReport.findMany({
+        const tenantClient = await this.prisma.getTenantClient(subdomain);
+        return tenantClient.zReport.findMany({
             orderBy: { reportDate: 'desc' }
         });
     }
 
-    private mockParseZReport(file: Express.Multer.File) {
+    private mockParseZReport(file: any) {
         // Logic to parse file buffer would go here
         // const text = file.buffer.toString('utf-8');
 

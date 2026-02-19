@@ -12,7 +12,7 @@ export class ZReportController {
     @UseInterceptors(FileInterceptor('file'))
     async uploadZReport(
         @Headers('x-tenant') subdomain: string,
-        @UploadedFile() file: Express.Multer.File
+        @UploadedFile() file: any
     ) {
         return this.zReportService.processZReport(subdomain, file);
     }
