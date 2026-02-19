@@ -11,14 +11,14 @@ export declare class InvoiceController {
     }): Promise<{
         message: string;
         id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
     testEndpoint(): {
         success: boolean;
@@ -33,78 +33,95 @@ export declare class InvoiceController {
     }>;
     getAllInvoices(subdomain: string, status?: string): Promise<({
         vendor: {
-            id: string;
-            name: string;
-            contactPerson: string | null;
             email: string | null;
+            name: string;
+            id: string;
+            isActive: boolean;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
-        };
-        items: {
-            id: string;
-            invoiceId: string;
-            productId: string;
-            quantity: number;
-            unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
-            totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
-        }[];
-    } & {
-        id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
-        fileUrl: string | null;
-        status: string;
-        createdAt: Date;
-        updatedAt: Date;
-        vendorId: string;
-    })[]>;
-    getInvoice(subdomain: string, id: string): Promise<{
-        vendor: {
-            id: string;
-            name: string;
             contactPerson: string | null;
-            email: string | null;
-            phone: string | null;
-            address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
                 isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
             totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
         })[];
     } & {
         id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
+    })[]>;
+    getInvoice(subdomain: string, id: string): Promise<{
+        vendor: {
+            email: string | null;
+            name: string;
+            id: string;
+            isActive: boolean;
+            phone: string | null;
+            address: string | null;
+            contactPerson: string | null;
+        };
+        items: ({
+            product: {
+                name: string;
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                sku: string;
+                category: string | null;
+                description: string | null;
+                imageUrl: string | null;
+                price: import("src/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                stock: number;
+                reorderLevel: number;
+                barcode: string | null;
+            };
+        } & {
+            id: string;
+            productId: string;
+            quantity: number;
+            invoiceId: string;
+            unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
+            totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
+        })[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: string;
+        vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
     addItems(subdomain: string, id: string, body: {
         items: Array<{
@@ -115,48 +132,48 @@ export declare class InvoiceController {
     }): Promise<import("src/generated/tenant-client").Prisma.BatchPayload>;
     commitInvoice(subdomain: string, id: string): Promise<{
         vendor: {
-            id: string;
-            name: string;
-            contactPerson: string | null;
             email: string | null;
+            name: string;
+            id: string;
+            isActive: boolean;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
+            contactPerson: string | null;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
                 isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: import("src/generated/tenant-client/runtime/library").Decimal;
             totalCost: import("src/generated/tenant-client/runtime/library").Decimal;
         })[];
     } & {
         id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         vendorId: string;
+        totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
 }

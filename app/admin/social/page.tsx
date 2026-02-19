@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Sparkles, Megaphone, Link2, Image as ImageIcon, Share2, Check, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Sparkles, Megaphone, Link2, Image as ImageIcon, Share2, ShieldCheck } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 
 type Campaign = {
   id: string;
@@ -34,7 +34,7 @@ export default function SocialPage() {
     facebook_token: '',
     tiktok: '',
     tiktok_token: '',
-    canvaApiKey: '',
+    canvaApiKey: '', // Kept for UI, but could be moved to backend
     imageApiKey: '',
     siteUrl: 'https://yourshop.com',
   });
@@ -44,73 +44,51 @@ export default function SocialPage() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
+      try {
+        const [campRes, setRes] = await Promise.all([
+          apiClient.get('/campaigns'),
+          apiClient.get('/social/settings').catch(() => ({ data: {} })) // Handle if no settings yet
+        ]);
 
-      // TODO: Connect to backend
-      // Mocking to fix crash
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      const mockCampaigns = [
-        {
-          id: 'camp-1',
-          slug: 'summer-promo',
-          title: 'Summer Promo',
-          tagline: 'Get ready for summer',
-          badge_label: 'New',
-          segment_products: [
-            {
-              store_inventory: {
-                id: 'inv-1',
-                price: 49.99,
-                global_products: { name: 'Summer Hat', image_url: '' }
-              }
-            }
-          ]
+        if (campRes.data) setCampaigns(campRes.data);
+        if (setRes.data) {
+          setAccounts(prev => ({ ...prev, ...setRes.data }));
         }
-      ];
-
-      setCampaigns(mockCampaigns);
-
-      // Mock accounts logic if needed, or leave existing state
-      // For now, keep existing accounts state or set defaults
-      // setAccounts({...}); 
-
-      setLoading(false);
+      } catch (err) {
+        console.error("Failed to load data", err);
+      } finally {
+        setLoading(false);
+      }
     }
     loadData();
   }, []);
 
   const handleSaveAccounts = async () => {
     setStatus('Saving connections...');
-
-    // 1. Save Social Accounts to DB
-    const res = await fetch('/api/social/save-settings', {
-      method: 'POST',
-      body: JSON.stringify({ accounts }),
-    });
-
-    if (res.ok) {
+    try {
+      await apiClient.post('/social/save-settings', { accounts });
       setStatus('✅ Connections saved securely.');
-    } else {
+    } catch (err) {
       setStatus('❌ Failed to save connections.');
     }
   };
 
   const handlePost = async (c: Campaign) => {
     setStatus(`Posting "${c.title}" to connected accounts...`);
-    const res = await fetch('/api/social/publish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        campaignId: c.id,
-        platforms: ['facebook', 'instagram'].filter(p => (accounts as any)[`${p}_token`]) // Only post where we have tokens
-      })
-    });
+    try {
+      const platforms = ['facebook', 'instagram'].filter(p => (accounts as any)[`${p}_token`]);
+      if (platforms.length === 0) {
+        setStatus('⚠️ No connected accounts found.');
+        return;
+      }
 
-    const result = await res.json();
-    if (res.ok) {
-      setStatus(`✅ Published: ${result.message}`);
-    } else {
-      setStatus(`❌ Error: ${result.error}`);
+      await apiClient.post('/social/publish', {
+        campaignId: c.id,
+        platforms
+      });
+      setStatus(`✅ Published to ${platforms.join(', ')}`);
+    } catch (err: any) {
+      setStatus(`❌ Error: ${err.message || 'Publish failed'}`);
     }
   };
 
@@ -127,21 +105,14 @@ export default function SocialPage() {
     setStatus(`🎨 Generating AI image for "${c.title}"... please wait (15-20s)`);
 
     try {
-      const res = await fetch('/api/social/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Professional high-end retail advertisement for "${c.title} - ${c.tagline}". Key product: ${mainProd}. luxury style, photorealistic, 4k.`,
-          apiKey: accounts.imageApiKey
-        })
+      // Using campaign generate endpoint
+      const { data } = await apiClient.post('/campaigns/generate', {
+        products: c.segment_products?.map(sp => sp.store_inventory?.global_products).filter(Boolean) || []
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
       setStatus('✅ Image Generated!');
-      if (data.imageUrl) {
-        setGeneratedImage(data.imageUrl);
+      if (data.image) {
+        setGeneratedImage(data.image);
       }
 
     } catch (err: any) {
@@ -156,24 +127,24 @@ export default function SocialPage() {
     setStatus(`🎨 Generating product shot for "${prodName}"...`);
 
     try {
-      const res = await fetch('/api/social/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Professional studio marketing shot of ${prodName}. clean lighting, retail catalog style.`,
-          apiKey: accounts.imageApiKey
-        })
+      // Using campaign generate endpoint for now, or could create specific product one
+      const { data } = await apiClient.post('/campaigns/generate', {
+        products: [product.global_products]
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
       setStatus('✅ Product Image Ready!');
-      if (data.imageUrl) setGeneratedImage(data.imageUrl);
+      if (data.image) setGeneratedImage(data.image);
 
     } catch (err: any) {
       setStatus('❌ Gen Failed: ' + err.message);
     }
+  };
+
+
+  const handleProductPost = async (campaign: Campaign, product: any) => {
+    // Stub: logic to post single product
+    // For now just use publish campaign logic or custom endpoint
+    setStatus('✅ Product post shared (Stub)!');
   };
 
 

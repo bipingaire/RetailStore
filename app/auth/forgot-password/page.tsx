@@ -1,13 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { apiClient } from '@/lib/api-client';
+
+// ... existing imports
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
@@ -21,15 +19,12 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/reset-password`,
-            });
-
-            if (error) throw error;
-
+            await apiClient.post('/auth/forgot-password', { email });
             setSent(true);
         } catch (err: any) {
-            setError(err.message || 'Failed to send reset email');
+            console.error(err);
+            const msg = err.response?.data?.message || err.message || 'Failed to send reset email';
+            setError(msg);
         } finally {
             setLoading(false);
         }

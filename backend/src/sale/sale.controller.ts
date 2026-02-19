@@ -17,6 +17,11 @@ export class SaleController {
     return this.saleService.createSale(subdomain, { ...dto, userId: req.user.id });
   }
 
+  @Get('my-orders')
+  findMyOrders(@Headers('x-tenant') subdomain: string, @Req() req: any) {
+    return this.saleService.findMyOrders(subdomain, req.user.id);
+  }
+
   @Get()
   findAll(
     @Headers('x-tenant') subdomain: string,

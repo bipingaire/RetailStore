@@ -1,0 +1,31 @@
+
+> retail-store-backend@0.0.1 build
+> nest build
+
+Found 6 error(s).
+
+src/auth/auth.controller.ts:30:53 - error TS2554: Expected 1 arguments, but got 2.
+
+30     return this.authService.getProfile(req.user.id, subdomain);
+                                                       ~~~~~~~~~
+src/auth/auth.controller.ts:35:56 - error TS2554: Expected 1 arguments, but got 2.
+
+35     return this.authService.forgotPassword(body.email, subdomain);
+                                                          ~~~~~~~~~
+src/auth/auth.controller.ts:40:70 - error TS2554: Expected 2 arguments, but got 3.
+
+40     return this.authService.resetPassword(body.token, body.password, subdomain);
+                                                                        ~~~~~~~~~
+src/auth/auth.controller.ts:45:52 - error TS2554: Expected 1 arguments, but got 2.
+
+45     return this.authService.loginOwner(body.email, body.password);
+                                                      ~~~~~~~~~~~~~
+src/auth/auth.controller.ts:50:70 - error TS2554: Expected 2 arguments, but got 4.
+
+50     return this.authService.registerOwner(body.email, body.password, body.companyName, body.role);
+                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/auth/auth.service.ts:8:10 - error TS2305: Module '"../generated/client"' has no exported member 'RetailStoreTenantCreateInput'.
+
+8 import { RetailStoreTenantCreateInput } from '../generated/client';
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+

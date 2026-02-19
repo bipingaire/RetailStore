@@ -8,10 +8,10 @@ export const socialMedia = {
     schedule: async () => ({ success: false, error: 'Not implemented' }),
 };
 
-export async function exchangeCodeForToken(platform: string, code: string) {
+export async function exchangeCodeForToken(code: string, platform: 'facebook' | 'instagram') {
     return {
-        access_token: 'mock_token',
-        refresh_token: 'mock_refresh',
-        expires_in: 3600
+        accessToken: 'mock_access_token',
+        pageId: 'mock_page_id',
+        error: null
     };
 }

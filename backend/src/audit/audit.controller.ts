@@ -30,6 +30,14 @@ export class AuditController {
         return this.auditService.completeAuditSession(subdomain, id);
     }
 
+    @Post('session/:id/reject')
+    async rejectSession(
+        @Headers('x-tenant') subdomain: string,
+        @Param('id') id: string
+    ) {
+        return this.auditService.rejectAuditSession(subdomain, id);
+    }
+
     @Get('session/:id')
     async getSession(
         @Headers('x-tenant') subdomain: string,

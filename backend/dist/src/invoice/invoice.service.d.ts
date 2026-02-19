@@ -14,89 +14,106 @@ export declare class InvoiceService {
         expiryDate?: string;
     }>, fileUrl?: string): Promise<{
         id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: Prisma.Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         vendorId: string;
+        totalAmount: Prisma.Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
     getInvoice(subdomain: string, id: string): Promise<{
         vendor: {
-            id: string;
-            name: string;
-            contactPerson: string | null;
             email: string | null;
+            name: string;
+            id: string;
+            isActive: boolean;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
+            contactPerson: string | null;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
                 isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: Prisma.Decimal;
             totalCost: Prisma.Decimal;
         })[];
     } & {
         id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: Prisma.Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         vendorId: string;
+        totalAmount: Prisma.Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
     getAllInvoices(subdomain: string, status?: string): Promise<({
         vendor: {
-            id: string;
-            name: string;
-            contactPerson: string | null;
             email: string | null;
+            name: string;
+            id: string;
+            isActive: boolean;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
+            contactPerson: string | null;
         };
-        items: {
+        items: ({
+            product: {
+                name: string;
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                sku: string;
+                category: string | null;
+                description: string | null;
+                imageUrl: string | null;
+                price: Prisma.Decimal;
+                costPrice: Prisma.Decimal;
+                stock: number;
+                reorderLevel: number;
+                barcode: string | null;
+            };
+        } & {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: Prisma.Decimal;
             totalCost: Prisma.Decimal;
-        }[];
+        })[];
     } & {
         id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: Prisma.Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         vendorId: string;
+        totalAmount: Prisma.Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     })[]>;
     addInvoiceItems(subdomain: string, invoiceId: string, items: Array<{
         productId: string;
@@ -105,49 +122,49 @@ export declare class InvoiceService {
     }>): Promise<Prisma.BatchPayload>;
     commitInvoice(subdomain: string, invoiceId: string): Promise<{
         vendor: {
-            id: string;
-            name: string;
-            contactPerson: string | null;
             email: string | null;
+            name: string;
+            id: string;
+            isActive: boolean;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
+            contactPerson: string | null;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
                 isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
+                imageUrl: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
                 reorderLevel: number;
-                imageUrl: string | null;
                 barcode: string | null;
             };
         } & {
             id: string;
-            invoiceId: string;
             productId: string;
             quantity: number;
+            invoiceId: string;
             unitCost: Prisma.Decimal;
             totalCost: Prisma.Decimal;
         })[];
     } & {
         id: string;
-        invoiceNumber: string;
-        invoiceDate: Date;
-        totalAmount: Prisma.Decimal;
-        fileUrl: string | null;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        status: string;
         vendorId: string;
+        totalAmount: Prisma.Decimal;
+        invoiceNumber: string;
+        invoiceDate: Date;
+        fileUrl: string | null;
     }>;
     parseInvoiceOCR(fileUrl: string): Promise<{
         vendorName: any;

@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js'; // Removed
 import { ArrowLeft, Save, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { generateProductEnrichment } from '@/lib/ai/product-matcher';
+import { apiClient } from '@/lib/api-client';
 
+/*
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+*/
 
 export default function EnrichProductPage() {
     const params = useParams();
@@ -41,28 +43,28 @@ export default function EnrichProductPage() {
     }, [productId]);
 
     async function loadProduct() {
-        const { data, error } = await supabase
-            .from('global-product-master-catalog')
-            .select('*')
-            .eq('product-id', productId)
-            .single();
-
-        if (error) {
-            toast.error('Product not found');
-            router.push('/superadmin/products');
-        } else {
-            setProduct(data);
-            setFormData({
-                'product-name': data['product-name'] || '',
-                'brand-name': data['brand-name'] || '',
-                'manufacturer-name': data['manufacturer-name'] || '',
-                'category-name': data['category-name'] || '',
-                'subcategory-name': data['subcategory-name'] || '',
-                'description-text': data['description-text'] || '',
-                'image-url': data['image-url'] || '',
-                'package-size': data['package-size'] || '',
-                'package-unit': data['package-unit'] || ''
-            });
+        try {
+            const data = await apiClient.get(`/super-admin/products/${productId}`);
+            if (data) {
+                setProduct(data);
+                setFormData({
+                    'product-name': data.productName || '',
+                    'brand-name': '', // Backend model might need update to store brand/manufacturer separately if raw JSON not used
+                    'manufacturer-name': '',
+                    'category-name': data.category || '',
+                    'subcategory-name': '',
+                    'description-text': data.description || '',
+                    'image-url': data.imageUrl || '',
+                    'package-size': '',
+                    'package-unit': ''
+                });
+            } else {
+                toast.error('Product not found');
+                router.push('/super-admin/products');
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to load product');
         }
         setLoading(false);
     }
@@ -70,25 +72,21 @@ export default function EnrichProductPage() {
     async function handleAIEnrich() {
         setEnriching(true);
         try {
-            const suggestions = await generateProductEnrichment({
-                name: formData['product-name'],
-                brand: formData['brand-name'],
-                category: formData['category-name'],
-                description: formData['description-text']
-            });
+            const suggestions: any = await apiClient.post(`/super-admin/products/${productId}/ai-suggest`, {});
 
             if (suggestions.suggestedDescription) {
-                setFormData(prev => ({ ...prev, 'description-text': suggestions.suggestedDescription! }));
+                setFormData(prev => ({ ...prev, 'description-text': suggestions.suggestedDescription }));
             }
             if (suggestions.suggestedCategory) {
-                setFormData(prev => ({ ...prev, 'category-name': suggestions.suggestedCategory! }));
+                setFormData(prev => ({ ...prev, 'category-name': suggestions.suggestedCategory }));
             }
             if (suggestions.suggestedBrand) {
-                setFormData(prev => ({ ...prev, 'brand-name': suggestions.suggestedBrand! }));
+                setFormData(prev => ({ ...prev, 'brand-name': suggestions.suggestedBrand }));
             }
 
             toast.success('AI suggestions applied!');
         } catch (error) {
+            console.error(error);
             toast.error('Failed to generate AI suggestions');
         }
         setEnriching(false);
@@ -96,34 +94,22 @@ export default function EnrichProductPage() {
 
     async function handleSave() {
         setSaving(true);
-
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            // Mapping back to Backend Expected DTO (if simple update) or just sending what backend expects
+            // Controller expects body.
+            // Service updateProduct uses: productName, category, description, imageUrl.
+            // We need to map form data to these fields.
+            const payload = {
+                name: formData['product-name'],
+                category: formData['category-name'],
+                description: formData['description-text'],
+                image_url: formData['image-url']
+            };
 
-            // Update product
-            const { error: updateError } = await supabase
-                .from('global-product-master-catalog')
-                .update({
-                    ...formData,
-                    'enriched-by-superadmin': true,
-                    'last-enriched-at': new Date().toISOString(),
-                    'last-enriched-by': user?.id
-                })
-                .eq('product-id', productId);
-
-            if (updateError) throw updateError;
-
-            // Log enrichment history
-            await supabase.from('product-enrichment-history').insert({
-                'product-id': productId,
-                'enriched-by-user-id': user?.id,
-                'enrichment-type': 'superadmin',
-                'changes-json': formData,
-                'previous-data-json': product
-            });
+            await apiClient.post(`/super-admin/products/${productId}`, payload);
 
             toast.success('Product enriched successfully!');
-            router.push('/superadmin/products');
+            router.push('/super-admin/products');
         } catch (error: any) {
             toast.error(error.message || 'Failed to save product');
         }

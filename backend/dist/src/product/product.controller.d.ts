@@ -8,11 +8,11 @@ export declare class ProductController {
         synced: number;
     }>;
     create(subdomain: string, dto: CreateProductDto): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -50,11 +50,11 @@ export declare class ProductController {
             receivedDate: Date;
         }[];
     } & {
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -66,11 +66,11 @@ export declare class ProductController {
         barcode: string | null;
     }>;
     update(subdomain: string, id: string, dto: UpdateProductDto): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -82,11 +82,11 @@ export declare class ProductController {
         barcode: string | null;
     }>;
     delete(subdomain: string, id: string): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -102,5 +102,9 @@ export declare class ProductController {
         type: 'IN' | 'OUT' | 'ADJUSTMENT';
     }): Promise<{
         success: boolean;
+    }>;
+    enrich(subdomain: string, id: string): Promise<{
+        success: boolean;
+        imageUrl: string;
     }>;
 }

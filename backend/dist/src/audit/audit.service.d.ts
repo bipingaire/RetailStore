@@ -25,11 +25,11 @@ export declare class AuditService {
     completeAuditSession(subdomain: string, sessionId: string): Promise<{
         counts: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -52,11 +52,11 @@ export declare class AuditService {
         })[];
         adjustments: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -84,14 +84,22 @@ export declare class AuditService {
         startedAt: Date;
         completedAt: Date | null;
     }>;
+    rejectAuditSession(subdomain: string, sessionId: string): Promise<{
+        id: string;
+        status: string;
+        userId: string;
+        notes: string | null;
+        startedAt: Date;
+        completedAt: Date | null;
+    }>;
     getAuditSession(subdomain: string, id: string): Promise<{
         counts: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -114,11 +122,11 @@ export declare class AuditService {
         })[];
         adjustments: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -177,11 +185,11 @@ export declare class AuditService {
     getVarianceReport(subdomain: string): Promise<({
         adjustments: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;

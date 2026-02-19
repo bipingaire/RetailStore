@@ -42,6 +42,9 @@ let ProductController = class ProductController {
     updateStock(subdomain, id, dto) {
         return this.productService.updateStock(subdomain, id, dto.quantity, dto.type);
     }
+    enrich(subdomain, id) {
+        return this.productService.enrichProduct(subdomain, id);
+    }
 };
 exports.ProductController = ProductController;
 __decorate([
@@ -105,6 +108,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], ProductController.prototype, "updateStock", null);
+__decorate([
+    (0, common_1.Post)(':id/enrich'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ProductController.prototype, "enrich", null);
 exports.ProductController = ProductController = __decorate([
     (0, common_1.Controller)('products'),
     __metadata("design:paramtypes", [product_service_1.ProductService])

@@ -20,11 +20,11 @@ export declare class LegacyApiController {
         processed: any[];
     }>;
     addProduct(body: any, req: any): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;

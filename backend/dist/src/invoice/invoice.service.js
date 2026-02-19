@@ -133,7 +133,11 @@ let InvoiceService = class InvoiceService {
                 where,
                 include: {
                     vendor: true,
-                    items: true,
+                    items: {
+                        include: {
+                            product: true
+                        }
+                    },
                 },
                 orderBy: { createdAt: 'desc' },
             });

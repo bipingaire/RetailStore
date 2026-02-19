@@ -1,15 +1,10 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import {
   Store, Truck, Lock, Mail, User, ArrowRight, Loader2, CheckCircle
 } from 'lucide-react';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { apiClient } from '@/lib/api-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,6 +20,8 @@ export default function LoginPage() {
 
   // --- ACTIONS ---
 
+  // --- ACTIONS ---
+
   const handleAuth = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -32,64 +29,44 @@ export default function LoginPage() {
 
     try {
       if (mode === 'signup') {
-        // 1. Sign Up
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        // 1. Register Owner & Tenant
+        const res = await apiClient.post('/auth/register-owner', {
           email,
           password,
+          companyName,
+          role
         });
 
-        if (authError) throw authError;
-
-        if (authData.user) {
-          // 2. Create Tenant Record
-          const { error: tenantError } = await supabase
-            .from('retail-store-tenant')
-            .insert({
-              name: companyName,
-              type: role,
-              owner_id: authData.user.id,
-              status: 'active'
-            });
-
-          if (tenantError) throw tenantError;
-
-          // 3. Redirect based on Role
-          if (role === 'retailer') {
-            router.push('/admin');
-          } else {
-            router.push('/supplier');
-          }
+        // Backend loginOwner returns { accessToken, user, tenant }
+        if (res.accessToken) {
+          localStorage.setItem('accessToken', res.accessToken);
+          // Redirect
+          if (res.tenant?.type === 'retailer') router.push('/admin');
+          else router.push('/supplier');
         }
       } else {
-        // 1. Log In
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        // 1. Login Owner
+        const res = await apiClient.post('/auth/login-owner', {
           email,
-          password,
+          password
         });
 
-        if (authError) throw authError;
+        if (res.accessToken) {
+          localStorage.setItem('accessToken', res.accessToken);
 
-        // 2. Determine Destination
-        // Fetch tenant profile to know if they are retailer or supplier
-        if (authData.user) {
-          const { data: tenant } = await supabase
-            .from('retail-store-tenant')
-            .select('type')
-            .eq('owner_id', authData.user.id)
-            .single();
-
-          if (tenant) {
-            if (tenant.type === 'retailer') router.push('/admin');
+          if (res.tenant) {
+            if (res.tenant.type === 'retailer') router.push('/admin');
             else router.push('/supplier');
           } else {
-            // Fallback: If no tenant found, assume customer
+            // Fallback
             router.push('/');
           }
         }
       }
     } catch (error: any) {
       console.error(error);
-      setMessage(error.message || 'Authentication failed');
+      const msg = error.response?.data?.message || error.message || 'Authentication failed';
+      setMessage(msg);
     } finally {
       setLoading(false);
     }

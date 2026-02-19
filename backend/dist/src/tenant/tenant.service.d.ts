@@ -11,42 +11,42 @@ export declare class TenantService {
         password: string;
     }): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         subdomain: string;
         storeName: string;
         databaseUrl: string;
         adminEmail: string;
         isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getTenantBySubdomain(subdomain: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         subdomain: string;
         storeName: string;
         databaseUrl: string;
         adminEmail: string;
         isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     listTenants(): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         subdomain: string;
         storeName: string;
         databaseUrl: string;
         adminEmail: string;
         isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     findAll(): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         subdomain: string;
         storeName: string;
         databaseUrl: string;
         adminEmail: string;
         isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
 }

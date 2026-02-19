@@ -19,6 +19,8 @@ import { TenantPrismaService } from './prisma/tenant-prisma.service';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PosMappingModule } from './pos-mapping/pos-mapping.module';
+import { SocialModule } from './social/social.module';
+import { ExpenseModule } from './expense/expense.module';
 
 @Module({
   imports: [
@@ -40,6 +42,10 @@ import { PosMappingModule } from './pos-mapping/pos-mapping.module';
     DashboardModule,
     PosMappingModule,
     ReportsModule,
+    PosMappingModule,
+    ReportsModule,
+    SocialModule,
+    ExpenseModule,
   ],
   controllers: [],
   providers: [TenantPrismaService],

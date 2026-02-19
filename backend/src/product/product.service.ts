@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
 import { MasterCatalogService } from '../master-catalog/master-catalog.service';
+import OpenAI from 'openai';
 
 @Injectable()
 export class ProductService {
@@ -12,6 +13,56 @@ export class ProductService {
     private masterPrisma: MasterPrismaService,
     private masterCatalogService: MasterCatalogService,
   ) { }
+
+  async enrichProduct(subdomain: string, id: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    // 1. Get Product
+    const product = await client.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+
+    // 2. Generate Image via OpenAI
+    // Note: Ensure OPENAI_API_KEY is in backend .env
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const prompt = `Professional product photography of ${product.name}, isolated on white background, high quality, commercial lighting, photorealistic, 4k`;
+
+    try {
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: prompt,
+        n: 1,
+        size: "1024x1024",
+      });
+
+      const imageUrl = response.data[0].url;
+      if (!imageUrl) throw new Error("Failed to generate image from OpenAI");
+
+      // 3. Update Local Product
+      const updated = await client.product.update({
+        where: { id },
+        data: { imageUrl }
+      });
+
+      // 4. Update Master Catalog if SKU exists
+      if (updated.sku) {
+        await this.masterCatalogService.upsertProduct({
+          sku: updated.sku,
+          productName: updated.name,
+          category: updated.category,
+          description: updated.description,
+          basePrice: Number(updated.price),
+          imageUrl: updated.imageUrl,
+          tenantId: tenant.id
+        });
+      }
+
+      return { success: true, imageUrl };
+    } catch (error) {
+      console.error("OpenAI Enrichment Error:", error);
+      throw new Error(`Enrichment failed: ${error.message}`);
+    }
+  }
 
   async createProduct(subdomain: string, data: any) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);

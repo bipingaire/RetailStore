@@ -13,6 +13,7 @@ import {
     Legend,
 } from 'chart.js';
 import { toast } from 'react-hot-toast';
+import { apiClient } from '@/lib/api-client';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -36,12 +37,12 @@ export default function ProfitLossPage() {
     async function loadData() {
         try {
             const [reportsRes, expensesRes] = await Promise.all([
-                fetch(`/api/reports/profit?period=${period}`),
-                fetch('/api/reports/profit/expenses'),
+                apiClient.get(`/reports/profit?period=${period}`),
+                apiClient.get('/expenses'),
             ]);
 
-            if (reportsRes.ok) setReports(await reportsRes.json());
-            if (expensesRes.ok) setExpenses(await expensesRes.json());
+            if (reportsRes.data) setReports(reportsRes.data);
+            if (expensesRes.data) setExpenses(expensesRes.data);
         } catch (error) {
             console.error('Error loading data:', error);
             toast.error('Failed to load profit data');
@@ -63,20 +64,14 @@ export default function ProfitLossPage() {
         }
 
         try {
-            const res = await fetch('/api/reports/profit/calculate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    startDate: start.toISOString(),
-                    endDate: end.toISOString(),
-                    period,
-                }),
+            await apiClient.post('/reports/profit/calculate', {
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
+                period,
             });
 
-            if (res.ok) {
-                toast.success('Report generated!');
-                loadData();
-            }
+            toast.success('Report generated!');
+            loadData();
         } catch (error) {
             toast.error('Failed to generate report');
         }
@@ -84,23 +79,17 @@ export default function ProfitLossPage() {
 
     async function addExpense() {
         try {
-            const res = await fetch('/api/reports/profit/expense', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(expenseForm),
-            });
+            await apiClient.post('/expenses', expenseForm);
 
-            if (res.ok) {
-                toast.success('Expense added!');
-                setShowExpenseModal(false);
-                setExpenseForm({
-                    category: 'rent',
-                    amount: 0,
-                    description: '',
-                    expenseDate: new Date().toISOString().split('T')[0],
-                });
-                loadData();
-            }
+            toast.success('Expense added!');
+            setShowExpenseModal(false);
+            setExpenseForm({
+                category: 'rent',
+                amount: 0,
+                description: '',
+                expenseDate: new Date().toISOString().split('T')[0],
+            });
+            loadData();
         } catch (error) {
             toast.error('Failed to add expense');
         }

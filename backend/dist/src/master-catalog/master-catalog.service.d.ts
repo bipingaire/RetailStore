@@ -12,6 +12,7 @@ export declare class MasterCatalogService {
         imageUrl?: string;
         tenantId: string;
     }): Promise<{
+        tenantId: string;
         sku: string;
         productName: string;
         category: string | null;
@@ -20,12 +21,12 @@ export declare class MasterCatalogService {
         imageUrl: string | null;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     getSharedCatalog(filters?: {
         category?: string;
         search?: string;
     }): Promise<{
+        tenantId: string;
         sku: string;
         productName: string;
         category: string | null;
@@ -34,6 +35,5 @@ export declare class MasterCatalogService {
         imageUrl: string | null;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }[]>;
 }

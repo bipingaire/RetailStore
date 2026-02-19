@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
 import { User, Gift, Clock, ChevronRight, LogOut, QrCode, Star, ShoppingBag } from 'lucide-react';
 
 // Mock User for MVP (In real app, use supabase.auth.user())
@@ -20,36 +20,42 @@ type OrderHistory = {
   item_count: number;
 };
 
+import { apiClient } from '@/lib/api-client';
+
+// ... existing imports
+
 export default function ProfilePage() {
-  const supabase = createClientComponentClient();
   const [orders, setOrders] = useState<OrderHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchOrders() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      try {
+        // 1. Get User
+        // We use try-catch because if 401, it throws.
+        const user = await apiClient.get('/auth/profile');
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        // 2. Get Orders
+        const data = await apiClient.get('/sales/my-orders');
+
+        if (data) {
+          setOrders(data.map((o: any) => ({
+            id: o.id,
+            total_amount: Number(o.total), // Ensure number
+            created_at: o.createdAt,
+            status: o.status,
+            item_count: o.items?.length || 0
+          })));
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const { data } = await supabase
-        .from('customer-order-header')
-        .select('id, total_amount, order_date_time, status, order_items(count)') // Adjusted select to match OrderHistory type
-        .eq('customer-id', user.id)
-        .order('order_date_time', { ascending: false })
-        .limit(5);
-
-      if (data) {
-        setOrders(data.map((o: any) => ({
-          id: o.id,
-          total_amount: o.total_amount,
-          created_at: o.order_date_time, // Map order_date_time to created_at
-          status: o.status,
-          item_count: o.order_items[0]?.count || 0 // Handle potential missing order_items
-        })));
-      }
-      setLoading(false);
     }
     fetchOrders();
   }, []);

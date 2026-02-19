@@ -4,6 +4,7 @@ export declare class SuperAdminController {
     constructor(service: SuperAdminService);
     getDashboardData(): Promise<{
         products: {
+            tenantId: string;
             sku: string;
             productName: string;
             category: string | null;
@@ -12,7 +13,6 @@ export declare class SuperAdminController {
             imageUrl: string | null;
             aiEnrichedAt: Date | null;
             syncedAt: Date;
-            tenantId: string;
         }[];
         tenants: {
             subscriptionTier: string;
@@ -26,13 +26,13 @@ export declare class SuperAdminController {
                 monthlyPrice: import("src/generated/master-client/runtime/library").Decimal;
             }[];
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
             subdomain: string;
             storeName: string;
             databaseUrl: string;
             adminEmail: string;
             isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
         }[];
         pendingItems: ({
             tenant: {
@@ -41,9 +41,9 @@ export declare class SuperAdminController {
         } & {
             id: string;
             createdAt: Date;
+            tenantId: string;
             productName: string;
             imageUrl: string | null;
-            tenantId: string;
             status: string;
             upcEanCode: string;
             brandName: string;
@@ -69,8 +69,8 @@ export declare class SuperAdminController {
                 };
             } & {
                 id: string;
-                description: string | null;
                 tenantId: string;
+                description: string | null;
                 status: string;
                 paymentMethod: string;
                 amount: import("src/generated/master-client/runtime/library").Decimal;
@@ -86,6 +86,7 @@ export declare class SuperAdminController {
         };
     }>;
     approveProduct(id: string): Promise<{
+        tenantId: string;
         sku: string;
         productName: string;
         category: string | null;
@@ -94,14 +95,13 @@ export declare class SuperAdminController {
         imageUrl: string | null;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     rejectProduct(id: string): Promise<{
         id: string;
         createdAt: Date;
+        tenantId: string;
         productName: string;
         imageUrl: string | null;
-        tenantId: string;
         status: string;
         upcEanCode: string;
         brandName: string;
@@ -112,6 +112,7 @@ export declare class SuperAdminController {
         suggestedMatchProductId: string | null;
     }>;
     updateProduct(id: string, data: any): Promise<{
+        tenantId: string;
         sku: string;
         productName: string;
         category: string | null;
@@ -120,9 +121,9 @@ export declare class SuperAdminController {
         imageUrl: string | null;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     enrichProduct(id: string): Promise<{
+        tenantId: string;
         sku: string;
         productName: string;
         category: string | null;
@@ -131,6 +132,5 @@ export declare class SuperAdminController {
         imageUrl: string | null;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
 }

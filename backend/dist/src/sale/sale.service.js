@@ -64,6 +64,19 @@ let SaleService = class SaleService {
             return sale;
         });
     }
+    async findMyOrders(subdomain, userId) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.sale.findMany({
+            where: { userId },
+            include: {
+                items: {
+                    include: { product: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
     async findAll(subdomain, options) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);

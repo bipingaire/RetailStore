@@ -255,7 +255,7 @@ export default function InvoicesPage() {
 
   function updateItem(index: number, field: keyof InvoiceItem, value: any) {
     const updated = [...invoiceItems];
-    updated[index][field] = value;
+    (updated[index] as any)[field] = value;
     setInvoiceItems(updated);
   }
 

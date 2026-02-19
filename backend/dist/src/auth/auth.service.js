@@ -12,16 +12,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-const tenant_service_1 = require("../tenant/tenant.service");
-const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
 const prisma_service_1 = require("../prisma/prisma.service");
+const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
+const local_prisma_service_1 = require("../prisma/local-prisma.service");
 const bcrypt = require("bcryptjs");
 let AuthService = class AuthService {
-    constructor(jwtService, tenantService, tenantPrisma, prisma) {
+    constructor(jwtService, tenantPrisma, prisma, localPrisma) {
         this.jwtService = jwtService;
-        this.tenantService = tenantService;
         this.tenantPrisma = tenantPrisma;
         this.prisma = prisma;
+        this.localPrisma = localPrisma;
     }
     async validateSuperAdmin(email, password) {
         const admin = await this.prisma.superAdmin.findUnique({ where: { email } });
@@ -44,7 +44,10 @@ let AuthService = class AuthService {
     }
     async validateUser(subdomain, email, password) {
         console.log(`[AuthService] Validating user for subdomain: ${subdomain}, email: ${email}`);
-        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const tenant = await this.prisma.tenant.findUnique({ where: { subdomain } });
+        if (!tenant) {
+            throw new common_1.UnauthorizedException('Tenant not found');
+        }
         console.log(`[AuthService] Found tenant:`, tenant.id, tenant.subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
         console.log(`[AuthService] Got tenant client for database:`, tenant.databaseUrl);
@@ -87,7 +90,10 @@ let AuthService = class AuthService {
         };
     }
     async register(subdomain, email, password, name) {
-        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const tenant = await this.prisma.tenant.findUnique({ where: { subdomain } });
+        if (!tenant) {
+            throw new common_1.BadRequestException('Tenant not found');
+        }
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
         const existingUser = await client.user.findUnique({ where: { email } });
         if (existingUser)
@@ -103,13 +109,116 @@ let AuthService = class AuthService {
         });
         return this.login({ ...user, tenantId: tenant.id, subdomain });
     }
+    async getProfile(userId) {
+        if (!userId)
+            return null;
+        let user = await this.localPrisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            const superAdmin = await this.prisma.superAdmin.findUnique({
+                where: { id: userId }
+            });
+            if (superAdmin)
+                return superAdmin;
+        }
+        return user;
+    }
+    async forgotPassword(email) {
+        const user = await this.localPrisma.user.findUnique({ where: { email } });
+        if (!user)
+            return { success: false };
+        const token = this.jwtService.sign({ email: user.email, sub: user.id, type: 'reset' }, { expiresIn: '1h' });
+        console.log(`Reset Token for ${email}: ${token}`);
+        return { success: true };
+    }
+    async resetPassword(token, newPass) {
+        try {
+            const payload = this.jwtService.verify(token);
+            if (payload.type !== 'reset')
+                throw new common_1.BadRequestException('Invalid token type');
+            const hashedPassword = await bcrypt.hash(newPass, 10);
+            await this.localPrisma.user.update({
+                where: { id: payload.sub },
+                data: { password: hashedPassword }
+            });
+            return { success: true };
+        }
+        catch (e) {
+            throw new common_1.BadRequestException('Invalid or expired token');
+        }
+    }
+    async registerOwner(subdomain, dto) {
+        let existingTenant = await this.prisma.tenant.findUnique({
+            where: { subdomain }
+        });
+        if (!existingTenant) {
+            const defaultDbUrl = process.env.TENANT_DATABASE_URL || process.env.DATABASE_URL;
+            existingTenant = await this.prisma.tenant.create({
+                data: {
+                    storeName: dto.name,
+                    subdomain: subdomain,
+                    isActive: true,
+                    adminEmail: dto.email,
+                    databaseUrl: defaultDbUrl
+                }
+            });
+        }
+        const hashedPassword = await bcrypt.hash(dto.password, 10);
+        const tenantData = {
+            tenantId: existingTenant.id,
+            storeName: dto.name || subdomain,
+            subdomain: subdomain,
+            isActive: true,
+            ownerUserId: 'temp',
+            type: 'RETAILER'
+        };
+        const newTenant = await this.localPrisma.retailStoreTenant.create({
+            data: tenantData
+        });
+        const newUser = await this.localPrisma.user.create({
+            data: {
+                email: dto.email,
+                password: hashedPassword,
+                name: dto.name,
+                role: 'OWNER',
+                tenantId: newTenant.tenantId
+            }
+        });
+        await this.localPrisma.retailStoreTenant.update({
+            where: { tenantId: newTenant.tenantId },
+            data: { ownerUserId: newUser.id }
+        });
+        const payload = { email: newUser.email, sub: newUser.id, role: newUser.role, tenantId: newUser.tenantId };
+        return {
+            access_token: this.jwtService.sign(payload),
+            user: newUser
+        };
+    }
+    async loginOwner(dto) {
+        const user = await this.localPrisma.user.findUnique({
+            where: { email: dto.email },
+            include: { RetailStoreTenants: true }
+        });
+        if (user && await bcrypt.compare(dto.password, user.password)) {
+            const tenant = user.RetailStoreTenants[0];
+            const payload = { email: user.email, sub: user.id, role: user.role, tenantId: tenant?.tenantId };
+            return {
+                access_token: this.jwtService.sign(payload),
+                user: {
+                    ...user,
+                    tenantId: tenant?.tenantId
+                },
+                tenant: tenant
+            };
+        }
+        throw new common_1.UnauthorizedException('Invalid credentials');
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,
-        tenant_service_1.TenantService,
         tenant_prisma_service_1.TenantPrismaService,
-        prisma_service_1.PrismaService])
+        prisma_service_1.PrismaService,
+        local_prisma_service_1.LocalPrismaService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

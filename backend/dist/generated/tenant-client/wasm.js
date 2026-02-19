@@ -231,6 +231,26 @@ exports.Prisma.CampaignScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PromotionScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  batchId: 'batchId',
+  title: 'title',
+  discountType: 'discountType',
+  discountValue: 'discountValue',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CampaignProductScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  productId: 'productId',
+  highlightLabel: 'highlightLabel',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SocialAccountScalarFieldEnum = {
   id: 'id',
   platform: 'platform',
@@ -411,6 +431,8 @@ exports.Prisma.ModelName = {
   StockMovement: 'StockMovement',
   Invoice: 'Invoice',
   Campaign: 'Campaign',
+  Promotion: 'Promotion',
+  CampaignProduct: 'CampaignProduct',
   SocialAccount: 'SocialAccount',
   Reconciliation: 'Reconciliation',
   Settings: 'Settings',

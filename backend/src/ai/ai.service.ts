@@ -53,4 +53,24 @@ export class AiService {
             return '';
         }
     }
+
+    async generateProductMetadata(name: string, currentContext?: any): Promise<any> {
+        if (!this.openai) return null;
+
+        try {
+            const completion = await this.openai.chat.completions.create({
+                messages: [
+                    { role: 'system', content: 'You are a retail product expert. unique JSON response.' },
+                    { role: 'user', content: `Generate metadata for product "${name}". Context: ${JSON.stringify(currentContext || {})}. Return JSON with fields: suggestedDescription, suggestedCategory, suggestedBrand, suggestedSubcategory.` }
+                ],
+                model: 'gpt-4o',
+                response_format: { type: "json_object" },
+            });
+
+            return JSON.parse(completion.choices[0].message.content || '{}');
+        } catch (error) {
+            this.logger.error('OpenAI Metadata Generation Failed', error);
+            return null;
+        }
+    }
 }

@@ -10,6 +10,7 @@ exports.PrismaModule = void 0;
 const common_1 = require("@nestjs/common");
 const master_prisma_service_1 = require("./master-prisma.service");
 const tenant_prisma_service_1 = require("./tenant-prisma.service");
+const local_prisma_service_1 = require("./local-prisma.service");
 const prisma_service_1 = require("./prisma.service");
 let PrismaModule = class PrismaModule {
 };
@@ -17,8 +18,8 @@ exports.PrismaModule = PrismaModule;
 exports.PrismaModule = PrismaModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        providers: [master_prisma_service_1.MasterPrismaService, tenant_prisma_service_1.TenantPrismaService, prisma_service_1.PrismaService],
-        exports: [master_prisma_service_1.MasterPrismaService, tenant_prisma_service_1.TenantPrismaService, prisma_service_1.PrismaService],
+        providers: [master_prisma_service_1.MasterPrismaService, tenant_prisma_service_1.TenantPrismaService, prisma_service_1.PrismaService, local_prisma_service_1.LocalPrismaService],
+        exports: [master_prisma_service_1.MasterPrismaService, tenant_prisma_service_1.TenantPrismaService, prisma_service_1.PrismaService, local_prisma_service_1.LocalPrismaService],
     })
 ], PrismaModule);
 //# sourceMappingURL=prisma.module.js.map

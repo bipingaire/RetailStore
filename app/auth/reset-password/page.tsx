@@ -1,16 +1,15 @@
 'use client';
-import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
 import { Lock, CheckCircle, Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
+// ... existing imports
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const token = searchParams.get('token');
+
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -31,26 +30,33 @@ export default function ResetPasswordPage() {
             return;
         }
 
+        if (!token) {
+            setError('Missing or invalid reset token');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const { error } = await supabase.auth.updateUser({
-                password: password,
+            await apiClient.post('/auth/reset-password', {
+                token,
+                password
             });
-
-            if (error) throw error;
 
             setSuccess(true);
             setTimeout(() => {
                 router.push('/login');
             }, 2000);
         } catch (err: any) {
-            setError(err.message || 'Failed to reset password');
+            console.error(err);
+            const msg = err.response?.data?.message || err.message || 'Failed to reset password';
+            setError(msg);
         } finally {
             setLoading(false);
         }
     };
 
+    // ... render logic (same as before but returns JSX)
     if (success) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -73,7 +79,6 @@ export default function ResetPasswordPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Lock className="w-8 h-8 text-green-600" />
@@ -132,8 +137,15 @@ export default function ResetPasswordPage() {
                         )}
                     </button>
                 </form>
-
             </div>
         </div>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ResetPasswordContent />
+        </Suspense>
     );
 }

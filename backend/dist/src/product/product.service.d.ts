@@ -8,12 +8,16 @@ export declare class ProductService {
     private masterPrisma;
     private masterCatalogService;
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService, masterPrisma: MasterPrismaService, masterCatalogService: MasterCatalogService);
+    enrichProduct(subdomain: string, id: string): Promise<{
+        success: boolean;
+        imageUrl: string;
+    }>;
     createProduct(subdomain: string, data: any): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -25,11 +29,11 @@ export declare class ProductService {
         barcode: string | null;
     }>;
     create(subdomain: string, data: any): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -50,11 +54,11 @@ export declare class ProductService {
             receivedDate: Date;
         }[];
     } & {
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -66,11 +70,11 @@ export declare class ProductService {
         barcode: string | null;
     }>;
     update(subdomain: string, id: string, data: any): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;
@@ -82,11 +86,11 @@ export declare class ProductService {
         barcode: string | null;
     }>;
     delete(subdomain: string, id: string): Promise<{
+        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
+        isActive: boolean;
         sku: string;
         category: string | null;
         description: string | null;

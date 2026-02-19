@@ -145,24 +145,21 @@ export default function MasterInventoryPage() {
     setEnrichingId(pid);
     toast.info("Generating AI Image... This may take a moment.");
 
+    // Unified Backend Endpoint
     try {
-      const res = await fetch('/api/inventory/enrich', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: pid, productName: item.name })
-      });
-      const json = await res.json();
+      const res: any = await apiClient.post(`/products/${pid}/enrich`, {});
 
-      if (json.success) {
+      if (res.imageUrl) {
         toast.success("Image generated successfully!");
         // Update local state to show new image immediately
-        setGlobalItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: json.imageUrl } : i));
-        setInventoryItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: json.imageUrl } : i));
+        setGlobalItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: res.imageUrl } : i));
+        setInventoryItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: res.imageUrl } : i));
       } else {
-        toast.error(json.error || "Failed to generate image");
+        toast.error("Failed to generate image");
       }
-    } catch (e) {
-      toast.error("Network error during enrichment");
+    } catch (e: any) {
+      console.error("Enrichment error:", e);
+      toast.error(e.message || "Network error during enrichment");
     } finally {
       setEnrichingId(null);
     }

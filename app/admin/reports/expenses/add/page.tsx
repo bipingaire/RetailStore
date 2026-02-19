@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DollarSign, Calendar, Tag, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 export default function AddExpensePage() {
     const router = useRouter();
-    // Supabase removed - refactor needed
 
     const [formData, setFormData] = useState({
         expense_date: new Date().toISOString().split('T')[0],
@@ -21,21 +21,21 @@ export default function AddExpensePage() {
         e.preventDefault();
         setSaving(true);
 
-        const { error } = await supabase
-            .from('expenses')
-            .insert({
-                ...formData,
-                amount: parseFloat(formData.amount)
+        try {
+            await apiClient.post('/expenses', {
+                expenseDate: formData.expense_date,
+                category: formData.category,
+                amount: parseFloat(formData.amount),
+                description: formData.description
             });
 
-        if (error) {
-            toast.error('Error saving expense: ' + error.message);
-        } else {
             toast.success('Expense added successfully!');
             router.push('/admin/reports/profit-loss');
+        } catch (error: any) {
+            toast.error('Error saving expense: ' + (error.message || 'Unknown error'));
+        } finally {
+            setSaving(false);
         }
-
-        setSaving(false);
     }
 
     return (

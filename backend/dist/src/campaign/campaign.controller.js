@@ -37,6 +37,12 @@ let CampaignController = class CampaignController {
     async generate(body) {
         return this.campaignService.generateCampaignContent(body);
     }
+    async createPromotion(tenantId, body) {
+        return this.campaignService.createPromotion(tenantId, body);
+    }
+    async attachProduct(tenantId, body) {
+        return this.campaignService.addSegmentProduct(tenantId, body);
+    }
 };
 exports.CampaignController = CampaignController;
 __decorate([
@@ -87,6 +93,22 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], CampaignController.prototype, "generate", null);
+__decorate([
+    (0, common_1.Post)('promotions'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], CampaignController.prototype, "createPromotion", null);
+__decorate([
+    (0, common_1.Post)('attach-product'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], CampaignController.prototype, "attachProduct", null);
 exports.CampaignController = CampaignController = __decorate([
     (0, common_1.Controller)('campaigns'),
     __metadata("design:paramtypes", [campaign_service_1.CampaignService])

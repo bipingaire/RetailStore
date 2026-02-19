@@ -27,24 +27,62 @@ export declare class SaleService {
         userId: string;
         customerId: string | null;
     }>;
+    findMyOrders(subdomain: string, userId: string): Promise<({
+        items: ({
+            product: {
+                name: string;
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                sku: string;
+                category: string | null;
+                description: string | null;
+                imageUrl: string | null;
+                price: import("src/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                stock: number;
+                reorderLevel: number;
+                barcode: string | null;
+            };
+        } & {
+            id: string;
+            productId: string;
+            quantity: number;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+            saleId: string;
+        })[];
+    } & {
+        id: string;
+        createdAt: Date;
+        status: string;
+        saleNumber: string;
+        subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+        tax: import("src/generated/tenant-client/runtime/library").Decimal;
+        discount: import("src/generated/tenant-client/runtime/library").Decimal;
+        total: import("src/generated/tenant-client/runtime/library").Decimal;
+        userId: string;
+        customerId: string | null;
+    })[]>;
     findAll(subdomain: string, options: any): Promise<({
         customer: {
+            email: string | null;
+            name: string;
             id: string;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
-            email: string | null;
+            isActive: boolean;
             phone: string | null;
             loyaltyPoints: number;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;

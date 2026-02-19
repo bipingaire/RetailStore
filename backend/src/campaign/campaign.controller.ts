@@ -34,4 +34,13 @@ export class CampaignController {
     async generate(@Body() body: { products: any[] }) {
         return this.campaignService.generateCampaignContent(body);
     }
+    @Post('promotions')
+    async createPromotion(@Headers('x-tenant') tenantId: string, @Body() body: any) {
+        return this.campaignService.createPromotion(tenantId, body);
+    }
+
+    @Post('attach-product')
+    async attachProduct(@Headers('x-tenant') tenantId: string, @Body() body: any) {
+        return this.campaignService.addSegmentProduct(tenantId, body);
+    }
 }

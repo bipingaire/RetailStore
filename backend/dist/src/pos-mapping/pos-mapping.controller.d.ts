@@ -4,8 +4,8 @@ export declare class PosMappingController {
     constructor(posMappingService: PosMappingService);
     findAll(tenantId: string): Promise<({
         product: {
-            id: string;
             name: string;
+            id: string;
             sku: string;
             imageUrl: string;
         };
@@ -21,8 +21,8 @@ export declare class PosMappingController {
     })[]>;
     update(tenantId: string, id: string, body: any): Promise<{
         product: {
-            id: string;
             name: string;
+            id: string;
             imageUrl: string;
         };
     } & {

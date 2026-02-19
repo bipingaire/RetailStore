@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Search, Calendar, ChevronDown, ChevronUp, FileText, ArrowRight, Receipt } from 'lucide-react';
-
-
+import { Search, FileText, ChevronDown, ChevronUp, Receipt } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 
 type InvoiceRecord = {
   id: string;
@@ -15,7 +14,6 @@ type InvoiceRecord = {
 };
 
 export default function InvoiceHistoryPage() {
-  // Supabase removed - refactor needed
   const [invoices, setInvoices] = useState<InvoiceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -23,13 +21,31 @@ export default function InvoiceHistoryPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const { data } = await supabase
-        .from('invoices')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (data) setInvoices(data as any);
-      setLoading(false);
+      try {
+        const { data } = await apiClient.get('/invoices');
+        if (data) {
+          // Map Backend VendorInvoice to Frontend InvoiceRecord
+          const mapped = data.map((inv: any) => ({
+            id: inv.id,
+            vendor_name: inv.vendor?.name || 'Unknown Vendor',
+            invoice_number: inv.invoiceNumber,
+            invoice_date: new Date(inv.invoiceDate).toLocaleDateString(),
+            total_amount: Number(inv.totalAmount),
+            line_items_json: inv.items.map((item: any) => ({
+              product_name: item.product?.name || 'Unknown Product',
+              vendor_code: item.product?.sku || '', // Use SKU or handle vendor code logic
+              qty: item.quantity,
+              unit_cost: Number(item.unitCost),
+            })),
+            created_at: inv.createdAt
+          }));
+          setInvoices(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to load invoices", error);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   }, []);

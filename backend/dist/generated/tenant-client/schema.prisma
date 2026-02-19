@@ -47,6 +47,8 @@ model Product {
   VendorInvoiceItems   VendorInvoiceItem[]
   AuditCounts          AuditCount[]
   InventoryAdjustments InventoryAdjustment[]
+  Promotions           Promotion[]
+  Campaigns            CampaignProduct[]
 
   @@map("products")
 }
@@ -169,7 +171,39 @@ model Campaign {
   budget    Decimal?  @db.Decimal(10, 2)
   createdAt DateTime  @default(now())
 
+  Products CampaignProduct[]
+
   @@map("campaigns")
+}
+
+model Promotion {
+  id            String   @id @default(uuid())
+  productId     String
+  batchId       String?
+  title         String
+  discountType  String // percentage, fixed_price
+  discountValue Decimal  @db.Decimal(10, 2)
+  startDate     DateTime @default(now())
+  endDate       DateTime
+  createdAt     DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("promotions")
+}
+
+model CampaignProduct {
+  id             String   @id @default(uuid())
+  campaignId     String
+  productId      String
+  highlightLabel String?
+  createdAt      DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@unique([campaignId, productId])
+  @@map("campaign_products")
 }
 
 model SocialAccount {

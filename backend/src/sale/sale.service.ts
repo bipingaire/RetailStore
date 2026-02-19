@@ -60,6 +60,21 @@ export class SaleService {
     });
   }
 
+  async findMyOrders(subdomain: string, userId: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    return client.sale.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: { product: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
   async findAll(subdomain: string, options: any) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);

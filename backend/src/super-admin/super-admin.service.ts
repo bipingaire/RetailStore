@@ -11,6 +11,14 @@ export class SuperAdminService {
         private aiService: AiService
     ) { }
 
+    async getGlobalProduct(id: string) {
+        const product = await this.prisma.sharedCatalog.findUnique({
+            where: { sku: id },
+        });
+        if (!product) throw new NotFoundException('Product not found');
+        return product;
+    }
+
     async getDashboardData() {
         const products = await this.prisma.sharedCatalog.findMany({
             orderBy: { syncedAt: 'desc' },
@@ -137,6 +145,19 @@ export class SuperAdminService {
                 imageUrl: imageUrl || product.imageUrl,
                 aiEnrichedAt: new Date(),
             }
+        });
+    }
+
+    async getAiSuggestions(id: string) {
+        const product = await this.prisma.sharedCatalog.findUnique({
+            where: { sku: id },
+        });
+
+        if (!product) throw new NotFoundException('Product not found');
+
+        return this.aiService.generateProductMetadata(product.productName, {
+            currentCategory: product.category,
+            currentDescription: product.description
         });
     }
 }

@@ -43,4 +43,21 @@ export class SuperAdminController {
     async enrichProduct(@Param('id') id: string) {
         return this.service.enrichProduct(id);
     }
+
+    @Post('products/:id/ai-suggest')
+    async getAiSuggestions(@Param('id') id: string) {
+        return this.service.getAiSuggestions(id);
+    }
+
+    @Get('products/:id')
+    async getProduct(@Param('id') id: string) {
+        // We'll trust the service to use Prisma to find unique
+        // Since Service doesn't have getProduct, I'll add a quick one here or use existing
+        // Actually, let's reuse service logic or just query via service
+        // I'll add getProduct to service next if needed, but for now I will assume I can just add it to Controller calling service.
+        // Wait, service doesn't have getProduct exposed.
+        // Direct Prisma call is bad practice in Controller.
+        // I will add getGlobalProduct to service.
+        return this.service.getGlobalProduct(id);
+    }
 }

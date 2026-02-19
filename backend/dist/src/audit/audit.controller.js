@@ -28,6 +28,9 @@ let AuditController = class AuditController {
     async completeSession(subdomain, id) {
         return this.auditService.completeAuditSession(subdomain, id);
     }
+    async rejectSession(subdomain, id) {
+        return this.auditService.rejectAuditSession(subdomain, id);
+    }
     async getSession(subdomain, id) {
         return this.auditService.getAuditSession(subdomain, id);
     }
@@ -67,6 +70,14 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], AuditController.prototype, "completeSession", null);
+__decorate([
+    (0, common_1.Post)('session/:id/reject'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], AuditController.prototype, "rejectSession", null);
 __decorate([
     (0, common_1.Get)('session/:id'),
     __param(0, (0, common_1.Headers)('x-tenant')),

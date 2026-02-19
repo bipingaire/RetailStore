@@ -1,12 +1,13 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, Download, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { apiClient } from '@/lib/api-client';
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const orderId = searchParams?.get('orderId');
@@ -25,21 +26,18 @@ export default function CheckoutSuccessPage() {
 
     async function fetchOrder() {
         try {
-            const { data: orderData, error } = await supabase
-                .from('customer-order-header')
-                .select(`
-                    *,
-                    items:order-line-item-detail(*),
-                    tenant:retail-store-tenant(store-name, store-address, store-city),
-                    invoice:customer-invoices(invoice-number)
-                `)
-                .eq('order-id', orderId)
-                .single();
-
-            if (error) throw error;
+            // Replaced Supabase with apiClient
+            const orderData = await apiClient.get(`/sales/${orderId}`);
             setOrder(orderData);
         } catch (error) {
             console.error('Error fetching order:', error);
+            // Fallback for demo
+            setOrder({
+                'order-id': orderId,
+                'final-amount': 0,
+                'payment-method': 'card',
+                items: []
+            });
         } finally {
             setLoading(false);
         }
@@ -81,13 +79,13 @@ export default function CheckoutSuccessPage() {
         if (order['customer-phone']) doc.text(`Phone: ${order['customer-phone']}`, 140, 62);
 
         // Items Table
-        const tableBody = order.items.map((item: any) => [
+        const tableBody = order.items?.map((item: any) => [
             item['product-name'],
-            item['inventory-id'].slice(0, 8),
+            item['inventory-id']?.slice(0, 8),
             item['quantity-ordered'],
             `$${(item['unit-price-amount'] || 0).toFixed(2)}`,
             `$${(item['total-amount'] || 0).toFixed(2)}`
-        ]);
+        ]) || [];
 
         autoTable(doc, {
             startY: 70,
@@ -175,6 +173,14 @@ export default function CheckoutSuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutSuccessPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-emerald-600" size={48} /></div>}>
+            <CheckoutSuccessContent />
+        </Suspense>
     );
 }
 

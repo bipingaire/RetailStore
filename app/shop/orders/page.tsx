@@ -16,35 +16,29 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
-type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
+type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled' | 'COMPLETED';
 
 type Order = {
-  'order-id': string;
-  'order-date-time': string;
-  'final-amount': number;
-  'order-status-code': OrderStatus;
-  'payment-status': string;
-  'fulfillment-type': string;
-  'customer-name': string;
+  id: string;
+  createdAt: string;
+  total: number;
+  status: OrderStatus;
+  saleNumber: string;
   items: {
-    'product-name': string;
-    'quantity-ordered': number;
-    'total-amount': number;
-    inventory: {
-      product: {
-        'image-url'?: string;
-      };
+    id: string;
+    quantity: number;
+    subtotal: number;
+    product: {
+      name: string;
+      imageUrl?: string;
     };
-  }[];
-  invoice: {
-    'invoice-number': string;
   }[];
 };
 
 export default function CustomerOrdersPage() {
   const router = useRouter();
-  // Supabase removed - refactor needed
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,68 +52,40 @@ export default function CustomerOrdersPage() {
 
   async function loadOrders() {
     setLoading(true);
-    const { data: { user } } = // await // supabase.auth.getUser();
 
-    console.log('🔍 Current logged-in user:', user?.id);
-    console.log('🔍 User email:', user?.email);
+    // Check for auth token
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
-    if (!user) {
+    if (!token) {
       router.push('/shop/login');
       return;
     }
 
-    const { data, error } = await supabase
-      .from('customer-order-header')
-      .select(`
-        *,
-        items:order-line-item-detail (
-          product-name,
-          quantity-ordered,
-          total-amount,
-          inventory:retail-store-inventory-item (
-            product:global-product-master-catalog (
-              image-url
-            )
-          )
-        ),
-        invoice:customer-invoices!order-id (
-          invoice-number
-        )
-      `)
-      .eq('customer-id', user.id)
-      .order('order-date-time', { ascending: false });
-
-    console.log('📦 Query response:', { data, error });
-    console.log('📊 Number of orders found:', data?.length || 0);
-
-    if (error) {
-      console.error('❌ Error loading orders:', error);
-      toast.error(`Failed to load orders: ${error.message}`);
-    } else {
+    try {
+      const data = await apiClient.get('/sales/my-orders');
       console.log('✅ Orders loaded successfully:', data);
       setOrders(data || []);
+    } catch (error: any) {
+      console.error('❌ Error loading orders:', error);
+      toast.error(`Failed to load orders: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   async function cancelOrder(orderId: string) {
     setCancelling(orderId);
 
-    const { error } = await supabase
-      .from('customer-order-header')
-      .update({ 'order-status-code': 'cancelled' })
-      .eq('order-id', orderId);
-
-    if (error) {
-      toast.error('Failed to cancel order');
-      console.error(error);
-    } else {
+    try {
+      await apiClient.patch(`/sales/${orderId}/cancel`, {});
       toast.success('Order cancelled successfully');
       loadOrders(); // Refresh the list
+    } catch (error: any) {
+      toast.error('Failed to cancel order');
+      console.error(error);
+    } finally {
+      setCancelling(null);
     }
-
-    setCancelling(null);
   }
 
   const canCancelOrder = (status: OrderStatus) => {
@@ -127,7 +93,7 @@ export default function CustomerOrdersPage() {
   };
 
   const getStatusIcon = (status: OrderStatus) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'pending': return <Clock className="text-yellow-600" size={18} />;
       case 'confirmed': return <CheckCircle2 className="text-blue-600" size={18} />;
       case 'processing': return <Package className="text-indigo-600" size={18} />;
@@ -135,12 +101,13 @@ export default function CustomerOrdersPage() {
       case 'shipped': return <Truck className="text-orange-600" size={18} />;
       case 'delivered': return <CheckCircle2 className="text-green-600" size={18} />;
       case 'cancelled': return <XCircle className="text-red-600" size={18} />;
+      case 'completed': return <CheckCircle2 className="text-green-600" size={18} />;
       default: return <Package className="text-gray-600" size={18} />;
     }
   };
 
   const getStatusColor = (status: OrderStatus) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'confirmed': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'processing': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
@@ -148,13 +115,14 @@ export default function CustomerOrdersPage() {
       case 'shipped': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'delivered': return 'bg-green-50 text-green-700 border-green-200';
       case 'cancelled': return 'bg-red-50 text-red-700 border-red-200';
+      case 'completed': return 'bg-green-50 text-green-700 border-green-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
   const filteredOrders = filter === 'all'
     ? orders
-    : orders.filter(o => o['order-status-code'] === filter);
+    : orders.filter(o => o.status.toLowerCase() === filter);
 
   if (loading) {
     return (
@@ -180,7 +148,7 @@ export default function CustomerOrdersPage() {
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-wrap gap-2">
-            {['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map((status) => (
+            {['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'completed'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
@@ -215,35 +183,35 @@ export default function CustomerOrdersPage() {
         ) : (
           <div className="space-y-4">
             {filteredOrders.map((order) => {
-              const isExpanded = expandedOrder === order['order-id'];
-              const isCancellable = canCancelOrder(order['order-status-code']);
+              const isExpanded = expandedOrder === order.id;
+              const isCancellable = canCancelOrder(order.status);
 
               return (
                 <div
-                  key={order['order-id']}
+                  key={order.id}
                   className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
                 >
                   {/* Order Header */}
                   <div
                     className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => setExpandedOrder(isExpanded ? null : order['order-id'])}
+                    onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-xs text-gray-500 font-mono">
-                            #{order['order-id'].slice(0, 8)}
+                            #{order.saleNumber}
                           </span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${getStatusColor(order['order-status-code'])}`}>
-                            {getStatusIcon(order['order-status-code'])}
-                            {order['order-status-code'].toUpperCase()}
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${getStatusColor(order.status)}`}>
+                            {getStatusIcon(order.status)}
+                            {order.status.toUpperCase()}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                           <div className="flex items-center gap-2 text-gray-600">
                             <Calendar size={16} />
-                            {new Date(order['order-date-time']).toLocaleDateString()}
+                            {new Date(order.createdAt).toLocaleDateString()}
                           </div>
                           <div className="flex items-center gap-2 text-gray-600">
                             <Package size={16} />
@@ -251,7 +219,7 @@ export default function CustomerOrdersPage() {
                           </div>
                           <div className="flex items-center gap-2 font-semibold text-gray-900">
                             <DollarSign size={16} />
-                            ${order['final-amount']?.toFixed(2)}
+                            ${Number(order.total).toFixed(2)}
                           </div>
                         </div>
                       </div>
@@ -262,13 +230,13 @@ export default function CustomerOrdersPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (confirm('Are you sure you want to cancel this order?')) {
-                                cancelOrder(order['order-id']);
+                                cancelOrder(order.id);
                               }
                             }}
-                            disabled={cancelling === order['order-id']}
+                            disabled={cancelling === order.id}
                             className="px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
                           >
-                            {cancelling === order['order-id'] ? (
+                            {cancelling === order.id ? (
                               <>
                                 <div className="w-4 h-4 border-2 border-red-700/30 border-t-red-700 rounded-full animate-spin"></div>
                                 Cancelling...
@@ -295,10 +263,10 @@ export default function CustomerOrdersPage() {
                         {order.items?.map((item, idx) => (
                           <div key={idx} className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200">
                             <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                              {item.inventory?.product?.['image-url'] ? (
+                              {item.product?.imageUrl ? (
                                 <img
-                                  src={item.inventory.product['image-url']}
-                                  alt={item['product-name']}
+                                  src={item.product.imageUrl}
+                                  alt={item.product.name}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -308,11 +276,11 @@ export default function CustomerOrdersPage() {
                               )}
                             </div>
                             <div className="flex-1">
-                              <div className="font-semibold text-gray-900">{item['product-name']}</div>
-                              <div className="text-sm text-gray-500">Quantity: {item['quantity-ordered']}</div>
+                              <div className="font-semibold text-gray-900">{item.product.name}</div>
+                              <div className="text-sm text-gray-500">Quantity: {item.quantity}</div>
                             </div>
                             <div className="font-bold text-gray-900">
-                              ${item['total-amount']?.toFixed(2)}
+                              ${Number(item.subtotal).toFixed(2)}
                             </div>
                           </div>
                         ))}
@@ -321,28 +289,10 @@ export default function CustomerOrdersPage() {
                       {/* Additional Info */}
                       <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-500">Payment Status:</span>
-                          <span className="font-semibold text-gray-900 ml-2 capitalize">
-                            {order['payment-status']}
-                          </span>
                         </div>
-                        <div>
-                          <span className="text-gray-500">Fulfillment:</span>
-                          <span className="font-semibold text-gray-900 ml-2 capitalize">
-                            {order['fulfillment-type']}
-                          </span>
-                        </div>
-                        {order.invoice?.[0]?.['invoice-number'] && (
-                          <div>
-                            <span className="text-gray-500">Invoice:</span>
-                            <span className="font-mono text-gray-900 ml-2">
-                              {order.invoice[0]['invoice-number']}
-                            </span>
-                          </div>
-                        )}
                       </div>
 
-                      {!isCancellable && order['order-status-code'] !== 'cancelled' && order['order-status-code'] !== 'delivered' && (
+                      {!isCancellable && order.status !== 'cancelled' && order.status !== 'delivered' && (
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
                           <AlertTriangle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
                           <p className="text-sm text-yellow-800">

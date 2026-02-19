@@ -52,4 +52,13 @@ export class ProductController {
   ) {
     return this.productService.updateStock(subdomain, id, dto.quantity, dto.type);
   }
+
+  @Post(':id/enrich')
+  @UseGuards(JwtAuthGuard)
+  enrich(
+    @Headers('x-tenant') subdomain: string,
+    @Param('id') id: string
+  ) {
+    return this.productService.enrichProduct(subdomain, id);
+  }
 }

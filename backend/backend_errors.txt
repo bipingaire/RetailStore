@@ -1,0 +1,18 @@
+src/auth/auth.service.ts(18,37): error TS2339: Property 'superAdmin' does not exist on type 'PrismaService'.
+src/auth/auth.service.ts(206,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type '(Without<RetailStoreTenantCreateInput, RetailStoreTenantUncheckedCreateInput> & RetailStoreTenantUncheckedCreateInput) | (Without<...> & RetailStoreTenantCreateInput)'.
+src/auth/auth.service.ts(239,27): error TS2339: Property 'type' does not exist on type '{ isActive: boolean; subdomain: string; storeName: string; tenantId: string; ownerUserId: string; }'.
+src/master-catalog/master-catalog.service.ts(30,32): error TS2339: Property 'sharedCatalog' does not exist on type 'PrismaService'.
+src/master-catalog/master-catalog.service.ts(71,24): error TS2339: Property 'sharedCatalog' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(15,44): error TS2339: Property 'sharedCatalog' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(20,43): error TS2339: Property 'tenant' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(27,48): error TS2339: Property 'pendingProductAddition' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(37,49): error TS2339: Property 'tenantSubscription' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(38,48): error TS2339: Property 'billingTransaction' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(46,49): error TS2339: Property 'masterWebsiteConfig' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(64,40): error TS2339: Property 'pendingProductAddition' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(75,43): error TS2339: Property 'sharedCatalog' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(90,27): error TS2339: Property 'pendingProductAddition' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(102,28): error TS2339: Property 'pendingProductAddition' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(109,28): error TS2339: Property 'sharedCatalog' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(121,43): error TS2339: Property 'sharedCatalog' does not exist on type 'PrismaService'.
+src/super-admin/super-admin.service.ts(133,28): error TS2339: Property 'sharedCatalog' does not exist on type 'PrismaService'.

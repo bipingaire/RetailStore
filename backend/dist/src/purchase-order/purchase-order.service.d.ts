@@ -10,21 +10,21 @@ export declare class PurchaseOrderService {
         unitCost: number;
     }>, notes?: string): Promise<{
         vendor: {
+            email: string | null;
+            name: string;
             id: string;
             isActive: boolean;
-            name: string;
-            email: string | null;
             phone: string | null;
             address: string | null;
             contactPerson: string | null;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -58,21 +58,21 @@ export declare class PurchaseOrderService {
     }>;
     getPurchaseOrder(subdomain: string, id: string): Promise<{
         vendor: {
+            email: string | null;
+            name: string;
             id: string;
             isActive: boolean;
-            name: string;
-            email: string | null;
             phone: string | null;
             address: string | null;
             contactPerson: string | null;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -106,10 +106,10 @@ export declare class PurchaseOrderService {
     }>;
     getAllPurchaseOrders(subdomain: string, status?: string): Promise<({
         vendor: {
+            email: string | null;
+            name: string;
             id: string;
             isActive: boolean;
-            name: string;
-            email: string | null;
             phone: string | null;
             address: string | null;
             contactPerson: string | null;
@@ -163,21 +163,21 @@ export declare class PurchaseOrderService {
     }>;
     receivePurchaseOrder(subdomain: string, id: string): Promise<{
         vendor: {
+            email: string | null;
+            name: string;
             id: string;
             isActive: boolean;
-            name: string;
-            email: string | null;
             phone: string | null;
             address: string | null;
             contactPerson: string | null;
         };
         items: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;

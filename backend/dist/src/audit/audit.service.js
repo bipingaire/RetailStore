@@ -56,6 +56,8 @@ let AuditService = class AuditService {
         });
         if (!session)
             throw new Error('Audit session not found');
+        if (session.status === 'completed')
+            throw new Error('Audit session already completed');
         await client.$transaction(async (tx) => {
             for (const count of session.counts) {
                 if (count.variance !== 0) {
@@ -69,7 +71,7 @@ let AuditService = class AuditService {
                     });
                     await tx.product.update({
                         where: { id: count.productId },
-                        data: { stock: count.countedQuantity },
+                        data: { stock: { increment: count.variance } },
                     });
                 }
             }
@@ -79,6 +81,14 @@ let AuditService = class AuditService {
             });
         });
         return this.getAuditSession(subdomain, sessionId);
+    }
+    async rejectAuditSession(subdomain, sessionId) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.auditSession.update({
+            where: { id: sessionId },
+            data: { status: 'rejected', completedAt: new Date() }
+        });
     }
     async getAuditSession(subdomain, id) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);

@@ -59,6 +59,45 @@ export class CampaignService {
         });
     }
 
+    async createPromotion(subdomain: string, data: any) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.promotion.create({
+            data: {
+                productId: data.store_inventory_id,
+                batchId: data.batch_id,
+                title: data.title,
+                discountType: data.discount_type,
+                discountValue: data.discount_value,
+                startDate: new Date(),
+                endDate: new Date(data.end_date),
+            }
+        });
+    }
+
+    async addSegmentProduct(subdomain: string, data: any) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.campaignProduct.upsert({
+            where: {
+                campaignId_productId: {
+                    campaignId: data.segment_id,
+                    productId: data.store_inventory_id
+                }
+            },
+            update: {
+                highlightLabel: data.highlight_label
+            },
+            create: {
+                campaignId: data.segment_id,
+                productId: data.store_inventory_id,
+                highlightLabel: data.highlight_label
+            }
+        });
+    }
+
     async generateCampaignContent(data: { products: any[] }) {
         // Mock AI Generation
         const productNames = data.products.map((p) => p.name || 'our products').join(', ');

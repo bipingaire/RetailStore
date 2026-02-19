@@ -139,7 +139,7 @@ export default function PosMappingPage() {
 
   const verifyMap = async (id: string) => {
     try {
-      await apiClient.patch(`/pos-mappings/${id}/verify`);
+      await apiClient.patch(`/pos-mappings/${id}/verify`, {});
 
       setMappings(prev => {
         const next = prev.map(m => m.mapping_id === id ? { ...m, is_verified: true } : m);

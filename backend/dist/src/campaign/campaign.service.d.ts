@@ -5,45 +5,63 @@ export declare class CampaignService {
     private tenantPrisma;
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
     createCampaign(subdomain: string, data: any): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        status: string;
         type: string;
+        status: string;
         startDate: Date | null;
         endDate: Date | null;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     updateCampaign(subdomain: string, id: string, data: any): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        status: string;
         type: string;
+        status: string;
         startDate: Date | null;
         endDate: Date | null;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     deleteCampaign(subdomain: string, id: string): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        status: string;
         type: string;
+        status: string;
         startDate: Date | null;
         endDate: Date | null;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     listCampaigns(subdomain: string): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        status: string;
         type: string;
+        status: string;
         startDate: Date | null;
         endDate: Date | null;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }[]>;
+    createPromotion(subdomain: string, data: any): Promise<{
+        id: string;
+        createdAt: Date;
+        productId: string;
+        discountType: string;
+        startDate: Date;
+        endDate: Date;
+        batchId: string | null;
+        title: string;
+        discountValue: import("src/generated/tenant-client/runtime/library").Decimal;
+    }>;
+    addSegmentProduct(subdomain: string, data: any): Promise<{
+        id: string;
+        createdAt: Date;
+        productId: string;
+        campaignId: string;
+        highlightLabel: string | null;
+    }>;
     generateCampaignContent(data: {
         products: any[];
     }): Promise<{

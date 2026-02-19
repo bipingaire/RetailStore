@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 interface Reconciliation {
     id: string;
@@ -27,7 +27,6 @@ interface LineItem {
 export default function ReconciliationDetailPage() {
     const router = useRouter();
     const params = useParams();
-    const supabase = createClientComponentClient();
 
     const [reconciliation, setReconciliation] = useState<Reconciliation | null>(null);
     const [lineItems, setLineItems] = useState<LineItem[]>([]);
@@ -39,52 +38,72 @@ export default function ReconciliationDetailPage() {
     }, [params.id]);
 
     async function loadReconciliation() {
-        const { data: recon } = await supabase
-            .from('inventory_reconciliation')
-            .select('*')
-            .eq('id', params.id)
-            .single();
+        try {
+            const { data: session } = await apiClient.get(`/audit/session/${params.id}`);
 
-        const { data: items } = await supabase
-            .from('reconciliation_line_items')
-            .select('*')
-            .eq('reconciliation_id', params.id)
-            .order('variance_value', { ascending: true });
+            if (session) {
+                // Map AuditSession to Reconciliation
+                const totalVarianceVal = session.counts.reduce((acc: number, c: any) => {
+                    return acc + (Math.abs(c.variance) * (Number(c.product?.costPrice) || 0));
+                }, 0);
 
-        if (recon) setReconciliation(recon);
-        if (items) setLineItems(items);
-        setLoading(false);
+                setReconciliation({
+                    id: session.id,
+                    reconciliation_date: session.startedAt,
+                    status: session.status,
+                    notes: session.notes,
+                    total_variance_value: totalVarianceVal,
+                    created_at: session.startedAt
+                });
+
+                // Map Counts to LineItems
+                const items = session.counts.map((c: any) => ({
+                    id: c.id,
+                    product_name: c.product?.name || 'Unknown Product',
+                    expected_quantity: c.systemQuantity,
+                    counted_quantity: c.countedQuantity,
+                    variance: c.variance,
+                    unit_cost: Number(c.product?.costPrice) || 0,
+                    variance_value: Math.abs(c.variance) * (Number(c.product?.costPrice) || 0)
+                }));
+
+                // Sort by variance value desc
+                items.sort((a: LineItem, b: LineItem) => b.variance_value - a.variance_value);
+
+                setLineItems(items);
+            }
+        } catch (error) {
+            console.error("Failed to load audit session", error);
+            toast.error("Failed to load reconciliation details");
+        } finally {
+            setLoading(false);
+        }
     }
 
     async function approveReconciliation() {
         setProcessing(true);
-
-        // Call the stored procedure to apply reconciliation
-        const { error } = await supabase.rpc('apply_reconciliation', {
-            p_reconciliation_id: params.id
-        });
-
-        if (error) {
-            toast.error('Error applying reconciliation: ' + error.message);
-        } else {
+        try {
+            await apiClient.post(`/audit/session/${params.id}/complete`, {});
             toast.success('Reconciliation approved and inventory updated!');
             router.push('/admin/reconciliation');
+        } catch (error: any) {
+            toast.error('Error applying reconciliation: ' + (error.message || 'Unknown error'));
+        } finally {
+            setProcessing(false);
         }
-
-        setProcessing(false);
     }
 
     async function rejectReconciliation() {
         setProcessing(true);
-
-        await supabase
-            .from('inventory_reconciliation')
-            .update({ status: 'rejected' })
-            .eq('id', params.id);
-
-        toast.info('Reconciliation rejected');
-        router.push('/admin/reconciliation');
-        setProcessing(false);
+        try {
+            await apiClient.post(`/audit/session/${params.id}/reject`, {});
+            toast.info('Reconciliation rejected');
+            router.push('/admin/reconciliation');
+        } catch (error: any) {
+            toast.error('Error rejecting reconciliation');
+        } finally {
+            setProcessing(false);
+        }
     }
 
     if (loading) {
@@ -113,7 +132,7 @@ export default function ReconciliationDetailPage() {
                     Back
                 </button>
 
-                {reconciliation.status === 'pending_approval' && (
+                {(reconciliation.status === 'in-progress' || reconciliation.status === 'pending_approval') && (
                     <div className="flex gap-3">
                         <button
                             onClick={rejectReconciliation}
@@ -139,8 +158,8 @@ export default function ReconciliationDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <div className="text-sm text-gray-500 mb-1">Status</div>
-                    <div className={`text-lg font-bold capitalize ${reconciliation.status === 'approved' ? 'text-green-600' :
-                        reconciliation.status === 'pending_approval' ? 'text-yellow-600' :
+                    <div className={`text-lg font-bold capitalize ${reconciliation.status === 'completed' ? 'text-green-600' :
+                        reconciliation.status === 'in-progress' ? 'text-yellow-600' :
                             reconciliation.status === 'rejected' ? 'text-red-600' :
                                 'text-blue-600'
                         }`}>

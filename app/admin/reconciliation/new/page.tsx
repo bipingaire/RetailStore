@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Search, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 
 export default function NewReconciliationPage() {
     const router = useRouter();
@@ -19,9 +20,9 @@ export default function NewReconciliationPage() {
 
     async function loadProducts() {
         try {
-            const res = await fetch('/api/products');
-            if (res.ok) {
-                setProducts(await res.json());
+            const { data } = await apiClient.get('/products');
+            if (data) {
+                setProducts(data);
             }
         } catch (error) {
             console.error('Error loading products:', error);
@@ -30,15 +31,13 @@ export default function NewReconciliationPage() {
 
     async function startSession() {
         try {
-            const res = await fetch('/api/audit/session/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: 'current-user-id', notes }),
+            const { data } = await apiClient.post('/audit/session/start', {
+                userId: 'current-user-id', // TODO: Get real user ID from context
+                notes
             });
 
-            if (res.ok) {
-                const session = await res.json();
-                setSessionId(session.id);
+            if (data) {
+                setSessionId(data.id);
                 toast.success('Audit session started!');
             }
         } catch (error) {
@@ -62,19 +61,13 @@ export default function NewReconciliationPage() {
         if (countData === undefined) return;
 
         try {
-            const res = await fetch(`/api/audit/session/${sessionId}/count`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    productId: product.id,
-                    countedQuantity: countData.counted,
-                    reason: countData.reason,
-                }),
+            await apiClient.post(`/audit/session/${sessionId}/count`, {
+                productId: product.id,
+                countedQuantity: countData.counted,
+                reason: countData.reason,
             });
 
-            if (res.ok) {
-                toast.success(`Count saved for ${product.name}`);
-            }
+            toast.success(`Count saved for ${product.name}`);
         } catch (error) {
             toast.error('Failed to save count');
         }
@@ -86,14 +79,9 @@ export default function NewReconciliationPage() {
         if (!confirm('Complete this audit? This will adjust inventory based on counted quantities.')) return;
 
         try {
-            const res = await fetch(`/api/audit/session/${sessionId}/complete`, {
-                method: 'POST',
-            });
-
-            if (res.ok) {
-                toast.success('Audit completed! Inventory adjusted.');
-                router.push(`/admin/reconciliation/${sessionId}`);
-            }
+            await apiClient.post(`/audit/session/${sessionId}/complete`, {});
+            toast.success('Audit completed! Inventory adjusted.');
+            router.push(`/admin/reconciliation/${sessionId}`);
         } catch (error) {
             toast.error('Failed to complete audit');
         }

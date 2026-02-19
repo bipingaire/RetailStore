@@ -2,13 +2,11 @@
 import { useEffect, useState } from 'react';
 import { Tag, X, Percent, DollarSign, Share2, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
-
-
+import { apiClient } from '@/lib/api-client';
 
 type Campaign = { id: string; title: string; slug?: string };
 
 export default function PromotionModal({ product, batch, onClose }: any) {
-  // Supabase removed - refactor needed
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<'percentage' | 'fixed_price'>('percentage');
   const [value, setValue] = useState(30); // Default 30% off
@@ -18,12 +16,13 @@ export default function PromotionModal({ product, batch, onClose }: any) {
   const [status, setStatus] = useState<string>('');
 
   useEffect(() => {
-    supabase
-      .from('product_segments')
-      .select('id, title, slug')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
-      .then(({ data }) => setCampaigns((data as any[]) || []));
+    apiClient.get('/campaigns')
+      .then(({ data }) => {
+        // Map backend 'name' to frontend 'title'
+        const mapped = (data || []).map((c: any) => ({ ...c, title: c.name }));
+        setCampaigns(mapped);
+      })
+      .catch(console.error);
   }, []);
 
   const handleSave = async () => {
@@ -33,37 +32,34 @@ export default function PromotionModal({ product, batch, onClose }: any) {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
 
-    const { data: promoData, error } = await supabase
-      .from('promotions')
-      .insert({
-        tenant_id: 'PASTE_YOUR_COPIED_UUID_HERE', // <--- REMEMBER TO USE YOUR REAL ID
+    try {
+      await apiClient.post('/campaigns/promotions', {
         store_inventory_id: product.id,
         batch_id: batch?.id || null, // If null, applies to all batches of this product
         title: batch ? `Clearance: Expires Soon!` : `Special Offer`,
         discount_type: type,
         discount_value: value,
         end_date: endDate.toISOString()
-      })
-      .select()
-      .single();
+      });
 
-    setLoading(false);
-    if (error) {
-      toast.error("Error creating promotion");
-      console.error(error);
-    } else {
       // Optionally attach to campaign
       if (campaignId) {
-        await supabase
-          .from('segment_products')
-          .upsert({
-            segment_id: campaignId,
-            store_inventory_id: product.id,
-            highlight_label: batch ? 'Clearance' : 'Promo',
-          });
+        await apiClient.post('/campaigns/attach-product', {
+          segment_id: campaignId,
+          store_inventory_id: product.id,
+          highlight_label: batch ? 'Clearance' : 'Promo',
+        });
       }
+
       setStatus('✅ Promotion Live on Website' + (campaignId ? ' & Campaign' : ''));
-      onClose();
+      setTimeout(onClose, 1500);
+
+    } catch (error: any) {
+      toast.error("Error creating promotion");
+      console.error(error);
+      setStatus("❌ Error: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 

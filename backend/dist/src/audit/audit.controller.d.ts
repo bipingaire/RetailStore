@@ -30,11 +30,11 @@ export declare class AuditController {
     completeSession(subdomain: string, id: string): Promise<{
         counts: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -57,11 +57,11 @@ export declare class AuditController {
         })[];
         adjustments: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -89,14 +89,22 @@ export declare class AuditController {
         startedAt: Date;
         completedAt: Date | null;
     }>;
+    rejectSession(subdomain: string, id: string): Promise<{
+        id: string;
+        status: string;
+        userId: string;
+        notes: string | null;
+        startedAt: Date;
+        completedAt: Date | null;
+    }>;
     getSession(subdomain: string, id: string): Promise<{
         counts: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -119,11 +127,11 @@ export declare class AuditController {
         })[];
         adjustments: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;
@@ -182,11 +190,11 @@ export declare class AuditController {
     getVariances(subdomain: string): Promise<({
         adjustments: ({
             product: {
+                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
+                isActive: boolean;
                 sku: string;
                 category: string | null;
                 description: string | null;

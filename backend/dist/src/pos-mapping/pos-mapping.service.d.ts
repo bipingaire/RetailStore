@@ -6,8 +6,8 @@ export declare class PosMappingService {
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
     findAll(subdomain: string): Promise<({
         product: {
-            id: string;
             name: string;
+            id: string;
             sku: string;
             imageUrl: string;
         };
@@ -23,8 +23,8 @@ export declare class PosMappingService {
     })[]>;
     updateMapping(subdomain: string, id: string, data: any): Promise<{
         product: {
-            id: string;
             name: string;
+            id: string;
             imageUrl: string;
         };
     } & {

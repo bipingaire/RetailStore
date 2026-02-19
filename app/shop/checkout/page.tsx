@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     CheckCircle, Package, MapPin, CreditCard, ArrowRight,
@@ -11,7 +11,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from './StripePaymentForm';
 import { apiClient } from '@/lib/api-client';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     // Supabase removed - refactor needed
@@ -186,9 +186,6 @@ export default function CheckoutPage() {
             }
         }
     };
-
-    // Non-blocking Render
-    // if (checkingAuth) return <Loader... />  <-- REMOVED
 
     if (cart.length === 0) {
         return (
@@ -602,6 +599,14 @@ export default function CheckoutPage() {
                 </div>
             </div >
         </div >
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-green-600" size={40} /></div>}>
+            <CheckoutContent />
+        </Suspense>
     );
 }
 

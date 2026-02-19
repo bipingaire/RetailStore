@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { MasterPrismaService } from './master-prisma.service';
 import { TenantPrismaService } from './tenant-prisma.service';
+import { LocalPrismaService } from './local-prisma.service';
 import { PrismaService } from './prisma.service'; // Keep for legacy/transition? Or remove?
 // If we pivot fully, we should probably keep PrismaService as alias for Master? or Remove.
 // But some services I haven't touched yet might use it.
@@ -8,7 +9,7 @@ import { PrismaService } from './prisma.service'; // Keep for legacy/transition?
 
 @Global()
 @Module({
-  providers: [MasterPrismaService, TenantPrismaService, PrismaService],
-  exports: [MasterPrismaService, TenantPrismaService, PrismaService],
+  providers: [MasterPrismaService, TenantPrismaService, PrismaService, LocalPrismaService],
+  exports: [MasterPrismaService, TenantPrismaService, PrismaService, LocalPrismaService],
 })
 export class PrismaModule { }

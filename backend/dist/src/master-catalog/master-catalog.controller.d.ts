@@ -3,6 +3,7 @@ export declare class MasterCatalogController {
     private masterCatalog;
     constructor(masterCatalog: MasterCatalogService);
     getSharedCatalog(category?: string, search?: string): Promise<{
+        tenantId: string;
         sku: string;
         productName: string;
         category: string | null;
@@ -11,6 +12,5 @@ export declare class MasterCatalogController {
         imageUrl: string | null;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }[]>;
 }

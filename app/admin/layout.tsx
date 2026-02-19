@@ -75,47 +75,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setIsLoading(false);
     }
 
-    async function checkUserRole(userId: string, tenantId: string | null) {
-      // BYPASS FOR LOCALHOST DEV ENVIRONMENT
-      // If we are on localhost, and just testing, allow any logged in user
-      // This solves the "Stuck on Login" issue if DB doesn't have roles set up yet.
-      if (window.location.hostname === 'localhost' && !tenantId) {
-        console.log('Dev Mode: Allowing access bypass on localhost');
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
-      }
-
-      let query = supabase
-        .from('tenant-user-role')
-        .select('role-type, tenant-id')
-        .eq('user-id', userId);
-
-      if (tenantId) {
-        query = query.eq('tenant-id', tenantId);
-      }
-
-      // If checking globally (localhost), just get any valid role
-      // If checking specific tenant, we expect one row
-      const { data: roleData, error } = await query.limit(1).maybeSingle();
-
-      if (error || !roleData) {
-        console.error('Access verification failed:', error);
-        // Only show toast if we are NOT on the login page (to avoid double toast or conflict)
-        if (pathname !== '/admin/login') {
-          toast.error('Unauthorized: You do not have access to this store.');
-        }
-        // Do not sign out immediately, might be a valid user just at wrong URL
-        // allow middleware/router to handle
-        if (pathname !== '/admin/login') {
-          router.push('/admin/login');
-        }
-        setIsAuthenticated(false);
-      } else {
-        setIsAuthenticated(true);
-      }
-      setIsLoading(false);
-    }
 
     checkAccess();
   }, [pathname, router]);

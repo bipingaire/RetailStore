@@ -53,6 +53,7 @@ export class AuditService {
         });
 
         if (!session) throw new Error('Audit session not found');
+        if (session.status === 'completed') throw new Error('Audit session already completed');
 
         await client.$transaction(async (tx) => {
             // Apply inventory adjustments
@@ -67,9 +68,30 @@ export class AuditService {
                         },
                     });
 
+                    // Update product stock
+                    // Note: We use increment for safety, or set absolute?
+                    // Counted Quantity is the absolute truth.
+                    // But if sales happened during audit?
+                    // Usually Audit 'System Quantity' is snapshot at start.
+                    // Variance = Counted - System.
+                    // Adjustment = Variance.
+                    // New Stock = Old Stock + Variance.
+                    // If we simply set stock = counted, we overwrite sales made during audit.
+                    // So `increment: variance` is safer if we trust variance calculation.
+                    // But here we calculated variance based on `product.stock` at `addAuditCount` time?
+                    // `addAuditCount` gets `product.stock` (System Qty).
+                    // Variance = Counted - System.
+                    // If we do `increment: variance`, we are applying the difference.
+                    // Example: System 10. Counted 8. Variance -2.
+                    // Sale of 1 happens. System 9.
+                    // We apply -2. Result 7.
+                    // Correct?
+                    // If Counted 8 (Real). Sale 1 (Real). Result should be 7.
+                    // Yes, applying variance is correct.
+
                     await tx.product.update({
                         where: { id: count.productId },
-                        data: { stock: count.countedQuantity },
+                        data: { stock: { increment: count.variance } },
                     });
                 }
             }
@@ -81,6 +103,16 @@ export class AuditService {
         });
 
         return this.getAuditSession(subdomain, sessionId);
+    }
+
+    async rejectAuditSession(subdomain: string, sessionId: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        return client.auditSession.update({
+            where: { id: sessionId },
+            data: { status: 'rejected', completedAt: new Date() }
+        });
     }
 
     async getAuditSession(subdomain: string, id: string) {

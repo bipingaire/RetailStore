@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 
-export default function CreateCampaignPage() {
+function CreateCampaignContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -270,6 +270,14 @@ export default function CreateCampaignPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function CreateCampaignPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <CreateCampaignContent />
+        </Suspense>
     );
 }
 

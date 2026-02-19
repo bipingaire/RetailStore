@@ -22,12 +22,13 @@ const audit_module_1 = require("./audit/audit.module");
 const purchase_order_module_1 = require("./purchase-order/purchase-order.module");
 const campaign_module_1 = require("./campaign/campaign.module");
 const settings_module_1 = require("./settings/settings.module");
-const profit_controller_1 = require("./reports/profit.controller");
-const profit_service_1 = require("./reports/profit.service");
+const reports_module_1 = require("./reports/reports.module");
 const tenant_prisma_service_1 = require("./prisma/tenant-prisma.service");
 const super_admin_module_1 = require("./super-admin/super-admin.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const pos_mapping_module_1 = require("./pos-mapping/pos-mapping.module");
+const social_module_1 = require("./social/social.module");
+const expense_module_1 = require("./expense/expense.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -51,9 +52,14 @@ exports.AppModule = AppModule = __decorate([
             super_admin_module_1.SuperAdminModule,
             dashboard_module_1.DashboardModule,
             pos_mapping_module_1.PosMappingModule,
+            reports_module_1.ReportsModule,
+            pos_mapping_module_1.PosMappingModule,
+            reports_module_1.ReportsModule,
+            social_module_1.SocialModule,
+            expense_module_1.ExpenseModule,
         ],
-        controllers: [profit_controller_1.ProfitController],
-        providers: [profit_service_1.ProfitService, tenant_prisma_service_1.TenantPrismaService],
+        controllers: [],
+        providers: [tenant_prisma_service_1.TenantPrismaService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

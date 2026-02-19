@@ -1,6 +1,6 @@
 'use client';
 import { useState, ChangeEvent } from 'react';
-import { supabase } from '@/lib/supabase'; // Import the client we just made
+
 import { Loader2, Check, AlertTriangle, Save, Search } from 'lucide-react'; // Icons
 import { toast } from 'sonner';
 

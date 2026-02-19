@@ -24,6 +24,9 @@ let SaleController = class SaleController {
     create(subdomain, req, dto) {
         return this.saleService.createSale(subdomain, { ...dto, userId: req.user.id });
     }
+    findMyOrders(subdomain, req) {
+        return this.saleService.findMyOrders(subdomain, req.user.id);
+    }
     findAll(subdomain, status, startDate, endDate, userId, customerId, limit, offset) {
         return this.saleService.findAll(subdomain, {
             status,
@@ -64,6 +67,14 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, create_sale_dto_1.CreateSaleDto]),
     __metadata("design:returntype", void 0)
 ], SaleController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)('my-orders'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], SaleController.prototype, "findMyOrders", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Headers)('x-tenant')),
