@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const openai = new OpenAI({ apiKey: finalApiKey });
+        const openai = new OpenAI({ apiKey: finalApiKey || 'placeholder' });
 
         // 2. Call DALL-E 3
         console.log("Generating image with prompt:", prompt);

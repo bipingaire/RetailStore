@@ -15,7 +15,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'placeholder' });
 
         // 1. Generate Image Description/Prompt
         // Optional: We could use GPT to refine the prompt, but direct name usually works well for DALL-E 3

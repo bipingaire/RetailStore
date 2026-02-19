@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 const openaiKey = process.env.OPENAI_API_KEY;
 const openai = openaiKey
-  ? new OpenAI({ apiKey: openaiKey })
+  ? new OpenAI({ apiKey: openaiKey || 'placeholder' })
   : null;
 
 export async function POST(req: Request) {
