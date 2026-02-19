@@ -20,7 +20,9 @@
     "noFallthroughCasesInSwitch": false
   },
   "exclude": [
+    "node_modules",
     "scripts",
-    "dist"
+    "dist",
+    "prisma"
   ]
 }
