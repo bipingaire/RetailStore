@@ -4,26 +4,20 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function seedSuperAdmin() {
-    const email = 'superadmin@retailstore.com';
-    const plainPassword = 'password123';
+    const email = 'admin@retailos.cloud';
+    const plainPassword = 'RetailOS@2024';
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    // Check if super admin already exists
-    const existing = await prisma.superAdmin.findUnique({
-        where: { email }
-    });
+    const existing = await prisma.superAdmin.findUnique({ where: { email } });
 
     if (existing) {
-        console.log('Super admin already exists, updating password...');
         await prisma.superAdmin.update({
             where: { email },
             data: { password: hashedPassword }
         });
         console.log('✅ Super admin password updated');
     } else {
-        console.log('Creating super admin...');
         await prisma.superAdmin.create({
             data: {
                 email,
@@ -34,9 +28,10 @@ async function seedSuperAdmin() {
         console.log('✅ Super admin created');
     }
 
-    console.log(`\nCredentials:`);
-    console.log(`Email: ${email}`);
-    console.log(`Password: ${plainPassword}`);
+    console.log(`\n🔑 Super Admin Credentials:`);
+    console.log(`   Email:    ${email}`);
+    console.log(`   Password: ${plainPassword}`);
+    console.log(`   Login at: https://retailos.cloud/super-admin\n`);
 }
 
 seedSuperAdmin()
