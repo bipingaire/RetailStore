@@ -248,7 +248,7 @@ export default function AccountPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-black text-white">
-                            ${order.total?.toFixed(2)}
+                            ${parseFloat(order.total || '0').toFixed(2)}
                           </div>
                           <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${order.status === 'COMPLETED' ? 'bg-green-500/20 text-green-300' :
                             order.status === 'SHIPPED' ? 'bg-blue-500/20 text-blue-300' :
@@ -261,7 +261,7 @@ export default function AccountPage() {
                       </div>
 
                       <div className="text-purple-200 text-sm">
-                        Payment: <span className="text-white font-semibold">{order.paymentMethod}</span>
+                        Payment: <span className="text-white font-semibold">{(order.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase()}</span>
                       </div>
                     </div>
                   ))}
