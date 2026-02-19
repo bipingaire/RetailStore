@@ -7,10 +7,11 @@ services:
       dockerfile: Dockerfile
     container_name: retail_store_frontend
     ports:
-      - "3000:3000"
+      - "3010:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_APP_URL=http://localhost:3010
+      - NEXT_PUBLIC_API_URL=http://localhost:3011/api
     depends_on:
       - backend
     restart: always
@@ -23,13 +24,14 @@ services:
       dockerfile: Dockerfile
     container_name: retail_store_backend
     ports:
-      - "3001:3001"
+      - "3011:3001"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_master?schema=public
       - TENANT_DATABASE_URL=postgresql://postgres:123@db:5432/retail_store_tenant_default?schema=public
       - JWT_SECRET=your-secret-key-change-in-production
       - JWT_EXPIRATION=7d
+      - FRONTEND_URL=http://localhost:3010
     depends_on:
       - db
     restart: always
