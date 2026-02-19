@@ -18,7 +18,9 @@ export const apiClient = {
         const hostname = window.location.hostname;
         const parts = hostname.split('.');
         let subdomain = 'public';
-        if (parts.length > 1 && parts[0] !== 'www') {
+        // A real subdomain requires 3+ parts: greensboro.indumart.us -> ['greensboro','indumart','us']
+        // indumart.us (2 parts) has no subdomain — keep 'public'
+        if (parts.length >= 3 && parts[0] !== 'www') {
             subdomain = parts[0];
         }
         if (hostname === 'localhost') subdomain = 'anuj';
@@ -31,7 +33,16 @@ export const apiClient = {
         });
 
         if (!response.ok) {
-            throw new Error('API Error: ' + response.statusText);
+            // Try to read the JSON body for a meaningful error message
+            try {
+                const errBody = await response.json();
+                const msg = errBody?.message || errBody?.error || response.statusText;
+                const text = Array.isArray(msg) ? msg.join(', ') : msg;
+                throw new Error(text);
+            } catch (e: any) {
+                if (e.message && e.message !== response.statusText) throw e;
+                throw new Error(response.statusText);
+            }
         }
 
         return response.json();
