@@ -175,7 +175,7 @@ export default function OrderManager() {
                     onClick={() => updateStatus(order['order-id'], 'completed')}
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
                   >
-                    <DollarSign size={16} /> Complete
+                    <DollarSign size={16} /> Mark as Fulfilled
                   </button>
                 )}
                 {order['order-status-code'] === 'completed' && (

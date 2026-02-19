@@ -60,10 +60,13 @@ function CheckoutSuccessContent() {
         doc.setTextColor(...gray);
         doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 50);
         doc.text(`Status: ${order.status || 'COMPLETED'}`, 14, 56);
-        doc.text(`Payment: ${order.paymentMethod || 'CASH'}`, 140, 44);
+        const paymentDisplay = (order.paymentMethod || 'CASH').replace('_', ' ').toUpperCase();
+        doc.text(`Payment: ${paymentDisplay}`, 140, 44);
+        doc.text(`Method: ${paymentDisplay === 'CARD' ? 'Credit/Debit Card' : paymentDisplay}`, 140, 50);
+
         if (order.notes) {
             const noteLines = doc.splitTextToSize(`Note: ${order.notes}`, 65);
-            doc.text(noteLines, 140, 50);
+            doc.text(noteLines, 140, 56);
         }
 
         // Items table
@@ -75,7 +78,7 @@ function CheckoutSuccessContent() {
         ]);
 
         autoTable(doc, {
-            startY: 65,
+            startY: 85,
             head: [['Product', 'Qty', 'Unit Price', 'Subtotal']],
             body: rows,
             foot: [
