@@ -37,8 +37,8 @@ async function bootstrap() {
   });
 
   // Set very large payload size limit for file uploads (1GB)
-  app.use(express.json({ limit: '1000mb' }));
-  app.use(express.urlencoded({ limit: '1000mb', extended: true }));
+  app.use(express.json({ limit: '10gb' }));
+  app.use(express.urlencoded({ limit: '10gb', extended: true }));
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,

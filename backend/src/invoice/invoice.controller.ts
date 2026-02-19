@@ -21,7 +21,7 @@ export class InvoiceController {
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
         limits: {
-            fileSize: 1000 * 1024 * 1024, // 1000MB in bytes
+            fileSize: 10 * 1024 * 1024 * 1024, // 10GB in bytes
         }
     }))
     async uploadInvoice(
@@ -98,7 +98,7 @@ export class InvoiceController {
     @Post('parse')
     @UseInterceptors(FileInterceptor('file', {
         limits: {
-            fileSize: 1000 * 1024 * 1024, // 1000MB in bytes
+            fileSize: 10 * 1024 * 1024 * 1024, // 10GB in bytes
         }
     }))
     async parseInvoice(@UploadedFile() file: any) {
