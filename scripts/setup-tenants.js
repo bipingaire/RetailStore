@@ -4,16 +4,14 @@
  * Run on the server: node scripts/setup-tenants.js
  *
  * What it does:
- *  1. Creates tenant PostgreSQL databases (retail_store_highpoint, retail_store_greensboro)
+ *  1. Creates tenant PostgreSQL databases
  *  2. Runs prisma db push for the tenant schema on each DB
  *  3. Creates admin User records in each tenant DB
- *  4. Seeds the super admin in the master DB
+ *  4. Updates tenant databaseUrl in master DB
+ *  5. Seeds the super admin in the master DB
  */
 
 const { execSync } = require('child_process');
-const http = require('http');
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3011';
 
 const TENANTS = [
     {
@@ -32,16 +30,26 @@ const TENANTS = [
     },
 ];
 
-function runInContainer(cmd) {
+// Run a command inside the backend container
+function inBackend(cmd) {
     return execSync(`docker exec retail_store_backend sh -c ${JSON.stringify(cmd)}`, {
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'pipe'],
     });
 }
 
-function runInDb(sql) {
+// Run SQL against a specific database (uses -d flag, NOT \c)
+function inDb(database, sql) {
     return execSync(
-        `docker exec retail_store_db psql -U postgres -c ${JSON.stringify(sql)}`,
+        `docker exec retail_store_db psql -U postgres -d ${database} -c ${JSON.stringify(sql)}`,
+        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+    );
+}
+
+// Create a new database (runs against postgres default DB, not -d)
+function createDatabase(dbName) {
+    return execSync(
+        `docker exec retail_store_db psql -U postgres -c ${JSON.stringify(`CREATE DATABASE "${dbName}";`)}`,
         { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
     );
 }
@@ -54,64 +62,101 @@ async function main() {
 
         // 1. Create PostgreSQL database
         try {
-            runInDb(`CREATE DATABASE "${tenant.dbName}";`);
+            createDatabase(tenant.dbName);
             console.log(`  ✅ Created database: ${tenant.dbName}`);
         } catch (e) {
-            if (e.message.includes('already exists')) {
+            if (e.stderr && e.stderr.includes('already exists')) {
                 console.log(`  ℹ️  Database already exists: ${tenant.dbName}`);
             } else {
-                console.error(`  ❌ Failed to create DB: ${e.message}`);
+                console.error(`  ❌ Failed to create DB: ${e.stderr || e.message}`);
             }
         }
 
         // 2. Run tenant schema migration
         const dbUrl = `postgresql://postgres:123@db:5432/${tenant.dbName}?schema=public`;
         try {
-            const result = runInContainer(
-                `DATABASE_URL="${dbUrl}" npx prisma db push --schema prisma/schema-tenant.prisma --skip-generate`
+            inBackend(
+                `DATABASE_URL="${dbUrl}" npx prisma db push --schema prisma/schema-tenant.prisma --skip-generate 2>&1`
             );
-            console.log(`  ✅ Schema migrated`);
+            console.log(`  ✅ Tenant schema migrated`);
         } catch (e) {
-            console.error(`  ❌ Migration failed: ${e.message}`);
+            console.error(`  ❌ Migration failed: ${e.stderr || e.message}`);
         }
 
-        // 3. Create admin user in tenant DB
-        const bcryptHash = runInContainer(
-            `node -e "const b=require('bcryptjs');b.hash('${tenant.adminPassword}',10).then(h=>process.stdout.write(h))"`
-        ).trim();
-
+        // 3. Hash password using bcrypt inside the container
+        let bcryptHash;
         try {
-            runInDb(
-                `\\c "${tenant.dbName}"; INSERT INTO users (id, email, password, name, role, "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, '${tenant.adminEmail}', '${bcryptHash}', '${tenant.adminName}', 'ADMIN', NOW(), NOW()) ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;`
+            bcryptHash = inBackend(
+                `node -e "const b=require('bcryptjs');b.hash('${tenant.adminPassword}',10).then(h=>process.stdout.write(h))"`
+            ).trim();
+            console.log(`  ✅ Password hashed`);
+        } catch (e) {
+            console.error(`  ❌ Hashing failed: ${e.message}`);
+            continue;
+        }
+
+        // 4. Create admin user in the TENANT database (using -d flag, not \c)
+        try {
+            inDb(tenant.dbName,
+                `INSERT INTO users (id, email, password, name, role, "createdAt", "updatedAt")
+         VALUES (gen_random_uuid()::text, '${tenant.adminEmail}', '${bcryptHash}',
+                 '${tenant.adminName}', 'ADMIN', NOW(), NOW())
+         ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, role = 'ADMIN';`
             );
             console.log(`  ✅ Admin user created: ${tenant.adminEmail}`);
         } catch (e) {
-            console.error(`  ❌ Failed to create user: ${e.message}`);
+            console.error(`  ❌ Failed to create user: ${e.stderr || e.message}`);
         }
 
-        // 4. Update tenant record databaseUrl in master DB
+        // 5. Update tenant databaseUrl in MASTER DB
         try {
-            runInDb(
+            inDb('retail_store_master',
                 `UPDATE tenants SET "databaseUrl" = '${dbUrl}' WHERE subdomain = '${tenant.subdomain}';`
             );
             console.log(`  ✅ Tenant databaseUrl updated`);
         } catch (e) {
-            console.error(`  ❌ Failed to update tenant: ${e.message}`);
+            console.error(`  ❌ Failed to update tenant: ${e.stderr || e.message}`);
         }
     }
 
-    // 5. Seed super admin in master DB
+    // 6. Seed super admin in MASTER DB
     console.log('\n──── SUPER ADMIN ────────────────────────');
-    const saHash = runInContainer(
-        `node -e "const b=require('bcryptjs');b.hash('RetailOS@2024',10).then(h=>process.stdout.write(h))"`
-    ).trim();
+    let saHash;
     try {
-        runInDb(
-            `INSERT INTO super_admin_users (id, email, password, name, "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, 'admin@retailos.cloud', '${saHash}', 'Super Administrator', NOW(), NOW()) ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;`
-        );
-        console.log(`  ✅ Super admin: admin@retailos.cloud / RetailOS@2024`);
+        saHash = inBackend(
+            `node -e "const b=require('bcryptjs');b.hash('RetailOS@2024',10).then(h=>process.stdout.write(h))"`
+        ).trim();
     } catch (e) {
-        console.error(`  ❌ Super admin failed: ${e.message}`);
+        console.error(`  ❌ Super admin hash failed: ${e.message}`);
+    }
+
+    if (saHash) {
+        try {
+            // Check actual table name for SuperAdmin in master DB
+            inDb('retail_store_master',
+                `INSERT INTO super_admin_users (id, email, password, name, "createdAt", "updatedAt")
+         VALUES (gen_random_uuid()::text, 'admin@retailos.cloud', '${saHash}', 'Super Administrator', NOW(), NOW())
+         ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;`
+            );
+            console.log(`  ✅ Super admin created: admin@retailos.cloud`);
+        } catch (e) {
+            // Try alternate table name 'SuperAdmin' (without @@map)
+            try {
+                inDb('retail_store_master',
+                    `INSERT INTO "SuperAdmin" (id, email, password, name, "createdAt", "updatedAt")
+           VALUES (gen_random_uuid()::text, 'admin@retailos.cloud', '${saHash}', 'Super Administrator', NOW(), NOW())
+           ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;`
+                );
+                console.log(`  ✅ Super admin created (table: SuperAdmin)`);
+            } catch (e2) {
+                console.error(`  ❌ Super admin failed: ${e2.stderr || e2.message}`);
+                // Show actual tables for debugging
+                try {
+                    const tables = inDb('retail_store_master', `\\dt`);
+                    console.log('  Tables in retail_store_master:', tables);
+                } catch { }
+            }
+        }
     }
 
     console.log('\n\n✅ Setup Complete!\n');
