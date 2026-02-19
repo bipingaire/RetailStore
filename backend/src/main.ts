@@ -9,11 +9,30 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3010',
-      process.env.FRONTEND_URL || 'http://localhost:3010',
-    ],
+    origin: (requestOrigin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3010',
+        'https://retailos.cloud',
+        'https://www.retailos.cloud',
+        'https://indumart.us',
+        'https://www.indumart.us',
+      ];
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!requestOrigin) return callback(null, true);
+
+      if (allowedOrigins.includes(requestOrigin)) {
+        return callback(null, true);
+      }
+
+      // Dynamic subdomains for InduMart (e.g. https://greensboro.indumart.us)
+      if (/^https:\/\/[a-z0-9-]+\.indumart\.us$/.test(requestOrigin)) {
+        return callback(null, true);
+      }
+
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   });
 
