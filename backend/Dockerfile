@@ -5,12 +5,11 @@ FROM node:18-alpine
 WORKDIR /usr/src/app
 
 # Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 
-# Install app dependencies
-# We need to install python3, make, and g++ for node-gyp (required by canvas)
-# and cairo/pango/jpeg/giflib dependencies for canvas functionality
+# Install system dependencies
+# openssl/openssl-dev: required by Prisma schema engine on Alpine
+# cairo/pango/etc: required by canvas (for image generation)
 RUN apk add --no-cache \
     python3 \
     make \
@@ -20,7 +19,9 @@ RUN apk add --no-cache \
     pango-dev \
     jpeg-dev \
     giflib-dev \
-    librsvg-dev
+    librsvg-dev \
+    openssl \
+    openssl-dev
 
 RUN npm install
 
