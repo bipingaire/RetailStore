@@ -23,10 +23,10 @@ export class SaleService {
         data: {
           saleNumber: `SALE-${Date.now()}`,
           userId: data.userId,
-          customerId: data.customerId,
+          customerId: data.customerId || null,
           subtotal: data.subtotal,
-          tax: data.tax,
-          discount: data.discount,
+          tax: data.tax ?? 0,
+          discount: data.discount ?? 0,   // required in schema, default 0
           total: data.total,
           status: 'COMPLETED',
           items: {
