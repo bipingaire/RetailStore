@@ -6,29 +6,20 @@
 const http = require('http');
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3011';
-const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'admin@retailos.cloud';
-const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || 'Admin@1234';
 
+// Payload matches backend CreateTenantDto exactly: name, subdomain, adminEmail, adminPassword
 const TENANTS = [
     {
-        storeName: 'InduMart Highpoint',
+        name: 'InduMart Highpoint',
         subdomain: 'highpoint',
         adminEmail: 'admin@highpoint.indumart.us',
         adminPassword: 'Highpoint@123',
-        city: 'High Point',
-        state: 'NC',
-        databaseUrl: process.env.HIGHPOINT_DB_URL ||
-            'postgresql://postgres:123@db:5432/retail_store_tenant_highpoint?schema=public',
     },
     {
-        storeName: 'InduMart Greensboro',
+        name: 'InduMart Greensboro',
         subdomain: 'greensboro',
         adminEmail: 'admin@greensboro.indumart.us',
         adminPassword: 'Greensboro@123',
-        city: 'Greensboro',
-        state: 'NC',
-        databaseUrl: process.env.GREENSBORO_DB_URL ||
-            'postgresql://postgres:123@db:5432/retail_store_tenant_greensboro?schema=public',
     },
 ];
 
@@ -64,15 +55,13 @@ async function main() {
     console.log(`\n🌱 Seeding InduMart tenants on ${BACKEND_URL}...\n`);
 
     for (const tenant of TENANTS) {
-        console.log(`→ Creating tenant: ${tenant.storeName} (${tenant.subdomain}.indumart.us)`);
+        console.log(`→ Creating tenant: ${tenant.name} (${tenant.subdomain}.indumart.us)`);
 
-        // Try to create tenant via backend API
         const res = await post('/api/tenants', {
-            storeName: tenant.storeName,
+            name: tenant.name,
             subdomain: tenant.subdomain,
             adminEmail: tenant.adminEmail,
             adminPassword: tenant.adminPassword,
-            databaseUrl: tenant.databaseUrl,
         });
 
         if (res.status === 201 || res.status === 200) {
