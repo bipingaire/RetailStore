@@ -93,7 +93,14 @@ export class SaleService {
   async findOne(subdomain: string, id: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    const sale = await client.sale.findUnique({ where: { id }, include: { items: true } });
+    const sale = await client.sale.findUnique({
+      where: { id },
+      include: {
+        items: {
+          include: { product: true }
+        }
+      }
+    });
     if (!sale) throw new NotFoundException('Sale not found');
     return sale;
   }

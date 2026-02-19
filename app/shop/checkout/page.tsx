@@ -168,12 +168,13 @@ function CheckoutContent() {
                     })),
                     subtotal: subtotal,
                     tax: tax,
+                    discount: 0,
                     total: total,
-                    amountPaid: total, // Assuming full payment or pay-on-delivery
+                    amountPaid: total,
                     paymentMethod: backendPaymentMethod,
-                    customerId: user?.id,
+                    // customerId omitted — user is linked via userId from JWT, not Customer table
                     notes: fulfillmentType === 'delivery'
-                        ? `Delivery to: ${addressLine1}, ${addressLine2}, ${city}, ${state} ${zipCode}. Instructions: ${deliveryInstructions}`
+                        ? `Delivery to: ${addressLine1}, ${addressLine2 ? addressLine2 + ', ' : ''}${city}, ${state} ${zipCode}. Instructions: ${deliveryInstructions || 'None'}`
                         : 'Pickup Order'
                 };
 
