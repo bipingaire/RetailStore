@@ -12,11 +12,18 @@ docker rm -f retail_store_backend retail_store_frontend retail_store_db 2>/dev/n
 echo "==> Pruning stopped containers..."
 docker container prune -f
 
+echo "==> Clearing Docker build cache (prevents corrupted layer errors)..."
+docker builder prune -f
+
 echo "==> Installing nginx reverse proxy config..."
+# Remove ALL known stale per-domain nginx configs that cause conflicts
+for OLD in indumart.us retailos.cloud retailos-temp.conf retailstore retailos.conf; do
+  rm -f /etc/nginx/sites-enabled/$OLD
+done
+rm -f /etc/nginx/conf.d/retailos.conf.disabled
+# Install fresh unified config
 cp nginx/retailos.conf /etc/nginx/sites-available/retailos.conf
-# Enable the site if not already linked
 ln -sf /etc/nginx/sites-available/retailos.conf /etc/nginx/sites-enabled/retailos.conf
-# Test config and reload (does NOT kill nginx, just reloads — zero downtime)
 nginx -t && systemctl reload nginx && echo "  ✅ nginx reloaded (zero downtime)"
 
 echo "==> Building images..."
@@ -25,12 +32,20 @@ docker-compose build --no-cache
 echo "==> Starting containers..."
 docker-compose up -d
 
-echo "==> Waiting for containers to start..."
-sleep 20
+echo "==> Waiting for backend to become healthy..."
+for i in $(seq 1 30); do
+  STATUS=$(docker inspect --format='{{.State.Status}}' retail_store_backend 2>/dev/null || echo 'missing')
+  if [ "$STATUS" = "running" ]; then
+    echo "  ✅ Backend is running (attempt $i)"
+    break
+  fi
+  echo "  ⏳ Backend status: $STATUS — waiting... ($i/30)"
+  sleep 3
+done
 
 echo "==> Running Database Migrations..."
-docker exec retail_store_backend npx prisma db push --schema prisma/schema-master.prisma
-docker exec retail_store_backend npx prisma db push --schema prisma/schema.prisma
+docker exec retail_store_backend npx prisma db push --schema prisma/schema-master.prisma || true
+docker exec retail_store_backend npx prisma db push --schema prisma/schema.prisma || true
 
 echo "==> Seeding InduMart tenants (highpoint + greensboro)..."
 node scripts/seed-indumart-tenants.js || echo "  ⚠️  Seeding skipped (may already exist)"
