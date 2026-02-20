@@ -22,9 +22,14 @@ export class InvoiceService {
         items: Array<{
             description: string;
             category: string;
-            quantity: number;
-            unitPrice: number;
+            quantity: number;        // Bulk cases ordered (from invoice)
+            unitsPerCase: number;   // Retail units per case (e.g. 24 in '24x300gm')
+            unitSize: string;       // Retail unit size (e.g. '300gm')
+            casePrice: number;      // Price per case (bulk price)
+            costPerUnit: number;    // casePrice / unitsPerCase
+            unitPrice: number;      // Same as costPerUnit for backward-compat
             totalPrice: number;
+            sellingPrice?: number;  // Comes from existing product or Z-report, NOT invoice
             expiryDate?: string;
         }>,
         fileUrl?: string,
@@ -58,40 +63,58 @@ export class InvoiceService {
                     },
                 });
 
+                // Calculate retail units and cost per retail unit
+                const unitsPerCase = item.unitsPerCase || 1;
+                const retailUnits = item.quantity * unitsPerCase; // Total retail units to add to stock
+                const costPerUnit = unitsPerCase > 1
+                    ? item.casePrice / unitsPerCase
+                    : (item.costPerUnit || item.unitPrice); // cost per retail unit
+
                 // If not found, create new product
                 if (!product) {
+                    // Selling price: use provided sellingPrice, else cost+30% as temporary floor
+                    const sellingPrice = item.sellingPrice
+                        ? item.sellingPrice
+                        : costPerUnit * 1.3;
+
                     product = await tx.product.create({
                         data: {
                             name: item.description,
                             sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                             category: item.category,
-                            description: item.description,
-                            price: new Prisma.Decimal(item.unitPrice * 1.5), // Default markup
-                            costPrice: new Prisma.Decimal(item.unitPrice),
-                            stock: 0, // Starts at 0, inventory logic will add
+                            description: `${item.description}${item.unitSize ? ` (${item.unitSize})` : ''}`,
+                            price: new Prisma.Decimal(sellingPrice),
+                            costPrice: new Prisma.Decimal(costPerUnit),
+                            stock: 0,
                             reorderLevel: 10,
                             isActive: true,
                         },
                     });
+                } else {
+                    // Existing product: only update costPrice, PRESERVE its existing selling price
+                    await tx.product.update({
+                        where: { id: product.id },
+                        data: { costPrice: new Prisma.Decimal(costPerUnit) },
+                    });
                 }
 
-                // 3. Create Invoice Item Link
+                // 3. Create Invoice Item Link (record case-level info)
                 await tx.vendorInvoiceItem.create({
                     data: {
                         invoiceId: invoice.id,
                         productId: product.id,
-                        quantity: item.quantity,
-                        unitCost: new Prisma.Decimal(item.unitPrice),
+                        quantity: retailUnits,          // Store as retail units
+                        unitCost: new Prisma.Decimal(costPerUnit),
                         totalCost: new Prisma.Decimal(item.totalPrice),
                     },
                 });
 
-                // 4. Update Product Stock & Cost
+                // 4. Update Product Stock with RETAIL units (cases × unitsPerCase)
                 await tx.product.update({
                     where: { id: product.id },
                     data: {
-                        stock: { increment: item.quantity },
-                        costPrice: new Prisma.Decimal(item.unitPrice), // Update latest cost
+                        stock: { increment: retailUnits },
+                        // costPrice already set above
                     },
                 });
 
@@ -105,8 +128,7 @@ export class InvoiceService {
                     },
                 });
 
-                // 6. Create Product Batch (Critical for Inventory Pulse Health)
-                // Default to 1 year expiry if not specified
+                // 6. Create Product Batch with RETAIL units
                 const expiry = item.expiryDate
                     ? new Date(item.expiryDate)
                     : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
@@ -115,7 +137,7 @@ export class InvoiceService {
                     data: {
                         productId: product.id,
                         sku: product.sku,
-                        quantity: item.quantity,
+                        quantity: retailUnits,  // Retail units, not cases
                         expiryDate: expiry,
                         receivedDate: new Date(),
                     }
@@ -353,16 +375,22 @@ export class InvoiceService {
                                 text: `Analyze this invoice image (converted from PDF) and extract the following fields in JSON format.
 CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
 
+IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. For example "5 x 24x300gm" means 5 CASES each containing 24 retail units of 300gm. You MUST separate the bulk case quantity from the retail unit count.
+
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
-  - description: Item name/description
-  - category: Product category (e.g., "Dairy", "Bakery", "Beverages", "Snacks", "Produce", "Frozen", "Household", "Electronics", etc.)
-  - quantity: Quantity (number)
-  - unitPrice: Unit price (number)
-  - totalPrice: Total price for this item (number)
+  - description: Item name (retail product name, e.g. "Coca-Cola 300ml")
+  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", etc.)
+  - quantity: Number of CASES ordered (bulk qty, e.g. 5)
+  - unitsPerCase: Number of retail units per case (e.g. 24 from "24x300gm"). If not a bulk pack, set to 1.
+  - unitSize: Retail unit size/volume (e.g. "300gm", "1L", "500ml"). Empty string if not applicable.
+  - casePrice: Price PER CASE (the invoice price, e.g. 60.00)
+  - costPerUnit: casePrice divided by unitsPerCase (e.g. 2.50)
+  - unitPrice: Same as costPerUnit (for compatibility)
+  - totalPrice: Total price for this line item (quantity x casePrice)
   - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format.
 Return ONLY the JSON object.`
                             },
@@ -394,17 +422,23 @@ Return ONLY the JSON object.`
                             text: `Analyze this invoice TEXT and extract the following fields in JSON format.
 CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
 
+IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. For example "5 x 24x300gm" means 5 CASES each containing 24 retail units of 300gm. You MUST separate the bulk case quantity from the retail unit count.
+
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
-  - description: Item name/description
-  - category: Product category (e.g., "Dairy", "Bakery", "Beverages", "Snacks", "Produce", "Frozen", "Household", "Electronics", etc.)
-  - quantity: Quantity (number)
-  - unitPrice: Unit price (number)
-  - totalPrice: Total price for this item (number)
-  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days from invoice date, for packaged goods use 6-12 months, for non-perishables use 1-2 years. If the invoice shows an expiry date, use that.
+  - description: Item name (retail product name, e.g. "Coca-Cola 300ml")
+  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", etc.)
+  - quantity: Number of CASES ordered (bulk qty, e.g. 5)
+  - unitsPerCase: Number of retail units per case (e.g. 24 from "24x300gm"). If not a bulk pack, set to 1.
+  - unitSize: Retail unit size/volume (e.g. "300gm", "1L", "500ml"). Empty string if not applicable.
+  - casePrice: Price PER CASE (the invoice price)
+  - costPerUnit: casePrice divided by unitsPerCase
+  - unitPrice: Same as costPerUnit (for compatibility)
+  - totalPrice: Total price for this line item (quantity x casePrice)
+  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 
 Return ONLY the JSON object, no markdown formatting.
 
@@ -426,17 +460,23 @@ ${truncatedText}`
                         text: `Analyze this invoice image and extract the following fields in JSON format.
 CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
 
+IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. For example "5 x 24x300gm" means 5 CASES each containing 24 retail units of 300gm. You MUST separate the bulk case quantity from the retail unit count.
+
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
-  - description: Item name/description
-  - category: Product category (e.g., "Dairy", "Bakery", "Beverages", "Snacks", "Produce", "Frozen", "Household", "Electronics", etc.)
-  - quantity: Quantity (number)
-  - unitPrice: Unit price (number)
-  - totalPrice: Total price for this item (number)
-  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days from invoice date, for packaged goods use 6-12 months, for non-perishables use 1-2 years. If the invoice shows an expiry date, use that.
+  - description: Item name (retail product name, e.g. "Coca-Cola 300ml")
+  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", etc.)
+  - quantity: Number of CASES ordered (bulk qty, e.g. 5)
+  - unitsPerCase: Number of retail units per case (e.g. 24 from "24x300gm"). If not a bulk pack, set to 1.
+  - unitSize: Retail unit size/volume (e.g. "300gm", "1L", "500ml"). Empty string if not applicable.
+  - casePrice: Price PER CASE (the invoice price)
+  - costPerUnit: casePrice divided by unitsPerCase
+  - unitPrice: Same as costPerUnit (for compatibility)
+  - totalPrice: Total price for this line item (quantity x casePrice)
+  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 
 Return ONLY the JSON object, no markdown formatting.`
                     },
@@ -470,15 +510,29 @@ Return ONLY the JSON object, no markdown formatting.`
             const data = JSON.parse(content);
             console.log('✅ OpenAI Response received');
 
-            // Normalize data types
-            const items = Array.isArray(data.items) ? data.items.map((item: any) => ({
-                description: item.description || 'Item',
-                category: item.category || 'General',
-                quantity: Number(item.quantity) || 1,
-                unitPrice: Number(item.unitPrice) || 0,
-                totalPrice: Number(item.totalPrice) || 0,
-                expiryDate: item.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default: 30 days from now
-            })) : [];
+            // Normalize data types — compute retail totals from bulk pack info
+            const items = Array.isArray(data.items) ? data.items.map((item: any) => {
+                const cases = Number(item.quantity) || 1;
+                const unitsPerCase = Number(item.unitsPerCase) || 1;
+                const casePrice = Number(item.casePrice) || Number(item.unitPrice) || 0;
+                const costPerUnit = unitsPerCase > 1 ? (casePrice / unitsPerCase) : casePrice;
+                const retailUnits = cases * unitsPerCase;
+
+                return {
+                    description: item.description || 'Item',
+                    category: item.category || 'General',
+                    quantity: cases,                    // Bulk cases ordered
+                    unitsPerCase,                       // Retail units per case
+                    unitSize: item.unitSize || '',      // e.g. '300gm'
+                    casePrice,                          // Price per case
+                    costPerUnit,                        // Cost per retail unit
+                    unitPrice: costPerUnit,             // backward-compat alias
+                    retailUnits,                        // cases × unitsPerCase (for display)
+                    totalPrice: Number(item.totalPrice) || (cases * casePrice),
+                    sellingPrice: null,                 // Will come from existing product / Z-report
+                    expiryDate: item.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                };
+            }) : [];
 
             // Calculate total amount from items if it's missing or 0
             let totalAmount = Number(data.totalAmount) || 0;

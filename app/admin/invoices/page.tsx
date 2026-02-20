@@ -526,7 +526,24 @@ export default function InvoicesPage() {
                       {parsedData.items && parsedData.items.length > 0 && (
                         <div className="mt-6">
                           <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-bold text-gray-900">📦 Scanned Items</h4>
+                            <div className="flex items-center gap-4">
+                              <h4 className="text-sm font-bold text-gray-900">📦 Scanned Items</h4>
+                              {/* Legend */}
+                              <div className="flex items-center gap-3 text-xs">
+                                <span className="flex items-center gap-1">
+                                  <span className="w-3 h-3 rounded bg-amber-200 inline-block"></span>
+                                  <span className="text-amber-700 font-medium">Bulk (invoice)</span>
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <span className="w-3 h-3 rounded bg-blue-200 inline-block"></span>
+                                  <span className="text-blue-700 font-medium">Retail units → stock</span>
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <span className="w-3 h-3 rounded bg-green-200 inline-block"></span>
+                                  <span className="text-green-700 font-medium">Selling price (editable)</span>
+                                </span>
+                              </div>
+                            </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-600 font-medium">Extend All Items:</span>
                               {[7, 30, 180, 365].map(days => (
@@ -557,8 +574,12 @@ export default function InvoicesPage() {
                                 <tr>
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Product</th>
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Category</th>
-                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Qty</th>
-                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Unit Price</th>
+                                  <th className="px-4 py-3 text-center text-xs font-semibold text-amber-700 bg-amber-50" title="Cases on invoice">Cases</th>
+                                  <th className="px-4 py-3 text-center text-xs font-semibold text-amber-700 bg-amber-50" title="Retail units per case">Units/Case</th>
+                                  <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 bg-blue-50" title="Total retail units added to stock">Retail Units</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Size</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700" title="Cost per retail unit">Cost/Unit</th>
+                                  <th className="px-4 py-3 text-left text-xs font-semibold text-green-700" title="Selling price — from Z-report or POS data">Sell Price ✎</th>
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Expires</th>
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Extend By</th>
                                 </tr>
@@ -571,8 +592,43 @@ export default function InvoicesPage() {
                                     <tr key={idx} className="border-b border-gray-100 last:border-0">
                                       <td className="px-4 py-3 font-medium text-gray-900">{item.description}</td>
                                       <td className="px-4 py-3 text-gray-600">{item.category || '-'}</td>
-                                      <td className="px-4 py-3 text-gray-600">{item.quantity}</td>
-                                      <td className="px-4 py-3 text-gray-600">${Number(item.unitPrice).toFixed(2)}</td>
+
+                                      {/* Bulk columns - amber */}
+                                      <td className="px-4 py-3 text-center font-mono font-bold text-amber-700 bg-amber-50">
+                                        {item.quantity}
+                                      </td>
+                                      <td className="px-4 py-3 text-center font-mono text-amber-600 bg-amber-50">
+                                        {item.unitsPerCase || 1}
+                                      </td>
+
+                                      {/* Retail units - blue (what actually goes to stock) */}
+                                      <td className="px-4 py-3 text-center font-mono font-bold text-blue-700 bg-blue-50">
+                                        {(item.quantity || 1) * (item.unitsPerCase || 1)}
+                                      </td>
+
+                                      <td className="px-4 py-3 text-gray-500 text-xs">{item.unitSize || '-'}</td>
+
+                                      <td className="px-4 py-3 text-gray-700 font-mono">
+                                        ${Number(item.costPerUnit ?? item.unitPrice ?? 0).toFixed(2)}
+                                      </td>
+
+                                      {/* Editable Selling Price — comes from Z-report/POS, not invoice */}
+                                      <td className="px-4 py-3">
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          value={item.sellingPrice ?? ''}
+                                          placeholder="From Z-report"
+                                          onChange={(e) => {
+                                            const newItems = [...parsedData.items];
+                                            newItems[idx] = { ...newItems[idx], sellingPrice: e.target.value ? parseFloat(e.target.value) : null };
+                                            setParsedData({ ...parsedData, items: newItems });
+                                          }}
+                                          className="w-28 text-xs border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500 bg-green-50"
+                                        />
+                                      </td>
+
                                       <td className="px-4 py-3">
                                         <input
                                           type="date"

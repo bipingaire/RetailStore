@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, UploadedFile, Headers, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, Headers, Get, UseGuards, Body } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ZReportService } from './z-report.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -12,9 +12,10 @@ export class ZReportController {
     @UseInterceptors(FileInterceptor('file'))
     async uploadZReport(
         @Headers('x-tenant') subdomain: string,
-        @UploadedFile() file: any
+        @UploadedFile() file: any,
+        @Body() body: { date?: string }
     ) {
-        return this.zReportService.processZReport(subdomain, file);
+        return this.zReportService.processZReport(subdomain, file, body.date);
     }
 
     @Get()
