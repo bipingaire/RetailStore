@@ -68,11 +68,14 @@ export class ProductService {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
 
+    // Auto-generate SKU if not provided
+    const sku = data.sku || `SKU-${data.name?.replace(/\s+/g, '-').toUpperCase().slice(0, 20)}-${Date.now()}`;
+
     // 1. Create in Tenant DB
     const product = await client.product.create({
       data: {
         name: data.name,
-        sku: data.sku,
+        sku: sku,
         category: data.category,
         description: data.description,
         price: data.price,
@@ -82,27 +85,30 @@ export class ProductService {
       },
     });
 
-    // 2. Sync to Master Shared Catalog
-    // 'tenantId' in SharedCatalog refers to Master Tenant ID
-    await this.masterPrisma.sharedCatalog.upsert({
-      where: { sku: product.sku },
-      update: {
-        productName: product.name,
-        category: product.category,
-        description: product.description,
-        basePrice: product.price,
-        syncedAt: new Date(),
-        tenantId: tenant.id,
-      },
-      create: {
-        sku: product.sku,
-        productName: product.name,
-        category: product.category,
-        description: product.description,
-        basePrice: product.price,
-        tenantId: tenant.id,
-      },
-    });
+    // 2. Sync to Master Shared Catalog — always, SKU is guaranteed above
+    try {
+      await this.masterPrisma.sharedCatalog.upsert({
+        where: { sku: product.sku },
+        update: {
+          productName: product.name,
+          category: product.category,
+          description: product.description,
+          basePrice: product.price,
+          syncedAt: new Date(),
+          tenantId: tenant.id,
+        },
+        create: {
+          sku: product.sku,
+          productName: product.name,
+          category: product.category,
+          description: product.description,
+          basePrice: product.price,
+          tenantId: tenant.id,
+        },
+      });
+    } catch (err) {
+      console.error(`[Catalog Sync] Failed for product "${product.name}":`, err);
+    }
 
     return product;
   }
@@ -188,23 +194,50 @@ export class ProductService {
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
 
     const allProducts = await client.product.findMany();
-    let count = 0;
+    let synced = 0;
+    let skipped = 0;
+    const errors: string[] = [];
 
     for (const p of allProducts) {
-      if (p.sku) {
-        await this.masterCatalogService.upsertProduct({
-          sku: p.sku,
-          productName: p.name,
-          category: p.category,
-          description: p.description,
-          basePrice: Number(p.price),
-          imageUrl: p.imageUrl,
-          tenantId: tenant.id
+      try {
+        let sku = p.sku;
+
+        // Auto-generate and save SKU if missing
+        if (!sku) {
+          sku = `SKU-${p.name.replace(/\s+/g, '-').toUpperCase().slice(0, 20)}-${p.id.slice(0, 6)}`;
+          await client.product.update({ where: { id: p.id }, data: { sku } });
+        }
+
+        await this.masterPrisma.sharedCatalog.upsert({
+          where: { sku },
+          update: {
+            productName: p.name,
+            category: p.category,
+            description: p.description,
+            basePrice: p.price,
+            imageUrl: p.imageUrl,
+            syncedAt: new Date(),
+            tenantId: tenant.id,
+          },
+          create: {
+            sku,
+            productName: p.name,
+            category: p.category,
+            description: p.description,
+            basePrice: p.price,
+            imageUrl: p.imageUrl,
+            tenantId: tenant.id,
+          },
         });
-        count++;
+        synced++;
+      } catch (err: any) {
+        console.error(`[SyncAll] Failed for "${p.name}":`, err.message);
+        errors.push(p.name);
+        skipped++;
       }
     }
-    return { success: true, synced: count };
+
+    return { success: true, synced, skipped, errors };
   }
 
   // --- Legacy / Compatibility Methods ---

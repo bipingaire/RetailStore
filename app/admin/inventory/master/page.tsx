@@ -29,12 +29,30 @@ export default function MasterInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Checking existing inventory IDs to prevent duplicates in Global view
-  const [existingProductIds, setExistingProductIds] = useState<Set<string>>(new Set());
+  // Track existing inventory SKUs for 'In Store' check (SKU-based, not UUID-based)
+  const [existingSkus, setExistingSkus] = useState<Set<string>>(new Set());
+  const [skusLoaded, setSkusLoaded] = useState(false);
+
+  // Always load inventory SKUs on mount so global catalog can check 'In Store'
+  useEffect(() => {
+    loadInventorySkus();
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [activeTab]);
+
+  async function loadInventorySkus() {
+    try {
+      const data = await apiClient.get('/products');
+      const skus = new Set<string>((data || []).map((p: any) => p.sku).filter(Boolean));
+      setExistingSkus(skus);
+    } catch (e) {
+      console.error('Failed to load inventory SKUs', e);
+    } finally {
+      setSkusLoaded(true);
+    }
+  }
 
   async function fetchData() {
     setLoading(true);
@@ -59,7 +77,8 @@ export default function MasterInventoryPage() {
         });
 
         setInventoryItems(processed);
-        setExistingProductIds(new Set(processed.map(i => i.product_id)));
+        // Also refresh SKU set whenever my-inventory is loaded
+        setExistingSkus(new Set(processed.map(i => i.sku).filter(Boolean)));
 
       } else {
         // Fetch real Global Catalog data
@@ -97,12 +116,12 @@ export default function MasterInventoryPage() {
         category: product.category,
         description: product.description,
         price: product.sales_price,
-        stock: 0 // Start with 0 stock
+        stock: 0
       });
 
       toast.success(`"${product.name}" added to your inventory!`);
-      // Update local state to show it's in store
-      setExistingProductIds(prev => new Set(prev).add(product.product_id));
+      // Mark this SKU as already in store
+      setExistingSkus(prev => new Set(prev).add(product.sku));
 
     } catch (error: any) {
       console.error("Failed to add product:", error);
@@ -166,16 +185,19 @@ export default function MasterInventoryPage() {
   };
 
   const handleSyncCatalog = async () => {
-    console.log("Sync Catalog Triggered", new Date().toISOString());
-    const toastId = toast.loading("Syncing catalog...");
+    const toastId = toast.loading("Syncing your inventory to global catalog...");
     try {
-      await apiClient.post('/products/force-sync', {});
-      toast.success("Catalog synced successfully!", { id: toastId });
-      if (activeTab === 'global-catalog') {
-        fetchData();
-      }
+      const res: any = await apiClient.post('/products/force-sync', {});
+      const { synced = 0, skipped = 0 } = res || {};
+      toast.success(
+        `Synced ${synced} products to global catalog${skipped > 0 ? ` (${skipped} skipped)` : ''}`,
+        { id: toastId }
+      );
+      // Refresh both SKU set and catalog data
+      await loadInventorySkus();
+      if (activeTab === 'global-catalog') fetchData();
     } catch (e) {
-      toast.error("Failed to sync catalog", { id: toastId });
+      toast.error("Sync failed — check server logs", { id: toastId });
     }
   };
 
@@ -311,7 +333,7 @@ export default function MasterInventoryPage() {
                     </>
                   ) : (
                     <td className="px-6 py-3 text-right">
-                      {existingProductIds.has(item.product_id) ? (
+                      {existingSkus.has(item.sku) ? (
                         <span className="text-green-600 text-xs font-bold flex items-center justify-end gap-1">
                           <CheckCircle2 size={14} /> In Store
                         </span>
