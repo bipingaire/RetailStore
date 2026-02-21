@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
