@@ -1,16 +1,12 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertTriangle, Loader2, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTenant } from '@/lib/hooks/useTenant';
 import { apiClient } from '@/lib/api-client';
 
-// CDN for PDF.js to avoid heavy local build config
-const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-const PDFJS_WORKER_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
 
 export default function SalesSyncPage() {
-  const { tenantId } = useTenant();
   const [uploading, setUploading] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
   const [report, setReport] = useState<any[]>([]);
@@ -52,80 +48,34 @@ export default function SalesSyncPage() {
     }
   };
 
-  useEffect(() => {
-    // Load PDF.js worker
-    const script = document.createElement('script');
-    script.src = PDFJS_CDN;
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
 
-  const convertPdfToImages = async (file: File): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async function () {
-        try {
-          // @ts-ignore
-          const pdfjsLib = window['pdfjs-dist/build/pdf'];
-          pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN;
-          const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result as ArrayBuffer)).promise;
-          const images: string[] = [];
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const viewport = page.getViewport({ scale: 1.5 });
-            const canvas = document.createElement('canvas');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            await page.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise;
-            images.push(canvas.toDataURL('image/jpeg'));
-          }
-          resolve(images);
-        } catch (e) { reject(e); }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!tenantId) {
-      toast.error("Please ensure you are logged in.");
-      return;
-    }
-
     setUploading(true);
-    setProcessingStatus('Initializing...');
+    setProcessingStatus('Uploading to server...');
 
     try {
-      let imagesToProcess: string[] = [];
-      if (file.type.includes('pdf')) {
-        setProcessingStatus('Converting PDF...');
-        imagesToProcess = await convertPdfToImages(file);
-      } else if (file.type.includes('image')) {
-        const reader = new FileReader();
-        const base64 = await new Promise<string>(r => { reader.onload = e => r(e.target?.result as string); reader.readAsDataURL(file); });
-        imagesToProcess = [base64];
-      } else {
-        toast.info("Processing Text/CSV...");
-        setUploading(false);
-        return;
-      }
+      // Send directly to backend Z-report endpoint — it handles PDF/image OCR
+      const formData = new FormData();
+      formData.append('file', file);
 
-      let aggregatedResults: any[] = [];
-      for (let i = 0; i < imagesToProcess.length; i++) {
-        setProcessingStatus(`Analyzing Page ${i + 1}/${imagesToProcess.length}...`);
-        // Call Backend API
-        const data = await apiClient.post('/sales/sync-image', { imageUrl: imagesToProcess[i] });
-        if (data.processed) aggregatedResults = [...aggregatedResults, ...data.processed];
-      }
+      setProcessingStatus('Processing with AI...');
+      const response = await apiClient.post('/reports/z-report/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-      setReport(aggregatedResults);
-      toast.success("Sync complete!");
+      // Backend returns { message, data: savedReport, stats: { salesCount } }
+      const result = response.data || response;
+      const stats = result.stats || {};
+
+      toast.success(`Z-Report processed! ${stats.salesCount ?? 0} sales found.`);
+      setReport([{ name: `Report: ${result.data?.reportNumber || 'OK'}`, status: 'processed', qty_deducted: stats.salesCount || 0 }]);
     } catch (err: any) {
-      toast.error("Sync failed: " + err.message);
+      const msg = err.response?.data?.message || err.message || 'Upload failed';
+      toast.error('Z-Report failed: ' + msg);
       console.error(err);
     } finally {
       setUploading(false);
