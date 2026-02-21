@@ -1,14 +1,20 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class ZReportService {
-    constructor(private prisma: TenantPrismaService) { }
+    constructor(
+        private prisma: TenantPrismaService,
+        private tenantService: TenantService,
+    ) { }
 
     async processZReport(subdomain: string, file: any, dateString?: string) {
-        const tenantClient = await this.prisma.getTenantClient(subdomain);
+        // 1. Resolve subdomain → databaseUrl
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const tenantClient = await this.prisma.getTenantClient(tenant.databaseUrl);
 
-        // 1. Determine Date Range
+        // 2. Determine Date Range
         const reportDate = dateString ? new Date(dateString) : new Date();
         const startOfDay = new Date(reportDate);
         startOfDay.setHours(0, 0, 0, 0);
@@ -16,7 +22,7 @@ export class ZReportService {
         const endOfDay = new Date(reportDate);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // 2. Aggregate Real Sales from DB
+        // 3. Aggregate Real Sales from DB
         const salesAgg = await tenantClient.sale.aggregate({
             where: {
                 createdAt: {
@@ -38,7 +44,7 @@ export class ZReportService {
         const totalTax = salesAgg._sum.tax || 0;
         const transactionCount = salesAgg._count.id;
 
-        // 3. Save Z-Report
+        // 4. Save Z-Report
         const reportNumber = `Z-${startOfDay.toISOString().split('T')[0]}-${Date.now().toString().slice(-6)}`;
 
         const savedReport = await tenantClient.zReport.create({
@@ -57,17 +63,20 @@ export class ZReportService {
             message: 'Z-Report generated successfully from sales data',
             data: {
                 ...savedReport,
-                transactionCount // Return for UI display
+                transactionCount
+            },
+            stats: {
+                salesCount: transactionCount,
+                totalSales: Number(totalSales),
             }
         };
     }
 
     async getZReports(subdomain: string) {
-        const tenantClient = await this.prisma.getTenantClient(subdomain);
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const tenantClient = await this.prisma.getTenantClient(tenant.databaseUrl);
         return tenantClient.zReport.findMany({
             orderBy: { reportDate: 'desc' }
         });
     }
-
-    // private mockParseZReport removed as it's no longer needed
 }
