@@ -21451,6 +21451,7 @@ export namespace Prisma {
     quantity: number | null
     unitCost: Decimal | null
     totalCost: Decimal | null
+    expiryDate: Date | null
   }
 
   export type VendorInvoiceItemMaxAggregateOutputType = {
@@ -21460,6 +21461,7 @@ export namespace Prisma {
     quantity: number | null
     unitCost: Decimal | null
     totalCost: Decimal | null
+    expiryDate: Date | null
   }
 
   export type VendorInvoiceItemCountAggregateOutputType = {
@@ -21469,6 +21471,7 @@ export namespace Prisma {
     quantity: number
     unitCost: number
     totalCost: number
+    expiryDate: number
     _all: number
   }
 
@@ -21492,6 +21495,7 @@ export namespace Prisma {
     quantity?: true
     unitCost?: true
     totalCost?: true
+    expiryDate?: true
   }
 
   export type VendorInvoiceItemMaxAggregateInputType = {
@@ -21501,6 +21505,7 @@ export namespace Prisma {
     quantity?: true
     unitCost?: true
     totalCost?: true
+    expiryDate?: true
   }
 
   export type VendorInvoiceItemCountAggregateInputType = {
@@ -21510,6 +21515,7 @@ export namespace Prisma {
     quantity?: true
     unitCost?: true
     totalCost?: true
+    expiryDate?: true
     _all?: true
   }
 
@@ -21606,6 +21612,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal
     totalCost: Decimal
+    expiryDate: Date | null
     _count: VendorInvoiceItemCountAggregateOutputType | null
     _avg: VendorInvoiceItemAvgAggregateOutputType | null
     _sum: VendorInvoiceItemSumAggregateOutputType | null
@@ -21634,6 +21641,7 @@ export namespace Prisma {
     quantity?: boolean
     unitCost?: boolean
     totalCost?: boolean
+    expiryDate?: boolean
     invoice?: boolean | VendorInvoiceDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["vendorInvoiceItem"]>
@@ -21645,6 +21653,7 @@ export namespace Prisma {
     quantity?: boolean
     unitCost?: boolean
     totalCost?: boolean
+    expiryDate?: boolean
     invoice?: boolean | VendorInvoiceDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["vendorInvoiceItem"]>
@@ -21656,6 +21665,7 @@ export namespace Prisma {
     quantity?: boolean
     unitCost?: boolean
     totalCost?: boolean
+    expiryDate?: boolean
   }
 
   export type VendorInvoiceItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21680,6 +21690,7 @@ export namespace Prisma {
       quantity: number
       unitCost: Prisma.Decimal
       totalCost: Prisma.Decimal
+      expiryDate: Date | null
     }, ExtArgs["result"]["vendorInvoiceItem"]>
     composites: {}
   }
@@ -22081,6 +22092,7 @@ export namespace Prisma {
     readonly quantity: FieldRef<"VendorInvoiceItem", 'Int'>
     readonly unitCost: FieldRef<"VendorInvoiceItem", 'Decimal'>
     readonly totalCost: FieldRef<"VendorInvoiceItem", 'Decimal'>
+    readonly expiryDate: FieldRef<"VendorInvoiceItem", 'DateTime'>
   }
     
 
@@ -29647,7 +29659,8 @@ export namespace Prisma {
     productId: 'productId',
     quantity: 'quantity',
     unitCost: 'unitCost',
-    totalCost: 'totalCost'
+    totalCost: 'totalCost',
+    expiryDate: 'expiryDate'
   };
 
   export type VendorInvoiceItemScalarFieldEnum = (typeof VendorInvoiceItemScalarFieldEnum)[keyof typeof VendorInvoiceItemScalarFieldEnum]
@@ -31148,6 +31161,7 @@ export namespace Prisma {
     quantity?: IntFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
+    expiryDate?: DateTimeNullableFilter<"VendorInvoiceItem"> | Date | string | null
     invoice?: XOR<VendorInvoiceRelationFilter, VendorInvoiceWhereInput>
     product?: XOR<ProductRelationFilter, ProductWhereInput>
   }
@@ -31159,6 +31173,7 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
+    expiryDate?: SortOrderInput | SortOrder
     invoice?: VendorInvoiceOrderByWithRelationInput
     product?: ProductOrderByWithRelationInput
   }
@@ -31173,6 +31188,7 @@ export namespace Prisma {
     quantity?: IntFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
+    expiryDate?: DateTimeNullableFilter<"VendorInvoiceItem"> | Date | string | null
     invoice?: XOR<VendorInvoiceRelationFilter, VendorInvoiceWhereInput>
     product?: XOR<ProductRelationFilter, ProductWhereInput>
   }, "id">
@@ -31184,6 +31200,7 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
+    expiryDate?: SortOrderInput | SortOrder
     _count?: VendorInvoiceItemCountOrderByAggregateInput
     _avg?: VendorInvoiceItemAvgOrderByAggregateInput
     _max?: VendorInvoiceItemMaxOrderByAggregateInput
@@ -31201,6 +31218,7 @@ export namespace Prisma {
     quantity?: IntWithAggregatesFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalWithAggregatesFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalWithAggregatesFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
+    expiryDate?: DateTimeNullableWithAggregatesFilter<"VendorInvoiceItem"> | Date | string | null
   }
 
   export type AuditSessionWhereInput = {
@@ -33063,6 +33081,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
     invoice: VendorInvoiceCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutVendorInvoiceItemsInput
   }
@@ -33074,6 +33093,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemUpdateInput = {
@@ -33081,6 +33101,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     invoice?: VendorInvoiceUpdateOneRequiredWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutVendorInvoiceItemsNestedInput
   }
@@ -33092,6 +33113,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemCreateManyInput = {
@@ -33101,6 +33123,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemUpdateManyMutationInput = {
@@ -33108,6 +33131,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemUncheckedUpdateManyInput = {
@@ -33117,6 +33141,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AuditSessionCreateInput = {
@@ -34749,6 +34774,7 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
+    expiryDate?: SortOrder
   }
 
   export type VendorInvoiceItemAvgOrderByAggregateInput = {
@@ -34764,6 +34790,7 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
+    expiryDate?: SortOrder
   }
 
   export type VendorInvoiceItemMinOrderByAggregateInput = {
@@ -34773,6 +34800,7 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
+    expiryDate?: SortOrder
   }
 
   export type VendorInvoiceItemSumOrderByAggregateInput = {
@@ -36873,6 +36901,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
     invoice: VendorInvoiceCreateNestedOneWithoutItemsInput
   }
 
@@ -36882,6 +36911,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemCreateOrConnectWithoutProductInput = {
@@ -37177,6 +37207,7 @@ export namespace Prisma {
     quantity?: IntFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
+    expiryDate?: DateTimeNullableFilter<"VendorInvoiceItem"> | Date | string | null
   }
 
   export type AuditCountUpsertWithWhereUniqueWithoutProductInput = {
@@ -38968,6 +38999,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
     product: ProductCreateNestedOneWithoutVendorInvoiceItemsInput
   }
 
@@ -38977,6 +39009,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemCreateOrConnectWithoutInvoiceInput = {
@@ -39867,6 +39900,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
   }
 
   export type AuditCountCreateManyProductInput = {
@@ -40040,6 +40074,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     invoice?: VendorInvoiceUpdateOneRequiredWithoutItemsNestedInput
   }
 
@@ -40049,6 +40084,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemUncheckedUpdateManyWithoutProductInput = {
@@ -40057,6 +40093,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AuditCountUpdateWithoutProductInput = {
@@ -40424,6 +40461,7 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
+    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemUpdateWithoutInvoiceInput = {
@@ -40431,6 +40469,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     product?: ProductUpdateOneRequiredWithoutVendorInvoiceItemsNestedInput
   }
 
@@ -40440,6 +40479,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemUncheckedUpdateManyWithoutInvoiceInput = {
@@ -40448,6 +40488,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AuditCountCreateManyAuditSessionInput = {

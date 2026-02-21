@@ -310,7 +310,8 @@ exports.Prisma.VendorInvoiceItemScalarFieldEnum = {
   productId: 'productId',
   quantity: 'quantity',
   unitCost: 'unitCost',
-  totalCost: 'totalCost'
+  totalCost: 'totalCost',
+  expiryDate: 'expiryDate'
 };
 
 exports.Prisma.AuditSessionScalarFieldEnum = {

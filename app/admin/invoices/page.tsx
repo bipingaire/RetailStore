@@ -316,8 +316,12 @@ export default function InvoicesPage() {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {invoices.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.invoiceNumber}</td>
+              <tr
+                key={invoice.id}
+                className="hover:bg-blue-50 cursor-pointer transition-colors"
+                onClick={() => setEditingInvoice(invoice.id)}
+              >
+                <td className="px-6 py-4 text-sm font-medium text-blue-700 underline underline-offset-2">{invoice.invoiceNumber}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{invoice.vendor?.name || 'N/A'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(invoice.invoiceDate).toLocaleDateString()}
@@ -335,24 +339,24 @@ export default function InvoicesPage() {
                     {invoice.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm">
-                  {invoice.status === 'pending' && (
+                <td className="px-6 py-4 text-sm" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setEditingInvoice(invoice.id)}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-200 rounded hover:bg-blue-50"
                     >
-                      Add Items
+                      View / Edit
                     </button>
-                  )}
-                  {invoice.status === 'validated' && (
-                    <button
-                      onClick={() => handleCommitInvoice(invoice.id)}
-                      className="text-green-600 hover:text-green-800 flex items-center gap-1"
-                    >
-                      <Check size={16} />
-                      Commit
-                    </button>
-                  )}
+                    {invoice.status === 'validated' && (
+                      <button
+                        onClick={() => handleCommitInvoice(invoice.id)}
+                        className="text-green-600 hover:text-green-800 flex items-center gap-1 text-xs px-2 py-1 border border-green-200 rounded hover:bg-green-50"
+                      >
+                        <Check size={14} />
+                        Commit
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -550,9 +554,10 @@ export default function InvoicesPage() {
                                 <button
                                   key={days}
                                   onClick={() => {
+                                    // Always extend from TODAY, not from the item's current expiry
+                                    const today = new Date();
                                     const newItems = parsedData.items.map((item: any) => {
-                                      const itemDate = item.expiryDate ? new Date(item.expiryDate) : new Date();
-                                      const newDate = new Date(itemDate);
+                                      const newDate = new Date(today);
                                       newDate.setDate(newDate.getDate() + days);
                                       return {
                                         ...item,
@@ -647,7 +652,9 @@ export default function InvoicesPage() {
                                             <button
                                               key={days}
                                               onClick={() => {
-                                                const newDate = new Date(itemDate);
+                                                // Always extend from TODAY, not accumulate on existing date
+                                                const today = new Date();
+                                                const newDate = new Date(today);
                                                 newDate.setDate(newDate.getDate() + days);
                                                 const newItems = [...parsedData.items];
                                                 newItems[idx].expiryDate = newDate.toISOString().split('T')[0];

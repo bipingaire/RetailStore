@@ -1,0 +1,2 @@
+C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.controller.ts:200: async getInvoice(
+C:\Users\hp\Desktop\RetailStore\backend\src\invoice\invoice.service.ts:122: async getInvoice(subdomain: string, id: string) {

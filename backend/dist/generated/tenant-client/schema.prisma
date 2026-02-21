@@ -291,12 +291,13 @@ model VendorInvoice {
 }
 
 model VendorInvoiceItem {
-  id        String  @id @default(uuid())
-  invoiceId String
-  productId String
-  quantity  Int
-  unitCost  Decimal @db.Decimal(10, 2)
-  totalCost Decimal @db.Decimal(10, 2)
+  id         String    @id @default(uuid())
+  invoiceId  String
+  productId  String
+  quantity   Int
+  unitCost   Decimal   @db.Decimal(10, 2)
+  totalCost  Decimal   @db.Decimal(10, 2)
+  expiryDate DateTime?
 
   invoice VendorInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product Product       @relation(fields: [productId], references: [id])

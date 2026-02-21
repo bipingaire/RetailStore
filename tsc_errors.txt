@@ -1,0 +1,915 @@
+__tests__/profit-calculator.test.ts(41,13): error TS2322: Type 'Mock<{ gte: Mock<{ lte: Mock<{ data: { final_amount: number; }[]; }, [], any>; }, [], any>; }, [], any>' is not assignable to type 'Mock<{ gte: Mock<{ lte: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>; in: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>'.
+  Types of property 'mock' are incompatible.
+    Type 'MockContext<{ gte: Mock<{ lte: Mock<{ data: { final_amount: number; }[]; }, [], any>; }, [], any>; }, [], any>' is not assignable to type 'MockContext<{ gte: Mock<{ lte: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>; in: Mock<{ data: never[]; error: null; }, [], any>; }, [], any>'.
+      Property 'in' is missing in type '{ gte: jest.Mock<{ lte: jest.Mock<{ data: { final_amount: number; }[]; }, [], any>; }, [], any>; }' but required in type '{ gte: jest.Mock<{ lte: jest.Mock<{ data: never[]; error: null; }, [], any>; }, [], any>; in: jest.Mock<{ data: never[]; error: null; }, [], any>; }'.
+app/admin/pos-mapping/page.tsx(32,11): error TS2339: Property 'tenantId' does not exist on type '{ tenant: null; loading: boolean; error: null; }'.
+app/admin/pos-mapping/page.tsx(231,42): error TS2339: Property 'id' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(237,157): error TS2339: Property 'id' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(246,34): error TS2339: Property 'store_inventory' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(247,45): error TS2339: Property 'store_inventory' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(250,84): error TS2339: Property 'store_inventory' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(259,62): error TS2339: Property 'id' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(264,79): error TS2339: Property 'id' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(264,95): error TS2339: Property 'id' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(265,44): error TS2339: Property 'id' does not exist on type 'PosMap'.
+app/admin/pos-mapping/page.tsx(272,66): error TS2339: Property 'id' does not exist on type 'PosMap'.
+app/admin/sales/page.tsx(13,11): error TS2339: Property 'tenantId' does not exist on type '{ tenant: null; loading: boolean; error: null; }'.
+app/admin/sales/upload-z-report/page.tsx(26,89): error TS2554: Expected 2 arguments, but got 3.
+app/super-admin/page.tsx(190,23): error TS2554: Expected 2 arguments, but got 1.
+app/super-admin/page.tsx(201,23): error TS2554: Expected 2 arguments, but got 1.
+app/super-admin/page.tsx(217,23): error TS2554: Expected 2 arguments, but got 1.
+app/super-admin/pending-products/page.tsx(49,63): error TS2554: Expected 1 arguments, but got 4.
+app/super-admin/pending-products/page.tsx(52,34): error TS2339: Property 'message' does not exist on type '{ success: boolean; }'.
+app/super-admin/pending-products/page.tsx(55,32): error TS2339: Property 'message' does not exist on type '{ success: boolean; }'.
+app/super-admin/pending-products/page.tsx(67,62): error TS2554: Expected 1 arguments, but got 2.
+app/super-admin/pending-products/page.tsx(70,34): error TS2339: Property 'message' does not exist on type '{ success: boolean; }'.
+app/super-admin/pending-products/page.tsx(73,32): error TS2339: Property 'message' does not exist on type '{ success: boolean; }'.
+backend/src/ai/ai.service.ts(8,13): error TS2564: Property 'openai' has no initializer and is not definitely assigned in the constructor.
+backend/src/ai/ai.service.ts(50,20): error TS18048: 'response.data' is possibly 'undefined'.
+backend/src/audit/audit.controller.ts(8,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(8,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { userId: string; notes?: string | undefined; }) => Promise<{ id: string; status: string; userId: string; notes: string | null; startedAt: Date; completedAt: Date | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { userId: string; notes?: string | undefined; }) => Promise<{ id: string; status: string; userId: string; notes: string | null; startedAt: Date; completedAt: Date | null; }>)'.
+backend/src/audit/audit.controller.ts(10,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(11,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(16,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(16,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { productId: string; countedQuantity: number; reason?: string | undefined; }) => Promise<{ id: string; createdAt: Date; productId: string; systemQuantity: number; countedQuantity: number; variance: number; varianceReason: string | null; auditSessionId: string; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { productId: string; countedQuantity: number; reason?: string | undefined; }) => Promise<{ id: string; createdAt: Date; productId: string; systemQuantity: number; countedQuantity: number; variance: number; varianceReason: string | null; auditSessionId: string; }>)'.
+backend/src/audit/audit.controller.ts(18,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(19,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(20,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(25,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(25,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ counts: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; adjustments: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ counts: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; adjustments: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+backend/src/audit/audit.controller.ts(27,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(28,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(33,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(33,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ id: string; status: string; userId: string; notes: string | null; startedAt: Date; completedAt: Date | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ id: string; status: string; userId: string; notes: string | null; startedAt: Date; completedAt: Date | null; }>)'.
+backend/src/audit/audit.controller.ts(35,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(36,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(41,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(41,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ counts: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; adjustments: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ counts: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; adjustments: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+backend/src/audit/audit.controller.ts(43,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(44,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(49,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(49,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<({ counts: { id: string; createdAt: Date; productId: string; systemQuantity: number; countedQuantity: number; variance: number; varianceReason: string | null; auditSessionId: string; }[]; adjustments: { ...; }[]; } & { ...; })[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<({ counts: { id: string; createdAt: Date; productId: string; systemQuantity: number; countedQuantity: number; variance: number; varianceReason: string | null; auditSessionId: string; }[]; adjustments: { ...; }[]; } & { ...; })[]>)'.
+backend/src/audit/audit.controller.ts(50,26): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(54,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(54,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<({ adjustments: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; } & { ...; })[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<({ adjustments: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; } & { ...; })[]>)'.
+backend/src/audit/audit.controller.ts(55,24): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(59,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/audit/audit.controller.ts(59,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { userId: string; items: { productId: string; quantity: number; }[]; notes?: string | undefined; }) => Promise<{ success: boolean; varianceFound: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { userId: string; items: { productId: string; quantity: number; }[]; notes?: string | undefined; }) => Promise<{ success: boolean; varianceFound: number; }>)'.
+backend/src/audit/audit.controller.ts(61,9): error TS1206: Decorators are not valid here.
+backend/src/audit/audit.controller.ts(62,9): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(10,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(10,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: LoginDto) => Promise<{ access_token: string; user: any; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: LoginDto) => Promise<{ access_token: string; user: any; }>)'.
+backend/src/auth/auth.controller.ts(11,15): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(11,55): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(16,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(16,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: RegisterDto) => Promise<{ access_token: string; user: any; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: RegisterDto) => Promise<{ access_token: string; user: any; }>)'.
+backend/src/auth/auth.controller.ts(17,18): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(17,58): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(21,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(21,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((dto: LoginDto) => Promise<{ access_token: string; user: any; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((dto: LoginDto) => Promise<{ access_token: string; user: any; }>)'.
+backend/src/auth/auth.controller.ts(22,25): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(28,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(28,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, req: any) => Promise<{ id: string; email: string; password: string; createdAt: Date; updatedAt: Date; } | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, req: any) => Promise<{ id: string; email: string; password: string; createdAt: Date; updatedAt: Date; } | null>)'.
+backend/src/auth/auth.controller.ts(29,14): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(29,54): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(33,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(33,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { email: string; }) => Promise<{ success: boolean; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { email: string; }) => Promise<{ success: boolean; }>)'.
+backend/src/auth/auth.controller.ts(34,18): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(34,58): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(38,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(38,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { token: string; password: string; }) => Promise<{ success: boolean; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { token: string; password: string; }) => Promise<{ success: boolean; }>)'.
+backend/src/auth/auth.controller.ts(39,17): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(39,57): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(43,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(43,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: LoginDto) => Promise<{ access_token: string; user: { tenantId: string; RetailStoreTenants: { storeName: string; subdomain: string | null; isActive: boolean; tenantId: string; ownerUserId: string | null; }[]; ... 7 more ...; role: string; }; tenant: { ...; }; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: LoginDto) => Promise<{ access_token: string; user: { tenantId: string; RetailStoreTenants: { storeName: string; subdomain: string | null; isActive: boolean; tenantId: string; ownerUserId: string | null; }[]; ... 7 more ...; role: string; }; tenant: { ...; }; }>)'.
+backend/src/auth/auth.controller.ts(44,14): error TS1206: Decorators are not valid here.
+backend/src/auth/auth.controller.ts(48,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/auth/auth.controller.ts(48,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: any) => Promise<{ access_token: string; user: { name: string | null; id: string; email: string; password: string; createdAt: Date; updatedAt: Date; isActive: boolean; role: string; tenantId: string | null; }; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: any) => Promise<{ access_token: string; user: { name: string | null; id: string; email: string; password: string; createdAt: Date; updatedAt: Date; isActive: boolean; role: string; tenantId: string | null; }; }>)'.
+backend/src/auth/auth.controller.ts(49,23): error TS1206: Decorators are not valid here.
+backend/src/auth/dto/auth.dto.ts(4,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/auth/dto/auth.dto.ts(5,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+backend/src/auth/dto/auth.dto.ts(7,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/auth/dto/auth.dto.ts(8,3): error TS2564: Property 'password' has no initializer and is not definitely assigned in the constructor.
+backend/src/auth/dto/auth.dto.ts(12,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/auth/dto/auth.dto.ts(13,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+backend/src/auth/dto/auth.dto.ts(15,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/auth/dto/auth.dto.ts(16,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/auth/dto/auth.dto.ts(17,3): error TS2564: Property 'password' has no initializer and is not definitely assigned in the constructor.
+backend/src/auth/dto/auth.dto.ts(19,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/auth/dto/auth.dto.ts(20,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+backend/src/auth/dto/auth.dto.ts(22,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/auth/dto/auth.dto.ts(23,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/campaign/campaign.controller.ts(8,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(8,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+backend/src/campaign/campaign.controller.ts(9,18): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(9,57): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(13,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(13,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }[]>)'.
+backend/src/campaign/campaign.controller.ts(14,19): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(18,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(18,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string, body: any) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string, body: any) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+backend/src/campaign/campaign.controller.ts(19,18): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(19,57): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(19,82): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(23,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(23,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string, body: any) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string, body: any) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+backend/src/campaign/campaign.controller.ts(24,25): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(24,64): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(24,89): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(28,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(28,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string) => Promise<{ name: string; id: string; createdAt: Date; type: string; status: string; startDate: Date | null; endDate: Date | null; budget: Decimal | null; }>)'.
+backend/src/campaign/campaign.controller.ts(29,18): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(29,57): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(33,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(33,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: { products: any[]; }) => Promise<{ post: string; image: string; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: { products: any[]; }) => Promise<{ post: string; image: string; }>)'.
+backend/src/campaign/campaign.controller.ts(34,20): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(37,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(37,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ id: string; createdAt: Date; productId: string; startDate: Date; endDate: Date; title: string; batchId: string | null; discountType: string; discountValue: Decimal; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ id: string; createdAt: Date; productId: string; startDate: Date; endDate: Date; title: string; batchId: string | null; discountType: string; discountValue: Decimal; }>)'.
+backend/src/campaign/campaign.controller.ts(38,27): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(38,66): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(42,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/campaign/campaign.controller.ts(42,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ id: string; createdAt: Date; productId: string; campaignId: string; highlightLabel: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ id: string; createdAt: Date; productId: string; campaignId: string; highlightLabel: string | null; }>)'.
+backend/src/campaign/campaign.controller.ts(43,25): error TS1206: Decorators are not valid here.
+backend/src/campaign/campaign.controller.ts(43,64): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(11,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/customer/customer.controller.ts(11,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: CreateCustomerDto) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: CreateCustomerDto) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+backend/src/customer/customer.controller.ts(12,10): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(12,50): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(16,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/customer/customer.controller.ts(16,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, search?: string | undefined) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, search?: string | undefined) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }[]>)'.
+backend/src/customer/customer.controller.ts(17,11): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(17,51): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(21,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/customer/customer.controller.ts(21,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+backend/src/customer/customer.controller.ts(22,11): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(22,51): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(26,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/customer/customer.controller.ts(26,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, dto: UpdateCustomerDto) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, dto: UpdateCustomerDto) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+backend/src/customer/customer.controller.ts(28,5): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(29,5): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(30,5): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(35,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/customer/customer.controller.ts(35,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+backend/src/customer/customer.controller.ts(36,10): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(36,50): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(40,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/customer/customer.controller.ts(40,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, points: number) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, points: number) => Promise<{ name: string; id: string; email: string | null; createdAt: Date; updatedAt: Date; isActive: boolean; phone: string | null; loyaltyPoints: number; }>)'.
+backend/src/customer/customer.controller.ts(42,5): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(43,5): error TS1206: Decorators are not valid here.
+backend/src/customer/customer.controller.ts(44,5): error TS1206: Decorators are not valid here.
+backend/src/customer/dto/customer.dto.ts(4,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(5,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+backend/src/customer/dto/customer.dto.ts(7,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(8,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(11,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(12,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(15,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(16,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(19,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(20,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(23,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(24,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(27,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(28,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(33,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(34,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(37,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(38,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(41,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(42,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(45,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(46,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(49,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(50,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(53,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(54,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(57,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/customer/dto/customer.dto.ts(58,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/dashboard/dashboard.controller.ts(10,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/dashboard/dashboard.controller.ts(10,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, startDate?: string | undefined, endDate?: string | undefined) => Promise<{ revenue: number; orders: number; lowStock: number; activeCampaigns: number; recentOrders: { ...; }[]; weeklyChartData: number[]; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, startDate?: string | undefined, endDate?: string | undefined) => Promise<{ revenue: number; orders: number; lowStock: number; activeCampaigns: number; recentOrders: { ...; }[]; weeklyChartData: number[]; }>)'.
+backend/src/dashboard/dashboard.controller.ts(12,5): error TS1206: Decorators are not valid here.
+backend/src/dashboard/dashboard.controller.ts(13,5): error TS1206: Decorators are not valid here.
+backend/src/dashboard/dashboard.controller.ts(14,5): error TS1206: Decorators are not valid here.
+backend/src/dashboard/dashboard.controller.ts(23,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/dashboard/dashboard.controller.ts(23,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, period?: "year" | "week" | "day" | "month") => Promise<never[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, period?: "year" | "week" | "day" | "month") => Promise<never[]>)'.
+backend/src/dashboard/dashboard.controller.ts(25,5): error TS1206: Decorators are not valid here.
+backend/src/dashboard/dashboard.controller.ts(26,5): error TS1206: Decorators are not valid here.
+backend/src/dashboard/dashboard.controller.ts(31,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/dashboard/dashboard.controller.ts(31,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{}>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{}>)'.
+backend/src/dashboard/dashboard.controller.ts(32,23): error TS1206: Decorators are not valid here.
+backend/src/expense/expense.controller.ts(8,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/expense/expense.controller.ts(8,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { expenseDate: string; category: string; amount: number; description?: string | undefined; }) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { expenseDate: string; category: string; amount: number; description?: string | undefined; }) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }>)'.
+backend/src/expense/expense.controller.ts(10,9): error TS1206: Decorators are not valid here.
+backend/src/expense/expense.controller.ts(11,9): error TS1206: Decorators are not valid here.
+backend/src/expense/expense.controller.ts(16,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/expense/expense.controller.ts(16,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }[]>)'.
+backend/src/expense/expense.controller.ts(17,19): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(22,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(22,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, file: any, body: { vendorId: string; invoiceNumber: string; invoiceDate: string; totalAmount: string; items?: string | undefined; }) => Promise<{ message: string; id: string; ... 7 more ...; vendorId: string; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, file: any, body: { vendorId: string; invoiceNumber: string; invoiceDate: string; totalAmount: string; items?: string | undefined; }) => Promise<{ message: string; id: string; ... 7 more ...; vendorId: string; }>)'.
+backend/src/invoice/invoice.controller.ts(29,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(30,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(31,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(89,26): error TS18046: 'error' is of type 'unknown'.
+backend/src/invoice/invoice.controller.ts(94,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(94,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | (() => { success: boolean; message: string; })'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | (() => { success: boolean; message: string; })'.
+backend/src/invoice/invoice.controller.ts(99,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(99,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((file: any) => Promise<{ vendorName: any; invoiceNumber: any; invoiceDate: Date; totalAmount: number; items: any; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((file: any) => Promise<{ vendorName: any; invoiceNumber: any; invoiceDate: Date; totalAmount: number; items: any; }>)'.
+backend/src/invoice/invoice.controller.ts(105,24): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(191,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(191,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, status?: string | undefined) => Promise<any>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, status?: string | undefined) => Promise<any>)'.
+backend/src/invoice/invoice.controller.ts(193,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(194,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(196,36): error TS2551: Property 'getAllInvoices' does not exist on type 'InvoiceService'. Did you mean 'getInvoice'?
+backend/src/invoice/invoice.controller.ts(199,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(199,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+backend/src/invoice/invoice.controller.ts(201,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(202,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(207,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(207,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: any) => Promise<({ items: { id: string; productId: string; quantity: number; expiryDate: Date | null; invoiceId: string; unitCost: Decimal; totalCost: Decimal; }[]; } & { ...; }) | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: any) => Promise<({ items: { id: string; productId: string; quantity: number; expiryDate: Date | null; invoiceId: string; unitCost: Decimal; totalCost: Decimal; }[]; } & { ...; }) | null>)'.
+backend/src/invoice/invoice.controller.ts(209,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(210,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(211,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(216,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(216,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { items: { productId: string; quantity: number; unitCost: number; }[]; }) => Promise<BatchPayload>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { items: { productId: string; quantity: number; unitCost: number; }[]; }) => Promise<BatchPayload>)'.
+backend/src/invoice/invoice.controller.ts(218,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(219,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(220,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(225,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/invoice/invoice.controller.ts(225,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; status: string; invoiceNumber: string; invoiceDate: Date; totalAmount: Decimal; fileUrl: string | null; vendorId: string; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; status: string; invoiceNumber: string; invoiceDate: Date; totalAmount: Decimal; fileUrl: string | null; vendorId: string; }>)'.
+backend/src/invoice/invoice.controller.ts(227,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.controller.ts(228,9): error TS1206: Decorators are not valid here.
+backend/src/invoice/invoice.module.ts(3,29): error TS7016: Could not find a declaration file for module 'multer'. 'C:/Users/hp/Desktop/RetailStore/backend/node_modules/multer/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/multer` if it exists or add a new declaration (.d.ts) file containing `declare module 'multer';`
+backend/src/invoice/invoice.module.ts(15,28): error TS7006: Parameter 'req' implicitly has an 'any' type.
+backend/src/invoice/invoice.module.ts(15,33): error TS7006: Parameter 'file' implicitly has an 'any' type.
+backend/src/invoice/invoice.module.ts(15,39): error TS7006: Parameter 'cb' implicitly has an 'any' type.
+backend/src/invoice/invoice.service.ts(417,119): error TS18046: 'conversionError' is of type 'unknown'.
+backend/src/legacy-api/legacy-api.controller.ts(13,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/legacy-api/legacy-api.controller.ts(13,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: { items: any[]; tenantId: string; }) => Promise<{ success: boolean; processed: number; details: { status: string; productId: string; name: any; }[]; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: { items: any[]; tenantId: string; }) => Promise<{ success: boolean; processed: number; details: { status: string; productId: string; name: any; }[]; }>)'.
+backend/src/legacy-api/legacy-api.controller.ts(14,27): error TS1206: Decorators are not valid here.
+backend/src/legacy-api/legacy-api.controller.ts(20,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/legacy-api/legacy-api.controller.ts(20,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: { imageUrl: string; tenantId: string; }) => Promise<{ success: boolean; processed: { name: any; status: string; error: any; }[]; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: { imageUrl: string; tenantId: string; }) => Promise<{ success: boolean; processed: { name: any; status: string; error: any; }[]; }>)'.
+backend/src/legacy-api/legacy-api.controller.ts(21,21): error TS1206: Decorators are not valid here.
+backend/src/legacy-api/legacy-api.controller.ts(26,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/legacy-api/legacy-api.controller.ts(26,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: any, req: any) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; description: string | null; ... 5 more ...; barcode: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((body: any, req: any) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; description: string | null; ... 5 more ...; barcode: string | null; }>)'.
+backend/src/legacy-api/legacy-api.controller.ts(27,22): error TS1206: Decorators are not valid here.
+backend/src/legacy-api/legacy-api.controller.ts(27,41): error TS1206: Decorators are not valid here.
+backend/src/master-catalog/master-catalog.controller.ts(8,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/master-catalog/master-catalog.controller.ts(8,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((category?: string | undefined, search?: string | undefined) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((category?: string | undefined, search?: string | undefined) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }[]>)'.
+backend/src/master-catalog/master-catalog.controller.ts(10,5): error TS1206: Decorators are not valid here.
+backend/src/master-catalog/master-catalog.controller.ts(11,5): error TS1206: Decorators are not valid here.
+backend/src/pos-mapping/pos-mapping.controller.ts(8,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/pos-mapping/pos-mapping.controller.ts(8,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string) => Promise<({ product: { name: string; id: string; sku: string; imageUrl: string | null; }; } & { id: string; createdAt: Date; updatedAt: Date; tenantId: string; posItemName: string; matchedInventoryId: string; lastSoldPrice: Decimal; confidenceScore: Decimal | null; })[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string) => Promise<({ product: { name: string; id: string; sku: string; imageUrl: string | null; }; } & { id: string; createdAt: Date; updatedAt: Date; tenantId: string; posItemName: string; matchedInventoryId: string; lastSoldPrice: Decimal; confidenceScore: Decimal | null; })[]>)'.
+backend/src/pos-mapping/pos-mapping.controller.ts(9,19): error TS1206: Decorators are not valid here.
+backend/src/pos-mapping/pos-mapping.controller.ts(13,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/pos-mapping/pos-mapping.controller.ts(13,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string, body: any) => Promise<{ product: { name: string; id: string; imageUrl: string | null; }; } & { id: string; createdAt: Date; updatedAt: Date; tenantId: string; posItemName: string; matchedInventoryId: string; lastSoldPrice: Decimal; confidenceScore: Decimal | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string, body: any) => Promise<{ product: { name: string; id: string; imageUrl: string | null; }; } & { id: string; createdAt: Date; updatedAt: Date; tenantId: string; posItemName: string; matchedInventoryId: string; lastSoldPrice: Decimal; confidenceScore: Decimal | null; }>)'.
+backend/src/pos-mapping/pos-mapping.controller.ts(15,9): error TS1206: Decorators are not valid here.
+backend/src/pos-mapping/pos-mapping.controller.ts(16,9): error TS1206: Decorators are not valid here.
+backend/src/pos-mapping/pos-mapping.controller.ts(17,9): error TS1206: Decorators are not valid here.
+backend/src/pos-mapping/pos-mapping.controller.ts(22,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/pos-mapping/pos-mapping.controller.ts(22,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; tenantId: string; posItemName: string; matchedInventoryId: string; lastSoldPrice: Decimal; confidenceScore: Decimal | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, id: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; tenantId: string; posItemName: string; matchedInventoryId: string; lastSoldPrice: Decimal; confidenceScore: Decimal | null; }>)'.
+backend/src/pos-mapping/pos-mapping.controller.ts(24,9): error TS1206: Decorators are not valid here.
+backend/src/pos-mapping/pos-mapping.controller.ts(25,9): error TS1206: Decorators are not valid here.
+backend/src/prisma/tenant-prisma.service.ts(12,13): error TS2322: Type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | undefined' is not assignable to type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Type 'undefined' is not assignable to type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+backend/src/product/dto/product.dto.ts(4,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(5,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+backend/src/product/dto/product.dto.ts(7,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(8,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(11,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(12,3): error TS2564: Property 'sku' has no initializer and is not definitely assigned in the constructor.
+backend/src/product/dto/product.dto.ts(14,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(15,3): error TS2564: Property 'category' has no initializer and is not definitely assigned in the constructor.
+backend/src/product/dto/product.dto.ts(17,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(18,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(21,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(22,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(23,3): error TS2564: Property 'costPrice' has no initializer and is not definitely assigned in the constructor.
+backend/src/product/dto/product.dto.ts(25,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(26,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(27,3): error TS2564: Property 'sellingPrice' has no initializer and is not definitely assigned in the constructor.
+backend/src/product/dto/product.dto.ts(29,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(30,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(31,3): error TS2564: Property 'stock' has no initializer and is not definitely assigned in the constructor.
+backend/src/product/dto/product.dto.ts(33,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(34,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(35,3): error TS2564: Property 'reorderLevel' has no initializer and is not definitely assigned in the constructor.
+backend/src/product/dto/product.dto.ts(39,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(40,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(43,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(44,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(47,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(48,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(51,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(52,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(55,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(56,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(57,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(60,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(61,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(62,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(65,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(66,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/dto/product.dto.ts(67,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/product/product.controller.ts(10,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(10,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ success: boolean; synced: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ success: boolean; synced: number; }>)'.
+backend/src/product/product.controller.ts(12,11): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(16,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(16,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: CreateProductDto) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, dto: CreateProductDto) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }>)'.
+backend/src/product/product.controller.ts(18,10): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(18,50): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(22,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(22,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; name: string; sku: string; image: string | null; category: string | null; description: string | null; price: Decimal; total_qty: number; batches: { ...; }[]; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; name: string; sku: string; image: string | null; category: string | null; description: string | null; price: Decimal; total_qty: number; batches: { ...; }[]; }[]>)'.
+backend/src/product/product.controller.ts(23,11): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(27,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(27,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ Batches: { id: string; sku: string; productId: string; quantity: number; expiryDate: Date; receivedDate: Date; }[]; } & { name: string; ... 12 more ...; barcode: string | null; }) | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ Batches: { id: string; sku: string; productId: string; quantity: number; expiryDate: Date; receivedDate: Date; }[]; } & { name: string; ... 12 more ...; barcode: string | null; }) | null>)'.
+backend/src/product/product.controller.ts(28,11): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(28,51): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(34,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(34,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, dto: UpdateProductDto) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; ... 7 more ...; barcode: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, dto: UpdateProductDto) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; ... 7 more ...; barcode: string | null; }>)'.
+backend/src/product/product.controller.ts(36,10): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(36,50): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(36,75): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(40,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(40,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; description: string | null; ... 5 more ...; barcode: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; description: string | null; ... 5 more ...; barcode: string | null; }>)'.
+backend/src/product/product.controller.ts(42,10): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(42,50): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(46,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(46,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, dto: { quantity: number; type: "IN" | "OUT" | "ADJUSTMENT"; }) => Promise<{ success: boolean; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, dto: { quantity: number; type: "IN" | "OUT" | "ADJUSTMENT"; }) => Promise<{ success: boolean; }>)'.
+backend/src/product/product.controller.ts(49,5): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(50,5): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(51,5): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(56,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/product/product.controller.ts(56,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ success: boolean; imageUrl: string; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ success: boolean; imageUrl: string; }>)'.
+backend/src/product/product.controller.ts(59,5): error TS1206: Decorators are not valid here.
+backend/src/product/product.controller.ts(60,5): error TS1206: Decorators are not valid here.
+backend/src/product/product.service.ts(38,24): error TS18048: 'response.data' is possibly 'undefined'.
+backend/src/product/product.service.ts(52,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(53,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(55,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(63,45): error TS18046: 'error' is of type 'unknown'.
+backend/src/product/product.service.ts(133,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(134,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(136,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(198,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(199,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/product/product.service.ts(201,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+backend/src/purchase-order/purchase-order.controller.ts(8,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/purchase-order/purchase-order.controller.ts(8,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { vendorId: string; items: { productId: string; quantity: number; unitCost: number; }[]; notes?: string | undefined; }) => Promise<{ vendor: { name: string; id: string; ... 4 more ...; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { vendorId: string; items: { productId: string; quantity: number; unitCost: number; }[]; notes?: string | undefined; }) => Promise<{ vendor: { name: string; id: string; ... 4 more ...; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }>)'.
+backend/src/purchase-order/purchase-order.controller.ts(10,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(11,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(20,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/purchase-order/purchase-order.controller.ts(20,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, status?: string | undefined) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: { ...; }[]; } & { ...; })[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, status?: string | undefined) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: { ...; }[]; } & { ...; })[]>)'.
+backend/src/purchase-order/purchase-order.controller.ts(22,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(23,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(28,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/purchase-order/purchase-order.controller.ts(28,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+backend/src/purchase-order/purchase-order.controller.ts(30,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(31,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(36,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/purchase-order/purchase-order.controller.ts(36,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { status: string; }) => Promise<{ id: string; createdAt: Date; updatedAt: Date; status: string; totalAmount: Decimal; vendorId: string; ... 4 more ...; receivedAt: Date | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { status: string; }) => Promise<{ id: string; createdAt: Date; updatedAt: Date; status: string; totalAmount: Decimal; vendorId: string; ... 4 more ...; receivedAt: Date | null; }>)'.
+backend/src/purchase-order/purchase-order.controller.ts(38,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(39,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(40,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(45,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/purchase-order/purchase-order.controller.ts(45,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; status: string; totalAmount: Decimal; vendorId: string; orderNumber: string; orderDate: Date; notes: string | null; sentAt: Date | null; receivedAt: Date | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; status: string; totalAmount: Decimal; vendorId: string; orderNumber: string; orderDate: Date; notes: string | null; sentAt: Date | null; receivedAt: Date | null; }>)'.
+backend/src/purchase-order/purchase-order.controller.ts(47,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(48,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(53,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/purchase-order/purchase-order.controller.ts(53,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<({ vendor: { name: string; id: string; email: string | null; isActive: boolean; phone: string | null; contactPerson: string | null; address: string | null; }; items: ({ ...; } & { ...; })[]; } & { ...; }) | null>)'.
+backend/src/purchase-order/purchase-order.controller.ts(55,9): error TS1206: Decorators are not valid here.
+backend/src/purchase-order/purchase-order.controller.ts(56,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(8,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/profit.controller.ts(8,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { startDate: string; endDate: string; period: "daily" | "weekly" | "monthly"; }) => Promise<{ id: string; createdAt: Date; startDate: Date; endDate: Date; ... 7 more ...; netProfit: Decimal; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { startDate: string; endDate: string; period: "daily" | "weekly" | "monthly"; }) => Promise<{ id: string; createdAt: Date; startDate: Date; endDate: Date; ... 7 more ...; netProfit: Decimal; }>)'.
+backend/src/reports/profit.controller.ts(10,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(11,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(25,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/profit.controller.ts(25,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, period?: string | undefined) => Promise<{ id: string; createdAt: Date; startDate: Date; endDate: Date; metadata: JsonValue; period: string; ... 5 more ...; netProfit: Decimal; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, period?: string | undefined) => Promise<{ id: string; createdAt: Date; startDate: Date; endDate: Date; metadata: JsonValue; period: string; ... 5 more ...; netProfit: Decimal; }[]>)'.
+backend/src/reports/profit.controller.ts(27,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(28,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(33,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/profit.controller.ts(33,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, days?: string | undefined) => Promise<{ id: string; createdAt: Date; startDate: Date; endDate: Date; metadata: JsonValue; period: string; ... 5 more ...; netProfit: Decimal; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, days?: string | undefined) => Promise<{ id: string; createdAt: Date; startDate: Date; endDate: Date; metadata: JsonValue; period: string; ... 5 more ...; netProfit: Decimal; }[]>)'.
+backend/src/reports/profit.controller.ts(35,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(36,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(41,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/profit.controller.ts(41,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, query: { startDate: string; endDate: string; }) => Promise<{ revenue: number; count: number; category: string; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, query: { startDate: string; endDate: string; }) => Promise<{ revenue: number; count: number; category: string; }[]>)'.
+backend/src/reports/profit.controller.ts(43,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(44,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(53,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/profit.controller.ts(53,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { category: string; amount: number; description?: string | undefined; expenseDate?: string | undefined; }) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { category: string; amount: number; description?: string | undefined; expenseDate?: string | undefined; }) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }>)'.
+backend/src/reports/profit.controller.ts(55,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(56,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(72,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/profit.controller.ts(72,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, query: { startDate?: string | undefined; endDate?: string | undefined; }) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, query: { startDate?: string | undefined; endDate?: string | undefined; }) => Promise<{ id: string; createdAt: Date; category: string; description: string | null; amount: Decimal; expenseDate: Date; }[]>)'.
+backend/src/reports/profit.controller.ts(74,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(75,9): error TS1206: Decorators are not valid here.
+backend/src/reports/profit.controller.ts(83,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/profit.controller.ts(83,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ revenue: number; pendingOrders: number; lowStock: number; activeCampaigns: number; recentOrders: { id: string; orderNumber: string; customer: string; amount: number; status: string; date: Date; }[]; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ revenue: number; pendingOrders: number; lowStock: number; activeCampaigns: number; recentOrders: { id: string; orderNumber: string; customer: string; amount: number; status: string; date: Date; }[]; }>)'.
+backend/src/reports/profit.controller.ts(84,29): error TS1206: Decorators are not valid here.
+backend/src/reports/z-report.controller.ts(11,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/z-report.controller.ts(11,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, file: any, body: { date?: string | undefined; }) => Promise<{ message: string; data: { transactionCount: number; id: string; createdAt: Date; status: string; fileUrl: string | null; ... 4 more ...; processedAt: Date | null; }; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, file: any, body: { date?: string | undefined; }) => Promise<{ message: string; data: { transactionCount: number; id: string; createdAt: Date; status: string; fileUrl: string | null; ... 4 more ...; processedAt: Date | null; }; }>)'.
+backend/src/reports/z-report.controller.ts(14,9): error TS1206: Decorators are not valid here.
+backend/src/reports/z-report.controller.ts(15,9): error TS1206: Decorators are not valid here.
+backend/src/reports/z-report.controller.ts(16,9): error TS1206: Decorators are not valid here.
+backend/src/reports/z-report.controller.ts(21,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/reports/z-report.controller.ts(21,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; createdAt: Date; status: string; fileUrl: string | null; reportDate: Date; reportNumber: string; totalSales: Decimal; totalTax: Decimal; processedAt: Date | null; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; createdAt: Date; status: string; fileUrl: string | null; reportDate: Date; reportNumber: string; totalSales: Decimal; totalTax: Decimal; processedAt: Date | null; }[]>)'.
+backend/src/reports/z-report.controller.ts(22,23): error TS1206: Decorators are not valid here.
+backend/src/sale/dto/create-sale.dto.ts(5,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(6,3): error TS2564: Property 'productId' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(8,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(9,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(10,3): error TS2564: Property 'quantity' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(12,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(13,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(14,3): error TS2564: Property 'unitPrice' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(16,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(17,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(18,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(21,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(22,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(23,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(26,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(27,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(28,3): error TS2564: Property 'subtotal' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(32,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(33,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(34,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(35,3): error TS2564: Property 'items' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(37,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(38,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(39,3): error TS2564: Property 'subtotal' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(41,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(42,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(43,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(46,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(47,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(50,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(51,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(52,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(55,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(56,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(57,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(60,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(61,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(62,3): error TS2564: Property 'total' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(64,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(65,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(66,3): error TS2564: Property 'amountPaid' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(68,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(69,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(70,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(73,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(74,3): error TS2564: Property 'paymentMethod' has no initializer and is not definitely assigned in the constructor.
+backend/src/sale/dto/create-sale.dto.ts(76,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(77,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(80,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/dto/create-sale.dto.ts(81,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/sale/sale.controller.ts(11,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(11,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, req: any, dto: CreateSaleDto) => Promise<{ items: { id: string; productId: string; quantity: number; subtotal: Decimal; unitPrice: Decimal; saleId: string; }[]; } & { ...; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, req: any, dto: CreateSaleDto) => Promise<{ items: { id: string; productId: string; quantity: number; subtotal: Decimal; unitPrice: Decimal; saleId: string; }[]; } & { ...; }>)'.
+backend/src/sale/sale.controller.ts(13,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(14,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(15,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(20,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(20,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, req: any) => Promise<({ items: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; } & { ...; })[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, req: any) => Promise<({ items: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; } & { ...; })[]>)'.
+backend/src/sale/sale.controller.ts(21,16): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(21,56): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(25,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(25,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, status?: string | undefined, startDate?: string | undefined, endDate?: string | undefined, userId?: string | undefined, customerId?: string | undefined, limit?: string | undefined, offset?: string | undefined) => Promise<...>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, status?: string | undefined, startDate?: string | undefined, endDate?: string | undefined, userId?: string | undefined, customerId?: string | undefined, limit?: string | undefined, offset?: string | undefined) => Promise<...>)'.
+backend/src/sale/sale.controller.ts(27,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(28,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(29,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(30,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(31,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(32,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(33,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(34,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(47,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(47,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, startDate?: string | undefined, endDate?: string | undefined) => Promise<{ totalSales: number; totalRevenue: number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, startDate?: string | undefined, endDate?: string | undefined) => Promise<{ totalSales: number; totalRevenue: number; }>)'.
+backend/src/sale/sale.controller.ts(49,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(50,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(51,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(60,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(60,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ items: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; } & { ...; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string) => Promise<{ items: ({ product: { name: string; id: string; createdAt: Date; updatedAt: Date; isActive: boolean; sku: string; category: string | null; ... 6 more ...; barcode: string | null; }; } & { ...; })[]; } & { ...; }>)'.
+backend/src/sale/sale.controller.ts(61,11): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(61,51): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(65,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(65,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, req: any) => Promise<{ id: string; createdAt: Date; saleNumber: string; subtotal: Decimal; tax: Decimal; discount: Decimal; total: Decimal; status: string; userId: string; customerId: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, req: any) => Promise<{ id: string; createdAt: Date; saleNumber: string; subtotal: Decimal; tax: Decimal; discount: Decimal; total: Decimal; status: string; userId: string; customerId: string | null; }>)'.
+backend/src/sale/sale.controller.ts(67,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(68,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(69,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(73,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(73,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { status: string; }) => Promise<{ id: string; createdAt: Date; saleNumber: string; subtotal: Decimal; tax: Decimal; discount: Decimal; total: Decimal; status: string; userId: string; customerId: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, id: string, body: { status: string; }) => Promise<{ id: string; createdAt: Date; saleNumber: string; subtotal: Decimal; tax: Decimal; discount: Decimal; total: Decimal; status: string; userId: string; customerId: string | null; }>)'.
+backend/src/sale/sale.controller.ts(75,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(76,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(77,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(82,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(82,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { amount: number; currency?: string | undefined; }) => Promise<{ clientSecret: string | null; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { amount: number; currency?: string | undefined; }) => Promise<{ clientSecret: string | null; }>)'.
+backend/src/sale/sale.controller.ts(84,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(85,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(90,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/sale/sale.controller.ts(90,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { imageUrl: string; }) => Promise<{ success: boolean; processed: { name: any; status: string; error: any; }[]; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { imageUrl: string; }) => Promise<{ success: boolean; processed: { name: any; status: string; error: any; }[]; }>)'.
+backend/src/sale/sale.controller.ts(92,5): error TS1206: Decorators are not valid here.
+backend/src/sale/sale.controller.ts(93,5): error TS1206: Decorators are not valid here.
+backend/src/settings/settings.controller.ts(10,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/settings/settings.controller.ts(10,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, key: string) => Promise<{ value: string; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, key: string) => Promise<{ value: string; }>)'.
+backend/src/settings/settings.controller.ts(12,9): error TS1206: Decorators are not valid here.
+backend/src/settings/settings.controller.ts(13,9): error TS1206: Decorators are not valid here.
+backend/src/settings/settings.controller.ts(19,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/settings/settings.controller.ts(19,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { key: string; value: string; }) => Promise<{ value: string; id: string; key: string; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { key: string; value: string; }) => Promise<{ value: string; id: string; key: string; }>)'.
+backend/src/settings/settings.controller.ts(22,9): error TS1206: Decorators are not valid here.
+backend/src/settings/settings.controller.ts(23,9): error TS1206: Decorators are not valid here.
+backend/src/social/social.controller.ts(8,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/social/social.controller.ts(8,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string) => Promise<any>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string) => Promise<any>)'.
+backend/src/social/social.controller.ts(9,23): error TS1206: Decorators are not valid here.
+backend/src/social/social.controller.ts(13,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/social/social.controller.ts(13,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ success: boolean; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ success: boolean; }>)'.
+backend/src/social/social.controller.ts(14,24): error TS1206: Decorators are not valid here.
+backend/src/social/social.controller.ts(14,63): error TS1206: Decorators are not valid here.
+backend/src/social/social.controller.ts(18,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/social/social.controller.ts(18,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ success: boolean; results: ({ platform: string; status: string; id: any; error?: undefined; reason?: undefined; } | { platform: string; status: string; error: any; id?: undefined; reason?: undefined; } | { ...; })[]; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((tenantId: string, body: any) => Promise<{ success: boolean; results: ({ platform: string; status: string; id: any; error?: undefined; reason?: undefined; } | { platform: string; status: string; error: any; id?: undefined; reason?: undefined; } | { ...; })[]; }>)'.
+backend/src/social/social.controller.ts(19,19): error TS1206: Decorators are not valid here.
+backend/src/social/social.controller.ts(19,58): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.controller.ts(13,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/super-admin/super-admin.controller.ts(13,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | (() => Promise<{ products: { tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }[]; tenants: { ...; }[]; pendingItems: ({ ...; } & { ...; })[]; revenueData: { ...; }; ...'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | (() => Promise<{ products: { tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }[]; tenants: { ...; }[]; pendingItems: ({ ...; } & { ...; })[]; revenueData: { ...; }; ...'.
+backend/src/super-admin/super-admin.controller.ts(26,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/super-admin/super-admin.controller.ts(26,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+backend/src/super-admin/super-admin.controller.ts(27,26): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.controller.ts(31,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/super-admin/super-admin.controller.ts(31,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ id: string; createdAt: Date; tenantId: string; imageUrl: string | null; productName: string; status: string; upcEanCode: string; brandName: string; categoryName: string; descriptionText: string | null; aiConfidenceScore: number; addedByUserId: string; suggestedMatchProductId: string...'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ id: string; createdAt: Date; tenantId: string; imageUrl: string | null; productName: string; status: string; upcEanCode: string; brandName: string; categoryName: string; descriptionText: string | null; aiConfidenceScore: number; addedByUserId: string; suggestedMatchProductId: string...'.
+backend/src/super-admin/super-admin.controller.ts(32,25): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.controller.ts(36,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/super-admin/super-admin.controller.ts(36,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string, data: any) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string, data: any) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+backend/src/super-admin/super-admin.controller.ts(38,25): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.controller.ts(38,50): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.controller.ts(42,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/super-admin/super-admin.controller.ts(42,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+backend/src/super-admin/super-admin.controller.ts(43,25): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.controller.ts(47,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/super-admin/super-admin.controller.ts(47,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<any>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<any>)'.
+backend/src/super-admin/super-admin.controller.ts(48,28): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.controller.ts(52,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/super-admin/super-admin.controller.ts(52,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((id: string) => Promise<{ tenantId: string; sku: string; category: string | null; description: string | null; imageUrl: string | null; productName: string; basePrice: Decimal; aiEnrichedAt: Date | null; syncedAt: Date; }>)'.
+backend/src/super-admin/super-admin.controller.ts(53,22): error TS1206: Decorators are not valid here.
+backend/src/super-admin/super-admin.service.ts(137,76): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+backend/src/super-admin/super-admin.service.ts(138,70): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+backend/src/tenant/dto/create-tenant.dto.ts(4,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/tenant/dto/create-tenant.dto.ts(5,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+backend/src/tenant/dto/create-tenant.dto.ts(7,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/tenant/dto/create-tenant.dto.ts(8,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/tenant/dto/create-tenant.dto.ts(9,3): error TS2564: Property 'subdomain' has no initializer and is not definitely assigned in the constructor.
+backend/src/tenant/dto/create-tenant.dto.ts(11,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/tenant/dto/create-tenant.dto.ts(12,3): error TS2564: Property 'adminEmail' has no initializer and is not definitely assigned in the constructor.
+backend/src/tenant/dto/create-tenant.dto.ts(14,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/tenant/dto/create-tenant.dto.ts(15,4): error TS1240: Unable to resolve signature of property decorator when called as an expression.
+  Argument of type 'undefined' is not assignable to parameter of type 'Object'.
+backend/src/tenant/dto/create-tenant.dto.ts(16,3): error TS2564: Property 'adminPassword' has no initializer and is not definitely assigned in the constructor.
+backend/src/tenant/tenant.controller.ts(9,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/tenant/tenant.controller.ts(9,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((dto: CreateTenantDto) => Promise<{ id: string; createdAt: Date; updatedAt: Date; storeName: string; subdomain: string; databaseUrl: string; adminEmail: string; isActive: boolean; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((dto: CreateTenantDto) => Promise<{ id: string; createdAt: Date; updatedAt: Date; storeName: string; subdomain: string; databaseUrl: string; adminEmail: string; isActive: boolean; }>)'.
+backend/src/tenant/tenant.controller.ts(10,22): error TS1206: Decorators are not valid here.
+backend/src/tenant/tenant.controller.ts(20,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/tenant/tenant.controller.ts(20,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | (() => Promise<{ id: string; createdAt: Date; updatedAt: Date; storeName: string; subdomain: string; databaseUrl: string; adminEmail: string; isActive: boolean; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | (() => Promise<{ id: string; createdAt: Date; updatedAt: Date; storeName: string; subdomain: string; databaseUrl: string; adminEmail: string; isActive: boolean; }[]>)'.
+backend/src/tenant/tenant.controller.ts(25,3): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/tenant/tenant.controller.ts(25,4): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; storeName: string; subdomain: string; databaseUrl: string; adminEmail: string; isActive: boolean; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; createdAt: Date; updatedAt: Date; storeName: string; subdomain: string; databaseUrl: string; adminEmail: string; isActive: boolean; }>)'.
+backend/src/tenant/tenant.controller.ts(26,19): error TS1206: Decorators are not valid here.
+backend/src/tenant/tenant.service.ts(52,59): error TS2339: Property 'message' does not exist on type '{}'.
+backend/src/tenant/tenant.service.ts(53,77): error TS2339: Property 'message' does not exist on type '{}'.
+backend/src/vendor/vendor.controller.ts(10,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/vendor/vendor.controller.ts(10,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; name: string; 'contact-phone': string | null; email: string | null; address: string | null; 'poc-name': string | null; 'reliability-score': number; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ id: string; name: string; 'contact-phone': string | null; email: string | null; address: string | null; 'poc-name': string | null; 'reliability-score': number; }[]>)'.
+backend/src/vendor/vendor.controller.ts(11,13): error TS1206: Decorators are not valid here.
+backend/src/vendor/vendor.controller.ts(15,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/vendor/vendor.controller.ts(15,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { name: string; }) => Promise<{ id: string; name: string; 'contact-phone': string | null; email: string | null; address: string | null; 'poc-name': string | null; 'reliability-score': number; }>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string, body: { name: string; }) => Promise<{ id: string; name: string; 'contact-phone': string | null; email: string | null; address: string | null; 'poc-name': string | null; 'reliability-score': number; }>)'.
+backend/src/vendor/vendor.controller.ts(17,9): error TS1206: Decorators are not valid here.
+backend/src/vendor/vendor.controller.ts(18,9): error TS1206: Decorators are not valid here.
+backend/src/vendor/vendor.controller.ts(23,5): error TS1241: Unable to resolve signature of method decorator when called as an expression.
+  The runtime will invoke the decorator with 2 arguments, but the decorator expects 3.
+backend/src/vendor/vendor.controller.ts(23,6): error TS1270: Decorator function return type 'void | TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ 'invoice-id': string; 'invoice-number': string; 'invoice-date': Date; 'total-amount-value': Decimal; 'processing-status': string; 'supplier-name': string; }[]>)'.
+  Type 'TypedPropertyDescriptor<unknown>' is not assignable to type 'void | ((subdomain: string) => Promise<{ 'invoice-id': string; 'invoice-number': string; 'invoice-date': Date; 'total-amount-value': Decimal; 'processing-status': string; 'supplier-name': string; }[]>)'.
+backend/src/vendor/vendor.controller.ts(24,18): error TS1206: Decorators are not valid here.
+lib/analytics/profit-calculator.ts(34,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(34,42): error TS7006: Parameter 'order' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(47,37): error TS7006: Parameter 'o' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(49,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(61,45): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/analytics/profit-calculator.ts(61,50): error TS7006: Parameter 'exp' implicitly has an 'any' type.
