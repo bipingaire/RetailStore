@@ -167,6 +167,160 @@ export class InvoiceService {
         });
     }
 
+    async getInvoiceParsed(subdomain: string, id: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const invoice = await client.vendorInvoice.findUnique({
+            where: { id },
+            include: {
+                vendor: true,
+                items: {
+                    include: {
+                        product: { include: { Batches: true } },
+                    },
+                },
+            },
+        });
+
+        if (!invoice) throw new Error('Invoice not found');
+
+        const items = invoice.items.map(item => {
+            const product = item.product;
+            // Best guess for case pricing since we didn't store unitsPerCase firmly in VendorInvoiceItem before this update
+            const unitsPerCase = product?.unitsPerParent || 1;
+            const cases = item.quantity / unitsPerCase;
+            const batch = product?.Batches?.[0]; // Get newest batch for expiry
+
+            return {
+                dbItemId: item.id, // Keep track of DB item for updates
+                productId: product?.id,
+                description: product?.name || 'Unknown',
+                category: product?.category || 'General',
+                quantity: cases,
+                unitsPerCase: unitsPerCase,
+                unitSize: '',
+                casePrice: Number(item.unitCost) * unitsPerCase,
+                costPerUnit: Number(item.unitCost),
+                unitPrice: Number(item.unitCost),
+                retailUnits: item.quantity,
+                totalPrice: Number(item.totalCost),
+                sellingPrice: Number(product?.price || 0),
+                expiryDate: batch?.expiryDate ? batch.expiryDate.toISOString().split('T')[0] : null,
+            };
+        });
+
+        return {
+            vendorId: invoice.vendorId,
+            vendorName: invoice.vendor?.name || '',
+            invoiceNumber: invoice.invoiceNumber,
+            invoiceDate: invoice.invoiceDate,
+            totalAmount: Number(invoice.totalAmount),
+            fileUrl: (invoice as any).fileUrl, // schema might call it fileUrl or imageUrl
+            items: items,
+        };
+    }
+
+    async updateInvoice(
+        subdomain: string,
+        id: string,
+        vendorId: string,
+        invoiceNumber: string,
+        invoiceDate: Date,
+        totalAmount: number,
+        items: any[]
+    ) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const invoice = await client.vendorInvoice.findUnique({ where: { id } });
+        if (!invoice) throw new Error('Invoice not found');
+        if (invoice.status === 'committed') throw new Error('Cannot edit committed invoice');
+
+        return await client.$transaction(async (tx) => {
+            // Update invoice header
+            const updatedInvoice = await tx.vendorInvoice.update({
+                where: { id },
+                data: {
+                    vendorId,
+                    invoiceNumber,
+                    invoiceDate,
+                    totalAmount,
+                }
+            });
+
+            // Update items
+            for (const item of items) {
+                // Determine retail unit quantity and cost
+                const cases = Number(item.quantity) || 1;
+                const unitsPerCase = Number(item.unitsPerCase) || 1;
+                const retailUnits = cases * unitsPerCase;
+
+                const casePrice = Number(item.casePrice) || Number(item.unitPrice) || 0;
+                const costPerUnit = unitsPerCase > 1 ? (casePrice / unitsPerCase) : casePrice;
+
+                let productId = item.productId;
+
+                if (productId) {
+                    // Update existing product pricing
+                    if (item.sellingPrice !== null && item.sellingPrice !== undefined) {
+                        await tx.product.update({
+                            where: { id: productId },
+                            data: {
+                                price: item.sellingPrice,
+                                costPrice: costPerUnit
+                            }
+                        });
+                    }
+
+                    // Look for existing invoice item OR create new if it was added during edit
+                    if (item.dbItemId) {
+                        await tx.vendorInvoiceItem.update({
+                            where: { id: item.dbItemId },
+                            data: {
+                                quantity: retailUnits,
+                                unitCost: costPerUnit,
+                                totalCost: item.totalPrice || (cases * casePrice),
+                            }
+                        });
+
+                        // We also need to update the uncommitted stock / batch if we are tracking that pre-commit.
+                        // Currently, uploadInvoice adds stock and batches immediately.
+                        // If that's the case, we need to adjust stock differences!
+
+                        // Get current inventory item
+                        const existingItem = await tx.vendorInvoiceItem.findUnique({ where: { id: item.dbItemId } });
+                        if (existingItem) {
+                            const diff = retailUnits - existingItem.quantity;
+                            if (diff !== 0) {
+                                await tx.product.update({
+                                    where: { id: productId },
+                                    data: { stock: { increment: diff } }
+                                });
+                            }
+                        }
+                    } else {
+                        // New item added during edit
+                        await tx.vendorInvoiceItem.create({
+                            data: {
+                                invoiceId: id,
+                                productId: productId,
+                                quantity: retailUnits,
+                                unitCost: costPerUnit,
+                                totalCost: item.totalPrice || (cases * casePrice),
+                            }
+                        });
+                        await tx.product.update({
+                            where: { id: productId },
+                            data: { stock: { increment: retailUnits } }
+                        });
+                    }
+                }
+            }
+            return updatedInvoice;
+        }, { timeout: 20000 });
+    }
+
     async getAllInvoices(subdomain: string, status?: string) {
         console.log(`getAllInvoices called for subdomain: ${subdomain}`);
         try {

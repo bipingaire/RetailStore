@@ -61,10 +61,14 @@ export default function InvoicesPage() {
       const url = URL.createObjectURL(selectedFile);
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
+    } else if (parsedData?.fileUrl) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const url = parsedData.fileUrl.startsWith('http') ? parsedData.fileUrl : `${API_URL}${parsedData.fileUrl}`;
+      setPreviewUrl(url);
     } else {
       setPreviewUrl(null);
     }
-  }, [selectedFile]);
+  }, [selectedFile, parsedData?.fileUrl]);
 
   // Handle resizing
   useEffect(() => {
@@ -200,39 +204,65 @@ export default function InvoicesPage() {
     }
   }
 
+  async function handleEditInvoice(invoiceId: string) {
+    try {
+      const loadingToast = toast.loading('Loading invoice details...');
+      const data = await apiClient.get(`/invoices/${invoiceId}/parsed`);
+
+      setParsedData(data);
+      setFormData({
+        vendorId: data.vendorId || '',
+        invoiceNumber: data.invoiceNumber || '',
+        invoiceDate: new Date(data.invoiceDate).toISOString().split('T')[0],
+        totalAmount: data.totalAmount || 0,
+      });
+
+      setEditingInvoice(invoiceId);
+      setShowUploadModal(true);
+      setSelectedFile(null);
+
+      toast.dismiss(loadingToast);
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Failed to load invoice details');
+    }
+  }
+
   async function handleCreateInvoice() {
     try {
-      const formDataToSend = new FormData();
-      if (selectedFile) formDataToSend.append('file', selectedFile);
-      formDataToSend.append('vendorId', formData.vendorId);
-      formDataToSend.append('invoiceNumber', formData.invoiceNumber);
-      formDataToSend.append('invoiceDate', formData.invoiceDate);
-      formDataToSend.append('totalAmount', formData.totalAmount.toString());
+      if (editingInvoice) {
+        const updatePayload = {
+          vendorId: formData.vendorId,
+          invoiceNumber: formData.invoiceNumber,
+          invoiceDate: formData.invoiceDate,
+          totalAmount: formData.totalAmount,
+          items: parsedData?.items || []
+        };
+        await apiClient.put(`/invoices/${editingInvoice}`, updatePayload);
+        toast.success('✅ Invoice updated!');
+      } else {
+        const formDataToSend = new FormData();
+        if (selectedFile) formDataToSend.append('file', selectedFile);
+        formDataToSend.append('vendorId', formData.vendorId);
+        formDataToSend.append('invoiceNumber', formData.invoiceNumber);
+        formDataToSend.append('invoiceDate', formData.invoiceDate);
+        formDataToSend.append('totalAmount', formData.totalAmount.toString());
 
-      // Send items with expiry dates
-      if (parsedData?.items) {
-        formDataToSend.append('items', JSON.stringify(parsedData.items));
+        if (parsedData?.items) {
+          formDataToSend.append('items', JSON.stringify(parsedData.items));
+        }
+
+        await apiClient.post('/invoices/upload', formDataToSend);
+        toast.success('✅ Saved to inventory!');
       }
 
-      const invoice = await apiClient.post('/invoices/upload', formDataToSend);
-      toast.success('✅ Saved to inventory!');
       setEditingInvoice(null);
       setShowUploadModal(false);
       setSelectedFile(null);
       setParsedData(null);
       loadData();
     } catch (error) {
-      toast.error('Failed to save to inventory');
-    }
-  }
-
-  async function handleAddItems(invoiceId: string) {
-    try {
-      await apiClient.post(`/invoices/${invoiceId}/items`, { items: invoiceItems });
-      toast.success('Items added!');
-      setInvoiceItems([]);
-    } catch (error) {
-      toast.error('Failed to add items');
+      toast.error('Failed to save invoice');
     }
   }
 
@@ -288,6 +318,9 @@ export default function InvoicesPage() {
         </div>
         <button
           onClick={() => {
+            setEditingInvoice(null);
+            setParsedData(null);
+            setFormData({ vendorId: '', invoiceNumber: '', invoiceDate: new Date().toISOString().split('T')[0], totalAmount: 0 });
             const fileInput = document.getElementById('invoice-file-input') as HTMLInputElement;
             if (fileInput) fileInput.click();
           }}
@@ -319,7 +352,11 @@ export default function InvoicesPage() {
               <tr
                 key={invoice.id}
                 className="hover:bg-blue-50 cursor-pointer transition-colors"
-                onClick={() => setEditingInvoice(invoice.id)}
+                onClick={() => {
+                  if (invoice.status !== 'committed') {
+                    handleEditInvoice(invoice.id);
+                  }
+                }}
               >
                 <td className="px-6 py-4 text-sm font-medium text-blue-700 underline underline-offset-2">{invoice.invoiceNumber}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{invoice.vendor?.name || 'N/A'}</td>
@@ -342,8 +379,9 @@ export default function InvoicesPage() {
                 <td className="px-6 py-4 text-sm" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setEditingInvoice(invoice.id)}
-                      className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-200 rounded hover:bg-blue-50"
+                      onClick={() => handleEditInvoice(invoice.id)}
+                      disabled={invoice.status === 'committed'}
+                      className={`text-xs px-2 py-1 border rounded ${invoice.status === 'committed' ? 'text-gray-400 border-gray-200 cursor-not-allowed' : 'text-blue-600 border-blue-200 hover:bg-blue-50'}`}
                     >
                       View / Edit
                     </button>
@@ -423,7 +461,7 @@ export default function InvoicesPage() {
                     className="bg-gray-900 overflow-hidden relative flex items-center justify-center p-4"
                     style={{ flexBasis: `${splitRatio}%` }}
                   >
-                    {selectedFile?.type === 'application/pdf' ? (
+                    {selectedFile?.type === 'application/pdf' || parsedData?.fileUrl?.toLowerCase().endsWith('.pdf') ? (
                       <iframe src={previewUrl || ''} className="w-full h-full bg-white rounded shadow-lg border-0" title="PDF Preview" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center overflow-auto">
@@ -701,83 +739,6 @@ export default function InvoicesPage() {
       )}
 
 
-      {/* Add Items Modal */}
-      {
-        editingInvoice && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Add Invoice Items</h2>
-                <button onClick={() => setEditingInvoice(null)} className="text-gray-500 hover:text-gray-700">
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="space-y-4 mb-6">
-                {invoiceItems.map((item, index) => (
-                  <div key={index} className="flex gap-4 items-start">
-                    <select
-                      value={item.productId}
-                      onChange={(e) => updateItem(index, 'productId', e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
-                    >
-                      <option value="">Select Product</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.sku})
-                        </option>
-                      ))}
-                    </select>
-
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                      placeholder="Qty"
-                      className="w-24 border border-gray-300 rounded-lg px-4 py-2"
-                    />
-
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={item.unitCost}
-                      onChange={(e) => updateItem(index, 'unitCost', parseFloat(e.target.value))}
-                      placeholder="Unit Cost"
-                      className="w-32 border border-gray-300 rounded-lg px-4 py-2"
-                    />
-
-                    <span className="w-32 py-2 text-right font-mono">
-                      ${(item.quantity * item.unitCost).toFixed(2)}
-                    </span>
-
-                    <button onClick={() => removeItem(index)} className="text-red-600 hover:text-red-800 p-2">
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={addItemRow}
-                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  <Plus size={20} />
-                  Add Item
-                </button>
-
-                <button
-                  onClick={() => handleAddItems(editingInvoice)}
-                  disabled={invoiceItems.length === 0}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
-                >
-                  Save Items & Validate
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      }
     </div >
   );
 }

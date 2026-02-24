@@ -203,6 +203,31 @@ export class InvoiceController {
         return this.invoiceService.getInvoice(subdomain, id);
     }
 
+    @Get(':id/parsed')
+    async getInvoiceParsed(
+        @Headers('x-tenant') subdomain: string,
+        @Param('id') id: string
+    ) {
+        return this.invoiceService.getInvoiceParsed(subdomain, id);
+    }
+
+    @Put(':id')
+    async updateInvoice(
+        @Headers('x-tenant') subdomain: string,
+        @Param('id') id: string,
+        @Body() body: { vendorId: string; invoiceNumber: string; invoiceDate: string; totalAmount: string; items?: any[] }
+    ) {
+        return this.invoiceService.updateInvoice(
+            subdomain,
+            id,
+            body.vendorId,
+            body.invoiceNumber,
+            new Date(body.invoiceDate),
+            parseFloat(body.totalAmount),
+            body.items || []
+        );
+    }
+
     @Post(':id/items')
     async addItems(
         @Headers('x-tenant') subdomain: string,
