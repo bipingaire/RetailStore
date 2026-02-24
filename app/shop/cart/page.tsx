@@ -32,7 +32,7 @@ export default function CartPage() {
       try {
         // Fetch all products and find our cart items by ID
         const { apiClient } = await import('@/lib/api-client');
-        const res: any = await apiClient.get('/products');
+        const res: any = await apiClient.get('/products?sellableOnly=true');
         const allProducts: any[] = Array.isArray(res) ? res : (res?.data || res?.products || []);
 
         const items: CartItem[] = ids

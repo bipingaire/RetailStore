@@ -61,7 +61,7 @@ export default function ShopHome() {
   useEffect(() => {
     async function loadProducts() {
       try {
-        const productsData = await apiClient.get('/products');
+        const productsData = await apiClient.get('/products?sellableOnly=true');
         const dataArray = Array.isArray(productsData) ? productsData : [];
 
         // Map backend response to our Product type

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Headers, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Headers, UseGuards, Query } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,8 +20,8 @@ export class ProductController {
   }
 
   @Get()
-  findAll(@Headers('x-tenant') subdomain: string) {
-    return this.productService.findAll(subdomain);
+  findAll(@Headers('x-tenant') subdomain: string, @Query('sellableOnly') sellableOnly?: string) {
+    return this.productService.findAll(subdomain, sellableOnly === 'true');
   }
 
   @Get(':id')

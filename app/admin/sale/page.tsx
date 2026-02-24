@@ -65,7 +65,7 @@ export default function SaleAdmin() {
         // Fetch campaigns and products from backend
         const [campaigns, products] = await Promise.all([
           apiClient.get('/campaigns'),
-          apiClient.get('/products')
+          apiClient.get('/products?sellableOnly=true')
         ]);
 
         // Map backend campaigns to frontend Segment type

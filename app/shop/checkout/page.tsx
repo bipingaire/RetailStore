@@ -90,7 +90,7 @@ function CheckoutContent() {
 
         try {
             // Fetch all products (temporary workaround as no batch endpoint exists)
-            const allProducts: any[] = await apiClient.get('/products');
+            const allProducts: any[] = await apiClient.get('/products?sellableOnly=true');
 
             // Filter locally
             const items = allProducts

@@ -158,12 +158,14 @@ export class ProductService {
     return { success: true };
   }
 
-  async findAll(subdomain: string) {
+  async findAll(subdomain: string, sellableOnly: boolean = false) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
 
     // Now fetching real data with relations!
+    const whereClause = sellableOnly ? { isSellable: true } : {};
     const products = await client.product.findMany({
+      where: whereClause,
       include: {
         Batches: true
       }
@@ -179,6 +181,9 @@ export class ProductService {
       description: p.description,
       price: p.price,
       total_qty: p.stock,
+      is_sellable: p.isSellable,
+      parent_id: p.parentId,
+      units_per_parent: p.unitsPerParent,
       batches: (p.Batches || []).map(b => ({
         id: b.id,
         qty: b.quantity,

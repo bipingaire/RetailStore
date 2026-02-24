@@ -56,7 +56,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         if (!category) return;
 
         try {
-            const allProducts = await apiClient.get('/products');
+            const allProducts = await apiClient.get('/products?sellableOnly=true');
             // Filter client-side
             const related = allProducts
                 .filter((p: any) => p.category === category && p.id !== id)
