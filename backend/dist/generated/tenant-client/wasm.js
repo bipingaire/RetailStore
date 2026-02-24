@@ -146,8 +146,11 @@ exports.Prisma.ProductScalarFieldEnum = {
   imageUrl: 'imageUrl',
   barcode: 'barcode',
   isActive: 'isActive',
+  isSellable: 'isSellable',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  parentId: 'parentId',
+  unitsPerParent: 'unitsPerParent'
 };
 
 exports.Prisma.SaleScalarFieldEnum = {
@@ -310,8 +313,7 @@ exports.Prisma.VendorInvoiceItemScalarFieldEnum = {
   productId: 'productId',
   quantity: 'quantity',
   unitCost: 'unitCost',
-  totalCost: 'totalCost',
-  expiryDate: 'expiryDate'
+  totalCost: 'totalCost'
 };
 
 exports.Prisma.AuditSessionScalarFieldEnum = {

@@ -3024,6 +3024,7 @@ export namespace Prisma {
    */
 
   export type ProductCountOutputType = {
+    children: number
     SaleItems: number
     StockMovements: number
     PurchaseOrderItems: number
@@ -3037,6 +3038,7 @@ export namespace Prisma {
   }
 
   export type ProductCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    children?: boolean | ProductCountOutputTypeCountChildrenArgs
     SaleItems?: boolean | ProductCountOutputTypeCountSaleItemsArgs
     StockMovements?: boolean | ProductCountOutputTypeCountStockMovementsArgs
     PurchaseOrderItems?: boolean | ProductCountOutputTypeCountPurchaseOrderItemsArgs
@@ -3058,6 +3060,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the ProductCountOutputType
      */
     select?: ProductCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ProductCountOutputType without action
+   */
+  export type ProductCountOutputTypeCountChildrenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductWhereInput
   }
 
   /**
@@ -4402,6 +4411,7 @@ export namespace Prisma {
     costPrice: Decimal | null
     stock: number | null
     reorderLevel: number | null
+    unitsPerParent: number | null
   }
 
   export type ProductSumAggregateOutputType = {
@@ -4409,6 +4419,7 @@ export namespace Prisma {
     costPrice: Decimal | null
     stock: number | null
     reorderLevel: number | null
+    unitsPerParent: number | null
   }
 
   export type ProductMinAggregateOutputType = {
@@ -4424,8 +4435,11 @@ export namespace Prisma {
     imageUrl: string | null
     barcode: string | null
     isActive: boolean | null
+    isSellable: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    parentId: string | null
+    unitsPerParent: number | null
   }
 
   export type ProductMaxAggregateOutputType = {
@@ -4441,8 +4455,11 @@ export namespace Prisma {
     imageUrl: string | null
     barcode: string | null
     isActive: boolean | null
+    isSellable: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    parentId: string | null
+    unitsPerParent: number | null
   }
 
   export type ProductCountAggregateOutputType = {
@@ -4458,8 +4475,11 @@ export namespace Prisma {
     imageUrl: number
     barcode: number
     isActive: number
+    isSellable: number
     createdAt: number
     updatedAt: number
+    parentId: number
+    unitsPerParent: number
     _all: number
   }
 
@@ -4469,6 +4489,7 @@ export namespace Prisma {
     costPrice?: true
     stock?: true
     reorderLevel?: true
+    unitsPerParent?: true
   }
 
   export type ProductSumAggregateInputType = {
@@ -4476,6 +4497,7 @@ export namespace Prisma {
     costPrice?: true
     stock?: true
     reorderLevel?: true
+    unitsPerParent?: true
   }
 
   export type ProductMinAggregateInputType = {
@@ -4491,8 +4513,11 @@ export namespace Prisma {
     imageUrl?: true
     barcode?: true
     isActive?: true
+    isSellable?: true
     createdAt?: true
     updatedAt?: true
+    parentId?: true
+    unitsPerParent?: true
   }
 
   export type ProductMaxAggregateInputType = {
@@ -4508,8 +4533,11 @@ export namespace Prisma {
     imageUrl?: true
     barcode?: true
     isActive?: true
+    isSellable?: true
     createdAt?: true
     updatedAt?: true
+    parentId?: true
+    unitsPerParent?: true
   }
 
   export type ProductCountAggregateInputType = {
@@ -4525,8 +4553,11 @@ export namespace Prisma {
     imageUrl?: true
     barcode?: true
     isActive?: true
+    isSellable?: true
     createdAt?: true
     updatedAt?: true
+    parentId?: true
+    unitsPerParent?: true
     _all?: true
   }
 
@@ -4629,8 +4660,11 @@ export namespace Prisma {
     imageUrl: string | null
     barcode: string | null
     isActive: boolean
+    isSellable: boolean
     createdAt: Date
     updatedAt: Date
+    parentId: string | null
+    unitsPerParent: number
     _count: ProductCountAggregateOutputType | null
     _avg: ProductAvgAggregateOutputType | null
     _sum: ProductSumAggregateOutputType | null
@@ -4665,8 +4699,13 @@ export namespace Prisma {
     imageUrl?: boolean
     barcode?: boolean
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    parentId?: boolean
+    unitsPerParent?: boolean
+    parent?: boolean | Product$parentArgs<ExtArgs>
+    children?: boolean | Product$childrenArgs<ExtArgs>
     SaleItems?: boolean | Product$SaleItemsArgs<ExtArgs>
     StockMovements?: boolean | Product$StockMovementsArgs<ExtArgs>
     PurchaseOrderItems?: boolean | Product$PurchaseOrderItemsArgs<ExtArgs>
@@ -4693,8 +4732,12 @@ export namespace Prisma {
     imageUrl?: boolean
     barcode?: boolean
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    parentId?: boolean
+    unitsPerParent?: boolean
+    parent?: boolean | Product$parentArgs<ExtArgs>
   }, ExtArgs["result"]["product"]>
 
   export type ProductSelectScalar = {
@@ -4710,11 +4753,16 @@ export namespace Prisma {
     imageUrl?: boolean
     barcode?: boolean
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    parentId?: boolean
+    unitsPerParent?: boolean
   }
 
   export type ProductInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    parent?: boolean | Product$parentArgs<ExtArgs>
+    children?: boolean | Product$childrenArgs<ExtArgs>
     SaleItems?: boolean | Product$SaleItemsArgs<ExtArgs>
     StockMovements?: boolean | Product$StockMovementsArgs<ExtArgs>
     PurchaseOrderItems?: boolean | Product$PurchaseOrderItemsArgs<ExtArgs>
@@ -4727,11 +4775,15 @@ export namespace Prisma {
     Campaigns?: boolean | Product$CampaignsArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type ProductIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type ProductIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    parent?: boolean | Product$parentArgs<ExtArgs>
+  }
 
   export type $ProductPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Product"
     objects: {
+      parent: Prisma.$ProductPayload<ExtArgs> | null
+      children: Prisma.$ProductPayload<ExtArgs>[]
       SaleItems: Prisma.$SaleItemPayload<ExtArgs>[]
       StockMovements: Prisma.$StockMovementPayload<ExtArgs>[]
       PurchaseOrderItems: Prisma.$PurchaseOrderItemPayload<ExtArgs>[]
@@ -4756,8 +4808,11 @@ export namespace Prisma {
       imageUrl: string | null
       barcode: string | null
       isActive: boolean
+      isSellable: boolean
       createdAt: Date
       updatedAt: Date
+      parentId: string | null
+      unitsPerParent: number
     }, ExtArgs["result"]["product"]>
     composites: {}
   }
@@ -5122,6 +5177,8 @@ export namespace Prisma {
    */
   export interface Prisma__ProductClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    parent<T extends Product$parentArgs<ExtArgs> = {}>(args?: Subset<T, Product$parentArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    children<T extends Product$childrenArgs<ExtArgs> = {}>(args?: Subset<T, Product$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany"> | Null>
     SaleItems<T extends Product$SaleItemsArgs<ExtArgs> = {}>(args?: Subset<T, Product$SaleItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SaleItemPayload<ExtArgs>, T, "findMany"> | Null>
     StockMovements<T extends Product$StockMovementsArgs<ExtArgs> = {}>(args?: Subset<T, Product$StockMovementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StockMovementPayload<ExtArgs>, T, "findMany"> | Null>
     PurchaseOrderItems<T extends Product$PurchaseOrderItemsArgs<ExtArgs> = {}>(args?: Subset<T, Product$PurchaseOrderItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PurchaseOrderItemPayload<ExtArgs>, T, "findMany"> | Null>
@@ -5173,8 +5230,11 @@ export namespace Prisma {
     readonly imageUrl: FieldRef<"Product", 'String'>
     readonly barcode: FieldRef<"Product", 'String'>
     readonly isActive: FieldRef<"Product", 'Boolean'>
+    readonly isSellable: FieldRef<"Product", 'Boolean'>
     readonly createdAt: FieldRef<"Product", 'DateTime'>
     readonly updatedAt: FieldRef<"Product", 'DateTime'>
+    readonly parentId: FieldRef<"Product", 'String'>
+    readonly unitsPerParent: FieldRef<"Product", 'Int'>
   }
     
 
@@ -5396,6 +5456,10 @@ export namespace Prisma {
      */
     data: ProductCreateManyInput | ProductCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -5486,6 +5550,41 @@ export namespace Prisma {
      * Filter which Products to delete
      */
     where?: ProductWhereInput
+  }
+
+  /**
+   * Product.parent
+   */
+  export type Product$parentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Product
+     */
+    select?: ProductSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductInclude<ExtArgs> | null
+    where?: ProductWhereInput
+  }
+
+  /**
+   * Product.children
+   */
+  export type Product$childrenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Product
+     */
+    select?: ProductSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductInclude<ExtArgs> | null
+    where?: ProductWhereInput
+    orderBy?: ProductOrderByWithRelationInput | ProductOrderByWithRelationInput[]
+    cursor?: ProductWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProductScalarFieldEnum | ProductScalarFieldEnum[]
   }
 
   /**
@@ -21451,7 +21550,6 @@ export namespace Prisma {
     quantity: number | null
     unitCost: Decimal | null
     totalCost: Decimal | null
-    expiryDate: Date | null
   }
 
   export type VendorInvoiceItemMaxAggregateOutputType = {
@@ -21461,7 +21559,6 @@ export namespace Prisma {
     quantity: number | null
     unitCost: Decimal | null
     totalCost: Decimal | null
-    expiryDate: Date | null
   }
 
   export type VendorInvoiceItemCountAggregateOutputType = {
@@ -21471,7 +21568,6 @@ export namespace Prisma {
     quantity: number
     unitCost: number
     totalCost: number
-    expiryDate: number
     _all: number
   }
 
@@ -21495,7 +21591,6 @@ export namespace Prisma {
     quantity?: true
     unitCost?: true
     totalCost?: true
-    expiryDate?: true
   }
 
   export type VendorInvoiceItemMaxAggregateInputType = {
@@ -21505,7 +21600,6 @@ export namespace Prisma {
     quantity?: true
     unitCost?: true
     totalCost?: true
-    expiryDate?: true
   }
 
   export type VendorInvoiceItemCountAggregateInputType = {
@@ -21515,7 +21609,6 @@ export namespace Prisma {
     quantity?: true
     unitCost?: true
     totalCost?: true
-    expiryDate?: true
     _all?: true
   }
 
@@ -21612,7 +21705,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal
     totalCost: Decimal
-    expiryDate: Date | null
     _count: VendorInvoiceItemCountAggregateOutputType | null
     _avg: VendorInvoiceItemAvgAggregateOutputType | null
     _sum: VendorInvoiceItemSumAggregateOutputType | null
@@ -21641,7 +21733,6 @@ export namespace Prisma {
     quantity?: boolean
     unitCost?: boolean
     totalCost?: boolean
-    expiryDate?: boolean
     invoice?: boolean | VendorInvoiceDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["vendorInvoiceItem"]>
@@ -21653,7 +21744,6 @@ export namespace Prisma {
     quantity?: boolean
     unitCost?: boolean
     totalCost?: boolean
-    expiryDate?: boolean
     invoice?: boolean | VendorInvoiceDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["vendorInvoiceItem"]>
@@ -21665,7 +21755,6 @@ export namespace Prisma {
     quantity?: boolean
     unitCost?: boolean
     totalCost?: boolean
-    expiryDate?: boolean
   }
 
   export type VendorInvoiceItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -21690,7 +21779,6 @@ export namespace Prisma {
       quantity: number
       unitCost: Prisma.Decimal
       totalCost: Prisma.Decimal
-      expiryDate: Date | null
     }, ExtArgs["result"]["vendorInvoiceItem"]>
     composites: {}
   }
@@ -22092,7 +22180,6 @@ export namespace Prisma {
     readonly quantity: FieldRef<"VendorInvoiceItem", 'Int'>
     readonly unitCost: FieldRef<"VendorInvoiceItem", 'Decimal'>
     readonly totalCost: FieldRef<"VendorInvoiceItem", 'Decimal'>
-    readonly expiryDate: FieldRef<"VendorInvoiceItem", 'DateTime'>
   }
     
 
@@ -29444,8 +29531,11 @@ export namespace Prisma {
     imageUrl: 'imageUrl',
     barcode: 'barcode',
     isActive: 'isActive',
+    isSellable: 'isSellable',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    parentId: 'parentId',
+    unitsPerParent: 'unitsPerParent'
   };
 
   export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
@@ -29659,8 +29749,7 @@ export namespace Prisma {
     productId: 'productId',
     quantity: 'quantity',
     unitCost: 'unitCost',
-    totalCost: 'totalCost',
-    expiryDate: 'expiryDate'
+    totalCost: 'totalCost'
   };
 
   export type VendorInvoiceItemScalarFieldEnum = (typeof VendorInvoiceItemScalarFieldEnum)[keyof typeof VendorInvoiceItemScalarFieldEnum]
@@ -29986,8 +30075,13 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Product"> | string | null
     barcode?: StringNullableFilter<"Product"> | string | null
     isActive?: BoolFilter<"Product"> | boolean
+    isSellable?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
+    parentId?: StringNullableFilter<"Product"> | string | null
+    unitsPerParent?: IntFilter<"Product"> | number
+    parent?: XOR<ProductNullableRelationFilter, ProductWhereInput> | null
+    children?: ProductListRelationFilter
     SaleItems?: SaleItemListRelationFilter
     StockMovements?: StockMovementListRelationFilter
     PurchaseOrderItems?: PurchaseOrderItemListRelationFilter
@@ -30013,8 +30107,13 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     barcode?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    isSellable?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    parentId?: SortOrderInput | SortOrder
+    unitsPerParent?: SortOrder
+    parent?: ProductOrderByWithRelationInput
+    children?: ProductOrderByRelationAggregateInput
     SaleItems?: SaleItemOrderByRelationAggregateInput
     StockMovements?: StockMovementOrderByRelationAggregateInput
     PurchaseOrderItems?: PurchaseOrderItemOrderByRelationAggregateInput
@@ -30043,8 +30142,13 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Product"> | string | null
     barcode?: StringNullableFilter<"Product"> | string | null
     isActive?: BoolFilter<"Product"> | boolean
+    isSellable?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
+    parentId?: StringNullableFilter<"Product"> | string | null
+    unitsPerParent?: IntFilter<"Product"> | number
+    parent?: XOR<ProductNullableRelationFilter, ProductWhereInput> | null
+    children?: ProductListRelationFilter
     SaleItems?: SaleItemListRelationFilter
     StockMovements?: StockMovementListRelationFilter
     PurchaseOrderItems?: PurchaseOrderItemListRelationFilter
@@ -30070,8 +30174,11 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     barcode?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    isSellable?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    parentId?: SortOrderInput | SortOrder
+    unitsPerParent?: SortOrder
     _count?: ProductCountOrderByAggregateInput
     _avg?: ProductAvgOrderByAggregateInput
     _max?: ProductMaxOrderByAggregateInput
@@ -30095,8 +30202,11 @@ export namespace Prisma {
     imageUrl?: StringNullableWithAggregatesFilter<"Product"> | string | null
     barcode?: StringNullableWithAggregatesFilter<"Product"> | string | null
     isActive?: BoolWithAggregatesFilter<"Product"> | boolean
+    isSellable?: BoolWithAggregatesFilter<"Product"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
+    parentId?: StringNullableWithAggregatesFilter<"Product"> | string | null
+    unitsPerParent?: IntWithAggregatesFilter<"Product"> | number
   }
 
   export type SaleWhereInput = {
@@ -31161,7 +31271,6 @@ export namespace Prisma {
     quantity?: IntFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
-    expiryDate?: DateTimeNullableFilter<"VendorInvoiceItem"> | Date | string | null
     invoice?: XOR<VendorInvoiceRelationFilter, VendorInvoiceWhereInput>
     product?: XOR<ProductRelationFilter, ProductWhereInput>
   }
@@ -31173,7 +31282,6 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
-    expiryDate?: SortOrderInput | SortOrder
     invoice?: VendorInvoiceOrderByWithRelationInput
     product?: ProductOrderByWithRelationInput
   }
@@ -31188,7 +31296,6 @@ export namespace Prisma {
     quantity?: IntFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
-    expiryDate?: DateTimeNullableFilter<"VendorInvoiceItem"> | Date | string | null
     invoice?: XOR<VendorInvoiceRelationFilter, VendorInvoiceWhereInput>
     product?: XOR<ProductRelationFilter, ProductWhereInput>
   }, "id">
@@ -31200,7 +31307,6 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
-    expiryDate?: SortOrderInput | SortOrder
     _count?: VendorInvoiceItemCountOrderByAggregateInput
     _avg?: VendorInvoiceItemAvgOrderByAggregateInput
     _max?: VendorInvoiceItemMaxOrderByAggregateInput
@@ -31218,7 +31324,6 @@ export namespace Prisma {
     quantity?: IntWithAggregatesFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalWithAggregatesFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalWithAggregatesFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
-    expiryDate?: DateTimeNullableWithAggregatesFilter<"VendorInvoiceItem"> | Date | string | null
   }
 
   export type AuditSessionWhereInput = {
@@ -31835,8 +31940,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -31862,8 +31971,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -31889,8 +32002,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -31916,8 +32033,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -31943,8 +32064,11 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
   }
 
   export type ProductUpdateManyMutationInput = {
@@ -31960,8 +32084,10 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
   }
 
   export type ProductUncheckedUpdateManyInput = {
@@ -31977,8 +32103,11 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
   }
 
   export type SaleCreateInput = {
@@ -33081,7 +33210,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
     invoice: VendorInvoiceCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutVendorInvoiceItemsInput
   }
@@ -33093,7 +33221,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemUpdateInput = {
@@ -33101,7 +33228,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     invoice?: VendorInvoiceUpdateOneRequiredWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutVendorInvoiceItemsNestedInput
   }
@@ -33113,7 +33239,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemCreateManyInput = {
@@ -33123,7 +33248,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemUpdateManyMutationInput = {
@@ -33131,7 +33255,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemUncheckedUpdateManyInput = {
@@ -33141,7 +33264,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AuditSessionCreateInput = {
@@ -33885,6 +34007,17 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type ProductNullableRelationFilter = {
+    is?: ProductWhereInput | null
+    isNot?: ProductWhereInput | null
+  }
+
+  export type ProductListRelationFilter = {
+    every?: ProductWhereInput
+    some?: ProductWhereInput
+    none?: ProductWhereInput
+  }
+
   export type SaleItemListRelationFilter = {
     every?: SaleItemWhereInput
     some?: SaleItemWhereInput
@@ -33945,6 +34078,10 @@ export namespace Prisma {
     none?: CampaignProductWhereInput
   }
 
+  export type ProductOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type SaleItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -33998,8 +34135,11 @@ export namespace Prisma {
     imageUrl?: SortOrder
     barcode?: SortOrder
     isActive?: SortOrder
+    isSellable?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    parentId?: SortOrder
+    unitsPerParent?: SortOrder
   }
 
   export type ProductAvgOrderByAggregateInput = {
@@ -34007,6 +34147,7 @@ export namespace Prisma {
     costPrice?: SortOrder
     stock?: SortOrder
     reorderLevel?: SortOrder
+    unitsPerParent?: SortOrder
   }
 
   export type ProductMaxOrderByAggregateInput = {
@@ -34022,8 +34163,11 @@ export namespace Prisma {
     imageUrl?: SortOrder
     barcode?: SortOrder
     isActive?: SortOrder
+    isSellable?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    parentId?: SortOrder
+    unitsPerParent?: SortOrder
   }
 
   export type ProductMinOrderByAggregateInput = {
@@ -34039,8 +34183,11 @@ export namespace Prisma {
     imageUrl?: SortOrder
     barcode?: SortOrder
     isActive?: SortOrder
+    isSellable?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    parentId?: SortOrder
+    unitsPerParent?: SortOrder
   }
 
   export type ProductSumOrderByAggregateInput = {
@@ -34048,6 +34195,7 @@ export namespace Prisma {
     costPrice?: SortOrder
     stock?: SortOrder
     reorderLevel?: SortOrder
+    unitsPerParent?: SortOrder
   }
 
   export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
@@ -34774,7 +34922,6 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
-    expiryDate?: SortOrder
   }
 
   export type VendorInvoiceItemAvgOrderByAggregateInput = {
@@ -34790,7 +34937,6 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
-    expiryDate?: SortOrder
   }
 
   export type VendorInvoiceItemMinOrderByAggregateInput = {
@@ -34800,7 +34946,6 @@ export namespace Prisma {
     quantity?: SortOrder
     unitCost?: SortOrder
     totalCost?: SortOrder
-    expiryDate?: SortOrder
   }
 
   export type VendorInvoiceItemSumOrderByAggregateInput = {
@@ -35226,6 +35371,19 @@ export namespace Prisma {
     deleteMany?: SaleScalarWhereInput | SaleScalarWhereInput[]
   }
 
+  export type ProductCreateNestedOneWithoutChildrenInput = {
+    create?: XOR<ProductCreateWithoutChildrenInput, ProductUncheckedCreateWithoutChildrenInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutChildrenInput
+    connect?: ProductWhereUniqueInput
+  }
+
+  export type ProductCreateNestedManyWithoutParentInput = {
+    create?: XOR<ProductCreateWithoutParentInput, ProductUncheckedCreateWithoutParentInput> | ProductCreateWithoutParentInput[] | ProductUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: ProductCreateOrConnectWithoutParentInput | ProductCreateOrConnectWithoutParentInput[]
+    createMany?: ProductCreateManyParentInputEnvelope
+    connect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+  }
+
   export type SaleItemCreateNestedManyWithoutProductInput = {
     create?: XOR<SaleItemCreateWithoutProductInput, SaleItemUncheckedCreateWithoutProductInput> | SaleItemCreateWithoutProductInput[] | SaleItemUncheckedCreateWithoutProductInput[]
     connectOrCreate?: SaleItemCreateOrConnectWithoutProductInput | SaleItemCreateOrConnectWithoutProductInput[]
@@ -35294,6 +35452,13 @@ export namespace Prisma {
     connectOrCreate?: CampaignProductCreateOrConnectWithoutProductInput | CampaignProductCreateOrConnectWithoutProductInput[]
     createMany?: CampaignProductCreateManyProductInputEnvelope
     connect?: CampaignProductWhereUniqueInput | CampaignProductWhereUniqueInput[]
+  }
+
+  export type ProductUncheckedCreateNestedManyWithoutParentInput = {
+    create?: XOR<ProductCreateWithoutParentInput, ProductUncheckedCreateWithoutParentInput> | ProductCreateWithoutParentInput[] | ProductUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: ProductCreateOrConnectWithoutParentInput | ProductCreateOrConnectWithoutParentInput[]
+    createMany?: ProductCreateManyParentInputEnvelope
+    connect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
   }
 
   export type SaleItemUncheckedCreateNestedManyWithoutProductInput = {
@@ -35380,6 +35545,30 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type ProductUpdateOneWithoutChildrenNestedInput = {
+    create?: XOR<ProductCreateWithoutChildrenInput, ProductUncheckedCreateWithoutChildrenInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutChildrenInput
+    upsert?: ProductUpsertWithoutChildrenInput
+    disconnect?: ProductWhereInput | boolean
+    delete?: ProductWhereInput | boolean
+    connect?: ProductWhereUniqueInput
+    update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutChildrenInput, ProductUpdateWithoutChildrenInput>, ProductUncheckedUpdateWithoutChildrenInput>
+  }
+
+  export type ProductUpdateManyWithoutParentNestedInput = {
+    create?: XOR<ProductCreateWithoutParentInput, ProductUncheckedCreateWithoutParentInput> | ProductCreateWithoutParentInput[] | ProductUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: ProductCreateOrConnectWithoutParentInput | ProductCreateOrConnectWithoutParentInput[]
+    upsert?: ProductUpsertWithWhereUniqueWithoutParentInput | ProductUpsertWithWhereUniqueWithoutParentInput[]
+    createMany?: ProductCreateManyParentInputEnvelope
+    set?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    disconnect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    delete?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    connect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    update?: ProductUpdateWithWhereUniqueWithoutParentInput | ProductUpdateWithWhereUniqueWithoutParentInput[]
+    updateMany?: ProductUpdateManyWithWhereWithoutParentInput | ProductUpdateManyWithWhereWithoutParentInput[]
+    deleteMany?: ProductScalarWhereInput | ProductScalarWhereInput[]
   }
 
   export type SaleItemUpdateManyWithoutProductNestedInput = {
@@ -35520,6 +35709,20 @@ export namespace Prisma {
     update?: CampaignProductUpdateWithWhereUniqueWithoutProductInput | CampaignProductUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: CampaignProductUpdateManyWithWhereWithoutProductInput | CampaignProductUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: CampaignProductScalarWhereInput | CampaignProductScalarWhereInput[]
+  }
+
+  export type ProductUncheckedUpdateManyWithoutParentNestedInput = {
+    create?: XOR<ProductCreateWithoutParentInput, ProductUncheckedCreateWithoutParentInput> | ProductCreateWithoutParentInput[] | ProductUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: ProductCreateOrConnectWithoutParentInput | ProductCreateOrConnectWithoutParentInput[]
+    upsert?: ProductUpsertWithWhereUniqueWithoutParentInput | ProductUpsertWithWhereUniqueWithoutParentInput[]
+    createMany?: ProductCreateManyParentInputEnvelope
+    set?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    disconnect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    delete?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    connect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
+    update?: ProductUpdateWithWhereUniqueWithoutParentInput | ProductUpdateWithWhereUniqueWithoutParentInput[]
+    updateMany?: ProductUpdateManyWithWhereWithoutParentInput | ProductUpdateManyWithWhereWithoutParentInput[]
+    deleteMany?: ProductScalarWhereInput | ProductScalarWhereInput[]
   }
 
   export type SaleItemUncheckedUpdateManyWithoutProductNestedInput = {
@@ -36760,6 +36963,141 @@ export namespace Prisma {
     customerId?: StringNullableFilter<"Sale"> | string | null
   }
 
+  export type ProductCreateWithoutChildrenInput = {
+    id?: string
+    name: string
+    sku: string
+    category?: string | null
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    costPrice: Decimal | DecimalJsLike | number | string
+    stock?: number
+    reorderLevel?: number
+    imageUrl?: string | null
+    barcode?: string | null
+    isActive?: boolean
+    isSellable?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    SaleItems?: SaleItemCreateNestedManyWithoutProductInput
+    StockMovements?: StockMovementCreateNestedManyWithoutProductInput
+    PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
+    Batches?: ProductBatchCreateNestedManyWithoutProductInput
+    POSItemMappings?: POSItemMappingCreateNestedManyWithoutProductInput
+    VendorInvoiceItems?: VendorInvoiceItemCreateNestedManyWithoutProductInput
+    AuditCounts?: AuditCountCreateNestedManyWithoutProductInput
+    InventoryAdjustments?: InventoryAdjustmentCreateNestedManyWithoutProductInput
+    Promotions?: PromotionCreateNestedManyWithoutProductInput
+    Campaigns?: CampaignProductCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductUncheckedCreateWithoutChildrenInput = {
+    id?: string
+    name: string
+    sku: string
+    category?: string | null
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    costPrice: Decimal | DecimalJsLike | number | string
+    stock?: number
+    reorderLevel?: number
+    imageUrl?: string | null
+    barcode?: string | null
+    isActive?: boolean
+    isSellable?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
+    StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
+    PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
+    Batches?: ProductBatchUncheckedCreateNestedManyWithoutProductInput
+    POSItemMappings?: POSItemMappingUncheckedCreateNestedManyWithoutProductInput
+    VendorInvoiceItems?: VendorInvoiceItemUncheckedCreateNestedManyWithoutProductInput
+    AuditCounts?: AuditCountUncheckedCreateNestedManyWithoutProductInput
+    InventoryAdjustments?: InventoryAdjustmentUncheckedCreateNestedManyWithoutProductInput
+    Promotions?: PromotionUncheckedCreateNestedManyWithoutProductInput
+    Campaigns?: CampaignProductUncheckedCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutChildrenInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutChildrenInput, ProductUncheckedCreateWithoutChildrenInput>
+  }
+
+  export type ProductCreateWithoutParentInput = {
+    id?: string
+    name: string
+    sku: string
+    category?: string | null
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    costPrice: Decimal | DecimalJsLike | number | string
+    stock?: number
+    reorderLevel?: number
+    imageUrl?: string | null
+    barcode?: string | null
+    isActive?: boolean
+    isSellable?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    unitsPerParent?: number
+    children?: ProductCreateNestedManyWithoutParentInput
+    SaleItems?: SaleItemCreateNestedManyWithoutProductInput
+    StockMovements?: StockMovementCreateNestedManyWithoutProductInput
+    PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
+    Batches?: ProductBatchCreateNestedManyWithoutProductInput
+    POSItemMappings?: POSItemMappingCreateNestedManyWithoutProductInput
+    VendorInvoiceItems?: VendorInvoiceItemCreateNestedManyWithoutProductInput
+    AuditCounts?: AuditCountCreateNestedManyWithoutProductInput
+    InventoryAdjustments?: InventoryAdjustmentCreateNestedManyWithoutProductInput
+    Promotions?: PromotionCreateNestedManyWithoutProductInput
+    Campaigns?: CampaignProductCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductUncheckedCreateWithoutParentInput = {
+    id?: string
+    name: string
+    sku: string
+    category?: string | null
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    costPrice: Decimal | DecimalJsLike | number | string
+    stock?: number
+    reorderLevel?: number
+    imageUrl?: string | null
+    barcode?: string | null
+    isActive?: boolean
+    isSellable?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
+    SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
+    StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
+    PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
+    Batches?: ProductBatchUncheckedCreateNestedManyWithoutProductInput
+    POSItemMappings?: POSItemMappingUncheckedCreateNestedManyWithoutProductInput
+    VendorInvoiceItems?: VendorInvoiceItemUncheckedCreateNestedManyWithoutProductInput
+    AuditCounts?: AuditCountUncheckedCreateNestedManyWithoutProductInput
+    InventoryAdjustments?: InventoryAdjustmentUncheckedCreateNestedManyWithoutProductInput
+    Promotions?: PromotionUncheckedCreateNestedManyWithoutProductInput
+    Campaigns?: CampaignProductUncheckedCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutParentInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutParentInput, ProductUncheckedCreateWithoutParentInput>
+  }
+
+  export type ProductCreateManyParentInputEnvelope = {
+    data: ProductCreateManyParentInput | ProductCreateManyParentInput[]
+    skipDuplicates?: boolean
+  }
+
   export type SaleItemCreateWithoutProductInput = {
     id?: string
     quantity: number
@@ -36901,7 +37239,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
     invoice: VendorInvoiceCreateNestedOneWithoutItemsInput
   }
 
@@ -36911,7 +37248,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemCreateOrConnectWithoutProductInput = {
@@ -37036,6 +37372,116 @@ export namespace Prisma {
   export type CampaignProductCreateManyProductInputEnvelope = {
     data: CampaignProductCreateManyProductInput | CampaignProductCreateManyProductInput[]
     skipDuplicates?: boolean
+  }
+
+  export type ProductUpsertWithoutChildrenInput = {
+    update: XOR<ProductUpdateWithoutChildrenInput, ProductUncheckedUpdateWithoutChildrenInput>
+    create: XOR<ProductCreateWithoutChildrenInput, ProductUncheckedCreateWithoutChildrenInput>
+    where?: ProductWhereInput
+  }
+
+  export type ProductUpdateToOneWithWhereWithoutChildrenInput = {
+    where?: ProductWhereInput
+    data: XOR<ProductUpdateWithoutChildrenInput, ProductUncheckedUpdateWithoutChildrenInput>
+  }
+
+  export type ProductUpdateWithoutChildrenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    sku?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    costPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    stock?: IntFieldUpdateOperationsInput | number
+    reorderLevel?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
+    StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
+    PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
+    Batches?: ProductBatchUpdateManyWithoutProductNestedInput
+    POSItemMappings?: POSItemMappingUpdateManyWithoutProductNestedInput
+    VendorInvoiceItems?: VendorInvoiceItemUpdateManyWithoutProductNestedInput
+    AuditCounts?: AuditCountUpdateManyWithoutProductNestedInput
+    InventoryAdjustments?: InventoryAdjustmentUpdateManyWithoutProductNestedInput
+    Promotions?: PromotionUpdateManyWithoutProductNestedInput
+    Campaigns?: CampaignProductUpdateManyWithoutProductNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutChildrenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    sku?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    costPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    stock?: IntFieldUpdateOperationsInput | number
+    reorderLevel?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
+    StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
+    PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
+    Batches?: ProductBatchUncheckedUpdateManyWithoutProductNestedInput
+    POSItemMappings?: POSItemMappingUncheckedUpdateManyWithoutProductNestedInput
+    VendorInvoiceItems?: VendorInvoiceItemUncheckedUpdateManyWithoutProductNestedInput
+    AuditCounts?: AuditCountUncheckedUpdateManyWithoutProductNestedInput
+    InventoryAdjustments?: InventoryAdjustmentUncheckedUpdateManyWithoutProductNestedInput
+    Promotions?: PromotionUncheckedUpdateManyWithoutProductNestedInput
+    Campaigns?: CampaignProductUncheckedUpdateManyWithoutProductNestedInput
+  }
+
+  export type ProductUpsertWithWhereUniqueWithoutParentInput = {
+    where: ProductWhereUniqueInput
+    update: XOR<ProductUpdateWithoutParentInput, ProductUncheckedUpdateWithoutParentInput>
+    create: XOR<ProductCreateWithoutParentInput, ProductUncheckedCreateWithoutParentInput>
+  }
+
+  export type ProductUpdateWithWhereUniqueWithoutParentInput = {
+    where: ProductWhereUniqueInput
+    data: XOR<ProductUpdateWithoutParentInput, ProductUncheckedUpdateWithoutParentInput>
+  }
+
+  export type ProductUpdateManyWithWhereWithoutParentInput = {
+    where: ProductScalarWhereInput
+    data: XOR<ProductUpdateManyMutationInput, ProductUncheckedUpdateManyWithoutParentInput>
+  }
+
+  export type ProductScalarWhereInput = {
+    AND?: ProductScalarWhereInput | ProductScalarWhereInput[]
+    OR?: ProductScalarWhereInput[]
+    NOT?: ProductScalarWhereInput | ProductScalarWhereInput[]
+    id?: StringFilter<"Product"> | string
+    name?: StringFilter<"Product"> | string
+    sku?: StringFilter<"Product"> | string
+    category?: StringNullableFilter<"Product"> | string | null
+    description?: StringNullableFilter<"Product"> | string | null
+    price?: DecimalFilter<"Product"> | Decimal | DecimalJsLike | number | string
+    costPrice?: DecimalFilter<"Product"> | Decimal | DecimalJsLike | number | string
+    stock?: IntFilter<"Product"> | number
+    reorderLevel?: IntFilter<"Product"> | number
+    imageUrl?: StringNullableFilter<"Product"> | string | null
+    barcode?: StringNullableFilter<"Product"> | string | null
+    isActive?: BoolFilter<"Product"> | boolean
+    isSellable?: BoolFilter<"Product"> | boolean
+    createdAt?: DateTimeFilter<"Product"> | Date | string
+    updatedAt?: DateTimeFilter<"Product"> | Date | string
+    parentId?: StringNullableFilter<"Product"> | string | null
+    unitsPerParent?: IntFilter<"Product"> | number
   }
 
   export type SaleItemUpsertWithWhereUniqueWithoutProductInput = {
@@ -37207,7 +37653,6 @@ export namespace Prisma {
     quantity?: IntFilter<"VendorInvoiceItem"> | number
     unitCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFilter<"VendorInvoiceItem"> | Decimal | DecimalJsLike | number | string
-    expiryDate?: DateTimeNullableFilter<"VendorInvoiceItem"> | Date | string | null
   }
 
   export type AuditCountUpsertWithWhereUniqueWithoutProductInput = {
@@ -37579,8 +38024,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
     Batches?: ProductBatchCreateNestedManyWithoutProductInput
@@ -37605,8 +38054,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
     Batches?: ProductBatchUncheckedCreateNestedManyWithoutProductInput
@@ -37686,8 +38139,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
     Batches?: ProductBatchUpdateManyWithoutProductNestedInput
@@ -37712,8 +38169,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
     Batches?: ProductBatchUncheckedUpdateManyWithoutProductNestedInput
@@ -37961,8 +38422,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     Batches?: ProductBatchCreateNestedManyWithoutProductInput
@@ -37987,8 +38452,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     Batches?: ProductBatchUncheckedCreateNestedManyWithoutProductInput
@@ -38068,8 +38537,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     Batches?: ProductBatchUpdateManyWithoutProductNestedInput
@@ -38094,8 +38567,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     Batches?: ProductBatchUncheckedUpdateManyWithoutProductNestedInput
@@ -38120,8 +38597,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
     Batches?: ProductBatchCreateNestedManyWithoutProductInput
@@ -38146,8 +38627,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
     Batches?: ProductBatchUncheckedCreateNestedManyWithoutProductInput
@@ -38207,8 +38692,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
     Batches?: ProductBatchUpdateManyWithoutProductNestedInput
@@ -38233,8 +38722,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
     Batches?: ProductBatchUncheckedUpdateManyWithoutProductNestedInput
@@ -38396,8 +38889,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -38422,8 +38919,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -38464,8 +38965,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -38490,8 +38995,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -38543,8 +39052,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -38569,8 +39082,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -38644,8 +39161,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -38670,8 +39191,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -38740,8 +39265,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -38766,8 +39295,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -38808,8 +39341,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -38834,8 +39371,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -38860,8 +39401,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -38886,8 +39431,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -38928,8 +39477,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -38954,8 +39507,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -38999,7 +39556,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
     product: ProductCreateNestedOneWithoutVendorInvoiceItemsInput
   }
 
@@ -39009,7 +39565,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemCreateOrConnectWithoutInvoiceInput = {
@@ -39113,8 +39668,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -39139,8 +39698,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -39216,8 +39779,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -39242,8 +39809,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -39383,8 +39954,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -39409,8 +39984,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -39482,8 +40061,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -39508,8 +40091,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -39559,8 +40146,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    unitsPerParent?: number
+    parent?: ProductCreateNestedOneWithoutChildrenInput
+    children?: ProductCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemCreateNestedManyWithoutProductInput
@@ -39585,8 +40176,12 @@ export namespace Prisma {
     imageUrl?: string | null
     barcode?: string | null
     isActive?: boolean
+    isSellable?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    parentId?: string | null
+    unitsPerParent?: number
+    children?: ProductUncheckedCreateNestedManyWithoutParentInput
     SaleItems?: SaleItemUncheckedCreateNestedManyWithoutProductInput
     StockMovements?: StockMovementUncheckedCreateNestedManyWithoutProductInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -39658,8 +40253,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    parent?: ProductUpdateOneWithoutChildrenNestedInput
+    children?: ProductUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
@@ -39684,8 +40283,12 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
     SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
     StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
     PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -39851,6 +40454,25 @@ export namespace Prisma {
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type ProductCreateManyParentInput = {
+    id?: string
+    name: string
+    sku: string
+    category?: string | null
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    costPrice: Decimal | DecimalJsLike | number | string
+    stock?: number
+    reorderLevel?: number
+    imageUrl?: string | null
+    barcode?: string | null
+    isActive?: boolean
+    isSellable?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    unitsPerParent?: number
+  }
+
   export type SaleItemCreateManyProductInput = {
     id?: string
     saleId: string
@@ -39900,7 +40522,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
   }
 
   export type AuditCountCreateManyProductInput = {
@@ -39938,6 +40559,85 @@ export namespace Prisma {
     campaignId: string
     highlightLabel?: string | null
     createdAt?: Date | string
+  }
+
+  export type ProductUpdateWithoutParentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    sku?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    costPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    stock?: IntFieldUpdateOperationsInput | number
+    reorderLevel?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUpdateManyWithoutParentNestedInput
+    SaleItems?: SaleItemUpdateManyWithoutProductNestedInput
+    StockMovements?: StockMovementUpdateManyWithoutProductNestedInput
+    PurchaseOrderItems?: PurchaseOrderItemUpdateManyWithoutProductNestedInput
+    Batches?: ProductBatchUpdateManyWithoutProductNestedInput
+    POSItemMappings?: POSItemMappingUpdateManyWithoutProductNestedInput
+    VendorInvoiceItems?: VendorInvoiceItemUpdateManyWithoutProductNestedInput
+    AuditCounts?: AuditCountUpdateManyWithoutProductNestedInput
+    InventoryAdjustments?: InventoryAdjustmentUpdateManyWithoutProductNestedInput
+    Promotions?: PromotionUpdateManyWithoutProductNestedInput
+    Campaigns?: CampaignProductUpdateManyWithoutProductNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutParentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    sku?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    costPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    stock?: IntFieldUpdateOperationsInput | number
+    reorderLevel?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
+    children?: ProductUncheckedUpdateManyWithoutParentNestedInput
+    SaleItems?: SaleItemUncheckedUpdateManyWithoutProductNestedInput
+    StockMovements?: StockMovementUncheckedUpdateManyWithoutProductNestedInput
+    PurchaseOrderItems?: PurchaseOrderItemUncheckedUpdateManyWithoutProductNestedInput
+    Batches?: ProductBatchUncheckedUpdateManyWithoutProductNestedInput
+    POSItemMappings?: POSItemMappingUncheckedUpdateManyWithoutProductNestedInput
+    VendorInvoiceItems?: VendorInvoiceItemUncheckedUpdateManyWithoutProductNestedInput
+    AuditCounts?: AuditCountUncheckedUpdateManyWithoutProductNestedInput
+    InventoryAdjustments?: InventoryAdjustmentUncheckedUpdateManyWithoutProductNestedInput
+    Promotions?: PromotionUncheckedUpdateManyWithoutProductNestedInput
+    Campaigns?: CampaignProductUncheckedUpdateManyWithoutProductNestedInput
+  }
+
+  export type ProductUncheckedUpdateManyWithoutParentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    sku?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    costPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    stock?: IntFieldUpdateOperationsInput | number
+    reorderLevel?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSellable?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    unitsPerParent?: IntFieldUpdateOperationsInput | number
   }
 
   export type SaleItemUpdateWithoutProductInput = {
@@ -40074,7 +40774,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     invoice?: VendorInvoiceUpdateOneRequiredWithoutItemsNestedInput
   }
 
@@ -40084,7 +40783,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemUncheckedUpdateManyWithoutProductInput = {
@@ -40093,7 +40791,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AuditCountUpdateWithoutProductInput = {
@@ -40461,7 +41158,6 @@ export namespace Prisma {
     quantity: number
     unitCost: Decimal | DecimalJsLike | number | string
     totalCost: Decimal | DecimalJsLike | number | string
-    expiryDate?: Date | string | null
   }
 
   export type VendorInvoiceItemUpdateWithoutInvoiceInput = {
@@ -40469,7 +41165,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     product?: ProductUpdateOneRequiredWithoutVendorInvoiceItemsNestedInput
   }
 
@@ -40479,7 +41174,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VendorInvoiceItemUncheckedUpdateManyWithoutInvoiceInput = {
@@ -40488,7 +41182,6 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     unitCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type AuditCountCreateManyAuditSessionInput = {

@@ -36,8 +36,15 @@ model Product {
   imageUrl     String?
   barcode      String?
   isActive     Boolean  @default(true)
+  isSellable   Boolean  @default(true) // False for bulk boxes, true for sellable units
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // Hierarchy Mapping (Bulk to Unit)
+  parentId       String?
+  parent         Product?  @relation("ProductHierarchy", fields: [parentId], references: [id])
+  children       Product[] @relation("ProductHierarchy")
+  unitsPerParent Int       @default(1) // How many units are inside this parent
 
   SaleItems            SaleItem[]
   StockMovements       StockMovement[]
@@ -291,13 +298,12 @@ model VendorInvoice {
 }
 
 model VendorInvoiceItem {
-  id         String    @id @default(uuid())
-  invoiceId  String
-  productId  String
-  quantity   Int
-  unitCost   Decimal   @db.Decimal(10, 2)
-  totalCost  Decimal   @db.Decimal(10, 2)
-  expiryDate DateTime?
+  id        String  @id @default(uuid())
+  invoiceId String
+  productId String
+  quantity  Int
+  unitCost  Decimal @db.Decimal(10, 2)
+  totalCost Decimal @db.Decimal(10, 2)
 
   invoice VendorInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product Product       @relation(fields: [productId], references: [id])
