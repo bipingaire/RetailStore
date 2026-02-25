@@ -352,7 +352,11 @@ export default function InvoicesPage() {
               <tr
                 key={invoice.id}
                 className="hover:bg-blue-50 cursor-pointer transition-colors"
-                onClick={() => handleEditInvoice(invoice.id)}
+                onClick={() => {
+                  if (invoice.status !== 'committed') {
+                    handleEditInvoice(invoice.id);
+                  }
+                }}
               >
                 <td className="px-6 py-4 text-sm font-medium text-blue-700 underline underline-offset-2">{invoice.invoiceNumber}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{invoice.vendor?.name || 'N/A'}</td>
@@ -376,9 +380,10 @@ export default function InvoicesPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEditInvoice(invoice.id)}
-                      className="text-xs px-2 py-1 border rounded text-blue-600 border-blue-200 hover:bg-blue-50"
+                      disabled={invoice.status === 'committed'}
+                      className={`text-xs px-2 py-1 border rounded ${invoice.status === 'committed' ? 'text-gray-400 border-gray-200 cursor-not-allowed' : 'text-blue-600 border-blue-200 hover:bg-blue-50'}`}
                     >
-                      {invoice.status === 'committed' ? '👁 View' : '✏️ Edit'}
+                      View / Edit
                     </button>
                     {invoice.status === 'validated' && (
                       <button

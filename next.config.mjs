@@ -18,7 +18,9 @@ const nextConfig = {
   // Proxy /api/* to the backend so subdomain frontends (e.g. highpoint.indumart.us)
   // can call /api/... on their own origin — avoiding CORS entirely.
   async rewrites() {
-    const backendUrl = process.env.BACKEND_INTERNAL_URL || 'http://backend:3001';
+    // In Docker: BACKEND_INTERNAL_URL=http://backend:3001
+    // In local dev: defaults to localhost:3001
+    const backendUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:3001';
     return [
       {
         source: '/api/:path*',
