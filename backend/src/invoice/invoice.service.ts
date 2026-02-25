@@ -13,6 +13,26 @@ export class InvoiceService {
         private readonly tenantService: TenantService,
     ) { }
 
+    /**
+     * Strip bulk-pack multipliers from product names that arrive from AI parsing.
+     * Patterns removed (case-insensitive):
+     *   "2 X 10 X"  →  ""    (A X B X prefix, A=cases, B=units/case)
+     *   "24 X "     →  ""    (single multiplier like "24 X 400GM" — keeps "400GM")
+     * Examples:
+     *   "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → "ASHOKA BHINDI MASALA 283gs"
+     *   "ASHOKA PARATHA 24 X 400GM"            → "ASHOKA PARATHA 400GM"
+     *   "PLAIN FLOUR 10KG"                     → "PLAIN FLOUR 10KG"  (unchanged)
+     */
+    private cleanProductName(name: string): string {
+        // Remove patterns like "2 X 10 X " or "24 X " that encode pack multipliers
+        // Regex: one or more (number \s* X \s*) sequences at any position
+        return name
+            .replace(/\b\d+\s*[xX]\s*\d+\s*[xX]\s*/g, '') // "2 X 10 X " (double multiplier)
+            .replace(/\b\d+\s*[xX]\s*(?=\d)/g, '')          // "24 X " only when followed by a number/size
+            .replace(/\s{2,}/g, ' ')                          // collapse double spaces
+            .trim();
+    }
+
     async uploadInvoice(
         subdomain: string,
         vendorId: string,
@@ -98,9 +118,10 @@ export class InvoiceService {
                     }
 
                     // --- Child (Retail Unit) ---
+                    const cleanChildName = this.cleanProductName(item.description);
                     let childProduct = await tx.product.findFirst({
                         where: {
-                            name: { equals: item.description, mode: 'insensitive' },
+                            name: { equals: cleanChildName, mode: 'insensitive' },
                             parentId: bulkProduct.id,
                         },
                     });
@@ -109,7 +130,7 @@ export class InvoiceService {
                         // Also try by name alone in case parent wasn't linked before
                         childProduct = await tx.product.findFirst({
                             where: {
-                                name: { equals: item.description, mode: 'insensitive' },
+                                name: { equals: cleanChildName, mode: 'insensitive' },
                                 isSellable: true,
                             },
                         });
@@ -122,10 +143,10 @@ export class InvoiceService {
                     if (!childProduct) {
                         childProduct = await tx.product.create({
                             data: {
-                                name: item.description,
+                                name: cleanChildName,
                                 sku: `SKU-${Date.now() + 1}-${Math.floor(Math.random() * 1000)}`,
                                 category: item.category,
-                                description: `${item.description}${item.unitSize ? ` (${item.unitSize})` : ''}`,
+                                description: `${cleanChildName}${item.unitSize ? ` (${item.unitSize})` : ''}`,
                                 price: new Prisma.Decimal(sellingPrice),
                                 costPrice: new Prisma.Decimal(costPerUnit),
                                 stock: 0,
@@ -174,22 +195,23 @@ export class InvoiceService {
 
                 } else {
                     // ── SINGLE-LEVEL (no case breakdown) ──────────────────────────
+                    const cleanName = this.cleanProductName(item.description);
                     let product = await tx.product.findFirst({
-                        where: { name: { equals: item.description, mode: 'insensitive' } },
+                        where: { name: { equals: cleanName, mode: 'insensitive' } },
                     });
 
-                    const sellingPrice = item.sellingPrice
+                    const sellingPrice2 = item.sellingPrice
                         ? item.sellingPrice
                         : costPerUnit * 1.3;
 
                     if (!product) {
                         product = await tx.product.create({
                             data: {
-                                name: item.description,
+                                name: cleanName,
                                 sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                                 category: item.category,
-                                description: `${item.description}${item.unitSize ? ` (${item.unitSize})` : ''}`,
-                                price: new Prisma.Decimal(sellingPrice),
+                                description: `${cleanName}${item.unitSize ? ` (${item.unitSize})` : ''}`,
+                                price: new Prisma.Decimal(sellingPrice2),
                                 costPrice: new Prisma.Decimal(costPerUnit),
                                 stock: 0,
                                 reorderLevel: 10,
