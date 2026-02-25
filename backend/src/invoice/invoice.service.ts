@@ -88,13 +88,20 @@ export class InvoiceService {
                             stock: 0,
                             reorderLevel: 10,
                             isActive: true,
+                            // Hierarchy fields
+                            unitsPerParent: unitsPerCase,
+                            isSellable: true,
                         },
                     });
                 } else {
-                    // Existing product: only update costPrice, PRESERVE its existing selling price
+                    // Existing product: update costPrice and unitsPerParent, PRESERVE selling price
                     await tx.product.update({
                         where: { id: product.id },
-                        data: { costPrice: new Prisma.Decimal(costPerUnit) },
+                        data: {
+                            costPrice: new Prisma.Decimal(costPerUnit),
+                            unitsPerParent: unitsPerCase,
+                            isSellable: true,
+                        },
                     });
                 }
 
