@@ -53,107 +53,205 @@ export class InvoiceService {
 
             // 2. Process each item
             for (const item of items) {
-                // Try to find existing product by name (case-insensitive)
-                let product = await tx.product.findFirst({
-                    where: {
-                        name: {
-                            equals: item.description,
-                            mode: 'insensitive',
-                        },
-                    },
-                });
-
-                // Calculate retail units and cost per retail unit
                 const unitsPerCase = item.unitsPerCase || 1;
-                const retailUnits = item.quantity * unitsPerCase; // Total retail units to add to stock
+                const retailUnits = item.quantity * unitsPerCase;
+                const casePrice = item.casePrice || (item.costPerUnit || item.unitPrice);
                 const costPerUnit = unitsPerCase > 1
-                    ? item.casePrice / unitsPerCase
-                    : (item.costPerUnit || item.unitPrice); // cost per retail unit
+                    ? casePrice / unitsPerCase
+                    : (item.costPerUnit || item.unitPrice);
 
-                // If not found, create new product
-                if (!product) {
-                    // Selling price: use provided sellingPrice, else cost+30% as temporary floor
-                    const sellingPrice = item.sellingPrice
-                        ? item.sellingPrice
-                        : costPerUnit * 1.3;
-
-                    product = await tx.product.create({
-                        data: {
-                            name: item.description,
-                            sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                            category: item.category,
-                            description: `${item.description}${item.unitSize ? ` (${item.unitSize})` : ''}`,
-                            price: new Prisma.Decimal(sellingPrice),
-                            costPrice: new Prisma.Decimal(costPerUnit),
-                            stock: 0,
-                            reorderLevel: 10,
-                            isActive: true,
-                            // Hierarchy fields
-                            unitsPerParent: unitsPerCase,
-                            isSellable: true,
-                        },
-                    });
-                } else {
-                    // Existing product: update costPrice and unitsPerParent, PRESERVE selling price
-                    await tx.product.update({
-                        where: { id: product.id },
-                        data: {
-                            costPrice: new Prisma.Decimal(costPerUnit),
-                            unitsPerParent: unitsPerCase,
-                            isSellable: true,
-                        },
-                    });
-                }
-
-                // 3. Create Invoice Item Link (record case-level info)
-                await tx.vendorInvoiceItem.create({
-                    data: {
-                        invoiceId: invoice.id,
-                        productId: product.id,
-                        quantity: retailUnits,          // Store as retail units
-                        unitCost: new Prisma.Decimal(costPerUnit),
-                        totalCost: new Prisma.Decimal(item.totalPrice),
-                    },
-                });
-
-                // 4. Update Product Stock with RETAIL units (cases × unitsPerCase)
-                await tx.product.update({
-                    where: { id: product.id },
-                    data: {
-                        stock: { increment: retailUnits },
-                        // costPrice already set above
-                    },
-                });
-
-                // 5. Log Stock Movement
-                await tx.stockMovement.create({
-                    data: {
-                        productId: product.id,
-                        type: 'IN',
-                        quantity: item.quantity,
-                        description: `Invoice: ${invoiceNumber}`,
-                    },
-                });
-
-                // 6. Create Product Batch with RETAIL units
                 const expiry = item.expiryDate
                     ? new Date(item.expiryDate)
                     : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
+                // ── BULK PARENT PRODUCT ───────────────────────────────────────────
+                // When unitsPerCase > 1, we track two products:
+                //   Parent  = the bulk box/case  (isSellable=false)
+                //   Child   = the individual unit (isSellable=true, parentId=Parent.id)
+                // When unitsPerCase === 1 we only need one product (the retail unit).
+
+                let retailProduct: any = null;
+
+                if (unitsPerCase > 1) {
+                    // --- Parent (Bulk Case) ---
+                    const bulkName = `${item.description} (Case of ${unitsPerCase})`;
+                    let bulkProduct = await tx.product.findFirst({
+                        where: { name: { equals: bulkName, mode: 'insensitive' } },
+                    });
+
+                    if (!bulkProduct) {
+                        bulkProduct = await tx.product.create({
+                            data: {
+                                name: bulkName,
+                                sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                                category: item.category,
+                                description: `Bulk case of ${unitsPerCase} × ${item.description}${item.unitSize ? ` (${item.unitSize})` : ''}`,
+                                price: new Prisma.Decimal(casePrice),
+                                costPrice: new Prisma.Decimal(casePrice),
+                                stock: 0,
+                                reorderLevel: 1,
+                                isActive: true,
+                                isSellable: false,
+                                unitsPerParent: 1,
+                            },
+                        });
+                    }
+
+                    // --- Child (Retail Unit) ---
+                    let childProduct = await tx.product.findFirst({
+                        where: {
+                            name: { equals: item.description, mode: 'insensitive' },
+                            parentId: bulkProduct.id,
+                        },
+                    });
+
+                    if (!childProduct) {
+                        // Also try by name alone in case parent wasn't linked before
+                        childProduct = await tx.product.findFirst({
+                            where: {
+                                name: { equals: item.description, mode: 'insensitive' },
+                                isSellable: true,
+                            },
+                        });
+                    }
+
+                    const sellingPrice = item.sellingPrice
+                        ? item.sellingPrice
+                        : costPerUnit * 1.3;
+
+                    if (!childProduct) {
+                        childProduct = await tx.product.create({
+                            data: {
+                                name: item.description,
+                                sku: `SKU-${Date.now() + 1}-${Math.floor(Math.random() * 1000)}`,
+                                category: item.category,
+                                description: `${item.description}${item.unitSize ? ` (${item.unitSize})` : ''}`,
+                                price: new Prisma.Decimal(sellingPrice),
+                                costPrice: new Prisma.Decimal(costPerUnit),
+                                stock: 0,
+                                reorderLevel: 10,
+                                isActive: true,
+                                isSellable: true,
+                                parentId: bulkProduct.id,
+                                unitsPerParent: unitsPerCase,
+                            },
+                        });
+                    } else {
+                        // Update child's cost and parent link
+                        await tx.product.update({
+                            where: { id: childProduct.id },
+                            data: {
+                                costPrice: new Prisma.Decimal(costPerUnit),
+                                parentId: bulkProduct.id,
+                                unitsPerParent: unitsPerCase,
+                                ...(item.sellingPrice ? { price: new Prisma.Decimal(item.sellingPrice) } : {}),
+                            },
+                        });
+                    }
+
+                    retailProduct = childProduct;
+
+                    // Invoice Item → links to the BULK product (vendor sold in cases)
+                    await tx.vendorInvoiceItem.create({
+                        data: {
+                            invoiceId: invoice.id,
+                            productId: bulkProduct.id,
+                            quantity: item.quantity, // cases ordered
+                            unitCost: new Prisma.Decimal(casePrice),
+                            totalCost: new Prisma.Decimal(item.totalPrice),
+                        },
+                    });
+
+                    // Stock movement on the bulk product (cases received)
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: bulkProduct.id,
+                            type: 'IN',
+                            quantity: item.quantity,
+                            description: `Invoice: ${invoiceNumber} (${item.quantity} case${item.quantity > 1 ? 's' : ''})`,
+                        },
+                    });
+
+                } else {
+                    // ── SINGLE-LEVEL (no case breakdown) ──────────────────────────
+                    let product = await tx.product.findFirst({
+                        where: { name: { equals: item.description, mode: 'insensitive' } },
+                    });
+
+                    const sellingPrice = item.sellingPrice
+                        ? item.sellingPrice
+                        : costPerUnit * 1.3;
+
+                    if (!product) {
+                        product = await tx.product.create({
+                            data: {
+                                name: item.description,
+                                sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                                category: item.category,
+                                description: `${item.description}${item.unitSize ? ` (${item.unitSize})` : ''}`,
+                                price: new Prisma.Decimal(sellingPrice),
+                                costPrice: new Prisma.Decimal(costPerUnit),
+                                stock: 0,
+                                reorderLevel: 10,
+                                isActive: true,
+                                isSellable: true,
+                                unitsPerParent: 1,
+                            },
+                        });
+                    } else {
+                        await tx.product.update({
+                            where: { id: product.id },
+                            data: {
+                                costPrice: new Prisma.Decimal(costPerUnit),
+                                ...(item.sellingPrice ? { price: new Prisma.Decimal(item.sellingPrice) } : {}),
+                            },
+                        });
+                    }
+
+                    retailProduct = product;
+
+                    // Invoice Item → single product
+                    await tx.vendorInvoiceItem.create({
+                        data: {
+                            invoiceId: invoice.id,
+                            productId: product.id,
+                            quantity: retailUnits,
+                            unitCost: new Prisma.Decimal(costPerUnit),
+                            totalCost: new Prisma.Decimal(item.totalPrice),
+                        },
+                    });
+
+                    // Stock movement
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: product.id,
+                            type: 'IN',
+                            quantity: retailUnits,
+                            description: `Invoice: ${invoiceNumber}`,
+                        },
+                    });
+                }
+
+                // ── Update retail product stock & batch (both paths) ──────────────
+                await tx.product.update({
+                    where: { id: retailProduct.id },
+                    data: { stock: { increment: retailUnits } },
+                });
+
                 await tx.productBatch.create({
                     data: {
-                        productId: product.id,
-                        sku: product.sku,
-                        quantity: retailUnits,  // Retail units, not cases
+                        productId: retailProduct.id,
+                        sku: retailProduct.sku,
+                        quantity: retailUnits,
                         expiryDate: expiry,
                         receivedDate: new Date(),
-                    }
+                    },
                 });
             }
 
             return invoice;
         }, {
-            timeout: 20000, // Increase timeout for many items
+            timeout: 20000,
         });
     }
 

@@ -1,14 +1,14 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal, Edit3, Trash2 } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal, Edit3, Trash2, Layers, Box } from 'lucide-react';
 import PromotionModal from './promotion-modal';
 import EditProductModal from './edit-product-modal';
 import { toast } from 'sonner';
 
 // 1. Types
 type ProductRow = {
-  id: string; // store_inventory_id
+  id: string;
   name: string;
   sku: string;
   category: string;
@@ -16,7 +16,11 @@ type ProductRow = {
   price: number;
   image: string;
   total_qty: number;
+  is_sellable: boolean;
+  parent_id: string | null;
+  units_per_parent: number;
   batches: Batch[];
+  children?: ProductRow[]; // populated client-side for hierarchy
 };
 
 type Batch = {
@@ -29,9 +33,11 @@ type Batch = {
 
 export default function InventoryDashboard() {
   const [products, setProducts] = useState<ProductRow[]>([]);
+  const [topLevel, setTopLevel] = useState<ProductRow[]>([]); // Parents + orphan children
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // State to manage the Promotion Pop-up
   const [promoTarget, setPromoTarget] = useState<{ product: ProductRow, batch?: Batch } | null>(null);
@@ -41,7 +47,6 @@ export default function InventoryDashboard() {
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"? This cannot be undone.`)) return;
-
     try {
       await apiClient.delete(`/products/${id}`);
       toast.success("Product deleted successfully");
@@ -53,44 +58,28 @@ export default function InventoryDashboard() {
   };
 
   const handleSaveProduct = (updatedItem: any) => {
-    // Refresh the list or update local state
     setProducts(prev => prev.map(p =>
-      p.id === updatedItem.id ? {
-        ...p,
-        name: updatedItem.name,
-        category: updatedItem.category,
-        price: updatedItem.price,
-        total_qty: updatedItem.total_qty
-      } : p
+      p.id === updatedItem.id ? { ...p, name: updatedItem.name, category: updatedItem.category, price: updatedItem.price, total_qty: updatedItem.total_qty } : p
     ));
     setEditingProduct(null);
   };
 
-  // 2. Fetch Data
+  // 2. Fetch Data & Build Hierarchy
   useEffect(() => {
     async function fetchData() {
       try {
         const data = await apiClient.get('/products');
 
-        // Backend returns mapped data, but we clarify shape here
         const processed: ProductRow[] = (data || []).map((item: any) => {
           const batches = (item.batches || []).map((b: any) => {
             const expiryDate = new Date(b.expiry);
             const today = new Date();
             const diffTime = expiryDate.getTime() - today.getTime();
             const days_left = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
             let status = 'GOOD';
             if (days_left <= 7) status = 'CRITICAL';
             else if (days_left <= 30) status = 'WARNING';
-
-            return {
-              id: b.id,
-              qty: b.qty,
-              expiry: b.expiry,
-              days_left,
-              status
-            };
+            return { id: b.id, qty: b.qty, expiry: b.expiry, days_left, status };
           }).sort((a: any, b: any) => a.days_left - b.days_left);
 
           return {
@@ -102,11 +91,29 @@ export default function InventoryDashboard() {
             price: Number(item.price) || 0,
             image: item.image,
             total_qty: item.total_qty,
-            batches: batches
+            is_sellable: item.is_sellable !== false, // default true
+            parent_id: item.parent_id || null,
+            units_per_parent: item.units_per_parent || 1,
+            batches,
+            children: [],
           };
         });
 
         setProducts(processed);
+
+        // Build hierarchy: group children under parents
+        const byId = Object.fromEntries(processed.map(p => [p.id, { ...p, children: [] as ProductRow[] }]));
+        const roots: ProductRow[] = [];
+
+        for (const p of processed) {
+          if (p.parent_id && byId[p.parent_id]) {
+            byId[p.parent_id].children!.push({ ...p });
+          } else {
+            roots.push(byId[p.id]);
+          }
+        }
+
+        setTopLevel(roots);
         setError(null);
       } catch (err: any) {
         console.error("Exception fetching inventory:", err);
@@ -118,13 +125,169 @@ export default function InventoryDashboard() {
     fetchData();
   }, []);
 
-  // 4. Helper for Colors
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CRITICAL': return 'bg-red-50 text-red-700 border-red-200';
       case 'WARNING': return 'bg-amber-50 text-amber-700 border-amber-200';
       default: return 'bg-green-50 text-green-700 border-green-200';
     }
+  };
+
+  const filteredTopLevel = topLevel.filter(p =>
+    !searchQuery ||
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.children || []).some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Renders a single product row (works for both parent & child)
+  const renderProductRow = (product: ProductRow, isChild = false) => {
+    const worstBatch = product.batches[0];
+    const isExpanded = expandedRow === product.id;
+    const hasChildren = (product.children?.length ?? 0) > 0;
+
+    return (
+      <React.Fragment key={product.id}>
+        <tr
+          className={`hover:bg-gray-50 transition-colors cursor-pointer group ${isExpanded ? 'bg-gray-50' : ''} ${isChild ? 'bg-blue-50/30' : ''}`}
+          onClick={() => setExpandedRow(isExpanded ? null : product.id)}
+        >
+          <td className="px-6 py-4">
+            <div className={`flex items-center gap-4 ${isChild ? 'pl-8' : ''}`}>
+              {isChild && <div className="w-px h-8 bg-blue-200 absolute -ml-4" />}
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400 border border-gray-200 shrink-0 overflow-hidden">
+                {product.image ? <img src={product.image} className="w-full h-full object-cover" alt="prod" /> : (product.is_sellable ? <Package size={18} /> : <Box size={18} className="text-orange-400" />)}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-gray-900">{product.name}</span>
+                  {!product.is_sellable && (
+                    <span className="text-[10px] bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">Bulk</span>
+                  )}
+                  {isChild && (
+                    <span className="text-[10px] bg-blue-100 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">
+                      ↳ {product.units_per_parent} per case
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 font-mono mt-0.5">{product.sku}</div>
+              </div>
+            </div>
+          </td>
+          <td className="px-6 py-4 text-gray-500 text-sm">{product.category}</td>
+          <td className="px-6 py-4 text-gray-500 text-sm max-w-[150px] truncate" title={product.description}>
+            {product.description || '—'}
+          </td>
+          <td className="px-6 py-4 text-gray-900 font-medium">
+            {product.is_sellable ? `$${product.price.toFixed(2)}` : <span className="text-gray-400 text-xs">—</span>}
+          </td>
+          <td className="px-6 py-4">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-gray-900">{product.total_qty}</span>
+                <span className="text-gray-400 text-xs">{product.is_sellable ? 'units' : 'cases'}</span>
+              </div>
+              {hasChildren && (
+                <span className="text-[10px] text-blue-500 mt-0.5 flex items-center gap-1">
+                  <Layers size={10} /> {product.children!.length} retail variant{product.children!.length > 1 ? 's' : ''}
+                </span>
+              )}
+              {product.batches.length > 0 && !hasChildren && (
+                <span className="text-[10px] text-gray-500">in {product.batches.length} batches</span>
+              )}
+            </div>
+          </td>
+          <td className="px-6 py-4">
+            {worstBatch ? (
+              <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold inline-flex items-center gap-1.5 ${getStatusColor(worstBatch.status)}`}>
+                <div className={`w-1.5 h-1.5 rounded-full ${worstBatch.days_left < 7 ? 'bg-red-500' : 'bg-green-500'}`} />
+                {worstBatch.days_left} Days Left
+              </span>
+            ) : hasChildren ? (
+              <span className="text-[10px] text-blue-500">See variants ↓</span>
+            ) : (
+              <span className="text-gray-400 text-xs">—</span>
+            )}
+          </td>
+          <td className="px-6 py-4 text-right">
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setEditingProduct(product); }}
+                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                title="Edit Product"
+              >
+                <Edit3 size={16} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDelete(product.id, product.name); }}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                title="Delete Product"
+              >
+                <Trash2 size={16} />
+              </button>
+              <button className="text-gray-400 hover:text-gray-600 transition-colors ml-2">
+                {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        {/* EXPANDED: Child products first, then batches */}
+        {isExpanded && (
+          <>
+            {/* Child products (retail variants) */}
+            {hasChildren && product.children!.map(child => renderProductRow(child, true))}
+
+            {/* Batch view for this product (if it has batches and no children, or is itself a child) */}
+            {(product.batches.length > 0 && (!hasChildren || isChild)) && (
+              <tr className="bg-gray-50/50">
+                <td colSpan={7} className={`px-6 py-4 ${isChild ? 'pl-20' : ''}`}>
+                  <div className={`bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden p-4 ${isChild ? '' : 'ml-14'}`}>
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <Package size={14} /> Stock Items (Batches)
+                      </h4>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setPromoTarget({ product }); }}
+                        className="text-xs text-blue-600 font-semibold hover:text-blue-700 hover:underline"
+                      >
+                        + Create Store Offer
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {product.batches.map((batch) => (
+                        <div key={batch.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border border-gray-100 rounded-lg hover:border-gray-200 transition-colors bg-gray-50/30">
+                          <div className="flex items-center gap-6">
+                            <div>
+                              <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Quantity</span>
+                              <span className="font-mono font-semibold text-gray-900">{batch.qty}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Expiry Date</span>
+                              <span className={`text-sm font-medium ${batch.days_left < 7 ? 'text-red-600' : 'text-gray-700'}`}>
+                                {new Date(batch.expiry).toLocaleDateString()}
+                                <span className="text-gray-400 font-normal ml-1">({batch.days_left}d)</span>
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setPromoTarget({ product, batch }); }}
+                            className="mt-3 sm:mt-0 text-xs bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
+                          >
+                            <Tag size={12} />
+                            {batch.status === 'CRITICAL' ? 'Clearance' : 'Promote'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </>
+        )}
+      </React.Fragment>
+    );
   };
 
   return (
@@ -143,6 +306,8 @@ export default function InventoryDashboard() {
               <input
                 type="text"
                 placeholder="Search products..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm w-64 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
               />
             </div>
@@ -173,13 +338,13 @@ export default function InventoryDashboard() {
                   <th className="px-6 py-3">Category</th>
                   <th className="px-6 py-3">Description</th>
                   <th className="px-6 py-3">Price</th>
-                  <th className="px-6 py-3">Total Stock</th>
-                  <th className="px-6 py-3">Health Status</th>
-                  <th className="px-6 py-3 text-right">Action</th>
+                  <th className="px-6 py-3">Stock</th>
+                  <th className="px-6 py-3">Health</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {products.length === 0 && (
+                {filteredTopLevel.length === 0 && (
                   <tr>
                     <td colSpan={7} className="p-12 text-center text-gray-400">
                       <div className="flex flex-col items-center gap-2">
@@ -189,143 +354,7 @@ export default function InventoryDashboard() {
                     </td>
                   </tr>
                 )}
-                {products.map((product) => {
-                  const worstBatch = product.batches[0]; // The one expiring soonest
-                  const isExpanded = expandedRow === product.id;
-
-                  return (
-                    <React.Fragment key={product.id}>
-                      {/* MAIN ROW */}
-                      <tr
-                        key={product.id}
-                        className={`hover:bg-gray-50 transition-colors cursor-pointer group ${isExpanded ? 'bg-gray-50' : ''}`}
-                        onClick={() => setExpandedRow(isExpanded ? null : product.id)}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400 border border-gray-200 shrink-0 overflow-hidden">
-                              {product.image ? <img src={product.image} className="w-full h-full object-cover" alt="prod" /> : <Package size={18} />}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-gray-900">{product.name}</div>
-                              <div className="text-xs text-gray-500 font-mono mt-0.5">{product.sku}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-gray-500 text-sm">
-                          {product.category}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500 text-sm max-w-[150px] truncate" title={product.description}>
-                          {product.description || '—'}
-                        </td>
-                        <td className="px-6 py-4 text-gray-900 font-medium">
-                          ${product.price.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-gray-900">{product.total_qty}</span>
-                              <span className="text-gray-400 text-xs">units</span>
-                            </div>
-                            {product.batches.length > 0 && (
-                              <span className="text-[10px] text-gray-500">in {product.batches.length} batches</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {worstBatch ? (
-                            <span className={`px-2.5 py-1 rounded-full border text-xs font-semibold inline-flex items-center gap-1.5 ${getStatusColor(worstBatch.status)}`}>
-                              <div className={`w-1.5 h-1.5 rounded-full ${worstBatch.days_left < 7 ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                              {worstBatch.days_left} Days Left
-                            </span>
-                          ) : (
-                            <span className="text-gray-400 text-xs">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setEditingProduct(product); }}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                              title="Edit Product"
-                            >
-                              <Edit3 size={16} />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleDelete(product.id, product.name); }}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                              title="Delete Product"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                            <button className="text-gray-400 hover:text-gray-600 transition-colors ml-2">
-                              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* EXPANDED DETAILS (BATCH VIEW) */}
-                      {isExpanded && (
-                        <tr className="bg-gray-50/50">
-                          <td colSpan={7} className="px-6 py-4">
-                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden p-4 ml-14">
-                              <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                                  <Package size={14} /> Stock Items (Batches)
-                                </h4>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setPromoTarget({ product }); // Promote entire product
-                                  }}
-                                  className="text-xs text-blue-600 font-semibold hover:text-blue-700 hover:underline"
-                                >
-                                  + Create Store Offer
-                                </button>
-                              </div>
-
-                              {product.batches.length === 0 ? (
-                                <p className="text-sm text-gray-400 italic">No specific batch data available.</p>
-                              ) : (
-                                <div className="space-y-3">
-                                  {product.batches.map((batch) => (
-                                    <div key={batch.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border border-gray-100 rounded-lg hover:border-gray-200 transition-colors bg-gray-50/30">
-                                      <div className="flex items-center gap-6">
-                                        <div>
-                                          <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Quantity</span>
-                                          <span className="font-mono font-semibold text-gray-900">{batch.qty}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Expiry Date</span>
-                                          <span className={`text-sm font-medium ${batch.days_left < 7 ? 'text-red-600' : 'text-gray-700'}`}>
-                                            {new Date(batch.expiry).toLocaleDateString()}
-                                            <span className="text-gray-400 font-normal ml-1">({batch.days_left}d)</span>
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setPromoTarget({ product, batch });
-                                        }}
-                                        className="mt-3 sm:mt-0 text-xs bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
-                                      >
-                                        <Tag size={12} />
-                                        {batch.status === 'CRITICAL' ? 'Clearance' : 'Promote'}
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
+                {filteredTopLevel.map(product => renderProductRow(product, false))}
               </tbody>
             </table>
           </div>
@@ -339,7 +368,6 @@ export default function InventoryDashboard() {
           />
         )}
 
-        {/* EDIT MODAL RENDERED HERE */}
         {editingProduct && (
           <EditProductModal
             product={editingProduct}
