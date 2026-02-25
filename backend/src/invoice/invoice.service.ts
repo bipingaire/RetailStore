@@ -637,11 +637,11 @@ CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summa
 IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
 
 PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
-- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A outer packs each with B inner units = A×B units per case (e.g. 2×10=20). description="ASHOKA BHINDI MASALA 283gs", unitsPerCase=20, unitSize="283gs"
+- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A=cases ordered, B=units per case. So quantity=2, unitsPerCase=10, retailUnits=20 (auto). description="ASHOKA BHINDI MASALA 283gs", unitSize="283gs"
 - "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
 - "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
 - "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
-- "5 x 24x300gm" → 5 cases of 24 units. quantity=5, unitsPerCase=24, unitSize="300gm"
+- "5 x 24x300gm" → quantity=5 cases, unitsPerCase=24, unitSize="300gm"
 
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
@@ -691,11 +691,11 @@ CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summa
 IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
 
 PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
-- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A outer packs each with B inner units = A×B units per case (e.g. 2×10=20). description="ASHOKA BHINDI MASALA 283gs", unitsPerCase=20, unitSize="283gs"
+- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A=cases ordered, B=units per case. So quantity=2, unitsPerCase=10, retailUnits=20 (auto). description="ASHOKA BHINDI MASALA 283gs", unitSize="283gs"
 - "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
 - "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
 - "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
-- "5 x 24x300gm" → 5 cases of 24 units. quantity=5, unitsPerCase=24, unitSize="300gm"
+- "5 x 24x300gm" → quantity=5 cases, unitsPerCase=24, unitSize="300gm"
 
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
@@ -736,11 +736,11 @@ CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summa
 IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
 
 PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
-- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A outer packs each with B inner units = A×B units per case (e.g. 2×10=20). description="ASHOKA BHINDI MASALA 283gs", unitsPerCase=20, unitSize="283gs"
+- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A=cases ordered, B=units per case. So quantity=2, unitsPerCase=10, retailUnits=20 (auto). description="ASHOKA BHINDI MASALA 283gs", unitSize="283gs"
 - "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
 - "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
 - "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
-- "5 x 24x300gm" → 5 cases of 24 units. quantity=5, unitsPerCase=24, unitSize="300gm"
+- "5 x 24x300gm" → quantity=5 cases, unitsPerCase=24, unitSize="300gm"
 
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
