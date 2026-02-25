@@ -175,27 +175,47 @@ export default function InventoryDashboard() {
             </div>
           </td>
           <td className="px-6 py-4 text-gray-500 text-sm">{product.category}</td>
-          <td className="px-6 py-4 text-gray-500 text-sm max-w-[150px] truncate" title={product.description}>
-            {product.description || '—'}
+
+          {/* Cases — bulk parent stock OR '—' for child/single */}
+          <td className="px-4 py-4 text-center">
+            {!product.is_sellable ? (
+              <span className="font-semibold text-orange-700">{product.total_qty}</span>
+            ) : product.parent_id ? (
+              <span className="text-gray-300 text-xs">—</span>
+            ) : (
+              <span className="font-semibold text-orange-700">{product.total_qty}</span>
+            )}
           </td>
+
+          {/* Units/Case — unitsPerParent on child; number of children on parent; 1 for single */}
+          <td className="px-4 py-4 text-center">
+            {hasChildren ? (
+              <span className="font-semibold text-amber-700">{product.children![0]?.units_per_parent ?? 1}</span>
+            ) : product.parent_id ? (
+              <span className="font-semibold text-amber-700">{product.units_per_parent}</span>
+            ) : (
+              <span className="text-gray-400 text-xs">1</span>
+            )}
+          </td>
+
+          {/* Retail Units — child stock OR (parentStock × unitsPerParent) for single */}
+          <td className="px-4 py-4 text-center">
+            {product.is_sellable ? (
+              <div className="flex flex-col items-center">
+                <span className="font-semibold text-blue-700">{product.total_qty}</span>
+                {hasChildren && <span className="text-[10px] text-blue-400">across {product.children!.length} variant{product.children!.length > 1 ? 's' : ''}</span>}
+              </div>
+            ) : hasChildren ? (
+              <span className="font-semibold text-blue-700">
+                {product.children!.reduce((s, c) => s + c.total_qty, 0)}
+              </span>
+            ) : (
+              <span className="text-gray-400 text-xs">—</span>
+            )}
+          </td>
+
           <td className="px-6 py-4 text-gray-900 font-medium">
             {product.is_sellable ? `$${product.price.toFixed(2)}` : <span className="text-gray-400 text-xs">—</span>}
-          </td>
-          <td className="px-6 py-4">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-900">{product.total_qty}</span>
-                <span className="text-gray-400 text-xs">{product.is_sellable ? 'units' : 'cases'}</span>
-              </div>
-              {hasChildren && (
-                <span className="text-[10px] text-blue-500 mt-0.5 flex items-center gap-1">
-                  <Layers size={10} /> {product.children!.length} retail variant{product.children!.length > 1 ? 's' : ''}
-                </span>
-              )}
-              {product.batches.length > 0 && !hasChildren && (
-                <span className="text-[10px] text-gray-500">in {product.batches.length} batches</span>
-              )}
-            </div>
           </td>
           <td className="px-6 py-4">
             {worstBatch ? (
@@ -241,7 +261,7 @@ export default function InventoryDashboard() {
             {/* Batch view for this product (if it has batches and no children, or is itself a child) */}
             {(product.batches.length > 0 && (!hasChildren || isChild)) && (
               <tr className="bg-gray-50/50">
-                <td colSpan={7} className={`px-6 py-4 ${isChild ? 'pl-20' : ''}`}>
+                <td colSpan={8} className={`px-6 py-4 ${isChild ? 'pl-20' : ''}`}>
                   <div className={`bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden p-4 ${isChild ? '' : 'ml-14'}`}>
                     <div className="flex justify-between items-center mb-4">
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
@@ -336,9 +356,10 @@ export default function InventoryDashboard() {
                 <tr>
                   <th className="px-6 py-3">Product</th>
                   <th className="px-6 py-3">Category</th>
-                  <th className="px-6 py-3">Description</th>
+                  <th className="px-4 py-3 text-center text-orange-600">Cases</th>
+                  <th className="px-4 py-3 text-center text-amber-600">Units/Case</th>
+                  <th className="px-4 py-3 text-center text-blue-600">Retail Units</th>
                   <th className="px-6 py-3">Price</th>
-                  <th className="px-6 py-3">Stock</th>
                   <th className="px-6 py-3">Health</th>
                   <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
@@ -346,7 +367,7 @@ export default function InventoryDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {filteredTopLevel.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="p-12 text-center text-gray-400">
+                    <td colSpan={8} className="p-12 text-center text-gray-400">
                       <div className="flex flex-col items-center gap-2">
                         <Package size={32} className="text-gray-300" />
                         <span>No inventory found. Try scanning an invoice.</span>
