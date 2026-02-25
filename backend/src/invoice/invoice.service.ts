@@ -634,23 +634,30 @@ export class InvoiceService {
                                 text: `Analyze this invoice image (converted from PDF) and extract the following fields in JSON format.
 CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
 
-IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. For example "5 x 24x300gm" means 5 CASES each containing 24 retail units of 300gm. You MUST separate the bulk case quantity from the retail unit count.
+IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
+
+PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
+- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A outer packs each with B inner units = A×B units per case (e.g. 2×10=20). description="ASHOKA BHINDI MASALA 283gs", unitsPerCase=20, unitSize="283gs"
+- "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
+- "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
+- "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
+- "5 x 24x300gm" → 5 cases of 24 units. quantity=5, unitsPerCase=24, unitSize="300gm"
 
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
-  - description: Item name (retail product name, e.g. "Coca-Cola 300ml")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", etc.)
-  - quantity: Number of CASES ordered (bulk qty, e.g. 5)
-  - unitsPerCase: Number of retail units per case (e.g. 24 from "24x300gm"). If not a bulk pack, set to 1.
-  - unitSize: Retail unit size/volume (e.g. "300gm", "1L", "500ml"). Empty string if not applicable.
+  - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
+  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
+  - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
+  - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
   - casePrice: Price PER CASE (the invoice price, e.g. 60.00)
   - costPerUnit: casePrice divided by unitsPerCase (e.g. 2.50)
   - unitPrice: Same as costPerUnit (for compatibility)
   - totalPrice: Total price for this line item (quantity x casePrice)
-  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format.
+  - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 Return ONLY the JSON object.`
                             },
                             {
@@ -681,23 +688,30 @@ Return ONLY the JSON object.`
                             text: `Analyze this invoice TEXT and extract the following fields in JSON format.
 CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
 
-IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. For example "5 x 24x300gm" means 5 CASES each containing 24 retail units of 300gm. You MUST separate the bulk case quantity from the retail unit count.
+IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
+
+PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
+- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A outer packs each with B inner units = A×B units per case (e.g. 2×10=20). description="ASHOKA BHINDI MASALA 283gs", unitsPerCase=20, unitSize="283gs"
+- "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
+- "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
+- "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
+- "5 x 24x300gm" → 5 cases of 24 units. quantity=5, unitsPerCase=24, unitSize="300gm"
 
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
-  - description: Item name (retail product name, e.g. "Coca-Cola 300ml")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", etc.)
-  - quantity: Number of CASES ordered (bulk qty, e.g. 5)
-  - unitsPerCase: Number of retail units per case (e.g. 24 from "24x300gm"). If not a bulk pack, set to 1.
-  - unitSize: Retail unit size/volume (e.g. "300gm", "1L", "500ml"). Empty string if not applicable.
+  - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
+  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
+  - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
+  - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
   - casePrice: Price PER CASE (the invoice price)
   - costPerUnit: casePrice divided by unitsPerCase
   - unitPrice: Same as costPerUnit (for compatibility)
   - totalPrice: Total price for this line item (quantity x casePrice)
-  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
+  - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 
 Return ONLY the JSON object, no markdown formatting.
 
@@ -719,23 +733,30 @@ ${truncatedText}`
                         text: `Analyze this invoice image and extract the following fields in JSON format.
 CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
 
-IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. For example "5 x 24x300gm" means 5 CASES each containing 24 retail units of 300gm. You MUST separate the bulk case quantity from the retail unit count.
+IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
+
+PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
+- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A outer packs each with B inner units = A×B units per case (e.g. 2×10=20). description="ASHOKA BHINDI MASALA 283gs", unitsPerCase=20, unitSize="283gs"
+- "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
+- "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
+- "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
+- "5 x 24x300gm" → 5 cases of 24 units. quantity=5, unitsPerCase=24, unitSize="300gm"
 
 - vendorName: The vendor/supplier name
 - invoiceNumber: The invoice number
 - invoiceDate: Invoice date in YYYY-MM-DD format
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
-  - description: Item name (retail product name, e.g. "Coca-Cola 300ml")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", etc.)
-  - quantity: Number of CASES ordered (bulk qty, e.g. 5)
-  - unitsPerCase: Number of retail units per case (e.g. 24 from "24x300gm"). If not a bulk pack, set to 1.
-  - unitSize: Retail unit size/volume (e.g. "300gm", "1L", "500ml"). Empty string if not applicable.
+  - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
+  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
+  - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
+  - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
   - casePrice: Price PER CASE (the invoice price)
   - costPerUnit: casePrice divided by unitsPerCase
   - unitPrice: Same as costPerUnit (for compatibility)
   - totalPrice: Total price for this line item (quantity x casePrice)
-  - expiryDate: Suggested expiry/best-before date in YYYY-MM-DD format. For perishables use 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
+  - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 
 Return ONLY the JSON object, no markdown formatting.`
                     },
