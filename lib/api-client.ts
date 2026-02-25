@@ -1,5 +1,11 @@
 export const apiClient = {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+    // Use relative /api in the browser so requests always go to the same
+    // origin (e.g. highpoint.indumart.us/api/...) and avoid CORS.
+    // On the server side (SSR/build) fall back to NEXT_PUBLIC_API_URL.
+    get baseUrl() {
+        if (typeof window !== 'undefined') return '/api';
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    },
 
     async request(endpoint: string, options: RequestInit = {}) {
         const token = localStorage.getItem('accessToken');

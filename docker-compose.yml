@@ -14,6 +14,7 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=https://indumart.us
       - NEXT_PUBLIC_API_URL=https://indumart.us/api
+      - BACKEND_INTERNAL_URL=http://backend:3001
     depends_on:
       - backend
     restart: always
