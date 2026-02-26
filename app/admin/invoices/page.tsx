@@ -180,6 +180,37 @@ export default function InvoicesPage() {
         ? new Date(parsed.invoiceDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
 
+      // Find previously saved items with the same invoice number and vendor
+      const parsedInvoiceNumberStr = (parsed.invoiceNumber || '').trim().toLowerCase();
+      const existingInvoices = invoices.filter(inv =>
+        inv.vendorId === vendorId &&
+        (inv.invoiceNumber || '').trim().toLowerCase() === parsedInvoiceNumberStr
+      );
+
+      const alreadySavedDescriptions = new Set(
+        existingInvoices.flatMap(inv =>
+          inv.items?.map((item: any) => item.product?.name?.toLowerCase().trim()) || []
+        ).filter(Boolean)
+      );
+
+      // Filter out items that match previously saved product names
+      const filteredItems = (parsed.items || []).filter((item: any) => {
+        // Basic match on description 
+        // e.g., if item.description is "National Chapli Kabab", does it match any saved product?
+        const desc = item.description?.toLowerCase().trim() || '';
+
+        // We do a "some" check to handle slight variations or exactly match
+        const isDuplicate = Array.from(alreadySavedDescriptions).some(
+          savedName => desc.includes(savedName as string) || (savedName as string).includes(desc)
+        );
+
+        return !isDuplicate;
+      });
+
+      // Update parsed data with filtered items
+      const updatedParsed = { ...parsed, items: filteredItems };
+      setParsedData(updatedParsed);
+
       setFormData({
         vendorId,
         invoiceNumber: parsed.invoiceNumber || '',
