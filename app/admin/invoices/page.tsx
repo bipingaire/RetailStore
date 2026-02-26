@@ -228,8 +228,13 @@ export default function InvoicesPage() {
     }
   }
 
+  const [isSaving, setIsSaving] = useState(false);
+
   async function handleCreateInvoice() {
     try {
+      setIsSaving(true);
+      const loadingToast = toast.loading('Saving to inventory...');
+
       if (editingInvoice) {
         const updatePayload = {
           vendorId: formData.vendorId,
@@ -239,7 +244,8 @@ export default function InvoicesPage() {
           items: parsedData?.items || []
         };
         await apiClient.put(`/invoices/${editingInvoice}`, updatePayload);
-        toast.success('✅ Invoice updated!');
+        toast.dismiss(loadingToast);
+        toast.success('Inventory saved successfully!');
       } else {
         const formDataToSend = new FormData();
         if (selectedFile) formDataToSend.append('file', selectedFile);
@@ -253,7 +259,8 @@ export default function InvoicesPage() {
         }
 
         await apiClient.post('/invoices/upload', formDataToSend);
-        toast.success('✅ Saved to inventory!');
+        toast.dismiss(loadingToast);
+        toast.success('Inventory saved successfully!');
       }
 
       setEditingInvoice(null);
@@ -262,7 +269,10 @@ export default function InvoicesPage() {
       setParsedData(null);
       loadData();
     } catch (error) {
-      toast.error('Failed to save invoice');
+      toast.dismiss();
+      toast.error('Failed to save invoice to inventory');
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -719,14 +729,22 @@ export default function InvoicesPage() {
                   <div className="flex gap-3 mt-6">
                     <button
                       onClick={handleCreateInvoice}
-                      disabled={!formData.vendorId || !formData.invoiceNumber}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg"
+                      disabled={!formData.vendorId || !formData.invoiceNumber || isSaving}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg flex items-center justify-center gap-2"
                     >
-                      💾 Save to Inventory
+                      {isSaving ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Saving to inventory...
+                        </>
+                      ) : (
+                        '💾 Save to Inventory'
+                      )}
                     </button>
                     <button
                       onClick={() => setShowUploadModal(false)}
-                      className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      disabled={isSaving}
+                      className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                     >
                       Cancel
                     </button>
