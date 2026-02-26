@@ -677,18 +677,66 @@ export default function InvoicesPage() {
 
                                       {/* Bulk columns - amber */}
                                       <td className="px-4 py-3 text-center font-mono font-bold text-amber-700 bg-amber-50">
-                                        {item.quantity}
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={item.quantity || ''}
+                                          onChange={(e) => {
+                                            const newItems = [...parsedData.items];
+                                            newItems[idx].quantity = e.target.value ? parseFloat(e.target.value) : 0;
+                                            setParsedData({ ...parsedData, items: newItems });
+                                          }}
+                                          className="w-16 text-center bg-transparent border-b border-transparent hover:border-amber-300 focus:border-amber-500 focus:outline-none transition-colors"
+                                          title="Edit Cases"
+                                        />
                                       </td>
                                       <td className="px-4 py-3 text-center font-mono text-amber-600 bg-amber-50">
-                                        {item.unitsPerCase || 1}
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={item.unitsPerCase || ''}
+                                          onChange={(e) => {
+                                            const newItems = [...parsedData.items];
+                                            newItems[idx].unitsPerCase = e.target.value ? parseFloat(e.target.value) : 1;
+                                            setParsedData({ ...parsedData, items: newItems });
+                                          }}
+                                          className="w-16 text-center bg-transparent border-b border-transparent hover:border-amber-300 focus:border-amber-500 focus:outline-none transition-colors"
+                                          title="Edit Units per Case"
+                                        />
                                       </td>
 
                                       {/* Retail units - blue (what actually goes to stock) */}
                                       <td className="px-4 py-3 text-center font-mono font-bold text-blue-700 bg-blue-50">
-                                        {(item.quantity || 1) * (item.unitsPerCase || 1)}
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={(item.quantity || 0) * (item.unitsPerCase || 1)}
+                                          onChange={(e) => {
+                                            const newRetail = e.target.value ? parseFloat(e.target.value) : 0;
+                                            const currentUnits = item.unitsPerCase || 1;
+                                            const newItems = [...parsedData.items];
+                                            // Automatically back-calculate Cases so the backend understands it
+                                            newItems[idx].quantity = newRetail / currentUnits;
+                                            setParsedData({ ...parsedData, items: newItems });
+                                          }}
+                                          className="w-16 text-center bg-transparent border-b border-transparent hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-colors"
+                                          title="Edit Retail Units (Auto-adjusts Cases)"
+                                        />
                                       </td>
 
-                                      <td className="px-4 py-3 text-gray-500 text-xs">{item.unitSize || '-'}</td>
+                                      <td className="px-4 py-3 text-gray-500 text-xs">
+                                        <input
+                                          type="text"
+                                          value={item.unitSize || ''}
+                                          onChange={(e) => {
+                                            const newItems = [...parsedData.items];
+                                            newItems[idx].unitSize = e.target.value;
+                                            setParsedData({ ...parsedData, items: newItems });
+                                          }}
+                                          placeholder="Size"
+                                          className="w-20 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-gray-500 focus:outline-none transition-colors"
+                                        />
+                                      </td>
 
                                       <td className="px-4 py-3 text-gray-700 font-mono">
                                         ${Number(item.costPerUnit ?? item.unitPrice ?? 0).toFixed(2)}
