@@ -176,16 +176,10 @@ export default function InventoryDashboard() {
           </td>
           <td className="px-6 py-4 text-gray-500 text-sm">{product.category}</td>
 
-          {/* Cases — bulk parent stock OR calculated from children OR '—' for child/single */}
+          {/* Cases — bulk parent stock OR '—' for child/single */}
           <td className="px-4 py-4 text-center">
             {!product.is_sellable ? (
-              <span className="font-semibold text-orange-700">
-                {product.total_qty > 0
-                  ? product.total_qty
-                  : hasChildren
-                    ? Math.floor(product.children!.reduce((s, c) => s + c.total_qty, 0) / (product.children![0]?.units_per_parent || 1))
-                    : 0}
-              </span>
+              <span className="font-semibold text-orange-700">{product.total_qty}</span>
             ) : product.parent_id ? (
               <span className="text-gray-300 text-xs">—</span>
             ) : (

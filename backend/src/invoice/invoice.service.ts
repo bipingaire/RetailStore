@@ -254,17 +254,23 @@ export class InvoiceService {
                     });
                 }
 
-                // ── Update retail product stock & batch (both paths) ──────────────
+                // ── Update target product stock & batch ──────────────
+                // If this is a case-bulk item, the stock is kept at the Parent (bulk) level.
+                // If single-level, it goes straight to the retail product.
+                const targetProductId = bulkProduct ? bulkProduct.id : retailProduct.id;
+                const targetQuantity = bulkProduct ? item.quantity : retailUnits;
+                const targetSku = bulkProduct ? bulkProduct.sku : retailProduct.sku;
+
                 await tx.product.update({
-                    where: { id: retailProduct.id },
-                    data: { stock: { increment: retailUnits } },
+                    where: { id: targetProductId },
+                    data: { stock: { increment: targetQuantity } },
                 });
 
                 await tx.productBatch.create({
                     data: {
-                        productId: retailProduct.id,
-                        sku: retailProduct.sku,
-                        quantity: retailUnits,
+                        productId: targetProductId,
+                        sku: targetSku,
+                        quantity: targetQuantity,
                         expiryDate: expiry,
                         receivedDate: new Date(),
                     },
@@ -402,23 +408,21 @@ export class InvoiceService {
 
                     // Look for existing invoice item OR create new if it was added during edit
                     if (item.dbItemId) {
+                        // First get the existing item to calculate stock diff BEFORE we update it!
+                        const existingItem = await tx.vendorInvoiceItem.findUnique({ where: { id: item.dbItemId } });
+
                         await tx.vendorInvoiceItem.update({
                             where: { id: item.dbItemId },
                             data: {
-                                quantity: retailUnits,
-                                unitCost: costPerUnit,
+                                quantity: cases,
+                                unitCost: casePrice,
                                 totalCost: item.totalPrice || (cases * casePrice),
                             }
                         });
 
-                        // We also need to update the uncommitted stock / batch if we are tracking that pre-commit.
-                        // Currently, uploadInvoice adds stock and batches immediately.
-                        // If that's the case, we need to adjust stock differences!
-
-                        // Get current inventory item
-                        const existingItem = await tx.vendorInvoiceItem.findUnique({ where: { id: item.dbItemId } });
+                        // Adjust stock on the Parent (Bulk) product based on cases
                         if (existingItem) {
-                            const diff = retailUnits - existingItem.quantity;
+                            const diff = cases - existingItem.quantity;
                             if (diff !== 0) {
                                 await tx.product.update({
                                     where: { id: productId },
@@ -432,14 +436,14 @@ export class InvoiceService {
                             data: {
                                 invoiceId: id,
                                 productId: productId,
-                                quantity: retailUnits,
-                                unitCost: costPerUnit,
+                                quantity: cases,
+                                unitCost: casePrice,
                                 totalCost: item.totalPrice || (cases * casePrice),
                             }
                         });
                         await tx.product.update({
                             where: { id: productId },
-                            data: { stock: { increment: retailUnits } }
+                            data: { stock: { increment: cases } }
                         });
                     }
                 }
