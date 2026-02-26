@@ -206,9 +206,13 @@ export default function InventoryDashboard() {
                 {hasChildren && <span className="text-[10px] text-blue-400">across {product.children!.length} variant{product.children!.length > 1 ? 's' : ''}</span>}
               </div>
             ) : hasChildren ? (
-              <span className="font-semibold text-blue-700">
-                {product.children!.reduce((s, c) => s + c.total_qty, 0)}
-              </span>
+              <div className="flex flex-col items-center">
+                <span className="font-semibold text-blue-700">
+                  {/* Cases * Units/Case + Loose Child Stock */}
+                  {product.total_qty * (product.children![0]?.units_per_parent ?? 1) +
+                    product.children!.reduce((s, c) => s + c.total_qty, 0)}
+                </span>
+              </div>
             ) : (
               <span className="text-gray-400 text-xs">—</span>
             )}
