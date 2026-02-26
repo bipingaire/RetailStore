@@ -483,6 +483,55 @@ export class InvoiceService {
         }
     }
 
+    async getInvoice(subdomain: string, id: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        return client.vendorInvoice.findUnique({
+            where: { id },
+            include: { items: { include: { product: true } }, vendor: true }
+        });
+    }
+
+    async getInvoiceParsed(subdomain: string, id: string) {
+        const invoice = await this.getInvoice(subdomain, id);
+        if (!invoice) throw new Error('Invoice not found');
+
+        // Format to match the AI parsed output format so the UI works seamlessly
+        return {
+            vendorId: invoice.vendorId,
+            vendorName: invoice.vendor?.name || 'Unknown Vendor',
+            invoiceNumber: invoice.invoiceNumber,
+            invoiceDate: invoice.invoiceDate.toISOString(),
+            totalAmount: Number(invoice.totalAmount),
+            items: invoice.items.map(item => {
+                // Determine bulk properties from the associated product
+                const unitsPerCase = item.product?.unitsPerParent || 1;
+                // If the product is a child (retail unit), quantity in VendorInvoiceItem is retail units.
+                // Normally invoice items are linked to the parent (bulk) product, where total_qty = cases.
+                // We'll calculate cases backward if it's stored as retail units.
+                const isChild = item.product?.isSellable && item.product?.parentId;
+                const cases = isChild ? item.quantity / unitsPerCase : item.quantity;
+
+                return {
+                    dbItemId: item.id,
+                    productId: item.productId,
+                    description: item.product?.name || 'Unknown',
+                    category: item.product?.category || 'General',
+                    quantity: cases,
+                    unitsPerCase: unitsPerCase,
+                    unitSize: '', // Not stored directly on product yet
+                    casePrice: Number(item.unitCost) * unitsPerCase,
+                    costPerUnit: Number(item.unitCost),
+                    unitPrice: Number(item.unitCost),
+                    totalPrice: Number(item.totalCost),
+                    sellingPrice: Number(item.product?.price || 0),
+                    expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // default placeholder
+                }
+            })
+        };
+    }
+
+
     async addInvoiceItems(subdomain: string, invoiceId: string, items: Array<{
         productId: string;
         quantity: number;
