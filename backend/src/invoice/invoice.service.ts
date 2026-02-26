@@ -91,11 +91,12 @@ export class InvoiceService {
                 // When unitsPerCase === 1 we only need one product (the retail unit).
 
                 let retailProduct: any = null;
+                let bulkProduct: any = null;
 
                 if (unitsPerCase > 1) {
                     // --- Parent (Bulk Case) ---
                     const bulkName = `${item.description} (Case of ${unitsPerCase})`;
-                    let bulkProduct = await tx.product.findFirst({
+                    bulkProduct = await tx.product.findFirst({
                         where: { name: { equals: bulkName, mode: 'insensitive' } },
                     });
 
