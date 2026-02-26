@@ -369,7 +369,7 @@ export class InvoiceService {
 
         const invoice = await client.vendorInvoice.findUnique({ where: { id } });
         if (!invoice) throw new Error('Invoice not found');
-        if (invoice.status === 'committed') throw new Error('Cannot edit committed invoice');
+        // Allow editing committed invoices; diff logic below handles stock changes correctly.
 
         return await client.$transaction(async (tx) => {
             // Update invoice header
