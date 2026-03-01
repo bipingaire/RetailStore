@@ -59,6 +59,25 @@ export class CampaignService {
         });
     }
 
+    async getActivePromotions(subdomain: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const now = new Date();
+        return client.promotion.findMany({
+            where: {
+                startDate: { lte: now },
+                endDate: { gte: now },
+            },
+            include: {
+                product: {
+                    select: { id: true, name: true, price: true, imageUrl: true, category: true },
+                },
+            },
+            orderBy: { endDate: 'asc' },
+        });
+    }
+
     async createPromotion(subdomain: string, data: any) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);

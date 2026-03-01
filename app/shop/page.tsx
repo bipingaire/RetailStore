@@ -35,16 +35,31 @@ export default function ShopHome() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Mock promotions - replace with actual API when campaigns endpoint is ready
-  const [promos] = useState<Promotion[]>([
-    {
-      id: 'promo1',
-      discount_type: 'percentage',
-      discount_value: 20,
-      end_date: new Date(Date.now() + 86400000 * 7).toISOString(),
-      productIds: []
+  // Live promotions from backend
+  const [promos, setPromos] = useState<Promotion[]>([]);
+
+  // --- FETCH LIVE PROMOTIONS ---
+  useEffect(() => {
+    async function loadPromos() {
+      try {
+        const data = await apiClient.get('/campaigns/promotions');
+        if (Array.isArray(data)) {
+          const mapped = data.map((p: any) => ({
+            id: p.id,
+            discount_type: p.discountType,
+            discount_value: Number(p.discountValue),
+            end_date: p.endDate,
+            productIds: p.productId ? [p.productId] : [],
+          }));
+          setPromos(mapped);
+        }
+      } catch (_) {
+        // Silently ignore — no promos shown if API is unavailable
+      }
     }
-  ]);
+    loadPromos();
+  }, []);
+
 
   // --- CART LOGIC ---
   useEffect(() => {

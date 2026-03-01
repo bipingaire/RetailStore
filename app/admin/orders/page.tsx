@@ -8,7 +8,6 @@ import { apiClient } from '@/lib/api-client';
 export default function OrderManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tenantId, setTenantId] = useState<string | null>(null);
 
   // Load real data
   useEffect(() => {
@@ -55,6 +54,9 @@ export default function OrderManager() {
     }
 
     init();
+    // Auto-refresh orders every 30 seconds
+    const timer = setInterval(init, 30000);
+    return () => clearInterval(timer);
   }, []);
 
   // Update order status with API
@@ -74,7 +76,7 @@ export default function OrderManager() {
     }
   };
 
-  if (loading && !tenantId) {
+  if (loading && orders.length === 0) {
     return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
   }
 
