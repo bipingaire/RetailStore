@@ -59,6 +59,66 @@ export class CampaignService {
         });
     }
 
+    async getActiveCampaigns(subdomain: string) {
+        const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+        const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+        const now = new Date();
+
+        // Step 1: get active campaigns
+        const activeCampaigns = await client.campaign.findMany({
+            where: {
+                status: 'ACTIVE',
+                OR: [
+                    { startDate: null },
+                    { startDate: { lte: now } },
+                ],
+                AND: [
+                    {
+                        OR: [
+                            { endDate: null },
+                            { endDate: { gte: now } },
+                        ]
+                    }
+                ]
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        if (activeCampaigns.length === 0) return [];
+
+        // Step 2: get all campaignProduct links for those campaigns with product details
+        const campaignIds = activeCampaigns.map(c => c.id);
+        const links = await client.campaignProduct.findMany({
+            where: { campaignId: { in: campaignIds } },
+            include: {
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                        price: true,
+                        imageUrl: true,
+                        category: true,
+                        isSellable: true,
+                        stock: true,
+                    }
+                }
+            }
+        });
+
+        // Step 3: group links by campaignId and attach to campaigns
+        const linksByCampaign: Record<string, any[]> = {};
+        for (const link of links) {
+            if (!linksByCampaign[link.campaignId]) linksByCampaign[link.campaignId] = [];
+            linksByCampaign[link.campaignId].push(link);
+        }
+
+        return activeCampaigns.map(c => ({
+            ...c,
+            products: (linksByCampaign[c.id] || []),
+        }));
+    }
+
     async getActivePromotions(subdomain: string) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);

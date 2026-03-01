@@ -20,6 +20,11 @@ export class CampaignController {
         return this.campaignService.getActivePromotions(tenantId);
     }
 
+    @Get('active')
+    async getActiveCampaigns(@Headers('x-tenant') tenantId: string) {
+        return this.campaignService.getActiveCampaigns(tenantId);
+    }
+
     @Put(':id')
     async update(@Headers('x-tenant') tenantId: string, @Param('id') id: string, @Body() body: any) {
         return this.campaignService.updateCampaign(tenantId, id, body);
