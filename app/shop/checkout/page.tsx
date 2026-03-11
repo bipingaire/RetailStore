@@ -20,6 +20,7 @@ function CheckoutContent() {
     const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Confirmation
     const [user, setUser] = useState<any>(null);
     const [checkingAuth, setCheckingAuth] = useState(true);
+    const [taxRate, setTaxRate] = useState<number>(0);
 
     // Form state
     const [customerName, setCustomerName] = useState('');

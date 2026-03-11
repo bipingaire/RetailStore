@@ -1,84 +1,107 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Package, CheckCircle, Clock, MapPin, Phone, DollarSign, Loader2, ShoppingBag } from 'lucide-react';
+import {
+  Package, CheckCircle, Clock, MapPin, Phone,
+  Loader2, ShoppingBag, CreditCard, Banknote,
+  ChevronDown, RefreshCw, XCircle
+} from 'lucide-react';
 import { toast } from 'sonner';
-
 import { apiClient } from '@/lib/api-client';
+
+const STATUS_FLOW = ['pending', 'confirmed', 'processing', 'ready', 'delivered', 'completed'];
+
+const STATUS_STYLES: Record<string, string> = {
+  pending: 'bg-yellow-100 border-yellow-200 text-yellow-800',
+  confirmed: 'bg-blue-100 border-blue-200 text-blue-800',
+  processing: 'bg-indigo-100 border-indigo-200 text-indigo-800',
+  ready: 'bg-purple-100 border-purple-200 text-purple-800',
+  delivered: 'bg-cyan-100 border-cyan-200 text-cyan-800',
+  completed: 'bg-green-100 border-green-200 text-green-800',
+  cancelled: 'bg-red-100 border-red-200 text-red-800',
+};
+
+const NEXT_ACTION: Record<string, { label: string; next: string; color: string }> = {
+  pending: { label: '✓ Mark Fulfilled', next: 'completed', color: 'bg-green-600 hover:bg-green-700' },
+  confirmed: { label: '✓ Mark Fulfilled', next: 'completed', color: 'bg-green-600 hover:bg-green-700' },
+  processing: { label: '✓ Mark Fulfilled', next: 'completed', color: 'bg-green-600 hover:bg-green-700' },
+  ready: { label: '✓ Mark Fulfilled', next: 'completed', color: 'bg-green-600 hover:bg-green-700' },
+  delivered: { label: '✓ Mark Fulfilled', next: 'completed', color: 'bg-green-600 hover:bg-green-700' },
+};
 
 export default function OrderManager() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  // Load real data
-  useEffect(() => {
-    async function init() {
-      try {
-        setLoading(true);
-        // Fetch sales with customer info
-        // The findAll endpoint includes items. We might need to ensure it includes customer too.
-        // Let's assume standard findAll returns what we need or update service if customer is missing.
-        // backend findAll uses prisma include items. Customer is relation on Sale.
-        // I need to check if customer is included. SaleService.findAll currently only includes items.
-        // I will update SaleService.findAll to include customer as well in a separate step if needed, 
-        // but for now let's try to fetch and see. 
-        // Actually, looking at SaleService.findAll in previous step: `include: { items: true }`.
-        // It does NOT include customer.
-        // I should probably update Backend first to include Customer, otherwise 'customer-name' will be empty.
-        // But let's proceed with frontend mapping first and use 'Guest' if missing, then fix backend.
-
-        const sales = await apiClient.get('/sales');
-
-        if (Array.isArray(sales)) {
-          const mappedOrders = sales.map((sale: any) => ({
-            'order-id': sale.id,
-            'customer-name': sale.customer?.name || 'Guest Customer',
-            'customer-phone': sale.customer?.phone || 'No Phone',
-            'final-amount': Number(sale.total),
-            'created-at': sale.createdAt,
-            'order-status-code': sale.status?.toLowerCase() || 'pending',
-            'fulfillment-type': 'delivery', // identifying fulfillment type isn't in schema yet, default to delivery
-            items: sale.items?.map((item: any) => ({
-              'quantity-ordered': item.quantity,
-              'product-name': item.product?.name || 'Unknown Product' // Include product in findAll logic
-            }))
-          }));
-          // Sort by date desc
-          setOrders(mappedOrders.sort((a, b) => new Date(b['created-at']).getTime() - new Date(a['created-at']).getTime()));
-        }
-      } catch (error) {
-        console.error("Failed to load orders", error);
-        toast.error("Failed to load orders");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    init();
-    // Auto-refresh orders every 30 seconds
-    const timer = setInterval(init, 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Update order status with API
-  const updateStatus = async (id: string, newStatus: string) => {
-    // Optimistic update
-    const previousOrders = [...orders];
-    setOrders(prev => prev.map(o =>
-      o['order-id'] === id ? { ...o, 'order-status-code': newStatus } : o
-    ));
-
+  const fetchOrders = async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
     try {
-      await apiClient.patch(`/sales/${id}/status`, { status: newStatus.toUpperCase() });
-      toast.success(`Order marked as ${newStatus}`);
-    } catch (error) {
-      toast.error("Failed to update status");
-      setOrders(previousOrders); // Revert
+      const sales = await apiClient.get('/sales');
+      if (Array.isArray(sales)) {
+        const mapped = sales.map((sale: any) => ({
+          id: sale.id,
+          customerName: sale.customer?.name || sale.guestName || 'Guest Customer',
+          customerPhone: sale.customer?.phone || sale.guestPhone || '—',
+          total: Number(sale.total),
+          createdAt: sale.createdAt,
+          status: (sale.status || 'PENDING').toLowerCase(),
+          paymentMethod: sale.paymentMethod || 'cash',
+          paymentStatus: sale.paymentStatus || 'pending',
+          items: (sale.items || []).map((item: any) => ({
+            qty: item.quantity,
+            name: item.product?.name || item.productName || 'Unknown Product',
+            price: Number(item.unitPrice || 0),
+          })),
+        }));
+        setOrders(mapped.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      }
+    } catch {
+      toast.error('Failed to load orders');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  if (loading && orders.length === 0) {
-    return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
-  }
+  useEffect(() => {
+    fetchOrders();
+    const timer = setInterval(() => fetchOrders(true), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const updateStatus = async (id: string, newStatus: string) => {
+    setUpdatingId(id);
+    // Optimistic update
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
+    try {
+      await apiClient.patch(`/sales/${id}/status`, { status: newStatus.toUpperCase() });
+      toast.success(`Order marked as ${newStatus}`);
+    } catch {
+      toast.error('Failed to update order status');
+      fetchOrders(true); // Revert to real data
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const cancelOrder = async (id: string) => {
+    if (!confirm('Cancel this order?')) return;
+    await updateStatus(id, 'cancelled');
+  };
+
+  const visibleOrders = filterStatus === 'all'
+    ? orders
+    : orders.filter(o => o.status === filterStatus);
+
+  const counts = orders.reduce((acc, o) => {
+    acc[o.status] = (acc[o.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  if (loading) return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" size={32} /></div>;
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
@@ -88,115 +111,130 @@ export default function OrderManager() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <ShoppingBag className="text-blue-600" />
-              Order Fulfillment
+              <ShoppingBag className="text-blue-600" /> Order Fulfillment
             </h1>
-            <p className="text-sm text-gray-500">Manage incoming customer orders.</p>
+            <p className="text-sm text-gray-500">{orders.length} total orders · auto-refreshes every 30s</p>
           </div>
-          <div className="bg-white border border-green-200 px-3 py-1 rounded-full shadow-sm text-xs font-bold text-green-700 flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Live
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => fetchOrders(true)}
+              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+              title="Refresh now"
+            >
+              <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+            </button>
+            <div className="bg-white border border-green-200 px-3 py-1 rounded-full shadow-sm text-xs font-bold text-green-700 flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> Live
+            </div>
           </div>
         </div>
 
-        {/* ORDER GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {orders.map((order) => (
-            <div key={order['order-id']} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
-
-              {/* Header */}
-              <div className={`px-5 py-4 border-b border-gray-100 flex justify-between items-start bg-gradient-to-r ${order['order-status-code'] === 'pending' ? 'from-yellow-50 to-white' :
-                order['order-status-code'] === 'confirmed' ? 'from-blue-50 to-white' :
-                  'from-gray-50 to-white'
-                }`}>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${order['order-status-code'] === 'pending' ? 'bg-yellow-100 border-yellow-200 text-yellow-800' :
-                      order['order-status-code'] === 'completed' ? 'bg-green-100 border-green-200 text-green-800' :
-                        'bg-gray-100 border-gray-200 text-gray-600'
-                      }`}>
-                      {order['order-status-code']}
-                    </span>
-                    <span className="font-mono text-xs text-gray-400">#{order['order-id'].slice(0, 4)}</span>
-                  </div>
-
-                  {/* Customer Info */}
-                  <div className="flex flex-col">
-                    <div className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                      {order['customer-name'] || 'Guest Customer'}
-                    </div>
-                    <div className="text-xs text-gray-500 flex items-center gap-1">
-                      <Phone size={10} /> {order['customer-phone'] || 'No Phone'}
-                    </div>
-                  </div>
-
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-black text-gray-900">${order['final-amount']}</div>
-
-                  <div className="text-[10px] uppercase font-bold text-gray-400 flex items-center justify-end gap-1 mt-1">
-                    {order['fulfillment-type'] === 'delivery' ? <MapPin size={10} /> : <Package size={10} />} {order['fulfillment-type']}
-                  </div>
-                </div>
-              </div>
-
-              {/* Items */}
-              <div className="p-5 space-y-3 flex-1 overflow-y-auto max-h-64">
-                {order.items?.map((item: any, i: number) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 shrink-0 overflow-hidden flex items-center justify-center">
-                      <Package size={16} className="text-gray-300" />
-                    </div>
-                    <div className="text-sm leading-tight">
-                      <span className="font-bold text-gray-900 mr-1">{item['quantity-ordered']}x</span>
-                      <span className="text-gray-600">{item['product-name']}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Actions */}
-              <div className="p-4 border-t border-gray-100 bg-gray-50/50 mt-auto">
-                {order['order-status-code'] === 'pending' && (
-                  <button
-                    onClick={() => updateStatus(order['order-id'], 'confirmed')}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
-                  >
-                    <CheckCircle size={16} /> Confirm Order
-                  </button>
-                )}
-                {order['order-status-code'] === 'confirmed' && (
-                  <button
-                    onClick={() => updateStatus(order['order-id'], 'delivered')}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
-                  >
-                    <Package size={16} /> Mark Delivered
-                  </button>
-                )}
-                {order['order-status-code'] === 'delivered' && (
-                  <button
-                    onClick={() => updateStatus(order['order-id'], 'completed')}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
-                  >
-                    <CheckCircle size={16} /> Mark as Fulfilled
-                  </button>
-                )}
-                {order['order-status-code'] === 'completed' && (
-                  <div className="text-center text-xs font-bold text-gray-400 uppercase py-2 flex items-center justify-center gap-2">
-                    <CheckCircle size={14} /> Order Fulfilled
-                  </div>
-                )}
-              </div>
-
-            </div>
+        {/* STATUS FILTER TABS */}
+        <div className="flex gap-2 flex-wrap">
+          {['all', 'pending', 'confirmed', 'processing', 'ready', 'delivered', 'completed'].map(s => (
+            <button
+              key={s}
+              onClick={() => setFilterStatus(s)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${filterStatus === s
+                ? 'bg-gray-900 text-white border-gray-900'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
+            >
+              {s === 'all' ? 'All Orders' : s.charAt(0).toUpperCase() + s.slice(1)}
+              {s !== 'all' && counts[s] ? ` (${counts[s]})` : ''}
+              {s === 'all' ? ` (${orders.length})` : ''}
+            </button>
           ))}
+        </div>
 
-          {orders.length === 0 && !loading && (
-            <div className="col-span-full py-20 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
-                <Clock size={32} />
+        {/* ORDER GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {visibleOrders.map((order) => {
+            const action = NEXT_ACTION[order.status];
+            const isUpdating = updatingId === order.id;
+
+            return (
+              <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden">
+
+                {/* Card Header */}
+                <div className={`px-5 py-3 flex justify-between items-start bg-gradient-to-r ${
+                  order.status === 'completed' ? 'from-green-50' :
+                  order.status === 'pending' ? 'from-yellow-50' :
+                  order.status === 'cancelled' ? 'from-red-50' : 'from-blue-50'
+                } to-white border-b border-gray-100`}>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${STATUS_STYLES[order.status] || STATUS_STYLES.pending}`}>
+                        {order.status}
+                      </span>
+                      <span className="font-mono text-xs text-gray-400">#{order.id.slice(0, 6)}</span>
+                    </div>
+                    <div className="font-bold text-gray-900">{order.customerName}</div>
+                    {order.customerPhone !== '—' && (
+                      <div className="text-xs text-gray-500 flex items-center gap-1">
+                        <Phone size={10} /> {order.customerPhone}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-black text-gray-900">${order.total.toFixed(2)}</div>
+                    <div className="flex items-center gap-1 text-[10px] text-gray-500 justify-end mt-0.5">
+                      {order.paymentMethod === 'cash' ? <Banknote size={10} /> : <CreditCard size={10} />}
+                      {order.paymentMethod}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Items */}
+                <div className="p-4 space-y-1.5 flex-1 overflow-y-auto max-h-48">
+                  {order.items?.map((item: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 bg-gray-100 rounded text-[10px] font-bold flex items-center justify-center text-gray-600">{item.qty}</span>
+                        <span className="text-gray-700 line-clamp-1">{item.name}</span>
+                      </div>
+                      <span className="text-gray-500 font-mono text-xs shrink-0">${(item.price * item.qty).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Footer */}
+                <div className="p-3 border-t border-gray-100 bg-gray-50/50 space-y-2">
+                  {order.status !== 'completed' && order.status !== 'cancelled' && action ? (
+                    <button
+                      onClick={() => updateStatus(order.id, action.next)}
+                      disabled={isUpdating}
+                      className={`w-full ${action.color} disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 shadow-sm transition-colors`}
+                    >
+                      {isUpdating
+                        ? <><Loader2 size={14} className="animate-spin" /> Updating...</>
+                        : <><CheckCircle size={14} /> {action.label}</>}
+                    </button>
+                  ) : order.status === 'completed' ? (
+                    <div className="text-center text-xs font-bold text-green-600 flex items-center justify-center gap-1.5 py-2">
+                      <CheckCircle size={14} /> Order Fulfilled
+                    </div>
+                  ) : (
+                    <div className="text-center text-xs font-bold text-red-500 py-2">Cancelled</div>
+                  )}
+
+                  {order.status !== 'completed' && order.status !== 'cancelled' && (
+                    <button
+                      onClick={() => cancelOrder(order.id)}
+                      className="w-full text-xs text-gray-400 hover:text-red-600 flex items-center justify-center gap-1 transition-colors py-1"
+                    >
+                      <XCircle size={12} /> Cancel Order
+                    </button>
+                  )}
+                </div>
+
               </div>
-              <h3 className="text-gray-900 font-bold mb-1">No Orders Found</h3>
-              <p className="text-gray-500 text-sm">Checked for tenant: {tenantId}</p>
+            );
+          })}
+
+          {visibleOrders.length === 0 && (
+            <div className="col-span-full py-20 text-center">
+              <Clock className="mx-auto text-gray-300 mb-4" size={40} />
+              <h3 className="text-gray-500 font-semibold">No {filterStatus === 'all' ? '' : filterStatus} orders</h3>
             </div>
           )}
         </div>
