@@ -221,7 +221,7 @@ export default function OrderManager() {
 
                 {/* Action Footer */}
                 <div className="p-3 border-t border-gray-100 bg-gray-50/50 space-y-2">
-                  {order.paymentStatus !== 'paid' && order.status !== 'cancelled' && (
+                  {order.paymentMethod === 'cash' && order.paymentStatus !== 'paid' && order.status !== 'cancelled' && (
                     <button
                       onClick={() => updatePaymentStatus(order.id, 'PAID')}
                       disabled={isUpdating}
@@ -229,7 +229,7 @@ export default function OrderManager() {
                     >
                       {isUpdating && <Loader2 size={12} className="animate-spin" />}
                       {!isUpdating && <Banknote size={12} />}
-                      Mark Payment Collected
+                      Payment Done
                     </button>
                   )}
 
