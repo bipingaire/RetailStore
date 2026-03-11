@@ -211,7 +211,39 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
 
                     adjustments.push({ productName: item.description, qty: item.quantitySold, matched: true });
                 } else {
-                    adjustments.push({ productName: item.description, qty: item.quantitySold, matched: false });
+                    // Product NOT in inventory yet — create it with negative stock
+                    // so that when the invoice is processed later, the increment naturally reconciles
+                    const newProduct = await tx.product.create({
+                        data: {
+                            name: item.description.trim(),
+                            sku: `ZRPT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                            category: item.category || 'General',
+                            description: `Auto-created from Z-Report: ${reportNumber}`,
+                            price: item.unitPrice ? new (require('@prisma/client').Prisma.Decimal)(item.unitPrice) : undefined,
+                            costPrice: item.unitPrice ? new (require('@prisma/client').Prisma.Decimal)(item.unitPrice) : undefined,
+                            stock: -item.quantitySold,   // negative — will be corrected when invoiced
+                            reorderLevel: 0,
+                            isActive: true,
+                            isSellable: true,
+                            unitsPerParent: 1,
+                        },
+                    });
+
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: newProduct.id,
+                            type: 'OUT',
+                            quantity: item.quantitySold,
+                            description: `Z-Report (auto-created): ${reportNumber}`,
+                        },
+                    });
+
+                    adjustments.push({
+                        productName: item.description,
+                        qty: item.quantitySold,
+                        matched: false,
+                        autoCreated: true,
+                    } as any);
                 }
             }
         });

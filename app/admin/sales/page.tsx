@@ -222,11 +222,11 @@ export default function SalesSyncPage() {
               </div>
               <div className="bg-white rounded-lg p-3 border border-green-200 text-center">
                 <div className="text-2xl font-bold text-green-600">{(committed.adjustments?.filter((a: any) => a.matched) || []).length}</div>
-                <div className="text-xs text-gray-500 mt-1">Stock Updated</div>
+                <div className="text-xs text-gray-500 mt-1">Stock Deducted</div>
               </div>
-              <div className="bg-white rounded-lg p-3 border border-amber-200 text-center">
-                <div className="text-2xl font-bold text-amber-600">{committed.unmatchedCount || 0}</div>
-                <div className="text-xs text-gray-500 mt-1">Not Matched</div>
+              <div className="bg-white rounded-lg p-3 border border-purple-200 text-center">
+                <div className="text-2xl font-bold text-purple-600">{(committed.adjustments?.filter((a: any) => a.autoCreated) || []).length}</div>
+                <div className="text-xs text-gray-500 mt-1">Created (−stock)</div>
               </div>
             </div>
             {committed.adjustments?.length > 0 && (
@@ -246,8 +246,10 @@ export default function SalesSyncPage() {
                         <td className="px-4 py-2 text-center font-semibold text-red-600">-{a.qty}</td>
                         <td className="px-4 py-2 text-center">
                           {a.matched
-                            ? <span className="text-green-600 font-medium text-xs">✓ Updated</span>
-                            : <span className="text-amber-600 font-medium text-xs">⚠ Not Found</span>}
+                            ? <span className="text-green-600 font-medium text-xs">✓ Deducted</span>
+                            : a.autoCreated
+                              ? <span className="text-purple-600 font-medium text-xs">★ Created (−{a.qty})</span>
+                              : <span className="text-amber-600 font-medium text-xs">⚠ Not Found</span>}
                         </td>
                       </tr>
                     ))}
