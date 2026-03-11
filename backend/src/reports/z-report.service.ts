@@ -19,21 +19,12 @@ export class ZReportService {
     // ──────────────────────────────────────────────────────────────
     //  1. OCR PARSE  (same as invoice but Z-report prompt)
     // ──────────────────────────────────────────────────────────────
-    async parseZReport(fileUrl: string): Promise<any> {
+    async parseZReport(buffer: Buffer, originalname: string): Promise<any> {
         if (!process.env.OPENAI_API_KEY) {
             throw new BadRequestException('OPENAI_API_KEY is not configured');
         }
 
-        const publicDir = path.join(process.cwd(), '..', 'public');
-        const relativePath = fileUrl.startsWith('/') ? fileUrl.substring(1) : fileUrl;
-        const filePath = path.join(publicDir, relativePath);
-
-        if (!fs.existsSync(filePath)) {
-            throw new BadRequestException(`File not found: ${filePath}`);
-        }
-
-        const ext = path.extname(filePath).toLowerCase();
-        const buffer = fs.readFileSync(filePath);
+        const ext = path.extname(originalname).toLowerCase();
         let promptContent: any[] = [];
 
         const Z_PROMPT = `You are analysing a POS Z-Report (end-of-day sales report).
@@ -108,8 +99,30 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
         });
 
         const raw = completion.choices[0].message.content || '{}';
-        const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-        const data = JSON.parse(cleaned);
+        console.log('🤖 OpenAI Z-Report raw response:', raw.substring(0, 500));
+
+        // Robust JSON extraction — handles markdown fences + surrounding text
+        let data: any = {};
+        try {
+            // Strip markdown code fences first
+            let cleaned = raw
+                .replace(/```json\s*/gi, '')
+                .replace(/```\s*/gi, '')
+                .trim();
+
+            // Extract the first JSON object/array if there's surrounding text
+            const jsonMatch = cleaned.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+            if (jsonMatch) {
+                cleaned = jsonMatch[0];
+            }
+
+            data = JSON.parse(cleaned);
+        } catch (parseErr: any) {
+            console.error('❌ Z-Report JSON parse failed. Raw response was:', raw);
+            throw new BadRequestException(
+                `Failed to parse OCR response as JSON. Raw AI response: ${raw.substring(0, 300)}`
+            );
+        }
 
         return {
             reportDate: data.reportDate || new Date().toISOString().split('T')[0],

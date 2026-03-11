@@ -5,8 +5,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ZReportService } from './z-report.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import * as path from 'path';
-import * as fs from 'fs';
 
 @Controller('reports/z-report')
 @UseGuards(JwtAuthGuard)
@@ -23,21 +21,10 @@ export class ZReportController {
         try {
             if (!file) throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
 
-            // Save file to temp dir
-            const uploadDir = path.join(process.cwd(), '..', 'public', 'uploads', 'temp');
-            if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-            const filename = `${Date.now()}-${file.originalname}`;
-            const filepath = path.join(uploadDir, filename);
-            if (file.buffer) {
-                fs.writeFileSync(filepath, file.buffer);
-            } else if (file.path) {
-                fs.copyFileSync(file.path, filepath);
-            }
-
-            const fileUrl = `/uploads/temp/${filename}`;
-            const result = await this.zReportService.parseZReport(fileUrl);
-            return { ...result, fileUrl };
+            // Pass the in-memory buffer directly — no temp file needed
+            const buffer: Buffer = file.buffer;
+            const result = await this.zReportService.parseZReport(buffer, file.originalname);
+            return result;
         } catch (err: any) {
             throw new HttpException(
                 { message: err.message || 'Z-Report parsing failed' },
