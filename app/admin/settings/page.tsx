@@ -55,7 +55,8 @@ export default function SettingsPage() {
   // Payment State
   const [paymentConfig, setPaymentConfig] = useState({
     stripe_publishable_key: '',
-    stripe_secret_key: ''
+    stripe_secret_key: '',
+    tax_rate: '8' // default
   });
 
   useEffect(() => {
@@ -124,9 +125,11 @@ export default function SettingsPage() {
       try {
         const pubKeyRes = await apiClient.get('/settings/stripe_publishable_key');
         const secKeyRes = await apiClient.get('/settings/stripe_secret_key');
+        const taxRes = await apiClient.get('/settings/tax_rate');
         setPaymentConfig({
           stripe_publishable_key: pubKeyRes?.value || '',
-          stripe_secret_key: secKeyRes?.value || ''
+          stripe_secret_key: secKeyRes?.value || '',
+          tax_rate: taxRes?.value || '8'
         });
       } catch (e) {
         console.error("Failed to load payment settings", e);
@@ -187,9 +190,10 @@ export default function SettingsPage() {
     try {
       await apiClient.post('/settings', { key: 'stripe_publishable_key', value: paymentConfig.stripe_publishable_key });
       await apiClient.post('/settings', { key: 'stripe_secret_key', value: paymentConfig.stripe_secret_key });
-      toast.success('Payment settings saved');
+      await apiClient.post('/settings', { key: 'tax_rate', value: paymentConfig.tax_rate.toString() });
+      toast.success('Payment & Tax settings saved');
     } catch (e) {
-      toast.error('Failed to save payment settings');
+      toast.error('Failed to save payment & tax settings');
     } finally {
       setLoading(false);
     }
@@ -226,7 +230,7 @@ export default function SettingsPage() {
               <CreditCard size={16} /> Billing
             </button>
             <button onClick={() => setActiveTab('payment')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'payment' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-              <DollarSign size={16} /> Payment
+              <DollarSign size={16} /> Payment & Tax
             </button>
           </div>
 
@@ -423,12 +427,24 @@ export default function SettingsPage() {
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <CreditCard className="text-blue-600" size={20} /> Payment Configuration
+                    <CreditCard className="text-blue-600" size={20} /> Payment & Tax Configuration
                   </h3>
-                  <p className="text-sm text-gray-500 mb-6">Configure payment gateways for your store checkout.</p>
+                  <p className="text-sm text-gray-500 mb-6">Configure payment gateways and standard checkout tax rate.</p>
 
                   <div className="grid grid-cols-1 gap-4 max-w-lg">
                     <div>
+                      <label className="block text-xs font-bold text-gray-900 mb-1">Tax Rate (%)</label>
+                      <input
+                        type="number"
+                        value={paymentConfig.tax_rate}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, tax_rate: e.target.value })}
+                        placeholder="e.g. 8.5"
+                        step="0.01"
+                        className="w-1/3 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors"
+                      />
+                      <p className="text-[10px] text-gray-500 mt-1">This rate applies to all shop checkouts.</p>
+                    </div>
+                    <div className="pt-4 border-t border-gray-100 mt-2">
                       <label className="block text-xs font-medium text-gray-700 mb-1">Stripe Publishable Key</label>
                       <input
                         type="text"

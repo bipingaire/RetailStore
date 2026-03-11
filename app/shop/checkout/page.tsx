@@ -58,6 +58,7 @@ function CheckoutContent() {
 
     useEffect(() => {
         checkUser();
+        fetchTaxRate();
         const savedCart = localStorage.getItem('retail_cart');
         if (savedCart) {
             const cartData = JSON.parse(savedCart);
@@ -82,6 +83,18 @@ function CheckoutContent() {
         if (userSession.phone) setCustomerPhone(userSession.phone);
 
         setCheckingAuth(false);
+    }
+
+    async function fetchTaxRate() {
+        try {
+            const res = await apiClient.get('/settings/tax_rate');
+            if (res && res.value) {
+                setTaxRate(parseFloat(res.value) || 0);
+            }
+        } catch (error) {
+            console.error("Failed to fetch tax rate:", error);
+            setTaxRate(0); // Default to 0 if failed
+        }
     }
 
     async function loadCartItems(cartData: Record<string, number>) {
@@ -112,7 +125,7 @@ function CheckoutContent() {
     }
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.08; // 8% tax
+    const tax = subtotal * (taxRate / 100);
     const deliveryFee = fulfillmentType === 'delivery' ? 5.99 : 0;
     const total = subtotal + tax + deliveryFee;
 
@@ -560,7 +573,7 @@ function CheckoutContent() {
                                     <span className="font-bold">${subtotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span>Tax (8%)</span>
+                                    <span>Tax ({taxRate}%)</span>
                                     <span className="font-bold">${tax.toFixed(2)}</span>
                                 </div>
                                 {fulfillmentType === 'delivery' && (
