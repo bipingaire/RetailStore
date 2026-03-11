@@ -87,6 +87,22 @@ export default function OrderManager() {
     }
   };
 
+  const updatePaymentStatus = async (id: string, newStatus: string) => {
+    setUpdatingId(id);
+    // Optimistic update
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, paymentStatus: newStatus } : o));
+    try {
+      await apiClient.patch(`/sales/${id}/payment-status`, { paymentStatus: newStatus.toUpperCase() });
+      toast.success(`Payment marked as ${newStatus}`);
+    } catch {
+      toast.error('Failed to update payment status');
+      fetchOrders(true); // Revert to real data
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+
   const cancelOrder = async (id: string) => {
     if (!confirm('Cancel this order?')) return;
     await updateStatus(id, 'cancelled');
@@ -177,12 +193,18 @@ export default function OrderManager() {
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-black text-gray-900">${order.total.toFixed(2)}</div>
-                    <div className="flex items-center gap-1 text-[10px] text-gray-500 justify-end mt-0.5">
-                      {order.paymentMethod === 'cash' ? <Banknote size={10} /> : <CreditCard size={10} />}
-                      {order.paymentMethod}
+                    <div className="flex flex-col items-end gap-1 mt-1">
+                      <div className="flex items-center gap-1 text-[10px] text-gray-500 justify-end">
+                        {order.paymentMethod === 'cash' ? <Banknote size={10} /> : <CreditCard size={10} />}
+                        {order.paymentMethod}
+                      </div>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {order.paymentStatus === 'paid' ? 'PAID' : 'UNPAID'}
+                      </span>
                     </div>
                   </div>
                 </div>
+
 
                 {/* Items */}
                 <div className="p-4 space-y-1.5 flex-1 overflow-y-auto max-h-48">
@@ -199,6 +221,18 @@ export default function OrderManager() {
 
                 {/* Action Footer */}
                 <div className="p-3 border-t border-gray-100 bg-gray-50/50 space-y-2">
+                  {order.paymentStatus !== 'paid' && order.status !== 'cancelled' && (
+                    <button
+                      onClick={() => updatePaymentStatus(order.id, 'PAID')}
+                      disabled={isUpdating}
+                      className="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors border border-emerald-200"
+                    >
+                      {isUpdating && <Loader2 size={12} className="animate-spin" />}
+                      {!isUpdating && <Banknote size={12} />}
+                      Mark Payment Collected
+                    </button>
+                  )}
+
                   {order.status !== 'completed' && order.status !== 'cancelled' && action ? (
                     <button
                       onClick={() => updateStatus(order.id, action.next)}
@@ -226,6 +260,7 @@ export default function OrderManager() {
                     </button>
                   )}
                 </div>
+
 
               </div>
             );

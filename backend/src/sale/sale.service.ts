@@ -29,6 +29,8 @@ export class SaleService {
           discount: data.discount ?? 0,   // required in schema, default 0
           total: data.total,
           status: 'COMPLETED',
+          paymentMethod: data.paymentMethod || 'CASH',
+          paymentStatus: data.paymentMethod === 'CARD' ? 'PAID' : 'PENDING',
           items: {
             create: data.items.map((item: any) => ({
               productId: item.productId,
@@ -231,14 +233,6 @@ export class SaleService {
 
     return { success: true, processed: results };
   }
-  async updateSaleStatus(subdomain: string, id: string, status: string) {
-    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
-    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    return client.sale.update({
-      where: { id },
-      data: { status }
-    });
-  }
 
   async createPaymentIntent(subdomain: string, amount: number, currency: string = 'usd') {
     const secretKey = await this.settingsService.getSetting(subdomain, 'stripe_secret_key');
@@ -261,5 +255,43 @@ export class SaleService {
     return {
       clientSecret: paymentIntent.client_secret,
     };
+  }
+
+  async updateSaleStatus(subdomain: string, saleId: string, status: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    const validStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'READY', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
+    const upperStatus = status.toUpperCase();
+
+    if (!validStatuses.includes(upperStatus)) {
+      throw new NotFoundException(`Invalid status: ${status}. Valid: ${validStatuses.join(', ')}`);
+    }
+
+    const updated = await client.sale.update({
+      where: { id: saleId },
+      data: { status: upperStatus as any },
+    });
+
+    return { success: true, id: updated.id, status: updated.status };
+  }
+
+  async updatePaymentStatus(subdomain: string, saleId: string, paymentStatus: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    const validStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
+    const upperStatus = paymentStatus.toUpperCase();
+
+    if (!validStatuses.includes(upperStatus)) {
+      throw new NotFoundException(`Invalid payment status: ${paymentStatus}. Valid: ${validStatuses.join(', ')}`);
+    }
+
+    const updated = await client.sale.update({
+      where: { id: saleId },
+      data: { paymentStatus: upperStatus },
+    });
+
+    return { success: true, id: updated.id, paymentStatus: updated.paymentStatus };
   }
 }

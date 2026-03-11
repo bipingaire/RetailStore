@@ -79,6 +79,15 @@ export class SaleController {
     return this.saleService.updateSaleStatus(subdomain, id, body.status);
   }
 
+  @Patch(':id/payment-status')
+  updatePaymentStatus(
+    @Headers('x-tenant') subdomain: string,
+    @Param('id') id: string,
+    @Body() body: { paymentStatus: string },
+  ) {
+    return this.saleService.updatePaymentStatus(subdomain, id, body.paymentStatus);
+  }
+
   @Post('payment-intent')
   createPaymentIntent(
     @Headers('x-tenant') subdomain: string,
