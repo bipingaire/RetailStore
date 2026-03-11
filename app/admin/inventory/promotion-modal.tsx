@@ -17,9 +17,10 @@ export default function PromotionModal({ product, batch, onClose }: any) {
 
   useEffect(() => {
     apiClient.get('/campaigns')
-      .then(({ data }) => {
-        // Map backend 'name' to frontend 'title'
-        const mapped = (data || []).map((c: any) => ({ ...c, title: c.name }));
+      .then((data: any) => {
+        // apiClient returns the data directly (not wrapped in { data })
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        const mapped = list.map((c: any) => ({ ...c, title: c.name || c.title }));
         setCampaigns(mapped);
       })
       .catch(console.error);

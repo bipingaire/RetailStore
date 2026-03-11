@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal, Edit3, Trash2, Layers, Box } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronDown, ChevronUp, Tag, Search, Package, Filter, SlidersHorizontal, Edit3, Trash2, Layers, Box, Plus } from 'lucide-react';
 import PromotionModal from './promotion-modal';
 import EditProductModal from './edit-product-modal';
 import { toast } from 'sonner';
@@ -235,6 +235,14 @@ export default function InventoryDashboard() {
           </td>
           <td className="px-6 py-4 text-right">
             <div className="flex items-center justify-end gap-2">
+              {/* Create Store Offer */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setPromoTarget({ product }); }}
+                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                title="Create Store Offer"
+              >
+                <Tag size={16} />
+              </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setEditingProduct(product); }}
                 className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
