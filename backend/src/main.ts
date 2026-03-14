@@ -45,6 +45,9 @@ async function bootstrap() {
     transform: true,
   }));
 
+  const path = require('path');
+  app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+
   app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3001;
