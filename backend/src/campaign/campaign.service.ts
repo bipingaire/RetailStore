@@ -177,13 +177,45 @@ export class CampaignService {
         });
     }
 
-    async generateCampaignContent(data: { products: any[] }) {
-        // Mock AI Generation
-        const productNames = data.products.map((p) => p.name || 'our products').join(', ');
+    async generateCampaignContent(data: { products: any[], campaignTitle?: string, campaignType?: string }) {
+        const openaiKey = process.env.OPENAI_API_KEY;
+        const productNames = data.products.map((p) => p.name || 'product').slice(0, 5).join(', ');
+        const campaignTitle = data.campaignTitle || 'Flash Sale';
+        const campaignType = (data.campaignType || 'FLASH_SALE').replace(/_/g, ' ');
+        const captionPost = `🎉 ${campaignType} Alert! 🚀\n\nCheck out amazing deals on ${productNames}!\n\nGet the best prices this week only. Don't miss out! #Sale #Deals #${campaignTitle.replace(/\s+/g, '')}`;
 
-        return {
-            post: `🎉 Flash Sale Alert! 🚀\n\nCheck out amazing deals on ${productNames}! \n\nGet 20% OFF this week only. Don't miss out! #Sale #Deals`,
-            image: 'https://via.placeholder.com/600x400?text=Sale+Campaign',
-        };
+        if (!openaiKey) {
+            return {
+                post: captionPost,
+                image: `https://placehold.co/1024x1024/1a3c5e/ffffff?text=${encodeURIComponent(campaignTitle)}`,
+            };
+        }
+
+        try {
+            const OpenAI = require('openai').default || require('openai');
+            const client = new OpenAI({ apiKey: openaiKey });
+
+            const prompt = `A vibrant, professional retail promotional poster for a "${campaignTitle}" campaign. Products featured: ${productNames}. Campaign type: ${campaignType}. Style: modern, colorful, eye-catching store advertisement with bold text areas, product showcase layout, bright background with sale badges. High quality commercial marketing photography style. No people, no text overlay.`;
+
+            const response = await client.images.generate({
+                model: 'dall-e-3',
+                prompt,
+                n: 1,
+                size: '1024x1024',
+                quality: 'standard',
+            });
+
+            const imageUrl = response.data?.[0]?.url || '';
+            return {
+                post: captionPost,
+                image: imageUrl,
+            };
+        } catch (err: any) {
+            console.error('DALL-E generation error:', err?.message);
+            return {
+                post: captionPost,
+                image: `https://placehold.co/1024x1024/1a3c5e/ffffff?text=${encodeURIComponent(campaignTitle)}`,
+            };
+        }
     }
 }
