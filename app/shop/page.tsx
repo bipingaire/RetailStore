@@ -318,41 +318,7 @@ export default function ShopHome() {
         );
       })()}
 
-      {/* 3. CATEGORY RAIL */}
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
-        <h3 className="font-bold text-lg text-gray-900 mb-6">Shop by Category</h3>
-        <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-
-          <div
-            onClick={() => setSelectedCategory(null)}
-            className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transition-all ${selectedCategory === null ? 'scale-110' : ''}`}
-          >
-            <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === null ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
-              <ShoppingBag className={`w-10 h-10 transition-colors ${selectedCategory === null ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}`} />
-            </div>
-            <span className={`text-sm font-medium transition-colors ${selectedCategory === null ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>All Products</span>
-          </div>
-
-          {availableCategories.map((cat, i) => (
-            <div
-              key={i}
-              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-              className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transition-all ${selectedCategory === cat ? 'scale-110' : ''}`}
-            >
-              <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === cat ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
-                <img
-                  src={`https://cdn-icons-png.flaticon.com/512/${i === 0 ? '2909/2909859' : i === 1 ? '3194/3194766' : i === 2 ? '1046/1046774' : i === 3 ? '2395/2395796' : '706/706164'}.png`}
-                  className={`w-10 h-10 transition-opacity ${selectedCategory === cat ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}
-                  alt={cat}
-                />
-              </div>
-              <span className={`text-sm font-medium transition-colors ${selectedCategory === cat ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>{cat}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 3.5 - LIVE CAMPAIGN SECTIONS */}
+      {/* 3.5 - LIVE CAMPAIGN SECTIONS (Moved above Categories) */}
       {campaigns.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12 space-y-10">
           {campaigns.map((campaign) => {
@@ -425,6 +391,40 @@ export default function ShopHome() {
           })}
         </div>
       )}
+
+      {/* 3. CATEGORY RAIL */}
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
+        <h3 className="font-bold text-lg text-gray-900 mb-6">Shop by Category</h3>
+        <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+
+          <div
+            onClick={() => setSelectedCategory(null)}
+            className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transition-all ${selectedCategory === null ? 'scale-110' : ''}`}
+          >
+            <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === null ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
+              <ShoppingBag className={`w-10 h-10 transition-colors ${selectedCategory === null ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}`} />
+            </div>
+            <span className={`text-sm font-medium transition-colors ${selectedCategory === null ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>All Products</span>
+          </div>
+
+          {availableCategories.map((cat, i) => (
+            <div
+              key={i}
+              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+              className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transition-all ${selectedCategory === cat ? 'scale-110' : ''}`}
+            >
+              <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === cat ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
+                <img
+                  src={`https://cdn-icons-png.flaticon.com/512/${i === 0 ? '2909/2909859' : i === 1 ? '3194/3194766' : i === 2 ? '1046/1046774' : i === 3 ? '2395/2395796' : '706/706164'}.png`}
+                  className={`w-10 h-10 transition-opacity ${selectedCategory === cat ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}
+                  alt={cat}
+                />
+              </div>
+              <span className={`text-sm font-medium transition-colors ${selectedCategory === cat ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>{cat}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
 
       {/* 4. PRODUCTS GRID */}
