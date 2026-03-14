@@ -18,6 +18,7 @@ import {
   Link as LinkIcon,
   Sparkles,
   Megaphone,
+  Image,
   Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -41,6 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Inventory Pulse', href: '/admin/inventory', icon: LayoutDashboard, desc: 'Stock & Expiry' },
     { name: 'Master Inventory', href: '/admin/inventory/master', icon: LayoutDashboard, desc: 'Vendors / Costs / Prices' },
     { name: 'Social Media', href: '/admin/social', icon: Megaphone, desc: 'Push campaigns to socials' },
+    { name: 'Shop Banners', href: '/admin/banners', icon: Image, desc: 'Customize hero banners' },
     { name: 'Restock', href: '/admin/restock', icon: Truck, desc: 'Vendor POs', badge: 'Action' },
     { name: 'Vendor Relations', href: '/admin/vendors', icon: Users, desc: 'Suppliers & Payments' },
     { name: 'POS Mapping', href: '/admin/pos-mapping', icon: LinkIcon, desc: 'Fix Sales Data' },
