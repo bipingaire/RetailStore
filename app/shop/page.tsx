@@ -322,6 +322,11 @@ export default function ShopHome() {
       {campaigns.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12 space-y-10">
           {campaigns.map((campaign) => {
+            // Filter out expired campaigns automatically
+            if (campaign.endDate && new Date(campaign.endDate) < new Date()) {
+              return null;
+            }
+
             const campaignProducts = (campaign.products || [])
               .map((cp: any) => cp.product)
               .filter((p: any) => p && p.isSellable);
