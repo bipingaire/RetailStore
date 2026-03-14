@@ -21,16 +21,18 @@ const nextConfig = {
     // In Docker: BACKEND_INTERNAL_URL=http://backend:3001
     // In local dev: defaults to localhost:3001
     const backendUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:3001';
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${backendUrl}/api/:path*`,
-      },
-      {
-        source: '/uploads/:path*',
-        destination: `${backendUrl}/uploads/:path*`,
-      },
-    ];
+    return {
+      fallback: [
+        {
+          source: '/api/:path*',
+          destination: `${backendUrl}/api/:path*`,
+        },
+        {
+          source: '/uploads/:path*',
+          destination: `${backendUrl}/uploads/:path*`,
+        },
+      ],
+    };
   },
 };
 
