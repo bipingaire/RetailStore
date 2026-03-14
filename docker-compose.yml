@@ -20,6 +20,8 @@ services:
     restart: always
     networks:
       - retailos_net
+    volumes:
+      - public_uploads:/app/public/uploads
 
   # ── NestJS backend ─────────────────────────────────────────────────────
   # Exposed on 3011 to host — system nginx reverse-proxies /api here
@@ -44,6 +46,8 @@ services:
     restart: always
     networks:
       - retailos_net
+    volumes:
+      - public_uploads:/usr/src/app/public/uploads
 
   # ── PostgreSQL ─────────────────────────────────────────────────────────
   db:
@@ -67,3 +71,4 @@ networks:
 
 volumes:
   postgres_data_prod:
+  public_uploads:
