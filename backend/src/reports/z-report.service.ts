@@ -219,8 +219,8 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
                             sku: `ZRPT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                             category: item.category || 'General',
                             description: `Auto-created from Z-Report: ${reportNumber}`,
-                            price: item.unitPrice ? new (require('@prisma/client').Prisma.Decimal)(item.unitPrice) : undefined,
-                            costPrice: item.unitPrice ? new (require('@prisma/client').Prisma.Decimal)(item.unitPrice) : undefined,
+                            price: item.unitPrice ? Number(item.unitPrice) : undefined,
+                            costPrice: item.unitPrice ? Number(item.unitPrice) : undefined,
                             stock: -item.quantitySold,   // negative — will be corrected when invoiced
                             reorderLevel: 0,
                             isActive: true,
