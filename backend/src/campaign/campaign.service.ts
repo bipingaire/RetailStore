@@ -213,8 +213,8 @@ export class CampaignService {
             const path = require('path');
             const crypto = require('crypto');
             
-            // Go up from backend/src/campaign to the root public folder
-            const uploadDir = path.join(__dirname, '..', '..', '..', 'public', 'uploads', 'campaigns');
+            // Use process.cwd() to target the project root reliably
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'campaigns');
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
