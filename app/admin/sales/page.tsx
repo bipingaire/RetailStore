@@ -12,6 +12,8 @@ export default function SalesSyncPage() {
   const [posProvider, setPosProvider] = useState('square');
   const [posApiKey, setPosApiKey] = useState('');
   const [posEndpoint, setPosEndpoint] = useState('');
+  const [posBearerToken, setPosBearerToken] = useState('');
+  const [posSigningKey, setPosSigningKey] = useState('');
 
   // ── Z-Report OCR state ────────────────────────────────────────
   const [uploading, setUploading] = useState(false);
@@ -25,14 +27,18 @@ export default function SalesSyncPage() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const [provider, key, endpoint] = await Promise.all([
+        const [provider, key, endpoint, bearer, signing] = await Promise.all([
           apiClient.get('/settings/pos_provider'),
           apiClient.get('/settings/pos_api_key'),
           apiClient.get('/settings/pos_endpoint'),
+          apiClient.get('/settings/pos_bearer_token'),
+          apiClient.get('/settings/pos_signing_key'),
         ]);
         if (provider?.value) setPosProvider(provider.value);
         if (key?.value) setPosApiKey(key.value);
         if (endpoint?.value) setPosEndpoint(endpoint.value);
+        if (bearer?.value) setPosBearerToken(bearer.value);
+        if (signing?.value) setPosSigningKey(signing.value);
       } catch { /* silent */ }
     };
     loadSettings();
@@ -44,6 +50,8 @@ export default function SalesSyncPage() {
         apiClient.post('/settings', { key: 'pos_provider', value: posProvider }),
         apiClient.post('/settings', { key: 'pos_api_key', value: posApiKey }),
         apiClient.post('/settings', { key: 'pos_endpoint', value: posEndpoint }),
+        apiClient.post('/settings', { key: 'pos_bearer_token', value: posBearerToken }),
+        apiClient.post('/settings', { key: 'pos_signing_key', value: posSigningKey }),
       ]);
       toast.success('POS credentials saved');
     } catch {
@@ -142,28 +150,54 @@ export default function SalesSyncPage() {
                   <option value="square">Square</option>
                   <option value="clover">Clover</option>
                   <option value="toast">Toast</option>
+                  <option value="blockchyp">BlockChyp</option>
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700">API Endpoint</label>
+                <label className="text-xs font-semibold text-gray-700">API Endpoint {posProvider === 'blockchyp' && '(Optional)'}</label>
                 <input
                   type="text"
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
-                  placeholder="https://api.squareup.com/v2"
+                  placeholder={posProvider === 'blockchyp' ? "https://api.blockchyp.com" : "https://api.squareup.com/v2"}
                   value={posEndpoint}
                   onChange={(e) => setPosEndpoint(e.target.value)}
                 />
               </div>
-              <div className="col-span-2 space-y-1.5">
+              <div className={posProvider === 'blockchyp' ? "col-span-1 space-y-1.5" : "col-span-2 space-y-1.5"}>
                 <label className="text-xs font-semibold text-gray-700">API Key</label>
                 <input
                   type="password"
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 font-mono"
-                  placeholder="sk_live_..."
+                  placeholder={posProvider === 'blockchyp' ? "BlockChyp API Key" : "sk_live_..."}
                   value={posApiKey}
                   onChange={(e) => setPosApiKey(e.target.value)}
                 />
               </div>
+
+              {posProvider === 'blockchyp' && (
+                <>
+                  <div className="col-span-1 space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-700">Bearer Token</label>
+                    <input
+                      type="password"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 font-mono"
+                      placeholder="Bearer Token"
+                      value={posBearerToken}
+                      onChange={(e) => setPosBearerToken(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-700">Signing Key</label>
+                    <input
+                      type="password"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 font-mono"
+                      placeholder="Signing Key (HMAC)"
+                      value={posSigningKey}
+                      onChange={(e) => setPosSigningKey(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex justify-end">
               <button
