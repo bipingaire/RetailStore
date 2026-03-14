@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Search, ShoppingBag, Star, ArrowRight, Check, Plus, Minus,
@@ -27,6 +27,24 @@ type Promotion = {
   productIds: string[];
 };
 
+type Banner = {
+  id: string;
+  type: 'main' | 'side';
+  tag?: string;
+  title: string;
+  subtitle: string;
+  cta: string;
+  bgColor: string;
+  imageUrl: string;
+  link?: string;
+};
+
+const DEFAULT_BANNERS: Banner[] = [
+  { id: '1', type: 'main', tag: 'Weekend Deal', title: 'Fresh Organic Vegetables', subtitle: 'Get 20% off on all seasonal farm produce this week.', cta: 'Shop Now', bgColor: '#f0f9f4', imageUrl: 'https://cdn-icons-png.flaticon.com/512/766/766023.png', link: '' },
+  { id: '2', type: 'side', title: 'Premium Honey', subtitle: '100% Pure & Raw', cta: 'Buy Now', bgColor: '#fff8e5', imageUrl: 'https://cdn-icons-png.flaticon.com/512/8065/8065363.png', link: '' },
+  { id: '3', type: 'side', title: 'Daily Hygiene', subtitle: 'Soaps & Sanitizers', cta: '15% OFF', bgColor: '#eef5ff', imageUrl: 'https://cdn-icons-png.flaticon.com/512/2954/2954888.png', link: '' },
+];
+
 export default function ShopHome() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +53,7 @@ export default function ShopHome() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [banners, setBanners] = useState<Banner[]>(DEFAULT_BANNERS);
 
   // Live promotions from backend
   const [promos, setPromos] = useState<Promotion[]>([]);
@@ -66,6 +85,17 @@ export default function ShopHome() {
     }
     loadPromos();
     loadCampaigns();
+
+    async function loadBanners() {
+      try {
+        const res = await apiClient.get('/settings/shop_banners');
+        if (res?.value) {
+          const parsed = JSON.parse(res.value);
+          if (Array.isArray(parsed) && parsed.length > 0) setBanners(parsed);
+        }
+      } catch (_) { /* use defaults */ }
+    }
+    loadBanners();
   }, []);
 
 
@@ -222,53 +252,58 @@ export default function ShopHome() {
       </header>
 
       {/* 2. HERO BENTO GRID */}
-      {!searchTerm && (
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[500px]">
+      {!searchTerm && (() => {
+        const mainBanner = banners.find(b => b.type === 'main') || banners[0];
+        const sideBanners = banners.filter(b => b.type === 'side').slice(0, 2);
+        return (
+          <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[500px]">
 
-            {/* Main Hero Banner */}
-            <div className="md:col-span-2">
-              <div className="bg-[#f0f9f4] rounded-3xl p-8 flex flex-col justify-center relative overflow-hidden group h-full">
-                <div className="absolute right-0 bottom-0 w-2/3 h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/food.png')]"></div>
-                <div className="relative z-10 max-w-md">
-                  <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 inline-block">
-                    Weekend Deal
-                  </span>
-                  <h2 className="text-4xl md:text-6xl font-black text-gray-900 mb-4 leading-tight">
-                    Fresh Organic <br /><span className="text-green-600">Vegetables</span>
-                  </h2>
-                  <p className="text-gray-600 mb-8 text-lg">Get 20% off on all seasonal farm produce this week.</p>
-                  <span className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all transform group-hover:-translate-y-1">
-                    Shop Now <ArrowRight size={16} />
-                  </span>
-                </div>
-                <img src="https://cdn-icons-png.flaticon.com/512/766/766023.png" className="absolute -right-10 -bottom-10 w-80 opacity-20 md:opacity-100 md:w-96 md:bottom-10 md:right-10 transform group-hover:scale-110 transition-transform duration-700" alt="Veg" />
-              </div>
-            </div>
-
-            {/* Side Banners */}
-            <div className="flex flex-col gap-6 h-full">
-              <div className="flex-1 bg-[#fff8e5] rounded-3xl p-6 relative overflow-hidden flex items-center group cursor-pointer hover:shadow-lg transition">
-                <div className="relative z-10 w-2/3">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Premium Honey</h3>
-                  <p className="text-sm text-gray-600 mb-3">100% Pure & Raw</p>
-                  <span className="text-sm font-bold text-orange-600 underline inline-flex items-center gap-1">Buy Now <ArrowRight size={14} /></span>
-                </div>
-                <img src="https://cdn-icons-png.flaticon.com/512/8065/8065363.png" className="absolute right-2 bottom-2 w-24 group-hover:rotate-12 transition-transform" />
+              {/* Main Hero Banner */}
+              <div className="md:col-span-2">
+                <a href={mainBanner.link || '#'} className="block h-full">
+                  <div className="rounded-3xl p-8 flex flex-col justify-center relative overflow-hidden group h-full" style={{ backgroundColor: mainBanner.bgColor }}>
+                    <div className="relative z-10 max-w-md">
+                      {mainBanner.tag && (
+                        <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 inline-block">
+                          {mainBanner.tag}
+                        </span>
+                      )}
+                      <h2 className="text-4xl md:text-6xl font-black text-gray-900 mb-4 leading-tight">
+                        {mainBanner.title}
+                      </h2>
+                      <p className="text-gray-600 mb-8 text-lg">{mainBanner.subtitle}</p>
+                      <span className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition-all transform group-hover:-translate-y-1">
+                        {mainBanner.cta} <ArrowRight size={16} />
+                      </span>
+                    </div>
+                    {mainBanner.imageUrl && (
+                      <img src={mainBanner.imageUrl} className="absolute -right-10 -bottom-10 w-80 opacity-20 md:opacity-100 md:w-96 md:bottom-10 md:right-10 transform group-hover:scale-110 transition-transform duration-700" alt={mainBanner.title} />
+                    )}
+                  </div>
+                </a>
               </div>
 
-              <div className="flex-1 bg-[#eef5ff] rounded-3xl p-6 relative overflow-hidden flex items-center group cursor-pointer hover:shadow-lg transition">
-                <div className="relative z-10 w-2/3">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Daily Hygiene</h3>
-                  <p className="text-sm text-gray-600 mb-3">Soaps & Sanitizers</p>
-                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded font-bold inline-flex items-center gap-1">15% OFF <ArrowRight size={12} /></span>
-                </div>
-                <img src="https://cdn-icons-png.flaticon.com/512/2954/2954888.png" className="absolute right-2 bottom-2 w-24 group-hover:scale-110 transition-transform" />
+              {/* Side Banners */}
+              <div className="flex flex-col gap-6 h-full">
+                {sideBanners.map(banner => (
+                  <a key={banner.id} href={banner.link || '#'} className="flex-1 rounded-3xl p-6 relative overflow-hidden flex items-center group cursor-pointer hover:shadow-lg transition" style={{ backgroundColor: banner.bgColor }}>
+                    <div className="relative z-10 w-2/3">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{banner.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3">{banner.subtitle}</p>
+                      <span className="text-sm font-bold text-orange-600 underline inline-flex items-center gap-1">{banner.cta} <ArrowRight size={14} /></span>
+                    </div>
+                    {banner.imageUrl && (
+                      <img src={banner.imageUrl} className="absolute right-2 bottom-2 w-24 group-hover:rotate-12 transition-transform" alt={banner.title} />
+                    )}
+                  </a>
+                ))}
               </div>
+
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 3. CATEGORY RAIL */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
