@@ -206,12 +206,37 @@ export class CampaignService {
             });
 
             const imageUrl = response.data?.[0]?.url || '';
+            if (!imageUrl) throw new Error('No image URL returned from DALL-E');
+
+            // Download the image to persist it locally
+            const fs = require('fs');
+            const path = require('path');
+            const crypto = require('crypto');
+            
+            // Go up from backend/src/campaign to the root public folder
+            const uploadDir = path.join(__dirname, '..', '..', '..', 'public', 'uploads', 'campaigns');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            const fileName = `poster_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.png`;
+            const filePath = path.join(uploadDir, fileName);
+
+            const imageResponse = await fetch(imageUrl);
+            if (!imageResponse.ok) throw new Error(`Failed to fetch DALL-E image: ${imageResponse.statusText}`);
+            const arrayBuffer = await imageResponse.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            fs.writeFileSync(filePath, buffer);
+
+            const localImageUrl = `/uploads/campaigns/${fileName}`;
+
             return {
                 post: captionPost,
-                image: imageUrl,
+                image: localImageUrl,
             };
         } catch (err: any) {
-            console.error('DALL-E generation error:', err?.message);
+            console.error('DALL-E generation or save error:', err?.message);
             return {
                 post: captionPost,
                 image: `https://placehold.co/1024x1024/1a3c5e/ffffff?text=${encodeURIComponent(campaignTitle)}`,
