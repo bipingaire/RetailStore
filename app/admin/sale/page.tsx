@@ -57,6 +57,9 @@ export default function SaleAdmin() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<Partial<Segment>>({});
+  const [posterUrl, setPosterUrl] = useState<string>('');
+  const [generatingPoster, setGeneratingPoster] = useState(false);
+  const [publishingPoster, setPublishingPoster] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -156,6 +159,7 @@ export default function SaleAdmin() {
     setSelectedSegmentId(seg.id);
     setSelectedItems(new Set(seg.segment_products?.map((sp) => sp.store_inventory_id).filter(Boolean) as string[]));
     setDraft(seg);
+    setPosterUrl('');
   };
 
   const handleDraftChange = (key: keyof Segment, value: any) => {
@@ -273,26 +277,78 @@ export default function SaleAdmin() {
       toast.error('Select a campaign first.');
       return;
     }
+    if (selectedItems.size === 0) {
+      toast.error('Select at least one product before publishing.');
+      return;
+    }
 
     setSaving(true);
     try {
-      // Update campaign to active status
-      await apiClient.patch(`/campaigns/${selectedSegment.id}`, { status: 'ACTIVE' });
+      // 1. Attach all selected products to the campaign
+      await Promise.all(
+        Array.from(selectedItems).map((productId) =>
+          apiClient.post('/campaigns/attach-product', {
+            segment_id: selectedSegment.id,
+            store_inventory_id: productId,
+          })
+        )
+      );
 
-      // TODO: Link selected products to campaign
-      // This would need a new endpoint like POST /campaigns/:id/products
-      // For now just update the local state
+      // 2. Activate the campaign
+      await apiClient.patch(`/campaigns/${selectedSegment.id}`, { status: 'ACTIVE' });
 
       setSegments((prev) =>
         prev.map((s) => (s.id === selectedSegment.id ? { ...s, is_active: true } : s))
       );
 
-      toast.success('Pushed live and published to shop.');
+      toast.success('✅ Campaign published live! Products are now visible on the shop page.');
     } catch (error: any) {
       console.error('Error publishing campaign:', error);
       toast.error(error.message || 'Failed to publish campaign');
     }
     setSaving(false);
+  };
+
+  const handleGeneratePoster = async () => {
+    if (!selectedSegment) return;
+    const selectedProducts = inventory.filter(i => selectedItems.has(i.id));
+    if (selectedProducts.length === 0) {
+      toast.error('Select at least one product to generate a poster.');
+      return;
+    }
+    setGeneratingPoster(true);
+    try {
+      const result = await apiClient.post('/campaigns/generate', {
+        products: selectedProducts.map(p => ({
+          name: p.global_products.name,
+          price: p.price,
+          image_url: p.global_products.image_url,
+          category: p.global_products.category,
+        })),
+        campaignTitle: draft.title || selectedSegment.title,
+        campaignType: draft.segment_type || 'FLASH_SALE',
+      });
+      if (result?.image) setPosterUrl(result.image);
+      toast.success('AI poster generated!');
+    } catch {
+      toast.error('Poster generation failed.');
+    }
+    setGeneratingPoster(false);
+  };
+
+  const handlePublishPoster = async () => {
+    if (!posterUrl || !selectedSegment) return;
+    setPublishingPoster(true);
+    try {
+      await apiClient.post('/settings', {
+        key: `campaign_poster_${selectedSegment.id}`,
+        value: posterUrl,
+      });
+      toast.success('Poster saved and will show on the shop campaign section!');
+    } catch {
+      toast.error('Failed to save poster.');
+    }
+    setPublishingPoster(false);
   };
 
   const handleCopyLink = async (link: string) => {
@@ -553,7 +609,43 @@ export default function SaleAdmin() {
                     </div>
                   </div>
 
-                  {/* Section 3: Links */}
+                  {/* Section 3: AI Poster */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                      <Sparkles size={14} /> AI Poster for Shop Page
+                    </h4>
+                    <p className="text-xs text-gray-400">Generate a campaign poster using AI. Once generated, click "Publish Poster" to show it on the shop page alongside this campaign.</p>
+                    <div className="flex gap-3 flex-wrap">
+                      <button
+                        onClick={handleGeneratePoster}
+                        disabled={generatingPoster || selectedItems.size === 0}
+                        className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-xs font-bold rounded-lg hover:bg-violet-700 disabled:opacity-50 transition"
+                      >
+                        {generatingPoster ? (
+                          <><span className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></span> Generating...</>
+                        ) : (
+                          <><Sparkles size={12} /> Generate AI Poster</>
+                        )}
+                      </button>
+                      {posterUrl && (
+                        <button
+                          onClick={handlePublishPoster}
+                          disabled={publishingPoster}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 disabled:opacity-50 transition"
+                        >
+                          {publishingPoster ? 'Saving...' : <><Rocket size={12} /> Publish Poster to Shop</>}
+                        </button>
+                      )}
+                    </div>
+                    {posterUrl && (
+                      <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                        <img src={posterUrl} alt="Campaign Poster" className="w-full max-h-64 object-cover" />
+                        <div className="p-3 text-xs text-gray-500 text-center">Generated poster — click "Publish Poster to Shop" to make it live</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Section 4: Links */}
                   {selectedSegment.is_active && (
                     <div className="bg-green-50 rounded-lg border border-green-100 p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">

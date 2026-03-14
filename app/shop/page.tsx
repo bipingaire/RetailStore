@@ -55,6 +55,7 @@ export default function ShopHome() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [banners, setBanners] = useState<Banner[]>(DEFAULT_BANNERS);
+  const [campaignPosters, setCampaignPosters] = useState<Record<string, string>>({});
 
   // Live promotions from backend
   const [promos, setPromos] = useState<Promotion[]>([]);
@@ -81,7 +82,18 @@ export default function ShopHome() {
     async function loadCampaigns() {
       try {
         const data = await apiClient.get('/campaigns/active');
-        if (Array.isArray(data)) setCampaigns(data);
+        if (Array.isArray(data)) {
+          setCampaigns(data);
+          // Load posters for each active campaign
+          const posters: Record<string, string> = {};
+          await Promise.all(data.map(async (c: any) => {
+            try {
+              const res = await apiClient.get(`/settings/campaign_poster_${c.id}`);
+              if (res?.value) posters[c.id] = res.value;
+            } catch { /* no poster for this campaign */ }
+          }));
+          setCampaignPosters(posters);
+        }
       } catch (_) { /* silent */ }
     }
     loadPromos();
@@ -349,10 +361,17 @@ export default function ShopHome() {
               .filter((p: any) => p && p.isSellable);
             if (campaignProducts.length === 0) return null;
             const accent = campaign.type === 'PROMOTION' ? 'from-amber-500' : campaign.type === 'FLASH_SALE' ? 'from-red-500' : 'from-emerald-500';
+            const poster = campaignPosters[campaign.id];
             return (
-              <div key={campaign.id}>
+              <div key={campaign.id} className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm bg-white">
+                {/* AI Poster (if published) */}
+                {poster && (
+                  <div className="w-full h-48 md:h-64 overflow-hidden">
+                    <img src={poster} alt={campaign.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 {/* Campaign Header */}
-                <div className={`bg-gradient-to-r ${accent} to-gray-900 rounded-2xl px-6 py-4 mb-4 flex items-center justify-between`}>
+                <div className={`bg-gradient-to-r ${accent} to-gray-900 px-6 py-4 flex items-center justify-between`}>
                   <div>
                     <span className="text-xs font-bold uppercase tracking-widest text-white/60 mb-1 block">{campaign.type || 'CAMPAIGN'}</span>
                     <h3 className="text-xl font-black text-white">{campaign.name}</h3>
@@ -368,42 +387,45 @@ export default function ShopHome() {
                 </div>
 
                 {/* Campaign Product Row */}
-                <div className="flex gap-4 overflow-x-auto pb-3 hide-scrollbar">
-                  {campaignProducts.map((prod: any) => {
-                    const qty = cart[prod.id] || 0;
-                    return (
-                      <div key={prod.id} className="min-w-[180px] max-w-[180px] bg-white rounded-2xl p-4 border border-gray-100 hover:shadow-lg hover:border-green-200 transition-all flex-shrink-0">
-                        <div className="aspect-square bg-gray-50 rounded-xl mb-3 overflow-hidden flex items-center justify-center">
-                          <img
-                            src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3C/svg%3E"}
-                            className="w-full h-full object-cover"
-                            alt={prod.name}
-                          />
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                        <h4 className="text-xs font-bold text-gray-900 line-clamp-2 mb-2">{cleanName(prod.name)}</h4>
-                        <div className="text-base font-black text-green-700 mb-3">${Number(prod.price).toFixed(2)}</div>
-                        {qty === 0 ? (
-                          <button
-                            onClick={() => updateQty(prod.id, 1)}
-                            className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors"
-                          >Add to Cart</button>
-                        ) : (
-                          <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
-                            <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
-                            <span className="text-xs font-bold w-4 text-center">{qty}</span>
-                            <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
+                <div className="p-4">
+                  <div className="flex gap-4 overflow-x-auto pb-3 hide-scrollbar">
+                    {campaignProducts.map((prod: any) => {
+                      const qty = cart[prod.id] || 0;
+                      return (
+                        <div key={prod.id} className="min-w-[180px] max-w-[180px] bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:shadow-lg hover:border-green-200 transition-all flex-shrink-0">
+                          <div className="aspect-square bg-white rounded-xl mb-3 overflow-hidden flex items-center justify-center">
+                            <img
+                              src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3C/svg%3E"}
+                              className="w-full h-full object-cover"
+                              alt={prod.name}
+                            />
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
+                          <h4 className="text-xs font-bold text-gray-900 line-clamp-2 mb-2">{cleanName(prod.name)}</h4>
+                          <div className="text-base font-black text-green-700 mb-3">${Number(prod.price).toFixed(2)}</div>
+                          {qty === 0 ? (
+                            <button
+                              onClick={() => updateQty(prod.id, 1)}
+                              className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors"
+                            >Add to Cart</button>
+                          ) : (
+                            <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
+                              <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
+                              <span className="text-xs font-bold w-4 text-center">{qty}</span>
+                              <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
 
       {/* 4. PRODUCTS GRID */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
