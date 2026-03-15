@@ -118,6 +118,39 @@ export class AiService {
             this.logger.warn(`Wikimedia Commons search failed: ${err.message}`);
         }
 
+        // ── Tier 3: OpenAI gpt-4o-search-preview – real-time web search across Google, retail sites etc ──
+        if (this.openai) {
+            try {
+                this.logger.log(`Falling back to OpenAI web search for: ${name}`);
+                const searchCompletion = await this.openai.chat.completions.create({
+                    model: 'gpt-4o-search-preview',
+                    messages: [
+                        {
+                            role: 'user',
+                            content: `Search the web for a high-quality product image of "${name}" in the "${category}" category. Look on Google Images, major grocery retailer websites, manufacturer sites, or any product listing that has a good product photo. Return ONLY the direct image URL (must start with https://) — nothing else. No explanation. Just the raw image URL.`
+                        }
+                    ],
+                } as any);
+
+                const aiResponse = (searchCompletion.choices[0].message.content || '').trim();
+                this.logger.log(`OpenAI web search image response: ${aiResponse.substring(0, 200)}`);
+
+                // Extract any URL from the response (may or may not end in image extension)
+                const urlMatch = aiResponse.match(/https?:\/\/[^\s"'<>\n]+/i);
+                if (urlMatch) {
+                    const foundUrl = urlMatch[0].replace(/[.,;!?]+$/, ''); // strip trailing punctuation
+                    this.logger.log(`Trying OpenAI found URL: ${foundUrl}`);
+                    try {
+                        return await this.downloadAndSaveImage(foundUrl);
+                    } catch (dlErr: any) {
+                        this.logger.warn(`Could not download OpenAI suggested image: ${dlErr.message}`);
+                    }
+                }
+            } catch (err: any) {
+                this.logger.warn(`OpenAI web search fallback failed: ${err.message}`);
+            }
+        }
+
         this.logger.warn(`No image found for: ${name}. Returning empty.`);
         return '';
     }
