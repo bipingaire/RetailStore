@@ -72,47 +72,54 @@ export class AiService {
     }
 
     async generateProductImage(name: string, category: string): Promise<string> {
-        if (!this.openai) return '';
+        this.logger.log(`Searching for product image: ${name} (${category})`);
+
         try {
-            this.logger.log(`Searching web for product image: ${name} (${category})`);
+            // ── Tier 1: OpenFoodFacts – huge open grocery/food product database with real photos ──
+            const foodSearchUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1&page_size=5`;
+            const foodRes = await axios.get(foodSearchUrl, { timeout: 8000, headers: { 'User-Agent': 'RetailStore-ProductEnricher/1.0' } });
+            const foodProducts = foodRes.data?.products || [];
 
-            // Use OpenAI Responses API with real web_search_preview tool
-            // This performs ACTUAL web searches unlike standard chat completions
-            const response = await (this.openai as any).responses.create({
-                model: 'gpt-4o-mini',
-                tools: [{ type: 'web_search_preview' }],
-                input: `Search the web for a high-quality product image of "${name}" (${category} category). Find a direct, publicly accessible image URL that is NOT from Amazon, Flipkart, or any hotlink-protected CDN. Prefer images from Wikipedia, Wikimedia Commons, manufacturer websites, or open image repositories. Return ONLY the direct image URL, nothing else.`,
-            });
-
-            // Extract the text output from the response
-            const outputText = response.output
-                ?.filter((item: any) => item.type === 'message')
-                ?.flatMap((item: any) => item.content)
-                ?.filter((c: any) => c.type === 'output_text')
-                ?.map((c: any) => c.text)
-                ?.join('') || '';
-
-            this.logger.log(`Web search response: ${outputText.substring(0, 200)}`);
-
-            // Extract a URL from the response text
-            const urlMatch = outputText.match(/https?:\/\/[^\s"'<>]+\.(jpg|jpeg|png|webp|gif)(\?[^\s"'<>]*)?/i);
-            if (urlMatch) {
-                const imageUrl = urlMatch[0];
-                this.logger.log(`Found image URL via web search: ${imageUrl}`);
-                try {
-                    return await this.downloadAndSaveImage(imageUrl);
-                } catch (dlErr: any) {
-                    this.logger.warn(`Could not download web-searched image: ${dlErr.message}`);
+            for (const p of foodProducts) {
+                const imgUrl = p.image_front_url || p.image_url;
+                if (imgUrl && imgUrl.startsWith('http')) {
+                    this.logger.log(`Found OpenFoodFacts image: ${imgUrl}`);
+                    try { return await this.downloadAndSaveImage(imgUrl); } catch { /* try next */ }
                 }
             }
-
-            // Web search found no valid image URL — return empty (no fake generated images)
-            this.logger.warn(`No valid image URL found via web search for: ${name}`);
-            return '';
-        } catch (error: any) {
-            this.logger.error(`Product image generation failed: ${error.message}`);
-            return '';
+        } catch (err: any) {
+            this.logger.warn(`OpenFoodFacts search failed: ${err.message}`);
         }
+
+        try {
+            // ── Tier 2: Wikimedia Commons image search – open, no hotlink protection ──
+            const wikiSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + ' product')}&srnamespace=6&srlimit=5&format=json&origin=*`;
+            const wikiRes = await axios.get(wikiSearchUrl, { timeout: 8000, headers: { 'User-Agent': 'RetailStore-ProductEnricher/1.0' } });
+            const wikiHits = wikiRes.data?.query?.search || [];
+
+            for (const hit of wikiHits) {
+                // Extract filename from title (e.g. "File:Vegetable_oil_bottle.jpg")
+                const title = (hit.title || '').replace('File:', '').replace(/ /g, '_');
+                if (!title) continue;
+
+                // Build Wikimedia thumb URL
+                const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(title)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+                const infoRes = await axios.get(infoUrl, { timeout: 8000 });
+                const pages = infoRes.data?.query?.pages || {};
+                const pageData: any = Object.values(pages)[0];
+                const imgUrl = pageData?.imageinfo?.[0]?.url;
+
+                if (imgUrl && imgUrl.startsWith('http')) {
+                    this.logger.log(`Found Wikimedia image: ${imgUrl}`);
+                    try { return await this.downloadAndSaveImage(imgUrl); } catch { /* try next */ }
+                }
+            }
+        } catch (err: any) {
+            this.logger.warn(`Wikimedia Commons search failed: ${err.message}`);
+        }
+
+        this.logger.warn(`No image found for: ${name}. Returning empty.`);
+        return '';
     }
 
     async generateProductMetadata(name: string, currentContext?: any): Promise<any> {
