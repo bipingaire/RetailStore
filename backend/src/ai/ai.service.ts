@@ -39,61 +39,91 @@ export class AiService {
         }
     }
 
+    private async downloadAndSaveImage(externalUrl: string): Promise<string> {
+        const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'products');
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        const ext = externalUrl.split('?')[0].split('.').pop()?.toLowerCase() || 'jpg';
+        const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext) ? ext : 'jpg';
+        const filename = `enriched_${Date.now()}.${safeExt}`;
+        const localPath = path.join(uploadsDir, filename);
+
+        const response = await axios.get(externalUrl, {
+            responseType: 'arraybuffer',
+            timeout: 15000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+                'Referer': 'https://www.google.com/'
+            }
+        });
+
+        // Validate it's actually an image by checking content-type
+        const contentType = response.headers['content-type'] || '';
+        if (!contentType.includes('image')) {
+            throw new Error(`URL did not return an image (content-type: ${contentType})`);
+        }
+
+        fs.writeFileSync(localPath, response.data);
+        this.logger.log(`Image cached locally: ${filename}`);
+        return `/uploads/products/${filename}`;
+    }
+
     async generateProductImage(name: string, category: string): Promise<string> {
         if (!this.openai) return '';
         try {
-            this.logger.log(`Using OpenAI to find product image for: ${name} (${category})`);
-            
-            const completion = await this.openai.chat.completions.create({
-                model: 'gpt-4o',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a product image URL finder. Return ONLY a single direct image URL (ending in .jpg, .jpeg, .png, or .webp) from a public, freely accessible source like Wikimedia Commons, open government food databases, or open product image repositories. Do NOT use Amazon, Flipkart, BigBasket, or any hotlink-protected CDN. Return only the raw URL with no explanation.'
-                    },
-                    {
-                        role: 'user',
-                        content: `Find a publicly accessible product image URL for: "${name}" in the "${category}" category. Prefer Wikimedia Commons or open image sources. Return only the direct image URL.`
-                    }
-                ],
+            this.logger.log(`Searching web for product image: ${name} (${category})`);
+
+            // Use OpenAI Responses API with real web_search_preview tool
+            // This performs ACTUAL web searches unlike standard chat completions
+            const response = await (this.openai as any).responses.create({
+                model: 'gpt-4o-mini',
+                tools: [{ type: 'web_search_preview' }],
+                input: `Search the web for a high-quality product image of "${name}" (${category} category). Find a direct, publicly accessible image URL that is NOT from Amazon, Flipkart, or any hotlink-protected CDN. Prefer images from Wikipedia, Wikimedia Commons, manufacturer websites, or open image repositories. Return ONLY the direct image URL, nothing else.`,
             });
 
-            const externalUrl = (completion.choices[0].message.content || '').trim();
+            // Extract the text output from the response
+            const outputText = response.output
+                ?.filter((item: any) => item.type === 'message')
+                ?.flatMap((item: any) => item.content)
+                ?.filter((c: any) => c.type === 'output_text')
+                ?.map((c: any) => c.text)
+                ?.join('') || '';
 
-            if (!externalUrl.startsWith('http')) {
-                this.logger.warn(`OpenAI returned non-URL: ${externalUrl}`);
-                return '';
-            }
+            this.logger.log(`Web search response: ${outputText.substring(0, 200)}`);
 
-            this.logger.log(`OpenAI found image URL: ${externalUrl} — downloading to local...`);
-
-            // Ensure uploads directory exists
-            const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'products');
-            if (!fs.existsSync(uploadsDir)) {
-                fs.mkdirSync(uploadsDir, { recursive: true });
-            }
-
-            // Download externally found image locally to bypass hotlink protection
-            const ext = externalUrl.split('?')[0].split('.').pop()?.split('/').pop() || 'jpg';
-            const safeExt = ['jpg','jpeg','png','webp','gif'].includes(ext) ? ext : 'jpg';
-            const filename = `enriched_${Date.now()}.${safeExt}`;
-            const localPath = path.join(uploadsDir, filename);
-
-            const response = await axios.get(externalUrl, {
-                responseType: 'arraybuffer',
-                timeout: 10000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (compatible; RetailBot/1.0)',
-                    'Accept': 'image/*'
+            // Extract a URL from the response text
+            const urlMatch = outputText.match(/https?:\/\/[^\s"'<>]+\.(jpg|jpeg|png|webp|gif)(\?[^\s"'<>]*)?/i);
+            if (urlMatch) {
+                const imageUrl = urlMatch[0];
+                this.logger.log(`Found image URL via web search: ${imageUrl}`);
+                try {
+                    return await this.downloadAndSaveImage(imageUrl);
+                } catch (dlErr: any) {
+                    this.logger.warn(`Could not download web-searched image: ${dlErr.message}`);
                 }
+            }
+
+            // Fallback: Use DALL-E 3 to generate an image (always produces a downloadable URL)
+            this.logger.log(`Web search fallback: generating image with DALL-E 3 for: ${name}`);
+            const imageResponse = await this.openai.images.generate({
+                model: 'dall-e-3',
+                prompt: `A professional product photo of ${name}, ${category}, on a clean white background, high quality, product catalog style`,
+                n: 1,
+                size: '1024x1024',
+                quality: 'standard',
             });
 
-            fs.writeFileSync(localPath, response.data);
-            this.logger.log(`Image saved locally: ${localPath}`);
+            const dalleUrl = imageResponse.data[0]?.url;
+            if (dalleUrl) {
+                return await this.downloadAndSaveImage(dalleUrl);
+            }
 
-            return `/uploads/products/${filename}`;
+            return '';
         } catch (error: any) {
-            this.logger.error(`Product image fetch failed: ${error.message}`);
+            this.logger.error(`Product image generation failed: ${error.message}`);
             return '';
         }
     }
