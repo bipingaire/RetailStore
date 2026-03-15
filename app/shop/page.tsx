@@ -327,10 +327,7 @@ export default function ShopHome() {
               return null;
             }
 
-            const campaignProducts = (campaign.products || [])
-              .map((cp: any) => cp.product)
-              .filter((p: any) => p && p.isSellable);
-            if (campaignProducts.length === 0) return null;
+            const campaignProducts = (campaign.products || []).map((cp: any) => cp.product).filter(Boolean);
             const accent = campaign.type === 'PROMOTION' ? 'from-amber-500' : campaign.type === 'FLASH_SALE' ? 'from-red-500' : 'from-emerald-500';
             const poster = campaignPosters[campaign.id];
             return (
