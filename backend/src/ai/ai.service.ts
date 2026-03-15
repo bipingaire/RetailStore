@@ -37,19 +37,23 @@ export class AiService {
     }
 
     async generateProductImage(name: string, category: string): Promise<string> {
-        if (!this.openai) return '';
-
         try {
-            const response = await this.openai.images.generate({
-                model: "dall-e-3",
-                prompt: `Professional product photography of ${name}, category: ${category}. Clean white background, high resolution, marketing quality.`,
-                n: 1,
-                size: "1024x1024",
-            });
-
-            return response.data[0].url || '';
+            // The user requested to avoid DALL-E hallucinatory images and instead use a web search.
+            // Using duckduckgo-images-api to fetch real external images.
+            const { image_search } = require('duckduckgo-images-api');
+            const query = `${name} ${category} product isolated white background`;
+            this.logger.log(`Searching web for product image: ${query}`);
+            
+            const results = await image_search({ query, moderate: true, iterations: 1 });
+            
+            if (results && results.length > 0) {
+                // Return the first image result's URL
+                return results[0].image || '';
+            }
+            
+            return '';
         } catch (error) {
-            this.logger.error('OpenAI Image Generation Failed', error);
+            this.logger.error('Web Image Search Failed', error);
             return '';
         }
     }
