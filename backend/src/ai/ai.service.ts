@@ -72,86 +72,39 @@ export class AiService {
     }
 
     async generateProductImage(name: string, category: string): Promise<string> {
-        this.logger.log(`Searching for product image: ${name} (${category})`);
+        if (!this.openai) return '';
+        this.logger.log(`OpenAI web searching for product image: ${name} (${category})`);
 
         try {
-            // ── Tier 1: OpenFoodFacts – huge open grocery/food product database with real photos ──
-            const foodSearchUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1&page_size=5`;
-            const foodRes = await axios.get(foodSearchUrl, { timeout: 8000, headers: { 'User-Agent': 'RetailStore-ProductEnricher/1.0' } });
-            const foodProducts = foodRes.data?.products || [];
-
-            for (const p of foodProducts) {
-                const imgUrl = p.image_front_url || p.image_url;
-                if (imgUrl && imgUrl.startsWith('http')) {
-                    this.logger.log(`Found OpenFoodFacts image: ${imgUrl}`);
-                    try { return await this.downloadAndSaveImage(imgUrl); } catch { /* try next */ }
-                }
-            }
-        } catch (err: any) {
-            this.logger.warn(`OpenFoodFacts search failed: ${err.message}`);
-        }
-
-        try {
-            // ── Tier 2: Wikimedia Commons image search – open, no hotlink protection ──
-            const wikiSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + ' product')}&srnamespace=6&srlimit=5&format=json&origin=*`;
-            const wikiRes = await axios.get(wikiSearchUrl, { timeout: 8000, headers: { 'User-Agent': 'RetailStore-ProductEnricher/1.0' } });
-            const wikiHits = wikiRes.data?.query?.search || [];
-
-            for (const hit of wikiHits) {
-                // Extract filename from title (e.g. "File:Vegetable_oil_bottle.jpg")
-                const title = (hit.title || '').replace('File:', '').replace(/ /g, '_');
-                if (!title) continue;
-
-                // Build Wikimedia thumb URL
-                const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(title)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
-                const infoRes = await axios.get(infoUrl, { timeout: 8000 });
-                const pages = infoRes.data?.query?.pages || {};
-                const pageData: any = Object.values(pages)[0];
-                const imgUrl = pageData?.imageinfo?.[0]?.url;
-
-                if (imgUrl && imgUrl.startsWith('http')) {
-                    this.logger.log(`Found Wikimedia image: ${imgUrl}`);
-                    try { return await this.downloadAndSaveImage(imgUrl); } catch { /* try next */ }
-                }
-            }
-        } catch (err: any) {
-            this.logger.warn(`Wikimedia Commons search failed: ${err.message}`);
-        }
-
-        // ── Tier 3: OpenAI gpt-4o-search-preview – real-time web search across Google, retail sites etc ──
-        if (this.openai) {
-            try {
-                this.logger.log(`Falling back to OpenAI web search for: ${name}`);
-                const searchCompletion = await this.openai.chat.completions.create({
-                    model: 'gpt-4o-search-preview',
-                    messages: [
-                        {
-                            role: 'user',
-                            content: `Search the web for a high-quality product image of "${name}" in the "${category}" category. Look on Google Images, major grocery retailer websites, manufacturer sites, or any product listing that has a good product photo. Return ONLY the direct image URL (must start with https://) — nothing else. No explanation. Just the raw image URL.`
-                        }
-                    ],
-                } as any);
-
-                const aiResponse = (searchCompletion.choices[0].message.content || '').trim();
-                this.logger.log(`OpenAI web search image response: ${aiResponse.substring(0, 200)}`);
-
-                // Extract any URL from the response (may or may not end in image extension)
-                const urlMatch = aiResponse.match(/https?:\/\/[^\s"'<>\n]+/i);
-                if (urlMatch) {
-                    const foundUrl = urlMatch[0].replace(/[.,;!?]+$/, ''); // strip trailing punctuation
-                    this.logger.log(`Trying OpenAI found URL: ${foundUrl}`);
-                    try {
-                        return await this.downloadAndSaveImage(foundUrl);
-                    } catch (dlErr: any) {
-                        this.logger.warn(`Could not download OpenAI suggested image: ${dlErr.message}`);
+            const searchCompletion = await this.openai.chat.completions.create({
+                model: 'gpt-4o-search-preview',
+                messages: [
+                    {
+                        role: 'user',
+                        content: `Search the web for a high-quality product image of "${name}" in the "${category}" category. Look on Google Images, major grocery retailer websites, manufacturer sites, or any product listing. Return ONLY the direct image URL (starting with https://) — no explanation, no markdown, just the raw URL.`
                     }
+                ],
+            } as any);
+
+            const aiResponse = (searchCompletion.choices[0].message.content || '').trim();
+            this.logger.log(`OpenAI web search response: ${aiResponse.substring(0, 200)}`);
+
+            // Extract URL from response
+            const urlMatch = aiResponse.match(/https?:\/\/[^\s"'<>\n]+/i);
+            if (urlMatch) {
+                const foundUrl = urlMatch[0].replace(/[.,;!?]+$/, '');
+                this.logger.log(`Downloading image from: ${foundUrl}`);
+                try {
+                    return await this.downloadAndSaveImage(foundUrl);
+                } catch (dlErr: any) {
+                    this.logger.warn(`Could not download image: ${dlErr.message}`);
                 }
-            } catch (err: any) {
-                this.logger.warn(`OpenAI web search fallback failed: ${err.message}`);
             }
+        } catch (err: any) {
+            this.logger.warn(`OpenAI web search failed: ${err.message}`);
         }
 
-        this.logger.warn(`No image found for: ${name}. Returning empty.`);
+        this.logger.warn(`No image found for: ${name}`);
         return '';
     }
 
