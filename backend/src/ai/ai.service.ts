@@ -106,21 +106,8 @@ export class AiService {
                 }
             }
 
-            // Fallback: Use DALL-E 3 to generate an image (always produces a downloadable URL)
-            this.logger.log(`Web search fallback: generating image with DALL-E 3 for: ${name}`);
-            const imageResponse = await this.openai.images.generate({
-                model: 'dall-e-3',
-                prompt: `A professional product photo of ${name}, ${category}, on a clean white background, high quality, product catalog style`,
-                n: 1,
-                size: '1024x1024',
-                quality: 'standard',
-            });
-
-            const dalleUrl = imageResponse.data[0]?.url;
-            if (dalleUrl) {
-                return await this.downloadAndSaveImage(dalleUrl);
-            }
-
+            // Web search found no valid image URL — return empty (no fake generated images)
+            this.logger.warn(`No valid image URL found via web search for: ${name}`);
             return '';
         } catch (error: any) {
             this.logger.error(`Product image generation failed: ${error.message}`);
