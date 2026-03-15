@@ -76,36 +76,46 @@ export class AiService {
         this.logger.log(`OpenAI web searching for product image: ${name} (${category})`);
 
         try {
+            // IMPORTANT: web_search_options is REQUIRED to trigger actual web search
+            // Without it, gpt-4o-search-preview just uses training data (hallucinates URLs)
             const searchCompletion = await this.openai.chat.completions.create({
                 model: 'gpt-4o-search-preview',
+                web_search_options: {},
                 messages: [
                     {
                         role: 'user',
-                        content: `Search the web for a high-quality product image of "${name}" in the "${category}" category. Look on Google Images, major grocery retailer websites, manufacturer sites, or any product listing. Return ONLY the direct image URL (starting with https://) — no explanation, no markdown, just the raw URL.`
+                        content: `Find a real product image URL for "${name}" (${category}). Search retailer websites, Google Images, or manufacturer pages. Return ONLY an https:// image URL — no text, no explanation.`
                     }
                 ],
             } as any);
 
             const aiResponse = (searchCompletion.choices[0].message.content || '').trim();
-            this.logger.log(`OpenAI web search response: ${aiResponse.substring(0, 200)}`);
+            this.logger.log(`OpenAI web search response: ${aiResponse.substring(0, 300)}`);
 
             // Extract URL from response
             const urlMatch = aiResponse.match(/https?:\/\/[^\s"'<>\n]+/i);
-            if (urlMatch) {
-                const foundUrl = urlMatch[0].replace(/[.,;!?]+$/, '');
-                this.logger.log(`Downloading image from: ${foundUrl}`);
-                try {
-                    return await this.downloadAndSaveImage(foundUrl);
-                } catch (dlErr: any) {
-                    this.logger.warn(`Could not download image: ${dlErr.message}`);
-                }
+            if (!urlMatch) {
+                this.logger.warn(`No URL found in OpenAI response for: ${name}`);
+                return '';
+            }
+
+            const foundUrl = urlMatch[0].replace(/[.,;!?)\]]+$/, '');
+            this.logger.log(`Found image URL: ${foundUrl}`);
+
+            // Try to download and cache locally (preferred — bypasses hotlink protection)
+            try {
+                const localPath = await this.downloadAndSaveImage(foundUrl);
+                this.logger.log(`Image cached locally at: ${localPath}`);
+                return localPath;
+            } catch (dlErr: any) {
+                this.logger.warn(`Download failed (${dlErr.message}), using raw URL as fallback`);
+                // Still return the raw URL — better than nothing, admin can see it
+                return foundUrl;
             }
         } catch (err: any) {
-            this.logger.warn(`OpenAI web search failed: ${err.message}`);
+            this.logger.error(`OpenAI web search failed: ${err.message}`);
+            return '';
         }
-
-        this.logger.warn(`No image found for: ${name}`);
-        return '';
     }
 
     async generateProductMetadata(name: string, currentContext?: any): Promise<any> {
