@@ -73,47 +73,80 @@ export class AiService {
 
     async generateProductImage(name: string, category: string): Promise<string> {
         if (!this.openai) return '';
-        this.logger.log(`OpenAI web searching for product image: ${name} (${category})`);
+        this.logger.log(`Searching web for product image: ${name}`);
 
         try {
-            // IMPORTANT: web_search_options is REQUIRED to trigger actual web search
-            // Without it, gpt-4o-search-preview just uses training data (hallucinates URLs)
+            // Step 1: Ask gpt-4o-search-preview to find a REAL webpage that sells or shows the product
+            // We ask for a page URL, not an image CDN URL — model can't hallucinate page URLs
             const searchCompletion = await this.openai.chat.completions.create({
                 model: 'gpt-4o-search-preview',
                 web_search_options: {},
                 messages: [
                     {
                         role: 'user',
-                        content: `Find a real product image URL for "${name}" (${category}). Search retailer websites, Google Images, or manufacturer pages. Return ONLY an https:// image URL — no text, no explanation.`
+                        content: `Search Google for "${name} ${category}" and find any real product page (grocery, supermarket, manufacturer or Wikipedia) that shows an image of this product. Return ONLY the full https:// URL of that webpage — not an image URL, just the webpage URL. One URL, nothing else.`
                     }
                 ],
             } as any);
 
-            const aiResponse = (searchCompletion.choices[0].message.content || '').trim();
-            this.logger.log(`OpenAI web search response: ${aiResponse.substring(0, 300)}`);
+            const rawResponse = (searchCompletion.choices[0].message.content || '').trim();
+            this.logger.log(`OpenAI found page: ${rawResponse.substring(0, 200)}`);
 
-            // Extract URL from response
-            const urlMatch = aiResponse.match(/https?:\/\/[^\s"'<>\n]+/i);
-            if (!urlMatch) {
-                this.logger.warn(`No URL found in OpenAI response for: ${name}`);
+            // Extract any https URL from the response
+            const pageUrlMatch = rawResponse.match(/https?:\/\/[^\s"'<>\n)]+/i);
+            if (!pageUrlMatch) {
+                this.logger.warn(`No page URL found for: ${name}`);
                 return '';
             }
 
-            const foundUrl = urlMatch[0].replace(/[.,;!?)\]]+$/, '');
-            this.logger.log(`Found image URL: ${foundUrl}`);
+            const pageUrl = pageUrlMatch[0].replace(/[.,;!?)\]]+$/, '');
+            this.logger.log(`Fetching page to extract image: ${pageUrl}`);
 
-            // Try to download and cache locally (preferred — bypasses hotlink protection)
-            try {
-                const localPath = await this.downloadAndSaveImage(foundUrl);
-                this.logger.log(`Image cached locally at: ${localPath}`);
-                return localPath;
-            } catch (dlErr: any) {
-                this.logger.warn(`Download failed (${dlErr.message}), using raw URL as fallback`);
-                // Still return the raw URL — better than nothing, admin can see it
-                return foundUrl;
+            // Step 2: Fetch the actual webpage and extract a real image URL from its HTML
+            const pageRes = await axios.get(pageUrl, {
+                timeout: 12000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml',
+                }
+            });
+
+            const html: string = pageRes.data?.toString() || '';
+
+            // Step 3: Try og:image first (best quality, specifically set for sharing)
+            const ogImageMatch = html.match(/<meta[^>]+(?:property="og:image"|name="og:image")[^>]+content="([^"]+)"/i)
+                ?? html.match(/<meta[^>]+content="([^"]+)"[^>]+(?:property="og:image"|name="og:image")/i);
+
+            const candidates: string[] = [];
+
+            if (ogImageMatch?.[1]) candidates.push(ogImageMatch[1]);
+
+            // Also try src of img tags with product-related class names or sizes
+            const imgMatches = html.matchAll(/<img[^>]+src="(https?:\/\/[^"]+\.(jpg|jpeg|png|webp)(?:\?[^"]*)?)"[^>]*/gi);
+            for (const m of imgMatches) {
+                if (m[1] && !m[1].includes('logo') && !m[1].includes('icon') && !m[1].includes('banner')) {
+                    candidates.push(m[1]);
+                    if (candidates.length >= 5) break;
+                }
             }
+
+            this.logger.log(`Found ${candidates.length} image candidates on the page`);
+
+            // Step 4: Try each candidate URL — download the first one that actually returns an image
+            for (const imgUrl of candidates) {
+                try {
+                    const localPath = await this.downloadAndSaveImage(imgUrl);
+                    this.logger.log(`Successfully saved image from: ${imgUrl}`);
+                    return localPath;
+                } catch {
+                    // Try the next candidate
+                }
+            }
+
+            this.logger.warn(`Could not download any image from page: ${pageUrl}`);
+            return '';
         } catch (err: any) {
-            this.logger.error(`OpenAI web search failed: ${err.message}`);
+            this.logger.error(`Product image search failed: ${err.message}`);
             return '';
         }
     }
