@@ -121,7 +121,17 @@ export class SuperAdminService {
                 category: data.category,
                 description: data.description,
                 imageUrl: data.image_url,
+                // Assuming schema supports brandName, otherwise this will cause Prisma errors.
+                // Looking at pending-item schema mapping, brandName might differ or be missing, so keeping it safe
+                ...(data.brandName ? { brandName: data.brandName } : {})
             }
+        });
+    }
+
+    async uploadProductImage(id: string, imageUrl: string) {
+        return this.prisma.sharedCatalog.update({
+            where: { sku: id },
+            data: { imageUrl }
         });
     }
 

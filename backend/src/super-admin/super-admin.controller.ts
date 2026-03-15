@@ -1,8 +1,9 @@
 
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { SuperAdminService } from './super-admin.service';
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; 
-// Ideally we should have a SuperAdminGuard
 
 @Controller('super-admin')
 export class SuperAdminController {
@@ -13,9 +14,7 @@ export class SuperAdminController {
     @Get('dashboard-data')
     async getDashboardData() {
         try {
-            console.log('Fetching dashboard data...');
             const data = await this.service.getDashboardData();
-            console.log('Dashboard data fetched successfully.');
             return data;
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -33,10 +32,33 @@ export class SuperAdminController {
         return this.service.rejectProduct(id);
     }
 
-    @Post('products/:id') // Using POST for update to avoid CORS OPTIONS usually associated with PUT if simple
-    // Actually PUT is fine.
+    @Post('products/:id')
     async updateProduct(@Param('id') id: string, @Body() data: any) {
         return this.service.updateProduct(id, data);
+    }
+
+    @Post('products/:id/image')
+    @UseInterceptors(FileInterceptor('file', {
+        storage: diskStorage({
+            destination: './public/uploads/products',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const ext = extname(file.originalname);
+                cb(null, `product_${uniqueSuffix}${ext}`);
+            }
+        })
+    }))
+    async uploadProductImage(@Param('id') id: string, @UploadedFile() file: any) {
+        if (!file) {
+            throw new BadRequestException('Image file is required');
+        }
+        
+        // Return the dynamic route rather than hardcoding localhost explicitly
+        // If frontend asks for it, it appends to window.location or proxy automatically.
+        const imageUrl = `/uploads/products/${file.filename}`;
+        
+        // Save URL string directly to the DB sku record
+        return this.service.uploadProductImage(id, imageUrl);
     }
 
     @Post('products/:id/enrich')

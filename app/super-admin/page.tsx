@@ -678,19 +678,76 @@ export default function SuperAdminPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Image URL</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editedProduct.image_url || ''}
-                    onChange={(e) => setEditedProduct({ ...editedProduct, image_url: e.target.value })}
-                    className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
-                  />
-                  {editedProduct.image_url && (
-                    <div className="w-10 h-10 bg-gray-900 rounded border border-gray-700 overflow-hidden shrink-0">
+                <div className="flex justify-between items-end mb-1">
+                  <label className="block text-xs font-bold text-gray-400 uppercase">Product Image</label>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleAiEnrich(editedProduct);
+                    }}
+                    disabled={enriching === editedProduct.id}
+                    className="text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300 bg-purple-900/20 px-2 py-1 rounded transition"
+                  >
+                    {enriching === editedProduct.id ? <Loader2 className="animate-spin" size={12} /> : <Sparkles size={12} />}
+                    {enriching === editedProduct.id ? 'Fetching...' : 'AI Enrich Data'}
+                  </button>
+                </div>
+                
+                <div className="flex gap-4 items-start">
+                  <div className="w-24 h-24 bg-gray-900 rounded-lg border border-gray-700 overflow-hidden shrink-0 relative group">
+                    {editedProduct.image_url ? (
                       <img src={editedProduct.image_url} className="w-full h-full object-cover" />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                        <ImageIcon size={24} className="mb-1" />
+                        <span className="text-[10px]">No Image</span>
+                      </div>
+                    )}
+                    
+                    {/* Hover Upload Overlay */}
+                    <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      <UploadCloud size={20} className="text-white mb-1" />
+                      <span className="text-white text-xs font-bold">Upload</span>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          const toastId = toast.loading("Uploading image...");
+                          try {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            
+                            const res = await apiClient.post(`/super-admin/products/${editedProduct.id}/image`, formData, {
+                              headers: { 'Content-Type': 'multipart/form-data' }
+                            });
+                            
+                            setEditedProduct({ ...editedProduct, image_url: res.imageUrl });
+                            toast.success("Image uploaded successfully", { id: toastId });
+                          } catch (err: any) {
+                            console.error(err);
+                            toast.error("Upload failed: " + (err.message || 'Unknown error'), { id: toastId });
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      value={editedProduct.image_url || ''}
+                      onChange={(e) => setEditedProduct({ ...editedProduct, image_url: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                      placeholder="Or paste an image URL..."
+                    />
+                    <p className="text-xs text-gray-500 leading-tight">
+                      Click the image preview to upload a file directly from your computer, click AI Enrich to fetch one from the web automatically, or paste a URL.
+                    </p>
+                  </div>
                 </div>
               </div>
 
