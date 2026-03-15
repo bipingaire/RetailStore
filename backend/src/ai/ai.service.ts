@@ -37,23 +37,34 @@ export class AiService {
     }
 
     async generateProductImage(name: string, category: string): Promise<string> {
+        if (!this.openai) return '';
         try {
-            // The user requested to avoid DALL-E hallucinatory images and instead use a web search.
-            // Using duckduckgo-images-api to fetch real external images.
-            const { image_search } = require('duckduckgo-images-api');
-            const query = `${name} ${category} product isolated white background`;
-            this.logger.log(`Searching web for product image: ${query}`);
+            // Use OpenAI to find a real product image from the web
+            this.logger.log(`Using OpenAI to find product image for: ${name} (${category})`);
             
-            const results = await image_search({ query, moderate: true, iterations: 1 });
-            
-            if (results && results.length > 0) {
-                // Return the first image result's URL
-                return results[0].image || '';
+            const completion = await this.openai.chat.completions.create({
+                model: 'gpt-4o',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a product image finder. When asked about a product, you must return ONLY a single valid, direct image URL (ending in .jpg, .jpeg, .png, or .webp) from a reliable public source like Amazon, Walmart, Wikipedia, or manufacturer sites. Do not include any explanation, markdown, or extra text. Just the raw URL.'
+                    },
+                    {
+                        role: 'user',
+                        content: `Find a high-quality product image URL for: "${name}" in the "${category}" category. The image should show the product clearly on a white or clean background. Return only the direct image URL, nothing else.`
+                    }
+                ],
+            });
+
+            const imageUrl = (completion.choices[0].message.content || '').trim();
+            // Basic validation: must look like a URL starting with http and ending with image extension or contain image-related path
+            if (imageUrl.startsWith('http') && imageUrl.length > 10) {
+                this.logger.log(`OpenAI found image URL: ${imageUrl}`);
+                return imageUrl;
             }
-            
             return '';
         } catch (error) {
-            this.logger.error('Web Image Search Failed', error);
+            this.logger.error('OpenAI Image Search Failed', error);
             return '';
         }
     }

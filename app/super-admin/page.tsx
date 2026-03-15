@@ -214,9 +214,25 @@ export default function SuperAdminPage() {
   const handleAiEnrich = async (product: GlobalProduct) => {
     setEnriching(product.id);
     try {
-      await apiClient.post(`/super-admin/products/${product.id}/enrich`);
-      toast.success("Product Enriched with AI!");
-      loadData(); // Reload to see changes
+      const enriched = await apiClient.post(`/super-admin/products/${product.id}/enrich`);
+      toast.success("Product enriched with AI!");
+      
+      // If the modal is open for this product, update its state immediately
+      if (editedProduct && editedProduct.id === product.id) {
+        setEditedProduct(prev => prev ? {
+          ...prev,
+          image_url: enriched.imageUrl || prev.image_url,
+          description: enriched.description || prev.description,
+        } : prev);
+      }
+
+      // Also update the product list
+      setProducts(prev => prev.map(p => p.id === product.id ? {
+        ...p,
+        image_url: enriched.imageUrl || p.image_url,
+        description: enriched.description || p.description,
+        ai_enriched_at: enriched.aiEnrichedAt || new Date().toISOString(),
+      } : p));
     } catch (error: any) {
       toast.error("Enrichment failed: " + (error.message || "Unknown error"));
     } finally {
