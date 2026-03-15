@@ -2,6 +2,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class AiService {
@@ -39,7 +42,6 @@ export class AiService {
     async generateProductImage(name: string, category: string): Promise<string> {
         if (!this.openai) return '';
         try {
-            // Use OpenAI to find a real product image from the web
             this.logger.log(`Using OpenAI to find product image for: ${name} (${category})`);
             
             const completion = await this.openai.chat.completions.create({
@@ -47,24 +49,51 @@ export class AiService {
                 messages: [
                     {
                         role: 'system',
-                        content: 'You are a product image finder. When asked about a product, you must return ONLY a single valid, direct image URL (ending in .jpg, .jpeg, .png, or .webp) from a reliable public source like Amazon, Walmart, Wikipedia, or manufacturer sites. Do not include any explanation, markdown, or extra text. Just the raw URL.'
+                        content: 'You are a product image URL finder. Return ONLY a single direct image URL (ending in .jpg, .jpeg, .png, or .webp) from a public, freely accessible source like Wikimedia Commons, open government food databases, or open product image repositories. Do NOT use Amazon, Flipkart, BigBasket, or any hotlink-protected CDN. Return only the raw URL with no explanation.'
                     },
                     {
                         role: 'user',
-                        content: `Find a high-quality product image URL for: "${name}" in the "${category}" category. The image should show the product clearly on a white or clean background. Return only the direct image URL, nothing else.`
+                        content: `Find a publicly accessible product image URL for: "${name}" in the "${category}" category. Prefer Wikimedia Commons or open image sources. Return only the direct image URL.`
                     }
                 ],
             });
 
-            const imageUrl = (completion.choices[0].message.content || '').trim();
-            // Basic validation: must look like a URL starting with http and ending with image extension or contain image-related path
-            if (imageUrl.startsWith('http') && imageUrl.length > 10) {
-                this.logger.log(`OpenAI found image URL: ${imageUrl}`);
-                return imageUrl;
+            const externalUrl = (completion.choices[0].message.content || '').trim();
+
+            if (!externalUrl.startsWith('http')) {
+                this.logger.warn(`OpenAI returned non-URL: ${externalUrl}`);
+                return '';
             }
-            return '';
-        } catch (error) {
-            this.logger.error('OpenAI Image Search Failed', error);
+
+            this.logger.log(`OpenAI found image URL: ${externalUrl} — downloading to local...`);
+
+            // Ensure uploads directory exists
+            const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'products');
+            if (!fs.existsSync(uploadsDir)) {
+                fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+
+            // Download externally found image locally to bypass hotlink protection
+            const ext = externalUrl.split('?')[0].split('.').pop()?.split('/').pop() || 'jpg';
+            const safeExt = ['jpg','jpeg','png','webp','gif'].includes(ext) ? ext : 'jpg';
+            const filename = `enriched_${Date.now()}.${safeExt}`;
+            const localPath = path.join(uploadsDir, filename);
+
+            const response = await axios.get(externalUrl, {
+                responseType: 'arraybuffer',
+                timeout: 10000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (compatible; RetailBot/1.0)',
+                    'Accept': 'image/*'
+                }
+            });
+
+            fs.writeFileSync(localPath, response.data);
+            this.logger.log(`Image saved locally: ${localPath}`);
+
+            return `/uploads/products/${filename}`;
+        } catch (error: any) {
+            this.logger.error(`Product image fetch failed: ${error.message}`);
             return '';
         }
     }
