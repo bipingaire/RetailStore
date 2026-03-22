@@ -59,7 +59,7 @@ function CheckoutSuccessContent() {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...gray);
         doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 50);
-        doc.text(`Status: ${order.status || 'COMPLETED'}`, 14, 56);
+        doc.text(`Status: ${order?.paymentMethod === 'CASH' && order?.notes?.toLowerCase().includes('pickup') ? 'PENDING PICKUP' : (order.status || 'COMPLETED')}`, 14, 56);
         const paymentMethodDisp = (order.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
         doc.text(`Payment: ${paymentMethodDisp}`, 140, 44);
         if (order.notes) {
@@ -140,7 +140,9 @@ function CheckoutSuccessContent() {
                         </div>
                         <div className="bg-white p-4">
                             <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><Package size={12} /> Status</p>
-                            <span className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full">{order?.status || 'COMPLETED'}</span>
+                            <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${order?.paymentMethod === 'CASH' && order?.notes?.toLowerCase().includes('pickup') ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                {order?.paymentMethod === 'CASH' && order?.notes?.toLowerCase().includes('pickup') ? 'PENDING PICKUP' : (order?.status || 'COMPLETED')}
+                            </span>
                         </div>
                     </div>
 
@@ -188,7 +190,7 @@ function CheckoutSuccessContent() {
                             <span>Discount</span><span>-${discount.toFixed(2)}</span>
                         </div>}
                         <div className="flex justify-between font-bold text-base text-gray-900 border-t pt-2">
-                            <span>Total Paid</span>
+                            <span>{order?.paymentMethod === 'CASH' && order?.notes?.toLowerCase().includes('pickup') ? 'Amount Due at Pickup' : (order?.paymentMethod === 'CASH' ? 'Amount Due on Delivery' : 'Total Paid')}</span>
                             <span className="text-emerald-600 text-lg">${total.toFixed(2)}</span>
                         </div>
                     </div>
