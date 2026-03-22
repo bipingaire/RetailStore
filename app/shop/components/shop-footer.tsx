@@ -66,11 +66,7 @@ export default function ShopFooter() {
           <div>
             <h3 className="font-bold text-gray-900 mb-4">Account</h3>
             <ul className="space-y-2.5">
-              <li>
-                <Link href="/shop/profile" className="text-sm text-gray-600 hover:text-green-600 transition flex items-center gap-1 group">
-                  My Profile <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition" />
-                </Link>
-              </li>
+
               <li>
                 <Link href="/shop/orders" className="text-sm text-gray-600 hover:text-green-600 transition flex items-center gap-1 group">
                   Order History <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition" />
