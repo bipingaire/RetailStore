@@ -18,6 +18,11 @@ export class AuthController {
     return this.authService.register(subdomain, dto.email, dto.password, dto.name);
   }
 
+  @Post('google-login')
+  async googleLogin(@Headers('x-tenant') subdomain: string, @Body() body: { email: string; name: string; googleId: string }) {
+    return this.authService.googleLogin(subdomain, body);
+  }
+
   @Post('super-admin/login')
   async loginSuperAdmin(@Body() dto: LoginDto) {
     const admin = await this.authService.validateSuperAdmin(dto.email, dto.password);

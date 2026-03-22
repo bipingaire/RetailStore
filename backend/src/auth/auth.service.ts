@@ -135,6 +135,38 @@ export class AuthService {
     return this.login({ ...user, tenantId: tenant.id, subdomain });
   }
 
+  async googleLogin(subdomain: string, data: { email: string; name: string; googleId: string }) {
+    // Local / default handling
+    let client: any;
+    let tenantId = null;
+
+    if (subdomain && subdomain !== 'demo' && subdomain !== 'localhost') {
+        const tenant = await this.prisma.tenant.findUnique({ where: { subdomain } });
+        if (!tenant) throw new BadRequestException('Tenant not found');
+        client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+        tenantId = tenant.id;
+    } else {
+        client = this.localPrisma;
+    }
+
+    let user = await client.user.findUnique({ where: { email: data.email } });
+    
+    if (!user) {
+      const generatedPassword = await bcrypt.hash(data.googleId + Date.now().toString(), 10);
+      user = await client.user.create({
+        data: {
+          email: data.email,
+          password: generatedPassword,
+          name: data.name || data.email.split('@')[0],
+          role: 'CUSTOMER', 
+          ...(tenantId ? { tenantId } : {})
+        },
+      });
+    }
+
+    return this.login({ ...user, tenantId, subdomain });
+  }
+
   async getProfile(userId: string) {
     if (!userId) return null;
     let user = await this.localPrisma.user.findUnique({ where: { id: userId } });
