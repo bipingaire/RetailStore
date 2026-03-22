@@ -7,7 +7,9 @@ import path from 'path';
 // Explicitly load credentials from .env.production
 dotenv.config({ path: path.resolve(process.cwd(), '.env.production') });
 
-const handler = NextAuth({
+import { NextRequest } from 'next/server';
+
+const authOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? '',
@@ -33,13 +35,13 @@ const handler = NextAuth({
         async session({ session, token }) {
             return session;
         },
-        async jwt({ token, account, profile }) {
+        async jwt({ token, account, profile }: any) {
             if (account) {
                 token.provider = account.provider;
             }
             return token;
         },
-        async signIn({ user, account, profile }) {
+        async signIn({ user, account, profile }: any) {
             // On Google sign-in, auto-register/login user via backend
             if (account?.provider === 'google' && user.email) {
                 try {
@@ -74,6 +76,18 @@ const handler = NextAuth({
         },
     },
     secret: process.env.NEXTAUTH_SECRET || 'retailstore-secret-key-change-in-production',
-});
+};
+
+const handler = async (req: NextRequest, ctx: { params: any }) => {
+    // Dynamically set NEXTAUTH_URL for multi-tenant support through Nginx
+    const host = req.headers.get("host") || req.headers.get("x-forwarded-host");
+    const proto = req.headers.get("x-forwarded-proto") || "https";
+    if (host) {
+        process.env.NEXTAUTH_URL = `${proto}://${host}`;
+    }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return NextAuth(authOptions)(req, ctx);
+};
 
 export { handler as GET, handler as POST };
