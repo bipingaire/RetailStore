@@ -1,6 +1,11 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import * as dotenv from 'dotenv';
+import path from 'path';
+
+// Explicitly load credentials from .env.production
+dotenv.config({ path: path.resolve(process.cwd(), '.env.production') });
 
 const handler = NextAuth({
     providers: [
