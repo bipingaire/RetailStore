@@ -184,6 +184,7 @@ function CheckoutContent() {
                     tax: tax,
                     discount: 0,
                     total: total,
+                    amountPaid: paymentMethod === 'card' ? total : 0,
                     paymentMethod: backendPaymentMethod,
                     customerName: customerName,
                     customerEmail: customerEmail,
