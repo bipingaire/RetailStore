@@ -48,8 +48,8 @@ export default function OrderManager() {
           total: Number(sale.total),
           createdAt: sale.createdAt,
           status: (sale.status || 'PENDING').toLowerCase(),
-          paymentMethod: sale.paymentMethod || 'cash',
-          paymentStatus: sale.paymentStatus || 'pending',
+          paymentMethod: (sale.paymentMethod || 'cash').toLowerCase(),
+          paymentStatus: (sale.paymentStatus || 'pending').toLowerCase(),
           items: (sale.items || []).map((item: any) => ({
             qty: item.quantity,
             name: item.product?.name || item.productName || 'Unknown Product',

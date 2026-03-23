@@ -5836,6 +5836,8 @@ export namespace Prisma {
     discount: Decimal | null
     total: Decimal | null
     status: string | null
+    paymentMethod: string | null
+    paymentStatus: string | null
     createdAt: Date | null
     userId: string | null
     customerId: string | null
@@ -5849,6 +5851,8 @@ export namespace Prisma {
     discount: Decimal | null
     total: Decimal | null
     status: string | null
+    paymentMethod: string | null
+    paymentStatus: string | null
     createdAt: Date | null
     userId: string | null
     customerId: string | null
@@ -5862,6 +5866,8 @@ export namespace Prisma {
     discount: number
     total: number
     status: number
+    paymentMethod: number
+    paymentStatus: number
     createdAt: number
     userId: number
     customerId: number
@@ -5891,6 +5897,8 @@ export namespace Prisma {
     discount?: true
     total?: true
     status?: true
+    paymentMethod?: true
+    paymentStatus?: true
     createdAt?: true
     userId?: true
     customerId?: true
@@ -5904,6 +5912,8 @@ export namespace Prisma {
     discount?: true
     total?: true
     status?: true
+    paymentMethod?: true
+    paymentStatus?: true
     createdAt?: true
     userId?: true
     customerId?: true
@@ -5917,6 +5927,8 @@ export namespace Prisma {
     discount?: true
     total?: true
     status?: true
+    paymentMethod?: true
+    paymentStatus?: true
     createdAt?: true
     userId?: true
     customerId?: true
@@ -6017,6 +6029,8 @@ export namespace Prisma {
     discount: Decimal
     total: Decimal
     status: string
+    paymentMethod: string
+    paymentStatus: string
     createdAt: Date
     userId: string
     customerId: string | null
@@ -6049,6 +6063,8 @@ export namespace Prisma {
     discount?: boolean
     total?: boolean
     status?: boolean
+    paymentMethod?: boolean
+    paymentStatus?: boolean
     createdAt?: boolean
     userId?: boolean
     customerId?: boolean
@@ -6067,6 +6083,8 @@ export namespace Prisma {
     discount?: boolean
     total?: boolean
     status?: boolean
+    paymentMethod?: boolean
+    paymentStatus?: boolean
     createdAt?: boolean
     userId?: boolean
     customerId?: boolean
@@ -6082,6 +6100,8 @@ export namespace Prisma {
     discount?: boolean
     total?: boolean
     status?: boolean
+    paymentMethod?: boolean
+    paymentStatus?: boolean
     createdAt?: boolean
     userId?: boolean
     customerId?: boolean
@@ -6115,6 +6135,8 @@ export namespace Prisma {
       discount: Prisma.Decimal
       total: Prisma.Decimal
       status: string
+      paymentMethod: string
+      paymentStatus: string
       createdAt: Date
       userId: string
       customerId: string | null
@@ -6522,6 +6544,8 @@ export namespace Prisma {
     readonly discount: FieldRef<"Sale", 'Decimal'>
     readonly total: FieldRef<"Sale", 'Decimal'>
     readonly status: FieldRef<"Sale", 'String'>
+    readonly paymentMethod: FieldRef<"Sale", 'String'>
+    readonly paymentStatus: FieldRef<"Sale", 'String'>
     readonly createdAt: FieldRef<"Sale", 'DateTime'>
     readonly userId: FieldRef<"Sale", 'String'>
     readonly customerId: FieldRef<"Sale", 'String'>
@@ -29549,6 +29573,8 @@ export namespace Prisma {
     discount: 'discount',
     total: 'total',
     status: 'status',
+    paymentMethod: 'paymentMethod',
+    paymentStatus: 'paymentStatus',
     createdAt: 'createdAt',
     userId: 'userId',
     customerId: 'customerId'
@@ -30220,6 +30246,8 @@ export namespace Prisma {
     discount?: DecimalFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     total?: DecimalFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     status?: StringFilter<"Sale"> | string
+    paymentMethod?: StringFilter<"Sale"> | string
+    paymentStatus?: StringFilter<"Sale"> | string
     createdAt?: DateTimeFilter<"Sale"> | Date | string
     userId?: StringFilter<"Sale"> | string
     customerId?: StringNullableFilter<"Sale"> | string | null
@@ -30237,6 +30265,8 @@ export namespace Prisma {
     discount?: SortOrder
     total?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentStatus?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrderInput | SortOrder
@@ -30257,6 +30287,8 @@ export namespace Prisma {
     discount?: DecimalFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     total?: DecimalFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     status?: StringFilter<"Sale"> | string
+    paymentMethod?: StringFilter<"Sale"> | string
+    paymentStatus?: StringFilter<"Sale"> | string
     createdAt?: DateTimeFilter<"Sale"> | Date | string
     userId?: StringFilter<"Sale"> | string
     customerId?: StringNullableFilter<"Sale"> | string | null
@@ -30274,6 +30306,8 @@ export namespace Prisma {
     discount?: SortOrder
     total?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentStatus?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrderInput | SortOrder
@@ -30295,6 +30329,8 @@ export namespace Prisma {
     discount?: DecimalWithAggregatesFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     total?: DecimalWithAggregatesFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     status?: StringWithAggregatesFilter<"Sale"> | string
+    paymentMethod?: StringWithAggregatesFilter<"Sale"> | string
+    paymentStatus?: StringWithAggregatesFilter<"Sale"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Sale"> | Date | string
     userId?: StringWithAggregatesFilter<"Sale"> | string
     customerId?: StringNullableWithAggregatesFilter<"Sale"> | string | null
@@ -32118,6 +32154,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutSalesInput
     customer?: CustomerCreateNestedOneWithoutSalesInput
@@ -32133,6 +32171,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     userId: string
     customerId?: string | null
@@ -32148,6 +32188,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSalesNestedInput
     customer?: CustomerUpdateOneWithoutSalesNestedInput
@@ -32163,6 +32205,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32178,6 +32222,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     userId: string
     customerId?: string | null
@@ -32191,6 +32237,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -32202,6 +32250,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -34253,6 +34303,8 @@ export namespace Prisma {
     discount?: SortOrder
     total?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentStatus?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrder
@@ -34273,6 +34325,8 @@ export namespace Prisma {
     discount?: SortOrder
     total?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentStatus?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrder
@@ -34286,6 +34340,8 @@ export namespace Prisma {
     discount?: SortOrder
     total?: SortOrder
     status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentStatus?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrder
@@ -36901,6 +36957,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     customer?: CustomerCreateNestedOneWithoutSalesInput
     items?: SaleItemCreateNestedManyWithoutSaleInput
@@ -36915,6 +36973,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     customerId?: string | null
     items?: SaleItemUncheckedCreateNestedManyWithoutSaleInput
@@ -36958,6 +37018,8 @@ export namespace Prisma {
     discount?: DecimalFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     total?: DecimalFilter<"Sale"> | Decimal | DecimalJsLike | number | string
     status?: StringFilter<"Sale"> | string
+    paymentMethod?: StringFilter<"Sale"> | string
+    paymentStatus?: StringFilter<"Sale"> | string
     createdAt?: DateTimeFilter<"Sale"> | Date | string
     userId?: StringFilter<"Sale"> | string
     customerId?: StringNullableFilter<"Sale"> | string | null
@@ -37986,6 +38048,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutSalesInput
     customer?: CustomerCreateNestedOneWithoutSalesInput
@@ -38000,6 +38064,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     userId: string
     customerId?: string | null
@@ -38095,6 +38161,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSalesNestedInput
     customer?: CustomerUpdateOneWithoutSalesNestedInput
@@ -38109,6 +38177,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38194,6 +38264,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutSalesInput
     items?: SaleItemCreateNestedManyWithoutSaleInput
@@ -38208,6 +38280,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     userId: string
     items?: SaleItemUncheckedCreateNestedManyWithoutSaleInput
@@ -38772,6 +38846,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutSalesInput
     customer?: CustomerCreateNestedOneWithoutSalesInput
@@ -38786,6 +38862,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     userId: string
     customerId?: string | null
@@ -38816,6 +38894,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSalesNestedInput
     customer?: CustomerUpdateOneWithoutSalesNestedInput
@@ -38830,6 +38910,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40410,6 +40492,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     customerId?: string | null
   }
@@ -40422,6 +40506,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneWithoutSalesNestedInput
     items?: SaleItemUpdateManyWithoutSaleNestedInput
@@ -40436,6 +40522,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     items?: SaleItemUncheckedUpdateManyWithoutSaleNestedInput
@@ -40450,6 +40538,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -40944,6 +41034,8 @@ export namespace Prisma {
     discount: Decimal | DecimalJsLike | number | string
     total: Decimal | DecimalJsLike | number | string
     status?: string
+    paymentMethod?: string
+    paymentStatus?: string
     createdAt?: Date | string
     userId: string
   }
@@ -40956,6 +41048,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSalesNestedInput
     items?: SaleItemUpdateManyWithoutSaleNestedInput
@@ -40970,6 +41064,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     items?: SaleItemUncheckedUpdateManyWithoutSaleNestedInput
@@ -40984,6 +41080,8 @@ export namespace Prisma {
     discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
   }

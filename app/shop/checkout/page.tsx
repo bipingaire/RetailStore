@@ -184,9 +184,10 @@ function CheckoutContent() {
                     tax: tax,
                     discount: 0,
                     total: total,
-                    amountPaid: total,
                     paymentMethod: backendPaymentMethod,
-                    // customerId omitted — user is linked via userId from JWT, not Customer table
+                    customerName: customerName,
+                    customerEmail: customerEmail,
+                    customerPhone: customerPhone,
                     notes: fulfillmentType === 'delivery'
                         ? `Delivery to: ${addressLine1}, ${addressLine2 ? addressLine2 + ', ' : ''}${city}, ${state} ${zipCode}. Instructions: ${deliveryInstructions || 'None'}`
                         : 'Pickup Order'

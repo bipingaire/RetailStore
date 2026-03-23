@@ -161,6 +161,8 @@ exports.Prisma.SaleScalarFieldEnum = {
   discount: 'discount',
   total: 'total',
   status: 'status',
+  paymentMethod: 'paymentMethod',
+  paymentStatus: 'paymentStatus',
   createdAt: 'createdAt',
   userId: 'userId',
   customerId: 'customerId'

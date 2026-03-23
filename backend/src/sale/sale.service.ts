@@ -19,16 +19,55 @@ export class SaleService {
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
 
     return client.$transaction(async (tx) => {
+      let customerId = data.customerId || null;
+
+      if (!customerId && data.customerName) {
+        if (data.customerEmail) {
+          const existing = await tx.customer.findFirst({
+            where: { email: data.customerEmail }
+          });
+          if (existing) {
+            customerId = existing.id;
+          }
+        }
+        if (!customerId) {
+          // If phone is unique but might exist? Let's just create a new customer
+          // Note: email and phone are unique in schema. We should handle potential duplicates
+          // We will findFirst by email OR phone just to be safe
+          const existingContact = await tx.customer.findFirst({
+            where: {
+              OR: [
+                data.customerEmail ? { email: data.customerEmail } : undefined,
+                data.customerPhone ? { phone: data.customerPhone } : undefined,
+              ].filter(Boolean) as any
+            }
+          });
+          
+          if (existingContact) {
+            customerId = existingContact.id;
+          } else {
+            const newCustomer = await tx.customer.create({
+              data: {
+                name: data.customerName,
+                email: data.customerEmail || null,
+                phone: data.customerPhone || null,
+              }
+            });
+            customerId = newCustomer.id;
+          }
+        }
+      }
+
       const sale = await tx.sale.create({
         data: {
           saleNumber: `SALE-${Date.now()}`,
           userId: data.userId,
-          customerId: data.customerId || null,
+          customerId: customerId,
           subtotal: data.subtotal,
           tax: data.tax ?? 0,
           discount: data.discount ?? 0,   // required in schema, default 0
           total: data.total,
-          status: 'COMPLETED',
+          status: 'PENDING',
           paymentMethod: data.paymentMethod || 'CASH',
           paymentStatus: data.paymentMethod === 'CARD' ? 'PAID' : 'PENDING',
           items: {

@@ -61,14 +61,16 @@ model Product {
 }
 
 model Sale {
-  id         String   @id @default(uuid())
-  saleNumber String   @unique
-  subtotal   Decimal  @db.Decimal(10, 2)
-  tax        Decimal  @db.Decimal(10, 2)
-  discount   Decimal  @db.Decimal(10, 2)
-  total      Decimal  @db.Decimal(10, 2)
-  status     String   @default("COMPLETED")
-  createdAt  DateTime @default(now())
+  id            String   @id @default(uuid())
+  saleNumber    String   @unique
+  subtotal      Decimal  @db.Decimal(10, 2)
+  tax           Decimal  @db.Decimal(10, 2)
+  discount      Decimal  @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+  status        String   @default("COMPLETED")
+  paymentMethod String   @default("CASH")
+  paymentStatus String   @default("PENDING")
+  createdAt     DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
