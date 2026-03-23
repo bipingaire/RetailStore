@@ -1,0 +1,14 @@
+commit 1ddb0cb559295fa879e5c2a43349e03ec68074b1
+Author: Anuj12Pokharel <anujpokharel.076@kathford.edu.np>
+Date:   Mon Mar 23 06:19:13 2026 +0545
+
+    fix: restore amountPaid in checkout DTO payload
+
+M	.env.production
+M	app/shop/checkout/page.tsx
+
+.env.example
+.env.production
+backend/.env.example
+next-env.d.ts
+

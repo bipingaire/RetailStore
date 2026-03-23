@@ -80,4 +80,16 @@ export class CreateSaleDto {
   @IsOptional()
   @IsString()
   customerId?: string;
+
+  @IsOptional()
+  @IsString()
+  customerName?: string;
+
+  @IsOptional()
+  @IsString()
+  customerEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  customerPhone?: string;
 }
