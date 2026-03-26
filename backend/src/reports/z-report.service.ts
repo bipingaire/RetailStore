@@ -96,6 +96,7 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
             messages: [{ role: 'user', content: promptContent }],
             max_tokens: 4096,
             temperature: 0.1,
+            response_format: { type: 'json_object' },
         });
 
         const raw = completion.choices[0].message.content || '{}';
