@@ -36,16 +36,13 @@ Extract the following from the document and return ONLY a JSON object with no ma
   "totalTax": number (0 if not shown),
   "transactionCount": number (0 if not shown),
   "items": [
-    {
-      "description": "product/item name visible on the report",
-      "category": "short category",
-      "quantitySold": number,
-      "unitPrice": number,
-      "totalAmount": number
-    }
+    // Array of precise items expressed as flat arrays strictly in this exact order:
+    // [description (string), category (string), quantitySold (number), unitPrice (number), totalAmount (number)]
+    ["item 1 name", "category", QTY, PRICE, TOTAL],
+    ["item 2 name", "category", QTY, PRICE, TOTAL]
   ]
 }
-CRITICAL: Extract EVERY line item. Do not skip any items.`;
+CRITICAL: Extract EVERY line item. Do not skip any items. To save token length, "items" MUST be an array of arrays (tuples) of exactly 5 elements each.`;
 
         if (ext === '.pdf') {
             const pdfParse = require('pdf-parse');
@@ -94,7 +91,7 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
         const completion = await this.openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [{ role: 'user', content: promptContent }],
-            max_tokens: 4096,
+            max_tokens: 16000,
             temperature: 0.1,
             response_format: { type: 'json_object' },
         });
@@ -131,13 +128,25 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
             totalSales: Number(data.totalSales) || 0,
             totalTax: Number(data.totalTax) || 0,
             transactionCount: Number(data.transactionCount) || 0,
-            items: (data.items || []).map((item: any) => ({
-                description: item.description || 'Unknown Item',
-                category: item.category || 'General',
-                quantitySold: Number(item.quantitySold) || 0,
-                unitPrice: Number(item.unitPrice) || 0,
-                totalAmount: Number(item.totalAmount) || 0,
-            })),
+            items: (data.items || []).map((item: any) => {
+                if (Array.isArray(item)) {
+                    return {
+                        description: String(item[0] || 'Unknown Item'),
+                        category: String(item[1] || 'General'),
+                        quantitySold: Number(item[2]) || 0,
+                        unitPrice: Number(item[3]) || 0,
+                        totalAmount: Number(item[4]) || 0,
+                    };
+                }
+                // Fallback in case AI ignores the tuple instruction
+                return {
+                    description: item.description || 'Unknown Item',
+                    category: item.category || 'General',
+                    quantitySold: Number(item.quantitySold) || 0,
+                    unitPrice: Number(item.unitPrice) || 0,
+                    totalAmount: Number(item.totalAmount) || 0,
+                };
+            }),
         };
     }
 
