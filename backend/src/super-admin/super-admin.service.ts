@@ -1,15 +1,47 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-
+import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class SuperAdminService {
     constructor(
         private prisma: PrismaService,
+        private tenantPrisma: TenantPrismaService,
         private aiService: AiService
     ) { }
+
+    private async broadcastUpdateToTenants(sku: string, data: { productName?: string; category?: string; description?: string; imageUrl?: string; brandName?: string }) {
+        try {
+            // Get all active tenants map to their database URL
+            const tenants = await this.prisma.tenant.findMany({ where: { isActive: true } });
+            
+            // Map SharedCatalog fields to Tenant Product fields
+            const updateData: any = {};
+            if (data.productName !== undefined) updateData.name = data.productName;
+            if (data.category !== undefined) updateData.category = data.category;
+            if (data.description !== undefined) updateData.description = data.description;
+            if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+            
+            if (Object.keys(updateData).length === 0) return;
+
+            // Update each active tenant's product ledger if they carry the item
+            await Promise.allSettled(tenants.map(async (tenant) => {
+                try {
+                    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+                    await client.product.updateMany({
+                        where: { sku },
+                        data: updateData
+                    });
+                } catch (err) {
+                    console.error(`Failed to broadcast update for SKU ${sku} to tenant ${tenant.storeName}:`, err);
+                }
+            }));
+        } catch (error) {
+            console.error('Failed to trigger broadcast updates:', error);
+        }
+    }
 
     async getGlobalProduct(id: string) {
         const product = await this.prisma.sharedCatalog.findUnique({
@@ -103,6 +135,14 @@ export class SuperAdminService {
             }
         });
 
+        // Broadcast the new enriched data down to any tenants who already blindly created it
+        await this.broadcastUpdateToTenants(sku, {
+            productName: item.productName,
+            category: item.categoryName,
+            description: item.descriptionText,
+            imageUrl: item.imageUrl
+        });
+
         return product;
     }
 
@@ -114,7 +154,7 @@ export class SuperAdminService {
     }
 
     async updateProduct(id: string, data: any) {
-        return this.prisma.sharedCatalog.update({
+        const product = await this.prisma.sharedCatalog.update({
             where: { sku: id },
             data: {
                 productName: data.name,
@@ -126,13 +166,26 @@ export class SuperAdminService {
                 ...(data.brandName ? { brandName: data.brandName } : {})
             }
         });
+
+        await this.broadcastUpdateToTenants(id, {
+            productName: product.productName,
+            category: product.category,
+            description: product.description,
+            imageUrl: product.imageUrl
+        });
+
+        return product;
     }
 
     async uploadProductImage(id: string, imageUrl: string) {
-        return this.prisma.sharedCatalog.update({
+        const product = await this.prisma.sharedCatalog.update({
             where: { sku: id },
             data: { imageUrl }
         });
+
+        await this.broadcastUpdateToTenants(id, { imageUrl });
+        
+        return product;
     }
 
     async enrichProduct(id: string) {
@@ -148,7 +201,7 @@ export class SuperAdminService {
             this.aiService.generateProductImage(product.productName, product.category)
         ]);
 
-        return this.prisma.sharedCatalog.update({
+        const updated = await this.prisma.sharedCatalog.update({
             where: { sku: id },
             data: {
                 description: description || product.description,
@@ -156,6 +209,13 @@ export class SuperAdminService {
                 aiEnrichedAt: new Date(),
             }
         });
+
+        await this.broadcastUpdateToTenants(id, {
+            description: updated.description,
+            imageUrl: updated.imageUrl
+        });
+
+        return updated;
     }
 
     async getAiSuggestions(id: string) {
