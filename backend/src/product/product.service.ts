@@ -22,26 +22,24 @@ export class ProductService {
     const product = await client.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException('Product not found');
 
-    // 2. Generate Image via OpenAI
+    // 2. Generate Description via OpenAI
     // Note: Ensure OPENAI_API_KEY is in backend .env
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const prompt = `Professional product photography of ${product.name}, isolated on white background, high quality, commercial lighting, photorealistic, 4k`;
+    const prompt = `Write a short, professional, and appealing product description for a local retail store item called "${product.name}". The category is "${product.category || 'general'}". Do not use bullet points, just 2-3 engaging sentences.`;
 
     try {
-      const response = await openai.images.generate({
-        model: "dall-e-3",
-        prompt: prompt,
-        n: 1,
-        size: "1024x1024",
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
       });
 
-      const imageUrl = response.data[0].url;
-      if (!imageUrl) throw new Error("Failed to generate image from OpenAI");
+      const description = response.choices[0].message?.content?.trim();
+      if (!description) throw new Error("Failed to generate description from OpenAI");
 
       // 3. Update Local Product
       const updated = await client.product.update({
         where: { id },
-        data: { imageUrl }
+        data: { description }
       });
 
       // 4. Update Master Catalog if SKU exists
@@ -57,7 +55,7 @@ export class ProductService {
         });
       }
 
-      return { success: true, imageUrl };
+      return { success: true, description };
     } catch (error) {
       console.error("OpenAI Enrichment Error:", error);
       throw new Error(`Enrichment failed: ${error.message}`);

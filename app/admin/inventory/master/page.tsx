@@ -162,19 +162,19 @@ export default function MasterInventoryPage() {
     }
 
     setEnrichingId(pid);
-    toast.info("Generating AI Image... This may take a moment.");
+    toast.info("Generating AI Description... This may take a moment.");
 
     // Unified Backend Endpoint
     try {
       const res: any = await apiClient.post(`/products/${pid}/enrich`, {});
 
-      if (res.imageUrl) {
-        toast.success("Image generated successfully!");
-        // Update local state to show new image immediately
-        setGlobalItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: res.imageUrl } : i));
-        setInventoryItems(prev => prev.map(i => i.product_id === pid ? { ...i, image: res.imageUrl } : i));
+      if (res.description) {
+        toast.success("Description generated successfully!");
+        // Update local state to show new description immediately
+        setGlobalItems(prev => prev.map(i => i.product_id === pid ? { ...i, description: res.description } : i));
+        setInventoryItems(prev => prev.map(i => i.product_id === pid ? { ...i, description: res.description } : i));
       } else {
-        toast.error("Failed to generate image");
+        toast.error("Failed to generate description");
       }
     } catch (e: any) {
       console.error("Enrichment error:", e);
@@ -292,7 +292,7 @@ export default function MasterInventoryPage() {
                           onClick={(e) => { e.stopPropagation(); handleEnrich(item); }}
                           disabled={enrichingId === item.product_id}
                           className={`absolute inset-0 bg-black/60 flex items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity ${enrichingId === item.product_id ? 'opacity-100 cursor-wait' : 'cursor-pointer'}`}
-                          title="Magic Enrich Image"
+                          title="Magic Enrich Description"
                         >
                           {enrichingId === item.product_id ? <RefreshCcw size={16} className="animate-spin" /> : <Sparkles size={16} className="text-yellow-400" />}
                         </button>

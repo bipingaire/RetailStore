@@ -195,24 +195,18 @@ export class SuperAdminService {
 
         if (!product) throw new NotFoundException('Product not found in Global Catalog');
 
-        // Parallel execution for speed
-        const [description, imageUrl] = await Promise.all([
-            this.aiService.generateProductDescription(product.productName, product.category),
-            this.aiService.generateProductImage(product.productName, product.category)
-        ]);
+        const description = await this.aiService.generateProductDescription(product.productName, product.category);
 
         const updated = await this.prisma.sharedCatalog.update({
             where: { sku: id },
             data: {
                 description: description || product.description,
-                imageUrl: imageUrl || product.imageUrl,
                 aiEnrichedAt: new Date(),
             }
         });
 
         await this.broadcastUpdateToTenants(id, {
             description: updated.description,
-            imageUrl: updated.imageUrl
         });
 
         return updated;
