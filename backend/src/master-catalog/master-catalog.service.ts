@@ -48,6 +48,25 @@ export class MasterCatalogService {
           syncedAt: new Date(),
         },
       });
+
+      // Also upsert into the active Supabase global catalog for UI sync
+      await this.prisma.globalProductMasterCatalog.upsert({
+        where: { sku: data.sku },
+        update: {
+          productName: data.productName,
+          category: data.category,
+          description: data.description,
+          ...(data.imageUrl ? { imageUrl: data.imageUrl } : {})
+        },
+        create: {
+          sku: data.sku,
+          productName: data.productName,
+          category: data.category,
+          description: data.description,
+          imageUrl: data.imageUrl,
+        },
+      });
+
     } catch (error) {
       console.error("Failed to sync to Master Catalog:", error);
       // Don't throw, just log. We don't want to break local update if sync fails.
@@ -68,9 +87,19 @@ export class MasterCatalogService {
       ];
     }
 
-    return this.prisma.sharedCatalog.findMany({
+    // Convert from GlobalProductMasterCatalog to the expected response shape
+    const items = await this.prisma.globalProductMasterCatalog.findMany({
       where,
       orderBy: { productName: 'asc' },
     });
+
+    return items.map(i => ({
+      sku: i.sku,
+      productName: i.productName,
+      category: i.category,
+      description: i.description,
+      basePrice: 0, // Master DB doesn't dictate price anymore
+      imageUrl: i.imageUrl
+    }));
   }
 }

@@ -42,6 +42,18 @@ model SharedCatalog {
   @@map("shared_catalog")
 }
 
+model GlobalProductMasterCatalog {
+  productId String @id @default(uuid()) @map("product-id")
+  productName String @map("product-name")
+  sku String? @unique @map("upc-ean-code") 
+  category String? @map("category-name")
+  description String? @map("description-text")
+  imageUrl String? @map("image-url")
+  isActive Boolean @default(true) @map("is-active")
+  
+  @@map("global-product-master-catalog")
+}
+
 model SuperAdmin {
   id String @id @default(uuid())
   email String @unique

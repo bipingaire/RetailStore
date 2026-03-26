@@ -106,6 +106,22 @@ export class ProductService {
           tenantId: tenant.id,
         },
       });
+
+      // Upsert into the new Supabase-connected Master Catalog as well
+      await this.masterPrisma.globalProductMasterCatalog.upsert({
+        where: { sku: product.sku },
+        update: {
+          productName: product.name,
+          category: product.category,
+          description: product.description,
+        },
+        create: {
+          sku: product.sku,
+          productName: product.name,
+          category: product.category,
+          description: product.description,
+        },
+      });
     } catch (err) {
       console.error(`[Catalog Sync] Failed for product "${product.name}":`, err);
     }
@@ -120,7 +136,18 @@ export class ProductService {
   async findOne(subdomain: string, id: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    return client.product.findUnique({ where: { id }, include: { Batches: true } });
+    const product = await client.product.findUnique({ where: { id }, include: { Batches: true } });
+
+    if (product && !product.imageUrl && product.sku) {
+       const globalProduct = await this.masterPrisma.globalProductMasterCatalog.findUnique({
+          where: { sku: product.sku }
+       });
+       if (globalProduct?.imageUrl) {
+         product.imageUrl = globalProduct.imageUrl;
+       }
+    }
+
+    return product;
   }
 
   async update(subdomain: string, id: string, data: any) {
@@ -171,12 +198,18 @@ export class ProductService {
       }
     });
 
+    const skus = products.map(p => p.sku).filter(Boolean);
+    const globals = await this.masterPrisma.globalProductMasterCatalog.findMany({
+      where: { sku: { in: skus } }
+    });
+    const globalMap = new Map(globals.map(g => [g.sku, g.imageUrl]));
+
     // Map to Frontend 'ProductRow' shape
     return products.map(p => ({
       id: p.id,
       name: p.name,
       sku: p.sku || 'N/A',
-      image: p.imageUrl || null,
+      image: p.imageUrl || globalMap.get(p.sku) || null,
       category: p.category,
       description: p.description,
       price: p.price,
@@ -234,6 +267,24 @@ export class ProductService {
             tenantId: tenant.id,
           },
         });
+
+        await this.masterPrisma.globalProductMasterCatalog.upsert({
+          where: { sku },
+          update: {
+            productName: p.name,
+            category: p.category,
+            description: p.description,
+            ...(p.imageUrl ? { imageUrl: p.imageUrl } : {})
+          },
+          create: {
+            sku,
+            productName: p.name,
+            category: p.category,
+            description: p.description,
+            imageUrl: p.imageUrl,
+          },
+        });
+
         synced++;
       } catch (err: any) {
         console.error(`[SyncAll] Failed for "${p.name}":`, err.message);
