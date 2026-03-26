@@ -1,15 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Package, Plus, Edit, Image, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { apiClient } from '@/lib/api-client';
 
 export default function MasterCatalogPage() {
     const [products, setProducts] = useState<any[]>([]);
@@ -20,33 +15,33 @@ export default function MasterCatalogPage() {
 
     useEffect(() => {
         loadProducts();
-        loadCategories();
     }, []);
 
     async function loadProducts() {
-        const { data, error } = await supabase
-            .from('global-product-master-catalog')
-            .select('*')
-            .order('created-at', { ascending: false });
+        try {
+            const data = await apiClient.get('/master-catalog');
+            
+            // Map the Prisma `shared_catalog` fields to what the UI expects
+            const mapped = (data || []).map((p: any) => ({
+                'product-id': p.sku,
+                'product-name': p.productName,
+                'brand-name': '', // Deprecated in new generic catalog
+                'category-name': p.category,
+                'image-url': p.imageUrl,
+                'upc-ean-code': p.sku,
+                'enriched-by-superadmin': !!p.aiEnrichedAt
+            }));
 
-        if (error) {
+            setProducts(mapped);
+
+            // Extract unique categories directly from the loaded data
+            const uniqueCategories = [...new Set(mapped.map((p: any) => p['category-name']).filter(Boolean))];
+            setCategories(uniqueCategories as string[]);
+        } catch (error) {
             toast.error('Failed to load products');
             console.error(error);
-        } else {
-            setProducts(data || []);
-        }
-        setLoading(false);
-    }
-
-    async function loadCategories() {
-        const { data } = await supabase
-            .from('global-product-master-catalog')
-            .select('category-name')
-            .not('category-name', 'is', null);
-
-        if (data) {
-            const uniqueCategories = [...new Set(data.map((p: any) => p['category-name']).filter(Boolean))];
-            setCategories(uniqueCategories);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -162,30 +157,20 @@ export default function MasterCatalogPage() {
 
                                             const toastId = toast.loading("Uploading image...");
                                             try {
-                                                const fileName = `${product['product-id']}-${Date.now()}.jpg`;
-                                                const { data: uploadData, error: uploadError } = await supabase.storage
-                                                    .from('product-images')
-                                                    .upload(fileName, file);
+                                                const formData = new FormData();
+                                                formData.append('file', file);
 
-                                                if (uploadError) throw uploadError;
+                                                // Use the backend upload endpoint rather than Supabase Storage
+                                                const res = await apiClient.post(`/super-admin/products/${product['product-id']}/image`, formData);
 
-                                                const { data: { publicUrl } } = supabase.storage
-                                                    .from('product-images')
-                                                    .getPublicUrl(fileName);
-
-                                                const { error: updateError } = await supabase
-                                                    .from('global-product-master-catalog')
-                                                    .update({ 'image-url': publicUrl })
-                                                    .eq('product-id', product['product-id']);
-
-                                                if (updateError) throw updateError;
+                                                if (!res || !res.imageUrl) throw new Error("Upload failed or invalid response from server");
 
                                                 toast.success("Image updated!", { id: toastId });
 
                                                 // Refresh local state without full reload
                                                 setProducts(prev => prev.map(p =>
                                                     p['product-id'] === product['product-id']
-                                                        ? { ...p, 'image-url': publicUrl }
+                                                        ? { ...p, 'image-url': res.imageUrl }
                                                         : p
                                                 ));
 
