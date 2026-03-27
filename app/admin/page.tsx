@@ -34,7 +34,7 @@ export default function AdminDashboard() {
           activeCampaigns: data.activeCampaigns || 0
         });
 
-        setStoreName('Anuj Store');
+        setStoreName(data.storeName || 'My Store');
         setRecentOrders(data.recentOrders || []);
         setChartData(data.weeklyChartData || [0, 0, 0, 0, 0, 0, 0]);
 

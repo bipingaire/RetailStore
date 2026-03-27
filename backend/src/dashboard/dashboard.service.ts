@@ -84,6 +84,7 @@ export class DashboardService {
       }
 
       return {
+        storeName: tenant.storeName,
         revenue: Number(salesAgg._sum.total || 0),
         orders: pendingOrders,
         lowStock: lowStockCount,
