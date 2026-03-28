@@ -91,7 +91,7 @@ CRITICAL: Extract EVERY line item. Do not skip any items. To save token length, 
         const completion = await this.openai.chat.completions.create({
             model: 'gpt-5.4',
             messages: [{ role: 'user', content: promptContent }],
-            max_tokens: 100000,
+            max_completion_tokens: 100000,
             temperature: 0.1,
             response_format: { type: 'json_object' },
         });
