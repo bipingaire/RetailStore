@@ -89,7 +89,7 @@ CRITICAL: Extract EVERY line item. Do not skip any items. To save token length, 
         }
 
         const completion = await this.openai.chat.completions.create({
-            model: 'gpt-4o',
+            model: 'gpt-4o-2024-08-06',
             messages: [{ role: 'user', content: promptContent }],
             max_tokens: 16000,
             temperature: 0.1,
@@ -116,9 +116,15 @@ CRITICAL: Extract EVERY line item. Do not skip any items. To save token length, 
 
             data = JSON.parse(cleaned);
         } catch (parseErr: any) {
-            console.error('❌ Z-Report JSON parse failed. Raw response was:', raw);
+            const finishReason = completion.choices[0]?.finish_reason;
+            console.error('❌ Z-Report JSON parse failed. Length:', raw.length, parseErr.message, 'Finish Reason:', finishReason);
+            
+            if (finishReason === 'length') {
+                throw new BadRequestException('The Z-Report is too large and was cut off by the AI. Please split the report or use a shorter receipt.');
+            }
+
             throw new BadRequestException(
-                `Failed to parse OCR response as JSON. Raw AI response: ${raw.substring(0, 300)}`
+                `JSON parse error: ${parseErr.message}. Total response length: ${raw.length} chars. Preview: ${raw.substring(0, 300)}`
             );
         }
 
