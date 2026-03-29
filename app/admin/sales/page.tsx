@@ -409,7 +409,7 @@ export default function SalesSyncPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-start items-center bg-gray-50">
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50">
               <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-sm">Cancel</button>
             </div>
 
