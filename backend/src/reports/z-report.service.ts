@@ -211,9 +211,15 @@ CRITICAL: Extract EVERY line item. Do not skip any items. To save token length, 
                 });
 
                 if (product) {
+                    const updateData: any = { stock: { decrement: item.quantitySold } };
+                    
+                    if (item.unitPrice && item.unitPrice > 0) {
+                        updateData.price = Number(item.unitPrice);
+                    }
+
                     await tx.product.update({
                         where: { id: product.id },
-                        data: { stock: { decrement: item.quantitySold } },
+                        data: updateData,
                     });
 
                     await tx.stockMovement.create({
