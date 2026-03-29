@@ -409,17 +409,8 @@ export default function SalesSyncPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50">
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-start items-center bg-gray-50">
               <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-sm">Cancel</button>
-              <button
-                onClick={handleCommit}
-                disabled={committing}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-semibold"
-              >
-                {committing
-                  ? <><Loader2 size={16} className="animate-spin" /> Committing...</>
-                  : <><ShoppingCart size={16} /> Commit Z-Report</>}
-              </button>
             </div>
 
           </div>
