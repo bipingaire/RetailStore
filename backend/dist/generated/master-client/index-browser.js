@@ -145,6 +145,16 @@ exports.Prisma.SharedCatalogScalarFieldEnum = {
   tenantId: 'tenantId'
 };
 
+exports.Prisma.GlobalProductMasterCatalogScalarFieldEnum = {
+  productId: 'productId',
+  productName: 'productName',
+  sku: 'sku',
+  category: 'category',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  isActive: 'isActive'
+};
+
 exports.Prisma.SuperAdminScalarFieldEnum = {
   id: 'id',
   email: 'email',
@@ -216,6 +226,7 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   SharedCatalog: 'SharedCatalog',
+  GlobalProductMasterCatalog: 'GlobalProductMasterCatalog',
   SuperAdmin: 'SuperAdmin',
   PendingProductAddition: 'PendingProductAddition',
   MasterWebsiteConfig: 'MasterWebsiteConfig',

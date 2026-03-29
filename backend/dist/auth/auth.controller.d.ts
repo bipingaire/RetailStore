@@ -25,10 +25,10 @@ export declare class AuthController {
     }>;
     getProfile(subdomain: string, req: any): Promise<{
         id: string;
-        email: string;
-        password: string;
         createdAt: Date;
         updatedAt: Date;
+        email: string;
+        password: string;
     }>;
     forgotPassword(subdomain: string, body: {
         email: string;
@@ -46,41 +46,41 @@ export declare class AuthController {
         user: {
             tenantId: string;
             RetailStoreTenants: {
-                isActive: boolean;
-                subdomain: string | null;
-                storeName: string;
                 tenantId: string;
+                storeName: string;
+                subdomain: string | null;
+                isActive: boolean;
                 ownerUserId: string | null;
             }[];
+            name: string | null;
             id: string;
-            email: string;
-            password: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            name: string | null;
+            email: string;
+            password: string;
             role: string;
-            isActive: boolean;
         };
         tenant: {
-            isActive: boolean;
-            subdomain: string | null;
-            storeName: string;
             tenantId: string;
+            storeName: string;
+            subdomain: string | null;
+            isActive: boolean;
             ownerUserId: string | null;
         };
     }>;
     registerOwner(body: any): Promise<{
         access_token: string;
         user: {
+            tenantId: string | null;
+            name: string | null;
             id: string;
-            email: string;
-            password: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            name: string | null;
+            email: string;
+            password: string;
             role: string;
-            isActive: boolean;
-            tenantId: string | null;
         };
     }>;
 }

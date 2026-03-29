@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CheckCircle, Download, ShoppingBag, Package, Loader2, MapPin, Wallet } from 'lucide-react';
+import { CheckCircle, Download, ShoppingBag, Package, Loader2, MapPin, Wallet, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 
@@ -62,6 +62,15 @@ function CheckoutSuccessContent() {
         doc.text(`Status: ${order?.paymentMethod === 'CASH' && order?.notes?.toLowerCase().includes('pickup') ? 'PENDING PICKUP' : (order.status || 'COMPLETED')}`, 14, 56);
         const paymentMethodDisp = (order.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
         doc.text(`Payment: ${paymentMethodDisp}`, 140, 44);
+        
+        // Customer Details on PDF
+        const customerNameDisp = order.customer?.name || order.guestName || 'Guest Customer';
+        const customerEmailDisp = order.customer?.email || order.guestEmail || '';
+        doc.text(`Customer: ${customerNameDisp}`, 14, 62);
+        if (customerEmailDisp) {
+            doc.text(`Email: ${customerEmailDisp}`, 14, 68);
+        }
+
         if (order.notes) {
             const noteLines = doc.splitTextToSize(`Note: ${order.notes}`, 65);
             doc.text(noteLines, 140, 50);
@@ -76,7 +85,7 @@ function CheckoutSuccessContent() {
         ]);
 
         autoTable(doc, {
-            startY: 65,
+            startY: customerEmailDisp ? 75 : 69,
             head: [['Product', 'Qty', 'Unit Price', 'Subtotal']],
             body: rows,
             foot: [
@@ -144,6 +153,18 @@ function CheckoutSuccessContent() {
                                 {order?.paymentMethod === 'CASH' && order?.notes?.toLowerCase().includes('pickup') ? 'PENDING PICKUP' : (order?.status || 'COMPLETED')}
                             </span>
                         </div>
+                    </div>
+
+                    {/* Customer Info row */}
+                    <div className="bg-white border-b border-gray-100 p-4">
+                        <p className="text-xs text-gray-500 mb-2 uppercase font-semibold tracking-wide flex items-center gap-1"><User size={12} /> Customer Details</p>
+                        <p className="font-bold text-gray-800 text-sm mb-1">{order?.customer?.name || order?.guestName || 'Guest Customer'}</p>
+                        {(order?.customer?.email || order?.guestEmail) && (
+                            <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-1 border border-gray-100 rounded-md bg-gray-50 p-2 inline-flex">
+                                <Mail size={12} className="text-gray-400" /> 
+                                {order?.customer?.email || order?.guestEmail}
+                            </p>
+                        )}
                     </div>
 
                     {/* Notes / delivery info */}

@@ -3,32 +3,32 @@ export declare class CampaignController {
     private readonly campaignService;
     constructor(campaignService: CampaignService);
     create(tenantId: string, body: any): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     findAll(tenantId: string): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }[]>;
     getActivePromotions(tenantId: string): Promise<({
         product: {
-            id: string;
-            name: string;
             category: string;
-            price: import("src/generated/tenant-client/runtime/library").Decimal;
             imageUrl: string;
+            name: string;
+            id: string;
+            price: import("src/generated/tenant-client/runtime/library").Decimal;
         };
     } & {
         id: string;
@@ -43,43 +43,43 @@ export declare class CampaignController {
     })[]>;
     getActiveCampaigns(tenantId: string): Promise<{
         products: any[];
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }[]>;
     update(tenantId: string, id: string, body: any): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     partialUpdate(tenantId: string, id: string, body: any): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     delete(tenantId: string, id: string): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     generate(body: {

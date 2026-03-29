@@ -5,63 +5,63 @@ export declare class CampaignService {
     private tenantPrisma;
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
     createCampaign(subdomain: string, data: any): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     updateCampaign(subdomain: string, id: string, data: any): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     deleteCampaign(subdomain: string, id: string): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     listCampaigns(subdomain: string): Promise<{
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }[]>;
     getActiveCampaigns(subdomain: string): Promise<{
         products: any[];
+        name: string;
         id: string;
         createdAt: Date;
-        name: string;
-        type: string;
         status: string;
         startDate: Date | null;
         endDate: Date | null;
+        type: string;
         budget: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }[]>;
     getActivePromotions(subdomain: string): Promise<({
         product: {
-            id: string;
-            name: string;
             category: string;
-            price: import("src/generated/tenant-client/runtime/library").Decimal;
             imageUrl: string;
+            name: string;
+            id: string;
+            price: import("src/generated/tenant-client/runtime/library").Decimal;
         };
     } & {
         id: string;

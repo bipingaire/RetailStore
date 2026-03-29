@@ -43,7 +43,9 @@ export default function OrderManager() {
       if (Array.isArray(sales)) {
         const mapped = sales.map((sale: any) => ({
           id: sale.id,
+          id: sale.id,
           customerName: sale.customer?.name || sale.guestName || 'Guest Customer',
+          customerEmail: sale.customer?.email || sale.guestEmail || '',
           customerPhone: sale.customer?.phone || sale.guestPhone || '—',
           total: Number(sale.total),
           createdAt: sale.createdAt,
@@ -184,9 +186,14 @@ export default function OrderManager() {
                       </span>
                       <span className="font-mono text-xs text-gray-400">#{order.id.slice(0, 6)}</span>
                     </div>
-                    <div className="font-bold text-gray-900">{order.customerName}</div>
+                    <div className="font-bold text-gray-900 line-clamp-1" title={order.customerName}>{order.customerName}</div>
+                    {order.customerEmail && (
+                      <div className="text-xs text-gray-500 line-clamp-1" title={order.customerEmail}>
+                        {order.customerEmail}
+                      </div>
+                    )}
                     {order.customerPhone !== '—' && (
-                      <div className="text-xs text-gray-500 flex items-center gap-1">
+                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                         <Phone size={10} /> {order.customerPhone}
                       </div>
                     )}

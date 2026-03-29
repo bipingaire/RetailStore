@@ -215,17 +215,6 @@ export default function ZReportUploadPage() {
                             <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-sm">
                                 Cancel
                             </button>
-                            <button
-                                onClick={handleCommit}
-                                disabled={committing}
-                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-semibold"
-                            >
-                                {committing ? (
-                                    <><Loader2 size={16} className="animate-spin" /> Committing...</>
-                                ) : (
-                                    <><ShoppingCart size={16} /> Commit Z-Report</>
-                                )}
-                            </button>
                         </div>
                     </div>
                 </div>

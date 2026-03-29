@@ -11,9 +11,9 @@ export declare class AuthService {
     constructor(jwtService: JwtService, tenantPrisma: TenantPrismaService, prisma: PrismaService, localPrisma: LocalPrismaService);
     validateSuperAdmin(email: string, password: string): Promise<{
         id: string;
-        email: string;
         createdAt: Date;
         updatedAt: Date;
+        email: string;
     }>;
     loginSuperAdmin(admin: any): Promise<{
         access_token: string;
@@ -22,13 +22,13 @@ export declare class AuthService {
     validateUser(subdomain: string, email: string, password: string): Promise<{
         tenantId: string;
         subdomain: string;
+        name: string | null;
         id: string;
-        email: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        name: string | null;
+        email: string;
         role: string;
-        isActive: boolean;
     }>;
     login(user: any): Promise<{
         access_token: string;
@@ -48,10 +48,10 @@ export declare class AuthService {
     }>;
     getProfile(userId: string): Promise<{
         id: string;
-        email: string;
-        password: string;
         createdAt: Date;
         updatedAt: Date;
+        email: string;
+        password: string;
     }>;
     forgotPassword(email: string): Promise<{
         success: boolean;
@@ -62,15 +62,15 @@ export declare class AuthService {
     registerOwner(subdomain: string, dto: RegisterDto): Promise<{
         access_token: string;
         user: {
+            tenantId: string | null;
+            name: string | null;
             id: string;
-            email: string;
-            password: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            name: string | null;
+            email: string;
+            password: string;
             role: string;
-            isActive: boolean;
-            tenantId: string | null;
         };
     }>;
     loginOwner(dto: LoginDto): Promise<{
@@ -78,26 +78,26 @@ export declare class AuthService {
         user: {
             tenantId: string;
             RetailStoreTenants: {
-                isActive: boolean;
-                subdomain: string | null;
-                storeName: string;
                 tenantId: string;
+                storeName: string;
+                subdomain: string | null;
+                isActive: boolean;
                 ownerUserId: string | null;
             }[];
+            name: string | null;
             id: string;
-            email: string;
-            password: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            name: string | null;
+            email: string;
+            password: string;
             role: string;
-            isActive: boolean;
         };
         tenant: {
-            isActive: boolean;
-            subdomain: string | null;
-            storeName: string;
             tenantId: string;
+            storeName: string;
+            subdomain: string | null;
+            isActive: boolean;
             ownerUserId: string | null;
         };
     }>;
