@@ -46,7 +46,7 @@ done
 
 echo "==> Running Database Migrations..."
 docker exec retail_store_backend npx prisma db push --schema prisma/schema-master.prisma || true
-docker exec retail_store_backend npx prisma db push --schema prisma/schema.prisma || true
+docker exec retail_store_backend npx prisma db push --schema prisma/schema-tenant.prisma || true
 
 echo "==> Seeding InduMart tenants (highpoint + greensboro)..."
 node scripts/seed-indumart-tenants.js || echo "  ⚠️  Seeding skipped (may already exist)"
