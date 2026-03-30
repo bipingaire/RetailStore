@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { TenantService } from '../tenant/tenant.service';
 import { Prisma } from '../generated/tenant-client';
+import { CategoryService } from '../category/category.service';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -11,6 +12,7 @@ export class InvoiceService {
     constructor(
         private readonly tenantPrisma: TenantPrismaService,
         private readonly tenantService: TenantService,
+        private readonly categoryService: CategoryService,
     ) { }
 
     /**
@@ -570,13 +572,18 @@ export class InvoiceService {
         return this.getInvoice(subdomain, invoiceId);
     }
 
-    async parseInvoiceOCR(fileUrl: string) {
+    async parseInvoiceOCR(subdomain: string, fileUrl: string) {
         if (!process.env.OPENAI_API_KEY) {
             console.error('❌ Missing OPENAI_API_KEY in environment variables');
             throw new Error('OPENAI_API_KEY is not configured');
         }
 
         console.log(`🔑 Using OpenAI Key: ${process.env.OPENAI_API_KEY?.substring(0, 10)}... (Length: ${process.env.OPENAI_API_KEY?.length})`);
+
+        // Fetch strict categories
+        const catData = await this.categoryService.getCategories(subdomain);
+        const authorizedCategories = catData.combined.length > 0 ? catData.combined.map(c => `"${c}"`).join(', ') : '"Uncategorized"';
+        const categoryPromptText = `- category: Product category. You MUST categorize the item using EXACTLY one of the following authorized categories: [${authorizedCategories}]. If it doesn't fit any, use "Uncategorized". Under NO CIRCUMSTANCES should you invent a new category.`;
 
         try {
             console.log('📂 Resolving file path...');
@@ -684,7 +691,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
   - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  ${categoryPromptText}
   - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
   - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
   - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
@@ -738,7 +745,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
   - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  ${categoryPromptText}
   - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
   - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
   - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
@@ -783,7 +790,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
   - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  ${categoryPromptText}
   - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
   - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
   - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.

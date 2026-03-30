@@ -42,10 +42,7 @@ Extract the following from the document and return ONLY a JSON object with no ma
     ["item 2 name", "category", QTY, PRICE, TOTAL]
   ]
 }
-CRITICAL: 
-1. Extract EVERY line item. Do not skip any items. 
-2. "items" MUST be an array of arrays (tuples) of exactly 5 elements each.
-3. NEVER use "Taxable", "Non-Taxable", or "Tax" as the Category. Evaluate the item name and assign a real retail category (e.g., "Produce", "Dairy", "Beverages", "Grocery", "Household").`;
+CRITICAL: Extract EVERY line item. Do not skip any items. To save token length, "items" MUST be an array of arrays (tuples) of exactly 5 elements each.`;
 
         if (ext === '.pdf') {
             const pdfParse = require('pdf-parse');

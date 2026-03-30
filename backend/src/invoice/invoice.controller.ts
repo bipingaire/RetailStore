@@ -102,7 +102,10 @@ export class InvoiceController {
             fileSize: 10 * 1024 * 1024 * 1024, // 10GB in bytes
         }
     }))
-    async parseInvoice(@UploadedFile() file: any) {
+    async parseInvoice(
+        @Headers('x-tenant') subdomain: string,
+        @UploadedFile() file: any
+    ) {
         try {
             console.log('📄 Parse invoice request received');
             console.log('File:', file ? `${file.originalname} (${file.size} bytes)` : 'NO FILE');
@@ -144,7 +147,7 @@ export class InvoiceController {
             const fileUrl = `/uploads/temp/${filename}`;
 
             console.log('🤖 Calling OpenAI OCR with fileUrl:', fileUrl);
-            const result = await this.invoiceService.parseInvoiceOCR(fileUrl);
+            const result = await this.invoiceService.parseInvoiceOCR(subdomain, fileUrl);
             console.log('✅ OCR result:', result);
 
             return result;

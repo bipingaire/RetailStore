@@ -424,3 +424,13 @@ model ZReport {
   
   @@map("z_reports")
 }
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  @@map("categories")
+}

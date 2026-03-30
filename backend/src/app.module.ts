@@ -21,6 +21,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PosMappingModule } from './pos-mapping/pos-mapping.module';
 import { SocialModule } from './social/social.module';
 import { ExpenseModule } from './expense/expense.module';
+import { CategoryModule } from './category/category.module';
+import { TaxModule } from './tax/tax.module';
 
 @Module({
   imports: [
@@ -46,6 +48,8 @@ import { ExpenseModule } from './expense/expense.module';
     ReportsModule,
     SocialModule,
     ExpenseModule,
+    CategoryModule,
+    TaxModule,
   ],
   controllers: [],
   providers: [TenantPrismaService],

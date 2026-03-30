@@ -109,3 +109,27 @@ model BillingTransaction {
 
   @@map("billing-transactions")
 }
+
+model GlobalCategory {
+  id String @id @default(uuid()) @map("category-id")
+  name String @unique @map("category-name")
+  description String?
+  isActive Boolean @default(true) @map("is-active")
+  createdAt DateTime @default(now()) @map("created-at")
+  updatedAt DateTime @updatedAt @map("updated-at")
+  
+  @@map("global-categories")
+}
+
+model GlobalTaxRule {
+  id String @id @default(uuid()) @map("tax-rule-id")
+  state String @map("state") // e.g. "NY", "CA", "ALL"
+  targetType String @map("target-type") // "CATEGORY", "PRODUCT", "DEFAULT"
+  targetValue String @map("target-value") // e.g. "Dairy", "SKU123", "*"
+  taxRate Decimal @db.Decimal(5, 2) @map("tax-rate")
+  isActive Boolean @default(true) @map("is-active")
+  createdAt DateTime @default(now()) @map("created-at")
+  updatedAt DateTime @updatedAt @map("updated-at")
+  
+  @@map("global-tax-rules")
+}

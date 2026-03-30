@@ -13,7 +13,7 @@ import { apiClient } from '@/lib/api-client';
 
 // Types (Stubbed for this file context)
 type StoreProfile = {
-  name: string; address: string; city_state_zip: string; phone: string; email: string; tax_id: string;
+  name: string; address: string; city_state_zip: string; phone: string; email: string; tax_id: string; state: string;
   default_safety_stock: number; subdomain: string; custom_domain: string; logo_url: string; hero_banner_url: string; primary_color: string;
 };
 type Vendor = { id: string; name: string; contact_phone: string; whatsapp_number: string; email: string; transport_rate_per_pallet: number; };
@@ -22,13 +22,13 @@ type Plan = { id: string; name: string; price: number; features: string[]; recom
 
 export default function SettingsPage() {
   // Supabase removed - refactor needed
-  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social' | 'payment'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social' | 'payment' | 'categories'>('profile');
   const [loading, setLoading] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
   // Profile State
   const [profile, setProfile] = useState<StoreProfile>({
-    name: '', address: '', city_state_zip: '', phone: '', email: '', tax_id: '',
+    name: '', address: '', city_state_zip: '', phone: '', email: '', tax_id: '', state: 'NY',
     default_safety_stock: 10, subdomain: 'demo-store', custom_domain: '', logo_url: '', hero_banner_url: '', primary_color: '#2563eb'
   });
 
@@ -59,6 +59,11 @@ export default function SettingsPage() {
     tax_rate: '8' // default
   });
 
+  // Category State
+  const [categories, setCategories] = useState<{ global: any[], local: any[] }>({ global: [], local: [] });
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatDesc, setNewCatDesc] = useState('');
+
   useEffect(() => {
     async function loadSettings() {
       setLoading(true);
@@ -86,6 +91,7 @@ export default function SettingsPage() {
         phone: mockTenant['phone-number'] || '',
         email: mockTenant['email-address'] || '',
         tax_id: 'US-XX-XXXX',
+        state: mockTenant['store-state'] || 'NY',
         default_safety_stock: 10,
         subdomain: 'demo-store',
         custom_domain: '',
@@ -135,6 +141,16 @@ export default function SettingsPage() {
         console.error("Failed to load payment settings", e);
       }
 
+      try {
+          const catsData = await apiClient.get<any>('/categories');
+          setCategories({
+              global: catsData?.global || [],
+              local: catsData?.local || []
+          });
+      } catch (e) {
+          console.error("Failed to load categories", e);
+      }
+
       setLoading(false);
     }
 
@@ -145,11 +161,14 @@ export default function SettingsPage() {
     if (!tenantId) return;
     setLoading(true);
 
-    // Mock save (just update local state)
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    toast.success("Settings saved.");
-    setLoading(false);
+    try {
+        await apiClient.post('/settings', { key: 'store_state', value: (profile.state || '').toUpperCase() });
+        toast.success("Profile saved successfully");
+    } catch (e) {
+        toast.error("Failed to save profile");
+    } finally {
+        setLoading(false);
+    }
   };
 
   const handleSaveVendor = async (e: React.FormEvent) => {
@@ -199,6 +218,31 @@ export default function SettingsPage() {
     }
   };
 
+  const handeAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    try {
+      const created = await apiClient.post<any>('/categories', { name: newCatName.trim(), description: newCatDesc.trim() });
+      setCategories(prev => ({ ...prev, local: [...prev.local, created] }));
+      setNewCatName('');
+      setNewCatDesc('');
+      toast.success('Category added');
+    } catch (err: any) {
+      toast.error('Failed to add category');
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('Delete this local category?')) return;
+    try {
+      await apiClient.delete(`/categories/${id}`);
+      setCategories(prev => ({ ...prev, local: prev.local.filter((c: any) => c.id !== id) }));
+      toast.success('Category deleted');
+    } catch (err) {
+      toast.error('Failed to delete category');
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
 
   return (
@@ -223,6 +267,9 @@ export default function SettingsPage() {
             <button onClick={() => setActiveTab('vendors')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'vendors' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
               <Users size={16} /> Vendors
             </button>
+            <button onClick={() => setActiveTab('categories')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'categories' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+              <Palette size={16} /> Categories
+            </button>
             <button onClick={() => setActiveTab('social')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'social' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
               <Share2 size={16} /> Social Media
             </button>
@@ -236,6 +283,58 @@ export default function SettingsPage() {
 
           {/* Content Area */}
           <div className="md:col-span-3 space-y-6">
+
+            {/* CATEGORIES TAB */}
+            {activeTab === 'categories' && (
+              <div className="space-y-6">
+                {/* Local Categories */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Local Categories</h3>
+                  <p className="text-sm text-gray-500 mb-4">Add customized categories for your store. The AI will use these alongside global categories.</p>
+                  
+                  <form onSubmit={handeAddCategory} className="flex gap-4 mb-6">
+                    <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="Category Name" className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors flex-1" required />
+                    <input type="text" value={newCatDesc} onChange={e => setNewCatDesc(e.target.value)} placeholder="Description (Optional)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors flex-1" />
+                    <button type="submit" disabled={!newCatName.trim()} className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                      <Plus className="w-4 h-4" /> Add
+                    </button>
+                  </form>
+
+                  <div className="border border-gray-100 rounded-lg overflow-hidden">
+                    {categories.local.length === 0 ? (
+                      <div className="p-4 text-center text-gray-500 text-sm">No local categories added.</div>
+                    ) : (
+                      <ul className="divide-y divide-gray-100">
+                        {categories.local.map((cat: any) => (
+                          <li key={cat.id} className="p-3 hover:bg-gray-50 flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-gray-900 text-sm">{cat.name}</p>
+                              {cat.description && <p className="text-xs text-gray-500">{cat.description}</p>}
+                            </div>
+                            <button onClick={() => handleDeleteCategory(cat.id)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><Trash2 size={16} /></button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                {/* Global Categories */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 opacity-80">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">Global Categories <ShieldCheck className="w-4 h-4 text-blue-500" /></h3>
+                  <p className="text-sm text-gray-500 mb-4">Mandatory organizational categories enforced by Super Admin.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.global.length === 0 ? (
+                      <span className="text-sm text-gray-400">None defined.</span>
+                    ) : categories.global.map((g: any) => (
+                      <span key={g['category-id']} className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full border border-gray-200">
+                        {g['category-name']}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* PROFILE TAB */}
             {activeTab === 'profile' && (
@@ -256,8 +355,8 @@ export default function SettingsPage() {
                       <input type="tel" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Address</label>
-                      <input type="text" value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors" />
+                      <label className="block text-xs font-medium text-gray-700 mb-1">State Config (For Taxes)</label>
+                      <input type="text" maxLength={2} placeholder="e.g. NY" value={profile.state} onChange={(e) => setProfile({ ...profile, state: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors uppercase" />
                     </div>
                   </div>
                 </div>

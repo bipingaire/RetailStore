@@ -5,10 +5,12 @@ import { InvoiceController } from './invoice.controller';
 import { InvoiceService } from './invoice.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { TenantModule } from '../tenant/tenant.module';
+import { CategoryModule } from '../category/category.module';
 
 @Module({
     imports: [
         TenantModule,
+        CategoryModule,
         MulterModule.register({
             storage: diskStorage({
                 destination: './uploads/invoices',

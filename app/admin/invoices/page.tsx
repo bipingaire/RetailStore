@@ -26,6 +26,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ global: any[], local: any[], combined: string[] }>({ global: [], local: [], combined: [] });
   const [loading, setLoading] = useState(true);
   const [parsing, setParsing] = useState(false);
   const [parsingProgress, setParsingProgress] = useState({ current: 0, total: 20 });
@@ -115,15 +116,17 @@ export default function InvoicesPage() {
 
   async function loadData() {
     try {
-      const [invoicesRes, vendorsRes, productsRes] = await Promise.all([
+      const [invoicesRes, vendorsRes, productsRes, categoriesRes] = await Promise.all([
         apiClient.get('/invoices'),
         apiClient.get('/vendors'),
         apiClient.get('/products'),
+        apiClient.get('/categories')
       ]);
 
       setInvoices(invoicesRes);
       setVendors(vendorsRes);
       setProducts(productsRes);
+      setCategories(categoriesRes || { global: [], local: [], combined: [] });
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -678,7 +681,25 @@ export default function InvoicesPage() {
                                   return (
                                     <tr key={idx} className="border-b border-gray-100 last:border-0">
                                       <td className="px-4 py-3 font-medium text-gray-900">{item.description}</td>
-                                      <td className="px-4 py-3 text-gray-600">{item.category || '-'}</td>
+                                      <td className="px-4 py-3">
+                                        <select
+                                          value={item.category || ''}
+                                          onChange={(e) => {
+                                            const newItems = [...parsedData.items];
+                                            newItems[idx].category = e.target.value;
+                                            setParsedData({ ...parsedData, items: newItems });
+                                          }}
+                                          className="text-sm bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 max-w-[120px]"
+                                        >
+                                          <option value="">Uncategorized</option>
+                                          {categories.combined.map((catName) => (
+                                            <option key={catName} value={catName}>{catName}</option>
+                                          ))}
+                                          {item.category && !categories.combined.includes(item.category) && item.category !== 'Uncategorized' && (
+                                            <option value={item.category}>{item.category} (Legacy)</option>
+                                          )}
+                                        </select>
+                                      </td>
 
                                       {/* Bulk columns - amber */}
                                       <td className="px-4 py-3 text-center font-mono font-bold text-amber-700 bg-amber-50">

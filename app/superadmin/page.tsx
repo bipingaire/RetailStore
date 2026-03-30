@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Store, Package, TrendingUp, ShoppingBag, Users, Clock } from 'lucide-react';
+import { Store, Package, TrendingUp, ShoppingBag, Users, Clock, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 const supabase = createClient(
@@ -160,6 +160,24 @@ export default function SuperadminDashboard() {
                         <Package className="w-8 h-8 mx-auto text-gray-400 mb-2" />
                         <p className="font-medium text-gray-900">Add Product</p>
                         <p className="text-xs text-gray-500 mt-1">Add to master catalog</p>
+                    </Link>
+
+                    <Link
+                        href="/superadmin/categories"
+                        className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-center"
+                    >
+                        <ShoppingBag className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                        <p className="font-medium text-gray-900">Categories</p>
+                        <p className="text-xs text-gray-500 mt-1">Manage global categories</p>
+                    </Link>
+
+                    <Link
+                        href="/superadmin/taxes"
+                        className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center"
+                    >
+                        <FileText className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                        <p className="font-medium text-gray-900">Tax Engine</p>
+                        <p className="text-xs text-gray-500 mt-1">Manage global tax rules</p>
                     </Link>
 
                     <Link
