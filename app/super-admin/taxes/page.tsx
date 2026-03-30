@@ -120,7 +120,7 @@ export default function SuperadminTaxesPage() {
     return (
         <div className="max-w-6xl mx-auto p-6 space-y-6">
             <div className="flex items-center gap-4 mb-4">
-                <Link href="/superadmin" className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+                <Link href="/super-admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
                     <ArrowLeft size={20} />
                 </Link>
                 <div>

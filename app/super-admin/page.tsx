@@ -8,6 +8,7 @@ import {
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
+import Link from 'next/link';
 
 type GlobalProduct = {
   id: string; // SKU
@@ -306,6 +307,16 @@ export default function SuperAdminPage() {
                 </button>
               ))}
             </div>
+
+            <div className="flex bg-gray-800/50 p-1 rounded-xl items-center gap-1">
+              <Link href="/super-admin/categories" className="text-gray-400 hover:text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition">
+                <Tag size={16} /> Categories
+              </Link>
+              <Link href="/super-admin/taxes" className="text-gray-400 hover:text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition">
+                <Receipt size={16} /> Tax Engine
+              </Link>
+            </div>
+
             <button
               onClick={handleLogout}
               className="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 border border-gray-700"
