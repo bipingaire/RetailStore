@@ -74,26 +74,31 @@ export class InvoiceService {
             // 2. Process each item
             for (const item of items) {
                 const unitsPerCase = item.unitsPerCase || 1;
-                const retailUnits = item.quantity * unitsPerCase;
+                const retailUnit = (item as any).retailUnit || 1;
+                // How many retail units are inside the invoice's parent case?
+                // Example: case of 24, sold in 6-packs -> effective = 24/6 = 4 packs per case.
+                const effectiveUnitsPerParent = Math.max(1, unitsPerCase / retailUnit);
+
+                const retailUnits = item.quantity * effectiveUnitsPerParent;
                 const casePrice = item.casePrice || (item.costPerUnit || item.unitPrice);
-                const costPerUnit = unitsPerCase > 1
-                    ? casePrice / unitsPerCase
-                    : (item.costPerUnit || item.unitPrice);
+                const costPerUnit = effectiveUnitsPerParent > 1
+                    ? casePrice / effectiveUnitsPerParent
+                    : casePrice;
 
                 const expiry = item.expiryDate
                     ? new Date(item.expiryDate)
                     : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
                 // ── BULK PARENT PRODUCT ───────────────────────────────────────────
-                // When unitsPerCase > 1, we track two products:
-                //   Parent  = the bulk box/case  (isSellable=false)
-                //   Child   = the individual unit (isSellable=true, parentId=Parent.id)
-                // When unitsPerCase === 1 we only need one product (the retail unit).
+                // When effectiveUnitsPerParent > 1, we track two products:
+                //   Parent  = the bulk case  (isSellable=false)
+                //   Child   = the individual retail unit (isSellable=true, parentId=Parent.id)
+                // When effectiveUnitsPerParent === 1 we only need one product (the retail unit).
 
                 let retailProduct: any = null;
                 let bulkProduct: any = null;
 
-                if (unitsPerCase > 1) {
+                if (effectiveUnitsPerParent > 1) {
                     // --- Parent (Bulk Case) ---
                     const bulkName = `${item.description} (Case of ${unitsPerCase})`;
                     bulkProduct = await tx.product.findFirst({
@@ -155,7 +160,7 @@ export class InvoiceService {
                                 isActive: true,
                                 isSellable: true,
                                 parentId: bulkProduct.id,
-                                unitsPerParent: unitsPerCase,
+                                unitsPerParent: effectiveUnitsPerParent,
                             },
                         });
                     } else {
@@ -165,7 +170,7 @@ export class InvoiceService {
                             data: {
                                 costPrice: new Prisma.Decimal(costPerUnit),
                                 parentId: bulkProduct.id,
-                                unitsPerParent: unitsPerCase,
+                                unitsPerParent: effectiveUnitsPerParent,
                                 ...(item.sellingPrice ? { price: new Prisma.Decimal(item.sellingPrice) } : {}),
                             },
                         });
@@ -388,10 +393,13 @@ export class InvoiceService {
                 // Determine retail unit quantity and cost
                 const cases = Number(item.quantity) || 1;
                 const unitsPerCase = Number(item.unitsPerCase) || 1;
-                const retailUnits = cases * unitsPerCase;
+                const retailUnit = Number((item as any).retailUnit) || 1;
+                const effectiveUnitsPerParent = Math.max(1, unitsPerCase / retailUnit);
+                
+                const retailUnits = cases * effectiveUnitsPerParent;
 
                 const casePrice = Number(item.casePrice) || Number(item.unitPrice) || 0;
-                const costPerUnit = unitsPerCase > 1 ? (casePrice / unitsPerCase) : casePrice;
+                const costPerUnit = effectiveUnitsPerParent > 1 ? (casePrice / effectiveUnitsPerParent) : casePrice;
 
                 let productId = item.productId;
 

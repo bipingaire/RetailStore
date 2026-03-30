@@ -616,8 +616,12 @@ export default function InvoicesPage() {
                                   <span className="text-amber-700 font-medium">Bulk (invoice)</span>
                                 </span>
                                 <span className="flex items-center gap-1">
+                                  <span className="w-3 h-3 rounded bg-purple-200 inline-block"></span>
+                                  <span className="text-purple-700 font-medium">Sell Size</span>
+                                </span>
+                                <span className="flex items-center gap-1">
                                   <span className="w-3 h-3 rounded bg-blue-200 inline-block"></span>
-                                  <span className="text-blue-700 font-medium">Retail units → stock</span>
+                                  <span className="text-blue-700 font-medium">Stock added</span>
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <span className="w-3 h-3 rounded bg-green-200 inline-block"></span>
@@ -658,7 +662,8 @@ export default function InvoicesPage() {
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Category</th>
                                   <th className="px-4 py-3 text-center text-xs font-semibold text-amber-700 bg-amber-50" title="Cases on invoice">Cases</th>
                                   <th className="px-4 py-3 text-center text-xs font-semibold text-amber-700 bg-amber-50" title="Retail units per case">Units/Case</th>
-                                  <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 bg-blue-50" title="Total retail units added to stock">Retail Units</th>
+                                  <th className="px-4 py-3 text-center text-xs font-semibold text-purple-700 bg-purple-50" title="How many units make up 1 sellable item (Default=1)">Sell Size ▼</th>
+                                  <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 bg-blue-50" title="Total sellable units added to stock">Stock Added</th>
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Size</th>
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700" title="Cost per retail unit">Cost/Unit</th>
                                   <th className="px-4 py-3 text-left text-xs font-semibold text-green-700" title="Selling price — from Z-report or POS data">Sell Price ✎</th>
@@ -705,23 +710,31 @@ export default function InvoicesPage() {
                                         />
                                       </td>
 
-                                      {/* Retail units - blue (what actually goes to stock) */}
-                                      <td className="px-4 py-3 text-center font-mono font-bold text-blue-700 bg-blue-50">
+                                      {/* Retail Sell Size - purple */}
+                                      <td className="px-4 py-3 text-center font-mono text-purple-700 bg-purple-50">
                                         <input
                                           type="number"
                                           min="1"
-                                          value={(item.quantity || 0) * (item.unitsPerCase || 1)}
+                                          value={item.retailUnit || 1}
                                           onChange={(e) => {
-                                            const newRetail = e.target.value ? parseFloat(e.target.value) : 0;
-                                            const currentUnits = item.unitsPerCase || 1;
                                             const newItems = [...parsedData.items];
-                                            // Automatically back-calculate Cases so the backend understands it
-                                            newItems[idx].quantity = newRetail / currentUnits;
+                                            newItems[idx].retailUnit = e.target.value ? parseFloat(e.target.value) : 1;
                                             setParsedData({ ...parsedData, items: newItems });
                                           }}
-                                          className="w-16 text-center bg-transparent border-b border-transparent hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-colors"
-                                          title="Edit Retail Units (Auto-adjusts Cases)"
+                                          className="w-16 text-center bg-transparent border-b border-purple-200 hover:border-purple-400 focus:border-purple-500 focus:outline-none transition-colors"
+                                          title="Sell Size (1 = individual, case size = whole case)"
                                         />
+                                      </td>
+
+                                      {/* Stock Added - blue (computed cleanly) */}
+                                      <td className="px-4 py-3 text-center font-mono font-bold text-blue-700 bg-blue-50">
+                                        {(() => {
+                                           const qty = Number(item.quantity) || 0;
+                                           const upc = Number(item.unitsPerCase) || 1;
+                                           const ru = Number(item.retailUnit) || 1;
+                                           const effectiveUnits = Math.max(1, upc / ru);
+                                           return `+${qty * effectiveUnits}`;
+                                        })()}
                                       </td>
 
                                       <td className="px-4 py-3 text-gray-500 text-xs">
@@ -739,7 +752,14 @@ export default function InvoicesPage() {
                                       </td>
 
                                       <td className="px-4 py-3 text-gray-700 font-mono">
-                                        ${Number(item.costPerUnit ?? item.unitPrice ?? 0).toFixed(2)}
+                                        {(() => {
+                                           const casePrice = Number(item.casePrice || item.unitPrice || 0);
+                                           const upc = Number(item.unitsPerCase) || 1;
+                                           const ru = Number(item.retailUnit) || 1;
+                                           const effectiveUnits = Math.max(1, upc / ru);
+                                           const cost = effectiveUnits > 1 ? (casePrice / effectiveUnits) : casePrice;
+                                           return `$${cost.toFixed(2)}`;
+                                        })()}
                                       </td>
 
                                       {/* Editable Selling Price — comes from Z-report/POS, not invoice */}
