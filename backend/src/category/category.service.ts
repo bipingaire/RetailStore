@@ -61,4 +61,24 @@ export class CategoryService {
             throw new NotFoundException(`Category with ID ${id} not found`);
         }
     }
+
+    // --- GLOBAL SUPER ADMIN CATEGORIES ---
+
+    async getGlobalCategories() {
+        return this.prisma.globalCategory.findMany({
+            orderBy: { name: 'asc' },
+        });
+    }
+
+    async addGlobalCategory(name: string, description?: string) {
+        return this.prisma.globalCategory.create({
+            data: { name, description }
+        });
+    }
+
+    async deleteGlobalCategory(id: string) {
+        return this.prisma.globalCategory.delete({
+            where: { id }
+        });
+    }
 }

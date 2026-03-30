@@ -1,14 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { Plus, Trash2, Tag, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 interface GlobalCategory {
     'category-id': string;
@@ -33,13 +28,16 @@ export default function SuperadminCategoriesPage() {
     async function loadCategories() {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('global-categories')
-                .select('*')
-                .order('category-name', { ascending: true });
-
-            if (error) throw error;
-            setCategories(data || []);
+            const data = await apiClient.get('/categories/global');
+            // Ensure the data format from backend maps to what frontend expects, or map it here.
+            // Backend returns: Prisma Category objects { id, name, description, isActive }
+            const mappedData = data.map((c: any) => ({
+                'category-id': c.id,
+                'category-name': c.name,
+                description: c.description,
+                'is-active': c.isActive
+            }));
+            setCategories(mappedData);
         } catch (error) {
             console.error('Error loading global categories:', error);
             alert('Failed to load categories');
@@ -54,13 +52,10 @@ export default function SuperadminCategoriesPage() {
 
         setIsSaving(true);
         try {
-            const { error } = await supabase
-                .from('global-categories')
-                .insert([
-                    { 'category-name': newName.trim(), description: newDesc.trim() || null }
-                ]);
-
-            if (error) throw error;
+            await apiClient.post('/categories/global', {
+                name: newName.trim(),
+                description: newDesc.trim() || undefined
+            });
 
             setNewName('');
             setNewDesc('');
@@ -77,12 +72,7 @@ export default function SuperadminCategoriesPage() {
         if (!confirm('Are you sure you want to delete this global category? Stores will no longer see it.')) return;
 
         try {
-            const { error } = await supabase
-                .from('global-categories')
-                .delete()
-                .eq('category-id', id);
-
-            if (error) throw error;
+            await apiClient.delete(`/categories/global/${id}`);
             await loadCategories();
         } catch (error: any) {
             console.error('Error deleting category:', error);

@@ -25,4 +25,21 @@ export class CategoryController {
     ) {
         return this.categoryService.deleteCategory(subdomain, id);
     }
+
+    // --- GLOBAL SUPER ADMIN ROUTES --- //
+
+    @Get('global')
+    async getGlobalCategories() {
+        return this.categoryService.getGlobalCategories();
+    }
+
+    @Post('global')
+    async addGlobalCategory(@Body() body: { name: string; description?: string }) {
+        return this.categoryService.addGlobalCategory(body.name, body.description);
+    }
+
+    @Delete('global/:id')
+    async deleteGlobalCategory(@Param('id') id: string) {
+        return this.categoryService.deleteGlobalCategory(id);
+    }
 }

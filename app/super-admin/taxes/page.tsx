@@ -1,14 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { apiClient } from '@/lib/api-client';
 import { Plus, Trash2, Tag, Loader2, ArrowLeft, Percent, Globe, Package } from 'lucide-react';
 import Link from 'next/link';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 interface GlobalTaxRule {
     'tax-rule-id': string;
@@ -39,13 +34,27 @@ export default function SuperadminTaxesPage() {
         setLoading(true);
         try {
             const [rulesRes, catRes] = await Promise.all([
-                supabase.from('global-tax-rules').select('*').order('state', { ascending: true }),
-                supabase.from('global-categories').select('*').order('category-name', { ascending: true })
+                apiClient.get('/tax/rules'),
+                apiClient.get('/categories/global')
             ]);
 
-            if (rulesRes.error) throw rulesRes.error;
-            setRules(rulesRes.data || []);
-            setCategories(catRes.data || []);
+            // Map backend schema property names to what frontend currently uses
+            const mappedRules = rulesRes.map((r: any) => ({
+                'tax-rule-id': r.id,
+                state: r.state,
+                'target-type': r.targetType,
+                'target-value': r.targetValue,
+                'tax-rate': parseFloat(r.taxRate),
+                'is-active': r.isActive
+            }));
+            
+            const mappedCats = catRes.map((c: any) => ({
+                'category-id': c.id,
+                'category-name': c.name
+            }));
+
+            setRules(mappedRules || []);
+            setCategories(mappedCats || []);
         } catch (error) {
             console.error('Error loading tax data:', error);
             alert('Failed to load tax rules');
@@ -65,16 +74,12 @@ export default function SuperadminTaxesPage() {
 
         setIsSaving(true);
         try {
-            const { error } = await supabase
-                .from('global-tax-rules')
-                .insert([{
-                    state: newState.trim().toUpperCase() || 'ALL',
-                    'target-type': newType,
-                    'target-value': newType === 'DEFAULT' ? '*' : newValue.trim(),
-                    'tax-rate': parseFloat(newRate) || 0
-                }]);
-
-            if (error) throw error;
+            await apiClient.post('/tax/rules', {
+                state: newState.trim().toUpperCase() || 'ALL',
+                targetType: newType,
+                targetValue: newType === 'DEFAULT' ? '*' : newValue.trim(),
+                taxRate: parseFloat(newRate) || 0
+            });
 
             setNewRate('');
             if (newType !== 'DEFAULT') setNewValue('*');
@@ -91,12 +96,7 @@ export default function SuperadminTaxesPage() {
         if (!confirm('Are you sure you want to delete this tax rule?')) return;
 
         try {
-            const { error } = await supabase
-                .from('global-tax-rules')
-                .delete()
-                .eq('tax-rule-id', id);
-
-            if (error) throw error;
+            await apiClient.delete(`/tax/rules/${id}`);
             await loadData();
         } catch (error: any) {
             console.error('Error deleting rule:', error);
