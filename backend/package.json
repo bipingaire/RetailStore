@@ -8,6 +8,7 @@
         "start:dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
         "start:prod": "node dist/main",
+        "migrate:tenants": "ts-node scripts/migrate-all-tenants.ts",
         "test": "jest"
     },
     "dependencies": {
