@@ -22,8 +22,7 @@ export default function SuperadminTaxesPage() {
     
     // Form state
     const [newState, setNewState] = useState('ALL');
-    const [newType, setNewType] = useState('DEFAULT');
-    const [newValue, setNewValue] = useState('*');
+    const [newCategory, setNewCategory] = useState('*');
     const [newRate, setNewRate] = useState('');
 
     useEffect(() => {
@@ -67,7 +66,7 @@ export default function SuperadminTaxesPage() {
         e.preventDefault();
         
         // Validation
-        if (newType === 'CATEGORY' && newValue === '*') {
+        if (!newCategory) {
             alert('Please select a valid category.');
             return;
         }
@@ -76,13 +75,13 @@ export default function SuperadminTaxesPage() {
         try {
             await apiClient.post('/tax/rules', {
                 state: newState.trim().toUpperCase() || 'ALL',
-                targetType: newType,
-                targetValue: newType === 'DEFAULT' ? '*' : newValue.trim(),
+                targetType: newCategory === '*' ? 'DEFAULT' : 'CATEGORY',
+                targetValue: newCategory,
                 taxRate: parseFloat(newRate) || 0
             });
 
             setNewRate('');
-            if (newType !== 'DEFAULT') setNewValue('*');
+            setNewCategory('*');
             await loadData();
         } catch (error: any) {
             console.error('Error adding rule:', error);
@@ -151,52 +150,19 @@ export default function SuperadminTaxesPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Rule Type</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Target Category</label>
                             <select
-                                value={newType}
-                                onChange={e => {
-                                    setNewType(e.target.value);
-                                    if (e.target.value === 'DEFAULT') setNewValue('*');
-                                    else setNewValue(''); // clear for category/product
-                                }}
+                                value={newCategory}
+                                onChange={e => setNewCategory(e.target.value)}
                                 className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                required
                             >
-                                <option value="DEFAULT">State Default Tax</option>
-                                <option value="CATEGORY">Category Tax Override</option>
-                                <option value="PRODUCT">Specific Product Override</option>
+                                <option value="*">All Categories (State Default)</option>
+                                {categories.map(c => (
+                                    <option key={c['category-id']} value={c['category-name']}>{c['category-name']}</option>
+                                ))}
                             </select>
                         </div>
-
-                        {newType === 'CATEGORY' && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Target Category</label>
-                                <select
-                                    value={newValue}
-                                    onChange={e => setNewValue(e.target.value)}
-                                    className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    required
-                                >
-                                    <option value="" disabled>Select Global Category...</option>
-                                    {categories.map(c => (
-                                        <option key={c['category-id']} value={c['category-name']}>{c['category-name']}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        {newType === 'PRODUCT' && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Target Product SKU</label>
-                                <input
-                                    type="text"
-                                    value={newValue}
-                                    onChange={e => setNewValue(e.target.value)}
-                                    placeholder="e.g. 0123456789"
-                                    className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    required
-                                />
-                            </div>
-                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
