@@ -21,8 +21,8 @@ export default function SuperadminTaxesPage() {
     const [isSaving, setIsSaving] = useState(false);
     
     // Form state
-    const [newState, setNewState] = useState('ALL');
-    const [newCategory, setNewCategory] = useState('*');
+    const [newState, setNewState] = useState('');
+    const [newCategory, setNewCategory] = useState('');
     const [newRate, setNewRate] = useState('');
 
     useEffect(() => {
@@ -74,14 +74,14 @@ export default function SuperadminTaxesPage() {
         setIsSaving(true);
         try {
             await apiClient.post('/tax/rules', {
-                state: newState.trim().toUpperCase() || 'ALL',
-                targetType: newCategory === '*' ? 'DEFAULT' : 'CATEGORY',
+                state: newState.trim().toUpperCase(),
+                targetType: 'CATEGORY',
                 targetValue: newCategory,
                 taxRate: parseFloat(newRate) || 0
             });
 
             setNewRate('');
-            setNewCategory('*');
+            setNewCategory('');
             await loadData();
         } catch (error: any) {
             console.error('Error adding rule:', error);
@@ -143,7 +143,7 @@ export default function SuperadminTaxesPage() {
                                 type="text"
                                 value={newState}
                                 onChange={e => setNewState(e.target.value)}
-                                placeholder="e.g. NY, CA, TX or ALL"
+                                placeholder="e.g. NY, CA, TX"
                                 className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase"
                                 required
                             />
@@ -157,7 +157,7 @@ export default function SuperadminTaxesPage() {
                                 className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 required
                             >
-                                <option value="*">All Categories (State Default)</option>
+                                <option value="" disabled>Select a specific category...</option>
                                 {categories.map(c => (
                                     <option key={c['category-id']} value={c['category-name']}>{c['category-name']}</option>
                                 ))}
