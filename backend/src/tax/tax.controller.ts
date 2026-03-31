@@ -44,4 +44,27 @@ export class TaxController {
             where: { id }
         });
     }
+
+    // --- TENANT LOCAL ENDPOINTS ---
+    
+    @Get('local-rules')
+    async getLocalRules(@Headers('x-tenant') subdomain: string) {
+        return this.taxService.getLocalTaxRules(subdomain);
+    }
+
+    @Post('local-rules')
+    async addLocalRule(
+        @Headers('x-tenant') subdomain: string,
+        @Body() body: { category: string, taxRate: number }
+    ) {
+        return this.taxService.addLocalTaxRule(subdomain, body.category, Number(body.taxRate));
+    }
+
+    @Delete('local-rules/:id')
+    async deleteLocalRule(
+        @Headers('x-tenant') subdomain: string,
+        @Param('id') id: string
+    ) {
+        return this.taxService.deleteLocalTaxRule(subdomain, id);
+    }
 }

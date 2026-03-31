@@ -22,7 +22,7 @@ type Plan = { id: string; name: string; price: number; features: string[]; recom
 
 export default function SettingsPage() {
   // Supabase removed - refactor needed
-  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social' | 'payment' | 'categories'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'vendors' | 'website' | 'billing' | 'social' | 'payment' | 'categories' | 'taxes'>('profile');
   const [loading, setLoading] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
@@ -55,14 +55,18 @@ export default function SettingsPage() {
   // Payment State
   const [paymentConfig, setPaymentConfig] = useState({
     stripe_publishable_key: '',
-    stripe_secret_key: '',
-    tax_rate: '8' // default
+    stripe_secret_key: ''
   });
 
   // Category State
-  const [categories, setCategories] = useState<{ global: any[], local: any[] }>({ global: [], local: [] });
+  const [categories, setCategories] = useState<{ global: any[], local: any[], combined: string[] }>({ global: [], local: [], combined: [] });
   const [newCatName, setNewCatName] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
+
+  // Local Tax Rules State
+  const [localTaxRules, setLocalTaxRules] = useState<any[]>([]);
+  const [newRuleCategory, setNewRuleCategory] = useState('');
+  const [newRuleRate, setNewRuleRate] = useState('');
 
   useEffect(() => {
     async function loadSettings() {
@@ -131,21 +135,27 @@ export default function SettingsPage() {
       try {
         const pubKeyRes = await apiClient.get('/settings/stripe_publishable_key');
         const secKeyRes = await apiClient.get('/settings/stripe_secret_key');
-        const taxRes = await apiClient.get('/settings/tax_rate');
         setPaymentConfig({
           stripe_publishable_key: pubKeyRes?.value || '',
-          stripe_secret_key: secKeyRes?.value || '',
-          tax_rate: taxRes?.value || '8'
+          stripe_secret_key: secKeyRes?.value || ''
         });
       } catch (e) {
         console.error("Failed to load payment settings", e);
       }
 
       try {
-          const catsData = await apiClient.get<any>('/categories');
+          const rulesData = await apiClient.get('/tax/local-rules');
+          setLocalTaxRules(rulesData || []);
+      } catch (e) {
+          console.error("Failed to load local tax rules", e);
+      }
+
+      try {
+          const catsData = await apiClient.get('/categories');
           setCategories({
               global: catsData?.global || [],
-              local: catsData?.local || []
+              local: catsData?.local || [],
+              combined: catsData?.combined || []
           });
       } catch (e) {
           console.error("Failed to load categories", e);
@@ -209,12 +219,44 @@ export default function SettingsPage() {
     try {
       await apiClient.post('/settings', { key: 'stripe_publishable_key', value: paymentConfig.stripe_publishable_key });
       await apiClient.post('/settings', { key: 'stripe_secret_key', value: paymentConfig.stripe_secret_key });
-      await apiClient.post('/settings', { key: 'tax_rate', value: paymentConfig.tax_rate.toString() });
-      toast.success('Payment & Tax settings saved');
+      toast.success('Payment settings saved');
     } catch (e) {
-      toast.error('Failed to save payment & tax settings');
+      toast.error('Failed to save payment settings');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddTaxRule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRuleCategory.trim() || !newRuleRate) return;
+    try {
+      const created = await apiClient.post('/tax/local-rules', { category: newRuleCategory, taxRate: parseFloat(newRuleRate) });
+      setLocalTaxRules(prev => {
+        const existing = prev.findIndex(r => r.category === newRuleCategory);
+        if (existing >= 0) {
+            const next = [...prev];
+            next[existing] = created;
+            return next;
+        }
+        return [...prev, created].sort((a,b) => a.category.localeCompare(b.category));
+      });
+      setNewRuleCategory('');
+      setNewRuleRate('');
+      toast.success('Tax rule saved');
+    } catch (err: any) {
+      toast.error('Failed to save tax rule');
+    }
+  };
+
+  const handleDeleteTaxRule = async (id: string) => {
+    if (!confirm('Delete this tax rule?')) return;
+    try {
+      await apiClient.delete(`/tax/local-rules/${id}`);
+      setLocalTaxRules(prev => prev.filter(r => r.id !== id));
+      toast.success('Tax rule deleted');
+    } catch (err: any) {
+      toast.error('Failed to delete tax rule');
     }
   };
 
@@ -222,7 +264,7 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!newCatName.trim()) return;
     try {
-      const created = await apiClient.post<any>('/categories', { name: newCatName.trim(), description: newCatDesc.trim() });
+      const created = await apiClient.post('/categories', { name: newCatName.trim(), description: newCatDesc.trim() });
       setCategories(prev => ({ ...prev, local: [...prev.local, created] }));
       setNewCatName('');
       setNewCatDesc('');
@@ -277,7 +319,10 @@ export default function SettingsPage() {
               <CreditCard size={16} /> Billing
             </button>
             <button onClick={() => setActiveTab('payment')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'payment' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-              <DollarSign size={16} /> Payment & Tax
+              <DollarSign size={16} /> Payment Integrations
+            </button>
+            <button onClick={() => setActiveTab('taxes')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'taxes' ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+              <Building size={16} /> Tax Rules
             </button>
           </div>
 
@@ -526,24 +571,12 @@ export default function SettingsPage() {
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <CreditCard className="text-blue-600" size={20} /> Payment & Tax Configuration
+                    <CreditCard className="text-blue-600" size={20} /> Payment Configuration
                   </h3>
-                  <p className="text-sm text-gray-500 mb-6">Configure payment gateways and standard checkout tax rate.</p>
+                  <p className="text-sm text-gray-500 mb-6">Configure Stripe payment gateways for checkout.</p>
 
                   <div className="grid grid-cols-1 gap-4 max-w-lg">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-900 mb-1">Tax Rate (%)</label>
-                      <input
-                        type="number"
-                        value={paymentConfig.tax_rate}
-                        onChange={(e) => setPaymentConfig({ ...paymentConfig, tax_rate: e.target.value })}
-                        placeholder="e.g. 8.5"
-                        step="0.01"
-                        className="w-1/3 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors"
-                      />
-                      <p className="text-[10px] text-gray-500 mt-1">This rate applies to all shop checkouts.</p>
-                    </div>
-                    <div className="pt-4 border-t border-gray-100 mt-2">
+                    <div className="pt-2 mt-2">
                       <label className="block text-xs font-medium text-gray-700 mb-1">Stripe Publishable Key</label>
                       <input
                         type="text"
@@ -569,6 +602,92 @@ export default function SettingsPage() {
                   <button onClick={handleSavePayment} disabled={loading} className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
                     {loading ? 'Saving...' : 'Save Configuration'}
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAXES TAB */}
+            {activeTab === 'taxes' && (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-indigo-600" /> Local Category Tax Rules
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">Override global/state tax rates with extreme precision per category.</p>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <form onSubmit={handleAddTaxRule} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="md:col-span-1 border border-gray-200 rounded-lg bg-gray-50 p-3 flex flex-col justify-center">
+                        <span className="text-xs text-gray-500 font-medium">State Configured (Profile settings)</span>
+                        <span className="text-sm font-bold text-gray-900">{profile.state || 'None Configured'}</span>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Target Category</label>
+                        <select
+                            value={newRuleCategory}
+                            onChange={(e) => setNewRuleCategory(e.target.value)}
+                            className="w-full border border-gray-300 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            required
+                        >
+                            <option value="" disabled>Select a specific category...</option>
+                            {categories.combined?.map((c: string) => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Local Tax Override (%)</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="number"
+                                step="0.001"
+                                placeholder="e.g. 5.25"
+                                value={newRuleRate}
+                                onChange={(e) => setNewRuleRate(e.target.value)}
+                                className="w-full border border-gray-300 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                required
+                            />
+                            <button type="submit" className="bg-indigo-600 text-white px-4 rounded-lg font-bold hover:bg-indigo-700 transition-colors">
+                            Save
+                            </button>
+                        </div>
+                    </div>
+                  </form>
+
+                  <div className="border border-gray-200 rounded-lg overflow-hidden shrink-0">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-100 text-gray-600 font-semibold text-left">
+                        <tr>
+                            <th className="px-4 py-3">Category Override</th>
+                            <th className="px-4 py-3">Override Tax Rate</th>
+                            <th className="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {localTaxRules.map(rule => (
+                            <tr key={rule.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 font-medium text-gray-900">{rule.category}</td>
+                                <td className="px-4 py-3 font-bold text-indigo-700">{rule.taxRate}%</td>
+                                <td className="px-4 py-3 text-right">
+                                    <button type="button" onClick={() => handleDeleteTaxRule(rule.id)} className="text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-lg transition-colors">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {localTaxRules.length === 0 && (
+                            <tr>
+                                <td colSpan={3} className="px-4 py-8 text-center text-gray-400">No local tax rules defined.<br/>Global state rules will apply automatically.</td>
+                            </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
