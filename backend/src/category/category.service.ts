@@ -43,9 +43,34 @@ export class CategoryService {
         if (!tenant) throw new NotFoundException('Tenant not found');
 
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-        return client.category.create({
+        const newCat = await client.category.create({
             data: { name, description },
         });
+
+        // Sync to Global DB
+        await this.prisma.globalCategory.upsert({
+            where: { name },
+            update: {},
+            create: { name, description, isActive: true }
+        });
+
+        // Sync to all other tenants
+        const allTenants = await this.tenantService.findAll();
+        for (const t of allTenants) {
+            if (t.subdomain === subdomain) continue;
+            try {
+                const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
+                await tClient.category.upsert({
+                    where: { name },
+                    update: {},
+                    create: { name, description, isActive: true }
+                });
+            } catch (err) {
+                console.error(`Failed to sync category to tenant ${t.subdomain}`, err);
+            }
+        }
+
+        return newCat;
     }
 
     async deleteCategory(subdomain: string, id: string) {
@@ -71,14 +96,48 @@ export class CategoryService {
     }
 
     async addGlobalCategory(name: string, description?: string) {
-        return this.prisma.globalCategory.create({
+        const newGlobalCat = await this.prisma.globalCategory.create({
             data: { name, description }
         });
+
+        // Sync to all tenants
+        const allTenants = await this.tenantService.findAll();
+        for (const t of allTenants) {
+            try {
+                const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
+                await tClient.category.upsert({
+                    where: { name },
+                    update: {},
+                    create: { name, description, isActive: true }
+                });
+            } catch (err) {
+                console.error(`Failed to sync global category to tenant ${t.subdomain}`, err);
+            }
+        }
+
+        return newGlobalCat;
     }
 
     async deleteGlobalCategory(id: string) {
-        return this.prisma.globalCategory.delete({
+        const cat = await this.prisma.globalCategory.findUnique({ where: { id } });
+        if (!cat) throw new NotFoundException('Global Category not found');
+
+        const deletedCat = await this.prisma.globalCategory.delete({
             where: { id }
         });
+
+        const allTenants = await this.tenantService.findAll();
+        for (const t of allTenants) {
+            try {
+                const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
+                await tClient.category.deleteMany({
+                    where: { name: cat.name }
+                });
+            } catch (err) {
+                console.error(`Failed to delete global category from tenant ${t.subdomain}`, err);
+            }
+        }
+
+        return deletedCat;
     }
 }
