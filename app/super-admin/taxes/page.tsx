@@ -145,7 +145,7 @@ export default function SuperadminTaxesPage() {
                                 value={newState}
                                 onChange={e => setNewState(e.target.value)}
                                 placeholder="e.g. NY, CA, TX or ALL"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase"
+                                className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase"
                                 required
                             />
                         </div>
@@ -159,7 +159,7 @@ export default function SuperadminTaxesPage() {
                                     if (e.target.value === 'DEFAULT') setNewValue('*');
                                     else setNewValue(''); // clear for category/product
                                 }}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
                                 <option value="DEFAULT">State Default Tax</option>
                                 <option value="CATEGORY">Category Tax Override</option>
@@ -173,7 +173,7 @@ export default function SuperadminTaxesPage() {
                                 <select
                                     value={newValue}
                                     onChange={e => setNewValue(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     required
                                 >
                                     <option value="" disabled>Select Global Category...</option>
@@ -192,7 +192,7 @@ export default function SuperadminTaxesPage() {
                                     value={newValue}
                                     onChange={e => setNewValue(e.target.value)}
                                     placeholder="e.g. 0123456789"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     required
                                 />
                             </div>
@@ -207,7 +207,7 @@ export default function SuperadminTaxesPage() {
                                     value={newRate}
                                     onChange={e => setNewRate(e.target.value)}
                                     placeholder="e.g. 8.875"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     required
                                 />
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
