@@ -2,16 +2,18 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Phone, Edit2, Save, X, Package, Trash2, LogOut, ShoppingBag, Calendar } from 'lucide-react';
+import { User, Mail, Phone, Edit2, Save, X, Package, Trash2, LogOut, ShoppingBag, Calendar, ChevronRight, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import ShopFooter from '../components/shop-footer';
 
 export default function AccountPage() {
   const router = useRouter();
-  // Supabase removed - refactor needed
 
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'orders' | 'profile'>('orders');
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -23,7 +25,6 @@ export default function AccountPage() {
 
   async function loadUserData() {
     try {
-      // 1. Get User from Local Storage (set during login)
       const storedUser = localStorage.getItem('retail_user');
       const token = localStorage.getItem('retail_token');
 
@@ -36,13 +37,10 @@ export default function AccountPage() {
       setUser(parsedUser);
 
       setFormData({
-        fullName: parsedUser.name || '',
+        fullName: parsedUser.name || parsedUser.user_metadata?.full_name || '',
         phone: parsedUser.phone || '',
       });
 
-      // 2. Load purchase history from Backend API
-      // Assuming GET /sales?customerId=... returns the list of sales for this customer
-      // We might need to adjust based on actual API response structure
       const ordersData = await apiClient.get(`/sales?customerId=${parsedUser.id}`);
       setOrders(ordersData || []);
 
@@ -57,14 +55,11 @@ export default function AccountPage() {
     if (!user?.id) return;
 
     try {
-      // Replace with Backend API call
-      // PUT /customers/:id
       const updatedUser = await apiClient.put(`/customers/${user.id}`, {
-        name: formData.fullName, // Map schema matches
+        name: formData.fullName,
         phone: formData.phone,
       });
 
-      // Update local storage to reflect changes
       const newUserData = { ...user, ...updatedUser };
       localStorage.setItem('retail_user', JSON.stringify(newUserData));
       setUser(newUserData);
@@ -93,186 +88,250 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-white/30 border-t-white"></div>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center pb-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-green-600 mb-4"></div>
+        <p className="text-gray-400 font-medium">Loading Account...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold text-white">My Account</h1>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-6 py-3 bg-red-500/20 border border-red-400/50 text-red-200 rounded-xl hover:bg-red-500/30 transition-all duration-200"
-          >
-            <LogOut size={20} />
-            Sign Out
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* Profile Section */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Profile Card */}
-            <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full mb-4">
-                  <User className="text-white" size={48} />
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-1">
-                  {user?.user_metadata?.full_name || 'User'}
-                </h2>
-                <p className="text-purple-200">{user?.email}</p>
-              </div>
-
-              {!editing ? (
-                <>
-                  <div className="space-y-4 mb-6">
-                    <div className="flex items-center gap-3 text-white">
-                      <Mail size={18} className="text-purple-300" />
-                      <span>{user?.email}</span>
-                    </div>
-                    {formData.phone && (
-                      <div className="flex items-center gap-3 text-white">
-                        <Phone size={18} className="text-purple-300" />
-                        <span>{formData.phone}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center justify-center gap-2"
-                  >
-                    <Edit2 size={18} />
-                    Edit Profile
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <label className="text-white font-semibold mb-2 block">Full Name</label>
-                      <input
-                        type="text"
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        className="w-full bg-white/20 border-2 border-white/30 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-white font-semibold mb-2 block">Phone</label>
-                      <input
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full bg-white/20 border-2 border-white/30 text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setEditing(false)}
-                      className="flex-1 bg-white/20 border border-white/30 text-white py-3 rounded-xl font-semibold hover:bg-white/30 transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      <X size={18} />
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleUpdateProfile}
-                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      <Save size={18} />
-                      Save
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* Danger Zone */}
-              <div className="mt-8 pt-8 border-t border-white/20">
-                <h3 className="text-red-200 font-semibold mb-3">Danger Zone</h3>
-                <button
-                  onClick={handleDeleteAccount}
-                  className="w-full bg-red-500/20 border border-red-400/50 text-red-200 py-3 rounded-xl font-semibold hover:bg-red-500/30 transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  <Trash2 size={18} />
-                  Delete Account
-                </button>
-              </div>
+    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
+          <Link href="/shop" className="flex items-center gap-2 group">
+            <div className="bg-green-600 text-white p-2 rounded-lg group-hover:scale-105 transition-transform">
+              <ShoppingBag size={24} />
             </div>
+            <span className="text-2xl font-black text-gray-900 tracking-tight">Indu<span className="text-green-600">Mart</span></span>
+          </Link>
+          <div className="flex items-center gap-6">
+             <Link href="/shop" className="text-sm font-semibold text-gray-600 hover:text-green-600 transition">Return to Store</Link>
           </div>
-
-          {/* Purchase History */}
-          <div className="lg:col-span-2">
-            <div className="relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <Package className="text-purple-300" size={28} />
-                <h2 className="text-2xl font-bold text-white">Purchase History</h2>
-              </div>
-
-              {orders.length === 0 ? (
-                <div className="text-center py-16">
-                  <ShoppingBag className="mx-auto text-purple-300/50 mb-4" size={64} />
-                  <p className="text-purple-200 text-lg">No orders yet</p>
-                  <button
-                    onClick={() => router.push('/shop')}
-                    className="mt-6 px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-700 transition-all duration-200"
-                  >
-                    Start Shopping
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {orders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-200"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <div className="text-white font-bold text-lg mb-1">
-                            Order #{order.saleNumber?.slice(0, 8) || order.id?.slice(0, 8)}
-                          </div>
-                          <div className="flex items-center gap-2 text-purple-200 text-sm">
-                            <Calendar size={14} />
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-black text-white">
-                            ${parseFloat(order.total || '0').toFixed(2)}
-                          </div>
-                          <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${order.status === 'COMPLETED' ? 'bg-green-500/20 text-green-300' :
-                            order.status === 'SHIPPED' ? 'bg-blue-500/20 text-blue-300' :
-                              order.status === 'CANCELLED' ? 'bg-red-500/20 text-red-300' :
-                                'bg-yellow-500/20 text-yellow-300'
-                            }`}>
-                            {order.status}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="text-purple-200 text-sm">
-                        Payment: <span className="text-white font-semibold">{(order.paymentMethod || 'CASH').replace(/_/g, ' ').toLowerCase()}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
         </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-12">
+         <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-10">My Account</h1>
+         
+         <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
+            {/* Sidebar Navigation */}
+            <div className="w-full md:w-64 flex-shrink-0">
+               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm sticky top-28">
+                  <div className="p-6 bg-gray-50/50 border-b border-gray-100 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-black text-xl shadow-inner">
+                          {user?.user_metadata?.full_name?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                      <div className="overflow-hidden">
+                          <p className="font-bold text-gray-900 leading-tight truncate">{user?.user_metadata?.full_name || user?.name || 'User'}</p>
+                          <p className="text-xs text-gray-500 truncate mt-0.5">{user?.email}</p>
+                      </div>
+                  </div>
+                  <nav className="p-3 space-y-1">
+                     <button 
+                        onClick={() => setActiveTab('orders')} 
+                        className={`w-full flex items-center justify-between p-3 rounded-xl text-sm font-semibold transition-all ${activeTab === 'orders' ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                     >
+                        <div className="flex items-center gap-3"><Package size={18} className={activeTab === 'orders' ? 'text-green-600' : ''}/> Order History</div>
+                        <ChevronRight size={16} className={`transition-opacity ${activeTab === 'orders' ? 'opacity-100' : 'opacity-0'}`}/>
+                     </button>
+                     <button 
+                        onClick={() => setActiveTab('profile')} 
+                        className={`w-full flex items-center justify-between p-3 rounded-xl text-sm font-semibold transition-all ${activeTab === 'profile' ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                     >
+                        <div className="flex items-center gap-3"><User size={18} className={activeTab === 'profile' ? 'text-green-600' : ''}/> Profile Details</div>
+                        <ChevronRight size={16} className={`transition-opacity ${activeTab === 'profile' ? 'opacity-100' : 'opacity-0'}`}/>
+                     </button>
+                     
+                     <div className="my-2 mx-3 border-t border-gray-100"></div>
+                     
+                     <button 
+                        onClick={handleLogout} 
+                        className="w-full flex items-center justify-between p-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                     >
+                        <div className="flex items-center gap-3"><LogOut size={18}/> Sign Out</div>
+                     </button>
+                  </nav>
+               </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 min-w-0">
+               
+               {/* ---------------- ORDERS TAB ---------------- */}
+               {activeTab === 'orders' && (
+                 <div className="space-y-6">
+                   <h2 className="text-2xl font-bold text-gray-900">Order History</h2>
+                   
+                   {orders.length === 0 ? (
+                     <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
+                       <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                         <ShoppingBag className="text-gray-300" size={32} />
+                       </div>
+                       <h3 className="text-lg font-bold text-gray-900 mb-2">No orders placed yet</h3>
+                       <p className="text-gray-500 mb-6">Looks like you haven't made any purchases with us.</p>
+                       <Link 
+                         href="/shop"
+                         className="inline-flex items-center justify-center bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-700 transition"
+                       >
+                         Start Shopping
+                       </Link>
+                     </div>
+                   ) : (
+                     <div className="space-y-4">
+                       {orders.map((order) => (
+                         <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                           {/* Order Header */}
+                           <div className="bg-gray-50/50 border-b border-gray-100 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+                              <div>
+                                <div className="text-sm font-bold text-gray-900 mb-1">
+                                  Order #{order.saleNumber?.slice(0, 8) || order.id?.slice(0, 8)}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                                  <Calendar size={14} />
+                                  {new Date(order.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-black text-green-700">
+                                  ${parseFloat(order.total || '0').toFixed(2)}
+                                </div>
+                              </div>
+                           </div>
+                           
+                           {/* Order Body Details */}
+                           <div className="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                              <div className="flex items-center gap-3">
+                                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${order.status === 'COMPLETED' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                                  {order.status === 'COMPLETED' ? <CheckCircle2 size={20}/> : <Package size={20}/>}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-bold text-gray-900">
+                                    {order.status === 'COMPLETED' ? 'Delivered' : order.status}
+                                  </div>
+                                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mt-0.5">
+                                    Payment: <span className="text-gray-900 font-bold">{(order.paymentMethod || 'CASH').replace(/_/g, ' ')}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <button className="text-sm font-semibold text-green-600 hover:text-green-700 hover:underline">
+                                View Details
+                              </button>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   )}
+                 </div>
+               )}
+
+               {/* ---------------- PROFILE TAB ---------------- */}
+               {activeTab === 'profile' && (
+                 <div className="space-y-6">
+                   <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile Details</h2>
+                   
+                   <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8">
+                     {!editing ? (
+                       <div className="max-w-md">
+                         <div className="space-y-6">
+                           <div>
+                             <p className="text-sm font-semibold text-gray-500 mb-1">Full Name</p>
+                             <p className="text-lg font-bold text-gray-900">{user?.user_metadata?.full_name || user?.name || 'Not provided'}</p>
+                           </div>
+                           <div>
+                             <p className="text-sm font-semibold text-gray-500 mb-1">Email Address</p>
+                             <p className="text-lg font-bold text-gray-900">{user?.email}</p>
+                           </div>
+                           <div>
+                             <p className="text-sm font-semibold text-gray-500 mb-1">Phone Number</p>
+                             <p className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                {formData.phone || <span className="text-gray-400 font-medium text-base italic">Not provided</span>}
+                             </p>
+                           </div>
+                         </div>
+                         
+                         <button
+                           onClick={() => setEditing(true)}
+                           className="mt-8 flex items-center justify-center w-full sm:w-auto bg-white border-2 border-gray-200 text-gray-900 px-8 py-2.5 rounded-xl font-bold hover:border-gray-900 transition-colors gap-2"
+                         >
+                           <Edit2 size={16} /> Edit Profile
+                         </button>
+                       </div>
+                     ) : (
+                       <div className="max-w-md space-y-5 animate-in fade-in zoom-in duration-200">
+                         <div>
+                           <label className="text-sm font-bold text-gray-700 mb-1.5 block">Full Name</label>
+                           <input
+                             type="text"
+                             value={formData.fullName}
+                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                             className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all font-medium"
+                             placeholder="Enter your full name"
+                           />
+                         </div>
+                         <div>
+                           <label className="text-sm font-bold text-gray-700 mb-1.5 block">Email Address</label>
+                           <input
+                             type="email"
+                             value={user?.email || ''}
+                             disabled
+                             className="w-full bg-gray-100 border border-gray-200 text-gray-500 rounded-xl px-4 py-3 font-medium cursor-not-allowed"
+                           />
+                           <p className="text-xs text-gray-500 mt-1.5">Email address cannot be changed.</p>
+                         </div>
+                         <div>
+                           <label className="text-sm font-bold text-gray-700 mb-1.5 block">Phone Number</label>
+                           <input
+                             type="tel"
+                             value={formData.phone}
+                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                             className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all font-medium"
+                             placeholder="e.g. +1 234 567 8900"
+                           />
+                         </div>
+                         
+                         <div className="flex gap-3 pt-4">
+                           <button
+                             onClick={() => setEditing(false)}
+                             className="flex-1 bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                           >
+                             Cancel
+                           </button>
+                           <button
+                             onClick={handleUpdateProfile}
+                             className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all flex items-center justify-center gap-2"
+                           >
+                             <Save size={18} /> Save Changes
+                           </button>
+                         </div>
+                       </div>
+                     )}
+
+                     {/* Danger Zone */}
+                     <div className="mt-12 pt-8 border-t border-gray-100">
+                       <h3 className="text-red-600 font-bold mb-2">Danger Zone</h3>
+                       <p className="text-sm text-gray-500 mb-4">Permanently delete your account and all of your data.</p>
+                       <button
+                         onClick={handleDeleteAccount}
+                         className="inline-flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors text-sm border border-red-100"
+                       >
+                         <Trash2 size={16} /> Delete Account
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               )}
+            </div>
+         </div>
+      </main>
+      
+      {/* Footer */}
+      <div className="mt-auto">
+        <ShopFooter />
       </div>
     </div>
   );
 }
-
