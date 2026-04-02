@@ -20,12 +20,6 @@ export default function BusinessPage() {
                         <a href="#stores" className="hover:text-white transition-colors">For Stores</a>
                         <a href="#platform" className="hover:text-white transition-colors">Platform</a>
                     </div>
-                    <a
-                        href="/super-admin/login"
-                        className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg font-semibold transition-all"
-                    >
-                        Admin Login
-                    </a>
                 </div>
             </nav>
 
@@ -54,12 +48,6 @@ export default function BusinessPage() {
                             className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-indigo-500/25 text-lg"
                         >
                             Visit InduMart Stores →
-                        </a>
-                        <a
-                            href="/super-admin/login"
-                            className="w-full sm:w-auto bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold px-8 py-4 rounded-xl transition-all text-lg"
-                        >
-                            Super Admin Panel
                         </a>
                     </div>
                 </div>
@@ -168,7 +156,6 @@ export default function BusinessPage() {
                 </div>
                 <p className="text-white/20 text-sm">© 2026 RetailOS. All rights reserved.</p>
                 <div className="mt-4 flex justify-center gap-6 text-sm text-white/30">
-                    <a href="/super-admin/login" className="hover:text-white/60 transition-colors">Super Admin</a>
                     <a href="https://indumart.us" className="hover:text-white/60 transition-colors">InduMart</a>
                 </div>
             </footer>
