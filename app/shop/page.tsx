@@ -273,25 +273,25 @@ export default function ShopHome() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[500px]">
 
               {/* Main Hero Banner */}
-              <div className="md:col-span-2">
-                <a href={mainBanner.link || '#'} className="block h-full">
-                  <div className="rounded-3xl p-8 flex flex-col justify-center relative overflow-hidden group h-full" style={{ backgroundColor: mainBanner.bgColor }}>
-                    <div className="relative z-10 max-w-md">
+              <div className="md:col-span-2 relative">
+                <a href={mainBanner.link || '#'} className="block h-full min-h-[320px] md:min-h-0">
+                  <div className="rounded-3xl p-6 md:p-8 flex flex-col justify-center relative overflow-hidden group h-full" style={{ backgroundColor: mainBanner.bgColor }}>
+                    <div className="relative z-10 max-w-sm md:max-w-md">
                       {mainBanner.tag && (
-                        <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 inline-block">
+                        <span className="bg-red-500 text-white text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 rounded-full uppercase tracking-wider mb-3 md:mb-4 inline-block">
                           {mainBanner.tag}
                         </span>
                       )}
-                      <h2 className="text-4xl md:text-6xl font-black text-gray-900 mb-4 leading-tight">
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-3 md:mb-4 leading-tight">
                         {mainBanner.title}
                       </h2>
-                      <p className="text-gray-600 mb-8 text-lg">{mainBanner.subtitle}</p>
-                      <span className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition-all transform group-hover:-translate-y-1">
+                      <p className="text-gray-600 mb-6 md:mb-8 text-base md:text-lg">{mainBanner.subtitle}</p>
+                      <span className="inline-flex items-center gap-2 bg-green-600 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-full font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition-all transform group-hover:-translate-y-1 text-sm md:text-base">
                         {mainBanner.cta} <ArrowRight size={16} />
                       </span>
                     </div>
                     {mainBanner.imageUrl && (
-                      <img src={mainBanner.imageUrl} className="absolute -right-10 -bottom-10 w-80 opacity-20 md:opacity-100 md:w-96 md:bottom-10 md:right-10 transform group-hover:scale-110 transition-transform duration-700" alt={mainBanner.title} />
+                      <img src={mainBanner.imageUrl} className="absolute -right-6 -bottom-6 w-52 md:w-80 lg:w-96 opacity-30 md:opacity-100 md:bottom-10 md:right-10 transform group-hover:scale-110 transition-transform duration-700" alt={mainBanner.title} />
                     )}
                   </div>
                 </a>
@@ -300,14 +300,14 @@ export default function ShopHome() {
               {/* Side Banners */}
               <div className="flex flex-col gap-6 h-full">
                 {sideBanners.map(banner => (
-                  <a key={banner.id} href={banner.link || '#'} className="flex-1 rounded-3xl p-6 relative overflow-hidden flex items-center group cursor-pointer hover:shadow-lg transition" style={{ backgroundColor: banner.bgColor }}>
-                    <div className="relative z-10 w-2/3">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{banner.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3">{banner.subtitle}</p>
-                      <span className="text-sm font-bold text-orange-600 underline inline-flex items-center gap-1">{banner.cta} <ArrowRight size={14} /></span>
+                  <a key={banner.id} href={banner.link || '#'} className="flex-1 min-h-[140px] md:min-h-0 rounded-3xl p-5 md:p-6 relative overflow-hidden flex items-center group cursor-pointer hover:shadow-lg transition" style={{ backgroundColor: banner.bgColor }}>
+                    <div className="relative z-10 w-2/3 sm:w-3/4 md:w-2/3">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1 md:mb-2 leading-tight">{banner.title}</h3>
+                      <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3">{banner.subtitle}</p>
+                      <span className="text-xs md:text-sm font-bold text-orange-600 underline inline-flex items-center gap-1">{banner.cta} <ArrowRight size={14} /></span>
                     </div>
                     {banner.imageUrl && (
-                      <img src={banner.imageUrl} className="absolute right-2 bottom-2 w-24 group-hover:rotate-12 transition-transform" alt={banner.title} />
+                      <img src={banner.imageUrl} className="absolute -right-2 -bottom-2 md:right-2 md:bottom-2 w-20 md:w-24 lg:w-28 opacity-80 md:opacity-100 group-hover:rotate-12 transition-transform" alt={banner.title} />
                     )}
                   </a>
                 ))}
@@ -360,17 +360,18 @@ export default function ShopHome() {
                     {campaignProducts.map((prod: any) => {
                       const qty = cart[prod.id] || 0;
                       return (
-                        <div key={prod.id} className="min-w-[180px] max-w-[180px] bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:shadow-lg hover:border-green-200 transition-all flex-shrink-0">
-                          <div className="aspect-square bg-white rounded-xl mb-3 overflow-hidden flex items-center justify-center">
+                        <div key={prod.id} className="min-w-[140px] md:min-w-[180px] max-w-[140px] md:max-w-[180px] bg-gray-50 rounded-2xl p-3 md:p-4 border border-gray-100 hover:shadow-lg hover:border-green-200 transition-all flex-shrink-0 flex flex-col justify-between">
+                          <div>
+                            <div className="aspect-square bg-white rounded-xl mb-3 overflow-hidden flex items-center justify-center">
                             <img
                               src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3C/svg%3E"}
                               className="w-full h-full object-cover"
                               alt={prod.name}
                             />
                           </div>
-                          <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                          <h4 className="text-xs font-bold text-gray-900 line-clamp-2 mb-2">{cleanName(prod.name)}</h4>
-                          <div className="text-base font-black text-green-700 mb-3">${Number(prod.price).toFixed(2)}</div>
+                          <div className="text-[10px] text-gray-400 uppercase font-bold mb-1 line-clamp-1">{prod.category || 'Product'}</div>
+                          <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 mb-2 min-h-[2.5em]">{cleanName(prod.name)}</h4>
+                          <div className="text-sm md:text-base font-black text-green-700 mb-3">${Number(prod.price).toFixed(2)}</div>
                           {qty === 0 ? (
                             <button
                               onClick={() => updateQty(prod.id, 1)}
@@ -382,7 +383,8 @@ export default function ShopHome() {
                               <span className="text-xs font-bold w-4 text-center">{qty}</span>
                               <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
                             </div>
-                          )}
+                           )}
+                          </div>
                         </div>
                       );
                     })}
@@ -440,50 +442,54 @@ export default function ShopHome() {
             <p className="text-gray-400 text-lg">No products found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
             {filteredProducts.map((prod) => {
               const qty = cart[prod.id] || 0;
               return (
-                <div key={prod.id} className="bg-white rounded-2xl p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all">
-
-                  <div className="aspect-square bg-gray-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                      className="w-full h-full object-cover"
-                      alt={prod.name}
-                    />
-                  </div>
-
-                  <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">
-                    {prod.category || 'Product'}
-                  </div>
-
-                  <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">
-                    {cleanName(prod.name)}
-                  </h4>
-
-                  <div className="text-lg font-black text-green-700 mb-4">
-                    ${prod.price.toFixed(2)}
-                  </div>
-
-                  {qty === 0 ? (
-                    <button
-                      onClick={() => updateQty(prod.id, 1)}
-                      className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                    >
-                      Add to Cart
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
-                      <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
-                        <Minus size={12} />
-                      </button>
-                      <span className="text-xs font-bold w-5 text-center">{qty}</span>
-                      <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
-                        <Plus size={12} />
-                      </button>
+                <div key={prod.id} className="bg-white rounded-2xl p-3 md:p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all flex flex-col justify-between">
+                  
+                  <div className="flex-1 flex flex-col">
+                    <div className="aspect-square bg-gray-50 rounded-xl mb-3 md:mb-4 flex items-center justify-center overflow-hidden">
+                      <img
+                        src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
+                        className="w-full h-full object-cover"
+                        alt={prod.name}
+                      />
                     </div>
-                  )}
+
+                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">
+                      {prod.category || 'Product'}
+                    </div>
+
+                    <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">
+                      {cleanName(prod.name)}
+                    </h4>
+
+                    <div className="text-lg font-black text-green-700 mb-4">
+                      ${prod.price.toFixed(2)}
+                    </div>
+                  </div>
+
+                  <div className="mt-auto">
+                    {qty === 0 ? (
+                      <button
+                        onClick={() => updateQty(prod.id, 1)}
+                        className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                      >
+                        Add to Cart
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
+                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
+                          <Minus size={12} />
+                        </button>
+                        <span className="text-xs font-bold w-5 text-center">{qty}</span>
+                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
