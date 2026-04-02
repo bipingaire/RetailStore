@@ -14,6 +14,7 @@ export default function AccountPage() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'orders' | 'profile'>('orders');
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -217,10 +218,57 @@ export default function AccountPage() {
                                 </div>
                               </div>
                               
-                              <button className="text-sm font-semibold text-green-600 hover:text-green-700 hover:underline">
-                                View Details
+                              <button 
+                                onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
+                                className="text-sm font-semibold text-green-600 hover:text-green-700 flex items-center gap-1 hover:underline"
+                              >
+                                {expandedOrderId === order.id ? 'Hide Details' : 'View Details'}
                               </button>
                            </div>
+
+                           {/* Expanded Order Items */}
+                           {expandedOrderId === order.id && order.items && order.items.length > 0 && (
+                             <div className="px-6 py-5 bg-gray-50/50 border-t border-gray-100">
+                               <h4 className="text-sm font-bold text-gray-900 mb-4">Items Included</h4>
+                               <ul className="space-y-4">
+                                 {order.items.map((item: any, idx: number) => (
+                                   <li key={idx} className="flex justify-between items-center text-sm">
+                                     <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                           {item.product?.imageUrl ? (
+                                             <img src={item.product.imageUrl} alt={item.product?.name || 'Product'} className="w-full h-full object-cover" />
+                                           ) : (
+                                             <Package size={20} className="text-gray-400" />
+                                           )}
+                                        </div>
+                                        <div>
+                                          <p className="font-semibold text-gray-900 line-clamp-1">{item.product?.name || `Product (ID: ${item.productId.slice(0,6)})`}</p>
+                                          <p className="text-xs text-gray-500 mt-0.5">Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
+                                        </div>
+                                     </div>
+                                     <div className="font-bold text-gray-900 whitespace-nowrap pl-4">
+                                        ${parseFloat(item.subtotal || (item.quantity * item.unitPrice).toString()).toFixed(2)}
+                                     </div>
+                                   </li>
+                                 ))}
+                               </ul>
+                               
+                               <div className="mt-6 pt-4 border-t border-gray-200 space-y-2">
+                                 <div className="flex justify-between items-center text-sm">
+                                   <span className="text-gray-500 font-medium">Subtotal</span>
+                                   <span className="font-semibold text-gray-900">${parseFloat(order.subtotal || '0').toFixed(2)}</span>
+                                 </div>
+                                 <div className="flex justify-between items-center text-sm">
+                                   <span className="text-gray-500 font-medium">Tax</span>
+                                   <span className="font-semibold text-gray-900">${parseFloat(order.tax || '0').toFixed(2)}</span>
+                                 </div>
+                                 <div className="flex justify-between items-center text-base font-black text-gray-900 pt-2 border-t border-dashed border-gray-200 mt-2">
+                                   <span>Total</span>
+                                   <span>${parseFloat(order.total || '0').toFixed(2)}</span>
+                                 </div>
+                               </div>
+                             </div>
+                           )}
                          </div>
                        ))}
                      </div>
