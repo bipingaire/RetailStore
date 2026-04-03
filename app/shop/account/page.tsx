@@ -13,6 +13,7 @@ export default function AccountPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'profile'>('orders');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -21,20 +22,23 @@ export default function AccountPage() {
   });
 
   useEffect(() => {
-    loadUserData();
+    // Synchronously check auth FIRST before rendering anything
+    const storedUser = localStorage.getItem('retail_user');
+    const token = localStorage.getItem('retail_token');
+    if (!storedUser || !token) {
+      router.replace('/shop/login?redirect=/shop/account');
+      return; // Don't setAuthChecked — keep page blank during redirect
+    }
+    setAuthChecked(true);
+    loadUserData(storedUser);
   }, []);
 
-  async function loadUserData() {
+  async function loadUserData(rawStoredUser?: string) {
     try {
-      const storedUser = localStorage.getItem('retail_user');
-      const token = localStorage.getItem('retail_token');
+      const raw = rawStoredUser ?? localStorage.getItem('retail_user');
+      if (!raw) return;
 
-      if (!storedUser || !token) {
-        router.push('/shop/login?redirect=/shop/account');
-        return;
-      }
-
-      const parsedUser = JSON.parse(storedUser);
+      const parsedUser = JSON.parse(raw);
       setUser(parsedUser);
 
       setFormData({
@@ -86,6 +90,9 @@ export default function AccountPage() {
     document.cookie = 'retail_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     router.push('/shop');
   }
+
+  // Return null (blank page) until auth is confirmed — prevents flash of account UI
+  if (!authChecked) return null;
 
   if (loading) {
     return (
