@@ -1,5 +1,7 @@
+'use client';
+
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { ShoppingBag, UserRound, Package } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -13,11 +15,26 @@ export default function ShopLayout({
   params?: { slug?: string };
 }) {
   const storeName = params?.slug || "InduMart";
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check auth on mount and whenever storage changes
+    const check = () => {
+      const token =
+        localStorage.getItem("retail_token") ||
+        localStorage.getItem("accessToken");
+      setIsLoggedIn(!!token);
+    };
+
+    check();
+    window.addEventListener("storage", check);
+    return () => window.removeEventListener("storage", check);
+  }, []);
 
   return (
     <div className="min-h-screen bg-muted/30">
-      {/* 
-        Synchronously wipe the cart for unauthenticated users on full page reloads 
+      {/*
+        Synchronously wipe the cart for unauthenticated users on full page reloads
         (before React hydrates or any useEffects run)
       */}
       <script dangerouslySetInnerHTML={{ __html: `
@@ -48,13 +65,16 @@ export default function ShopLayout({
               <ShoppingBag className="h-4 w-4" />
               Cart
             </Link>
-            <Link
-              href="/shop/orders"
-              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2")}
-            >
-              <Package className="h-4 w-4" />
-              My Orders
-            </Link>
+            {/* Only show My Orders when the user is logged in */}
+            {isLoggedIn && (
+              <Link
+                href="/shop/orders"
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2")}
+              >
+                <Package className="h-4 w-4" />
+                My Orders
+              </Link>
+            )}
             <Link
               href="/shop/account"
               className={cn(buttonVariants({ size: "sm" }), "gap-2")}
@@ -69,4 +89,3 @@ export default function ShopLayout({
     </div>
   );
 }
-
