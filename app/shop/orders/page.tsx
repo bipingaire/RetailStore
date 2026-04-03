@@ -53,8 +53,8 @@ export default function CustomerOrdersPage() {
   async function loadOrders() {
     setLoading(true);
 
-    // Check for auth token
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    // Check for auth token (customers use retail_token)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('retail_token') : null;
 
     if (!token) {
       router.push('/shop/login');

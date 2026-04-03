@@ -20,9 +20,7 @@ export default function ShopLayout({
   useEffect(() => {
     // Check auth on mount and whenever storage changes
     const check = () => {
-      const token =
-        localStorage.getItem("retail_token") ||
-        localStorage.getItem("accessToken");
+      const token = localStorage.getItem("retail_token");
       setIsLoggedIn(!!token);
     };
 
@@ -39,7 +37,7 @@ export default function ShopLayout({
       */}
       <script dangerouslySetInnerHTML={{ __html: `
         try {
-          var token = localStorage.getItem('retail_token') || localStorage.getItem('accessToken');
+          var token = localStorage.getItem('retail_token');
           if (!token) {
             var nav = performance.getEntriesByType("navigation")[0];
             var isReload = nav ? nav.type === "reload" : performance.navigation.type === 1;
