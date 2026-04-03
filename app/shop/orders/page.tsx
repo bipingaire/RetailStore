@@ -65,10 +65,10 @@ export default function CustomerOrdersPage() {
       const data = await apiClient.get('/sales/my-orders');
       console.log('✅ Orders loaded successfully:', data);
       setOrders(data || []);
+      setLoading(false);
     } catch (error: any) {
       console.error('❌ Error loading orders:', error);
       toast.error(`Failed to load orders: ${error.message}`);
-    } finally {
       setLoading(false);
     }
   }
