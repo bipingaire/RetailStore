@@ -56,6 +56,9 @@ export default function ShopHome() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [banners, setBanners] = useState<Banner[]>(DEFAULT_BANNERS);
   const [campaignPosters, setCampaignPosters] = useState<Record<string, string>>({});
+  // Pagination: show 4 rows × 5 cols = 20 products per page
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // Live promotions from backend
   const [promos, setPromos] = useState<Promotion[]>([]);
@@ -169,6 +172,11 @@ export default function ShopHome() {
     const matchesCategory = selectedCategory ? prod.category === selectedCategory : true;
     return matchesSearch && matchesCategory;
   });
+
+  // Reset visible count whenever filter or search changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [selectedCategory, searchTerm]);
 
   const availableCategories = useMemo(() => {
     const cats = new Set<string>();
@@ -442,58 +450,84 @@ export default function ShopHome() {
             <p className="text-gray-400 text-lg">No products found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-            {filteredProducts.map((prod) => {
-              const qty = cart[prod.id] || 0;
-              return (
-                <div key={prod.id} className="bg-white rounded-2xl p-3 md:p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all flex flex-col justify-between">
-                  
-                  <div className="flex-1 flex flex-col">
-                    <div className="aspect-square bg-gray-50 rounded-xl mb-3 md:mb-4 flex items-center justify-center overflow-hidden">
-                      <img
-                        src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                        className="w-full h-full object-cover"
-                        alt={prod.name}
-                      />
-                    </div>
-
-                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">
-                      {prod.category || 'Product'}
-                    </div>
-
-                    <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">
-                      {cleanName(prod.name)}
-                    </h4>
-
-                    <div className="text-lg font-black text-green-700 mb-4">
-                      ${prod.price.toFixed(2)}
-                    </div>
-                  </div>
-
-                  <div className="mt-auto">
-                    {qty === 0 ? (
-                      <button
-                        onClick={() => updateQty(prod.id, 1)}
-                        className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                      >
-                        Add to Cart
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
-                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
-                          <Minus size={12} />
-                        </button>
-                        <span className="text-xs font-bold w-5 text-center">{qty}</span>
-                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
-                          <Plus size={12} />
-                        </button>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+              {filteredProducts.slice(0, visibleCount).map((prod) => {
+                const qty = cart[prod.id] || 0;
+                return (
+                  <div key={prod.id} className="bg-white rounded-2xl p-3 md:p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all flex flex-col justify-between">
+                    
+                    <div className="flex-1 flex flex-col">
+                      <div className="aspect-square bg-gray-50 rounded-xl mb-3 md:mb-4 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
+                          className="w-full h-full object-cover"
+                          alt={prod.name}
+                        />
                       </div>
-                    )}
+
+                      <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">
+                        {prod.category || 'Product'}
+                      </div>
+
+                      <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">
+                        {cleanName(prod.name)}
+                      </h4>
+
+                      <div className="text-lg font-black text-green-700 mb-4">
+                        ${prod.price.toFixed(2)}
+                      </div>
+                    </div>
+
+                    <div className="mt-auto">
+                      {qty === 0 ? (
+                        <button
+                          onClick={() => updateQty(prod.id, 1)}
+                          className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+                        >
+                          Add to Cart
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
+                          <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
+                            <Minus size={12} />
+                          </button>
+                          <span className="text-xs font-bold w-5 text-center">{qty}</span>
+                          <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+
+            {/* Load More Button */}
+            {visibleCount < filteredProducts.length && (
+              <div className="flex flex-col items-center mt-10 gap-2">
+                <p className="text-sm text-gray-400 font-medium">
+                  Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
+                </p>
+                <button
+                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                  className="flex items-center gap-2 bg-green-600 text-white font-bold px-10 py-3 rounded-full hover:bg-green-700 active:scale-95 transition-all shadow-md shadow-green-200"
+                >
+                  Load More Products
+                  <ChevronDown size={18} />
+                </button>
+              </div>
+            )}
+
+            {/* All Products Loaded Indicator */}
+            {visibleCount >= filteredProducts.length && filteredProducts.length > PAGE_SIZE && (
+              <div className="flex items-center justify-center mt-10 gap-2 text-sm text-gray-400 font-medium">
+                <CheckCircle size={16} className="text-green-500" />
+                All {filteredProducts.length} products loaded
+              </div>
+            )}
+          </>
         )}
       </div>
 
