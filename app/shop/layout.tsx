@@ -19,8 +19,28 @@ export default function ShopLayout({
 
   useEffect(() => {
     // Check auth on mount and whenever storage changes
-    const check = () => {
-      const token = localStorage.getItem("retail_token");
+    const check = async () => {
+      let token = localStorage.getItem("retail_token");
+
+      // Sync NextAuth Google Login session to LocalStorage if missing
+      if (!token) {
+        try {
+          const res = await fetch('/api/auth/session');
+          if (res.ok) {
+            const session = await res.json();
+            if (session?.backendToken) {
+              token = session.backendToken;
+              localStorage.setItem("retail_token", token as string);
+              localStorage.setItem("accessToken", token as string);
+              if (session.backendUser) {
+                localStorage.setItem("retail_user", JSON.stringify(session.backendUser));
+              }
+              window.dispatchEvent(new Event('storage'));
+            }
+          }
+        } catch (e) {}
+      }
+
       setIsLoggedIn(!!token);
 
       // --- Clear cart on reload if unauthenticated ---

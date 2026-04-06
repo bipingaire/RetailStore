@@ -32,14 +32,22 @@ const authOptions = {
         signIn: '/shop/login',
     },
     callbacks: {
-        async session({ session, token }) {
-            return session;
-        },
-        async jwt({ token, account, profile }: any) {
+        async jwt({ token, user, account }: any) {
             if (account) {
                 token.provider = account.provider;
             }
+            if (user?.backendToken) {
+                token.backendToken = user.backendToken;
+                token.backendUser = user.backendUser;
+            }
             return token;
+        },
+        async session({ session, token }: any) {
+            if (token?.backendToken) {
+                (session as any).backendToken = token.backendToken;
+                (session as any).backendUser = token.backendUser;
+            }
+            return session;
         },
         async signIn({ user, account, profile }: any) {
             // On Google sign-in, auto-register/login user via backend
