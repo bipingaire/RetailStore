@@ -628,13 +628,13 @@ export default function ShopHome() {
           <span className="text-[10px] font-semibold">Home</span>
         </button>
 
-        <button
-          onClick={() => document.getElementById('category-rail')?.scrollIntoView({ behavior: 'smooth' })}
+        <Link
+          href="/shop/categories"
           className="flex flex-col items-center gap-0.5 px-4 py-1 text-gray-500 hover:text-green-600 transition-colors"
         >
           <LayoutGrid size={22} />
           <span className="text-[10px] font-semibold">Categories</span>
-        </button>
+        </Link>
 
         <Link href="/shop/cart" className="flex flex-col items-center gap-0.5 px-4 py-1 text-gray-500 hover:text-green-600 transition-colors relative">
           <ShoppingBag size={22} />
