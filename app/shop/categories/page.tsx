@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, Search, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Search, CheckCircle, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 
 type Product = {
@@ -42,6 +43,38 @@ export default function MobileCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string | null>(null); // null means "All"
   const [searchTerm, setSearchTerm] = useState('');
+  const [cart, setCart] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('retail_cart');
+      if (saved) setCart(JSON.parse(saved));
+    } catch (e) {}
+
+    // Listen to storage events to sync cart across tabs (optional but good)
+    const handleStorage = () => {
+      try {
+        const current = localStorage.getItem('retail_cart');
+        if (current) setCart(JSON.parse(current));
+      } catch(e) {}
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const updateQty = (id: string, delta: number) => {
+    setCart((prev) => {
+      const next = { ...prev };
+      next[id] = (next[id] || 0) + delta;
+      if (next[id] <= 0) delete next[id];
+      localStorage.setItem('retail_cart', JSON.stringify(next));
+      // Dispatch a storage event if needed elsewhere
+      window.dispatchEvent(new Event('storage'));
+      return next;
+    });
+  };
+
+  const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
 
   useEffect(() => {
     async function loadProducts() {
@@ -91,11 +124,23 @@ export default function MobileCategoriesPage() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white text-gray-900 md:max-w-md md:mx-auto md:border-x md:shadow-xl">
-      <div className="flex items-center px-4 h-14 border-b border-gray-100 flex-shrink-0">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-600 hover:text-black">
-          <ChevronLeft size={24} />
-        </button>
-        <span className="text-lg font-semibold tracking-tight ml-2">Categories</span>
+      {/* Top App Bar */}
+      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center">
+          <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-600 hover:text-black">
+            <ChevronLeft size={24} />
+          </button>
+          <span className="text-lg font-semibold tracking-tight ml-2">Categories</span>
+        </div>
+        
+        <Link href="/shop/cart" className="p-2 -mr-2 text-gray-600 hover:text-black relative">
+          <ShoppingBag size={22} />
+          {totalItems > 0 && (
+            <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center rounded-full border border-white">
+              {totalItems > 9 ? '9+' : totalItems}
+            </span>
+          )}
+        </Link>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -145,23 +190,46 @@ export default function MobileCategoriesPage() {
           <h2 className="font-bold text-gray-900 mb-3 px-1">{activeTab || 'All Products'} <span className="text-gray-400 font-normal text-sm ml-1">({displayedProducts.length})</span></h2>
           
           <div className="grid grid-cols-2 gap-3">
-            {displayedProducts.map(prod => (
-              <div 
-                key={prod.id} 
-                className="flex flex-col bg-gray-50 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-2"
-                onClick={() => router.push(`/shop`)} // Simply returns to main shop
-              >
-                <div className="aspect-square bg-white rounded-lg mb-2 overflow-hidden flex items-center justify-center">
-                  <img
-                    src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3C/svg%3E"}
-                    alt={prod.name}
-                    className="w-full h-full object-cover"
-                  />
+            {displayedProducts.map(prod => {
+              const qty = cart[prod.id] || 0;
+              return (
+                <div 
+                  key={prod.id} 
+                  className="flex flex-col bg-gray-50 rounded-xl overflow-hidden shadow-sm p-2"
+                >
+                  <div className="aspect-square bg-white rounded-lg mb-2 overflow-hidden flex items-center justify-center">
+                    <img
+                      src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3C/svg%3E"}
+                      alt={prod.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-[11px] font-semibold text-gray-800 line-clamp-2 leading-tight mb-1 flex-1">{prod.name}</h3>
+                  <span className="text-green-700 font-black text-sm mb-2">${prod.price.toFixed(2)}</span>
+                  
+                  <div className="mt-auto">
+                    {qty === 0 ? (
+                      <button
+                        onClick={() => updateQty(prod.id, 1)}
+                        className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors"
+                      >
+                        Add to Cart
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-between bg-white border border-green-200 rounded-lg px-2 py-1 shadow-sm">
+                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
+                          <Minus size={14} />
+                        </button>
+                        <span className="text-xs font-bold w-5 text-center">{qty}</span>
+                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-[11px] font-semibold text-gray-800 line-clamp-2 leading-tight mb-1 flex-1">{prod.name}</h3>
-                <span className="text-green-700 font-black text-sm">${prod.price.toFixed(2)}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="flex flex-col items-center justify-center py-10 opacity-50 text-xs text-gray-500 gap-2">
