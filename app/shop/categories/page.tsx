@@ -41,6 +41,7 @@ export default function MobileCategoriesPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string | null>(null); // null means "All"
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     async function loadProducts() {
@@ -70,9 +71,15 @@ export default function MobileCategoriesPage() {
     return Array.from(cats).sort();
   }, [products]);
 
-  const displayedProducts = activeTab === null 
+  const displayedProducts = (activeTab === null 
     ? products 
-    : products.filter(p => p.category === activeTab);
+    : products.filter(p => p.category === activeTab))
+    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  // Reset search when changing category tab
+  useEffect(() => {
+    setSearchTerm('');
+  }, [activeTab]);
 
   if (loading) {
     return (
@@ -84,15 +91,11 @@ export default function MobileCategoriesPage() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white text-gray-900 md:max-w-md md:mx-auto md:border-x md:shadow-xl">
-      {/* Top App Bar */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 flex-shrink-0">
+      <div className="flex items-center px-4 h-14 border-b border-gray-100 flex-shrink-0">
         <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-600 hover:text-black">
           <ChevronLeft size={24} />
         </button>
-        <span className="text-lg font-semibold tracking-tight">Categories</span>
-        <button onClick={() => router.push('/shop')} className="p-2 -mr-2 text-gray-600 hover:text-black">
-          <Search size={22} />
-        </button>
+        <span className="text-lg font-semibold tracking-tight ml-2">Categories</span>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -127,8 +130,19 @@ export default function MobileCategoriesPage() {
         </div>
 
         {/* Right Content (Products Grid) */}
-        <div className="flex-1 overflow-y-auto bg-white p-3 hide-scrollbar">
-          <h2 className="font-bold text-gray-900 mb-4 px-1">{activeTab || 'All Products'} <span className="text-gray-400 font-normal text-sm ml-1">({displayedProducts.length})</span></h2>
+        <div className="flex-1 overflow-y-auto bg-white p-3 hide-scrollbar flex flex-col">
+          <div className="relative mb-4 flex-shrink-0">
+            <Search className="absolute left-2.5 top-2.5 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder={`Search in ${activeTab || 'All Products'}...`}
+              className="w-full bg-gray-100 placeholder:text-gray-400 rounded-xl py-2 pl-9 pr-3 text-[13px] font-medium outline-none focus:ring-1 focus:ring-green-500 transition-shadow"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <h2 className="font-bold text-gray-900 mb-3 px-1">{activeTab || 'All Products'} <span className="text-gray-400 font-normal text-sm ml-1">({displayedProducts.length})</span></h2>
           
           <div className="grid grid-cols-2 gap-3">
             {displayedProducts.map(prod => (
