@@ -167,14 +167,28 @@ export class AuthService {
     return this.login({ ...user, tenantId, subdomain });
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string, subdomain?: string) {
     if (!userId) return null;
+
+    // If subdomain is provided, look up the user in the correct tenant DB first
+    if (subdomain && subdomain !== 'demo' && subdomain !== 'localhost') {
+      try {
+        const tenant = await this.prisma.tenant.findUnique({ where: { subdomain } });
+        if (tenant) {
+          const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+          const tenantUser = await client.user.findUnique({ where: { id: userId } });
+          if (tenantUser) return tenantUser;
+        }
+      } catch (e) {
+        console.error('[getProfile] Tenant DB lookup failed, falling back to local DB:', e);
+      }
+    }
+
+    // Fallback: check local DB
     let user = await this.localPrisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       // Check super admin
-      const superAdmin = await this.prisma.superAdmin.findUnique({
-        where: { id: userId } // Assuming ID matches or finding by some other means if ID not UUID
-      });
+      const superAdmin = await this.prisma.superAdmin.findUnique({ where: { id: userId } });
       if (superAdmin) return superAdmin;
     }
     return user;

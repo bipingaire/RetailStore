@@ -32,7 +32,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Headers('x-tenant') subdomain: string, @Req() req: any) {
-    return this.authService.getProfile(req.user.id);
+    // Use subdomain embedded in JWT first (Google users), fallback to header
+    const sub = req.user.subdomain || subdomain;
+    return this.authService.getProfile(req.user.id, sub);
   }
 
   @Post('forgot-password')
