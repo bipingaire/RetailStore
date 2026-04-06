@@ -186,6 +186,17 @@ export default function ShopHome() {
     return Array.from(cats).sort();
   }, [products]);
 
+  const top5Categories = useMemo(() => {
+    const counts: Record<string, number> = {};
+    products.forEach(p => {
+      if (p.category) counts[p.category] = (counts[p.category] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(entry => entry[0])
+      .slice(0, 5);
+  }, [products]);
+
   const cleanName = (name?: string) =>
     (name || '')
       .replace(/\\(pos import\\)/gi, '')
@@ -295,44 +306,6 @@ export default function ShopHome() {
           </div>
         </div>
       </header>
-
-      {/* MOBILE: Daraz-style Quick Category Shortcuts (2-row horizontal scroll) */}
-      <div className="md:hidden px-3 mt-3">
-        <div
-          className="grid grid-rows-2 grid-flow-col gap-x-2 gap-y-2 overflow-x-auto pb-1 hide-scrollbar"
-          style={{ gridAutoColumns: '5.2rem' }}
-        >
-          {/* All */}
-          <button
-            onClick={() => { setSelectedCategory(null); setSearchTerm(''); }}
-            className="flex flex-col items-center gap-1 outline-none"
-          >
-            <div
-              className={`w-[4.8rem] h-[4.8rem] rounded-2xl flex items-center justify-center text-3xl transition-all ${selectedCategory === null ? 'ring-2 ring-green-500 ring-offset-1' : ''}`}
-              style={{ backgroundColor: '#FFE5D0' }}
-            >
-              🛒
-            </div>
-            <span className="text-[10px] font-semibold text-gray-700 leading-tight">All</span>
-          </button>
-
-          {availableCategories.slice(0, 9).map((cat, i) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-              className="flex flex-col items-center gap-1 outline-none"
-            >
-              <div
-                className={`w-[4.8rem] h-[4.8rem] rounded-2xl flex items-center justify-center text-3xl transition-all ${selectedCategory === cat ? 'ring-2 ring-green-500 ring-offset-1' : ''}`}
-                style={{ backgroundColor: catBgColors[i % catBgColors.length] }}
-              >
-                {getCategoryEmoji(cat)}
-              </div>
-              <span className="text-[10px] font-semibold text-gray-700 leading-tight max-w-[4.8rem] truncate text-center">{cat}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* 2. HERO BENTO GRID */}
       {!searchTerm && (() => {
@@ -467,10 +440,16 @@ export default function ShopHome() {
       )}
 
       {/* 3. CATEGORY RAIL */}
-      <div id="category-rail" className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
-        <h3 className="font-bold text-lg text-gray-900 mb-6">Shop by Category</h3>
-        <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+      <div id="category-rail" className="max-w-7xl mx-auto px-4 lg:px-8 mt-12 bg-white md:bg-transparent pt-6 md:pt-0 rounded-t-[2rem] md:rounded-none relative z-10 -mt-6 md:mt-12">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h3 className="font-bold text-lg md:text-xl text-gray-900">Shop by Category</h3>
+          <Link href="/shop/categories" className="text-sm font-bold text-green-600 hover:text-green-700 flex items-center gap-1 md:hidden">
+            See All <ArrowRight size={14} />
+          </Link>
+        </div>
 
+        {/* Desktop Category Rail (Circles) */}
+        <div className="hidden md:flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
           <div
             onClick={() => setSelectedCategory(null)}
             className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transition-all ${selectedCategory === null ? 'scale-110' : ''}`}
@@ -496,6 +475,39 @@ export default function ShopHome() {
               </div>
               <span className={`text-sm font-medium transition-colors ${selectedCategory === cat ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>{cat}</span>
             </div>
+          ))}
+        </div>
+
+        {/* Mobile Category Grid (Squares with emojis - exact 6 items, wraps in 2 rows) */}
+        <div className="md:hidden grid grid-cols-3 gap-3">
+          {/* All */}
+          <button
+            onClick={() => { setSelectedCategory(null); setSearchTerm(''); }}
+            className="flex flex-col items-center gap-1.5 outline-none"
+          >
+            <div
+              className={`w-full aspect-square rounded-2xl flex items-center justify-center text-4xl transition-all ${selectedCategory === null ? 'ring-2 ring-green-500 ring-offset-2 scale-95' : 'hover:scale-95'}`}
+              style={{ backgroundColor: '#FFE5D0' }}
+            >
+              🛒
+            </div>
+            <span className="text-[11px] font-semibold text-gray-700 leading-tight">All</span>
+          </button>
+
+          {top5Categories.map((cat, i) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+              className="flex flex-col items-center gap-1.5 outline-none"
+            >
+              <div
+                className={`w-full aspect-square rounded-2xl flex items-center justify-center text-4xl transition-all ${selectedCategory === cat ? 'ring-2 ring-green-500 ring-offset-2 scale-95' : 'hover:scale-95'}`}
+                style={{ backgroundColor: catBgColors[(i + 1) % catBgColors.length] }}
+              >
+                {getCategoryEmoji(cat)}
+              </div>
+              <span className="text-[11px] font-semibold text-gray-700 leading-tight w-full truncate text-center px-1">{cat}</span>
+            </button>
           ))}
         </div>
       </div>
