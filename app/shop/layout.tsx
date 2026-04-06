@@ -50,7 +50,7 @@ export default function ShopLayout({
           }
         } catch(e) {}
       ` }} />
-      <header className="border-b bg-background">
+      <header className="hidden md:block border-b bg-background">
         <div className="w-full flex items-center justify-between gap-4 px-6 py-4">
           <Link href="/shop" className="text-lg font-semibold">
             {storeName}
