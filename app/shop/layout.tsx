@@ -22,6 +22,22 @@ export default function ShopLayout({
     const check = () => {
       const token = localStorage.getItem("retail_token");
       setIsLoggedIn(!!token);
+
+      // --- Clear cart on reload if unauthenticated ---
+      if (!token) {
+        try {
+          const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+          const isReload = nav ? nav.type === "reload" : performance.navigation.type === 1;
+          const isFirstLoad = !sessionStorage.getItem('shop_visited');
+          
+          if (isReload || isFirstLoad) {
+            localStorage.removeItem('retail_cart');
+            // Dispatch a generic storage event to force React components to empty their cart states instantly
+            window.dispatchEvent(new Event('storage'));
+          }
+          sessionStorage.setItem('shop_visited', 'true');
+        } catch (e) {}
+      }
     };
 
     check();
@@ -31,25 +47,6 @@ export default function ShopLayout({
 
   return (
     <div className="min-h-screen bg-muted/30">
-      {/*
-        Synchronously wipe the cart for unauthenticated users on full page reloads
-        (before React hydrates or any useEffects run)
-      */}
-      <script dangerouslySetInnerHTML={{ __html: `
-        try {
-          var token = localStorage.getItem('retail_token');
-          if (!token) {
-            var nav = performance.getEntriesByType("navigation")[0];
-            var isReload = nav ? nav.type === "reload" : performance.navigation.type === 1;
-            var isFirstLoad = !sessionStorage.getItem('shop_visited');
-            
-            if (isReload || isFirstLoad) {
-              localStorage.removeItem('retail_cart');
-            }
-            sessionStorage.setItem('shop_visited', 'true');
-          }
-        } catch(e) {}
-      ` }} />
       <header className="hidden md:block border-b bg-background">
         <div className="w-full flex items-center justify-between gap-4 px-6 py-4">
           <Link href="/shop" className="text-lg font-semibold">
