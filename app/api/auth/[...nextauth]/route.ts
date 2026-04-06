@@ -53,8 +53,14 @@ const authOptions = {
             // On Google sign-in, auto-register/login user via backend
             if (account?.provider === 'google' && user.email) {
                 try {
-                    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-                    const tenant = process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN || 'demo';
+                    const baseUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+                    
+                    // Parse tenant from the dynamically set NEXTAUTH_URL
+                    const authUrl = process.env.NEXTAUTH_URL || '';
+                    const tenantMatch = authUrl.match(/^https?:\/\/([^.]+)\./);
+                    const tenant = (tenantMatch && tenantMatch[1] !== 'www') ? tenantMatch[1] : (process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN || 'demo');
+
+                    console.log(`[NextAuth] Syncing Google user ${user.email} to tenant ${tenant} via ${baseUrl}`);
 
                     const res = await fetch(`${baseUrl}/auth/google-login`, {
                         method: 'POST',
