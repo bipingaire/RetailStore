@@ -17,18 +17,12 @@ function LoginContent() {
 
     const redirectTo = searchParams?.get('redirect') || '/shop';
 
-    // Check if already logged in
+    // Check if already logged in via localStorage token (no network call needed)
     useEffect(() => {
-        async function checkAuth() {
-            try {
-                // Try to get current user - if successful, redirect
-                await apiClient.get('/auth/profile');
-                router.replace(redirectTo);
-            } catch (err) {
-                // Not logged in, stay on page
-            }
+        const token = localStorage.getItem('retail_token');
+        if (token) {
+            router.replace(redirectTo);
         }
-        checkAuth();
     }, []);
 
     async function handleLogin() {

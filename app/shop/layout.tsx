@@ -18,49 +18,54 @@ export default function ShopLayout({
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check auth on mount and whenever storage changes
-    const check = async () => {
-      let token = localStorage.getItem("retail_token");
+    let syncing = false; // Guard to prevent re-entrant loops
 
-      // Sync NextAuth Google Login session to LocalStorage if missing
-      if (!token) {
-        try {
-          const res = await fetch('/api/auth/session');
-          if (res.ok) {
-            const session = await res.json();
-            if (session?.backendToken) {
-              token = session.backendToken;
-              localStorage.setItem("retail_token", token as string);
-              localStorage.setItem("accessToken", token as string);
-              if (session.backendUser) {
-                localStorage.setItem("retail_user", JSON.stringify(session.backendUser));
-              }
-              window.dispatchEvent(new Event('storage'));
+    // One-time Google session sync on mount
+    const syncGoogleSession = async () => {
+      const token = localStorage.getItem("retail_token");
+      if (token || syncing) return; // Already logged in or already syncing
+      syncing = true;
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const session = await res.json();
+          if (session?.backendToken) {
+            localStorage.setItem("retail_token", session.backendToken);
+            localStorage.setItem("accessToken", session.backendToken);
+            if (session.backendUser) {
+              localStorage.setItem("retail_user", JSON.stringify(session.backendUser));
             }
+            setIsLoggedIn(true);
           }
-        } catch (e) {}
+        }
+      } catch (e) {} finally {
+        syncing = false;
       }
+    };
 
+    // Simple check for storage events (login/logout from other tabs or components)
+    const check = () => {
+      const token = localStorage.getItem("retail_token");
       setIsLoggedIn(!!token);
 
-      // --- Clear cart on reload if unauthenticated ---
+      // Clear cart on reload for unauthenticated users
       if (!token) {
         try {
           const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
           const isReload = nav ? nav.type === "reload" : performance.navigation.type === 1;
           const isFirstLoad = !sessionStorage.getItem('shop_visited');
-          
           if (isReload || isFirstLoad) {
             localStorage.removeItem('retail_cart');
-            // Dispatch a generic storage event to force React components to empty their cart states instantly
-            window.dispatchEvent(new Event('storage'));
           }
           sessionStorage.setItem('shop_visited', 'true');
         } catch (e) {}
       }
     };
 
+    // Run initial check and Google sync ONCE on mount
     check();
+    syncGoogleSession();
+
     window.addEventListener("storage", check);
     return () => window.removeEventListener("storage", check);
   }, []);
