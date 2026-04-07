@@ -32,35 +32,26 @@ const authOptions = {
         signIn: '/shop/login',
     },
     callbacks: {
-        async jwt({ token, user, account }: any) {
+        async jwt({ token, user, account, profile }: any) {
             if (account) {
                 token.provider = account.provider;
             }
-            if (user?.backendToken) {
-                token.backendToken = user.backendToken;
-                token.backendUser = user.backendUser;
-            }
-            return token;
-        },
-        async session({ session, token }: any) {
-            if (token?.backendToken) {
-                (session as any).backendToken = token.backendToken;
-                (session as any).backendUser = token.backendUser;
-            }
-            return session;
-        },
-        async signIn({ user, account, profile }: any) {
-            // On Google sign-in, auto-register/login user via backend
-            if (account?.provider === 'google' && user.email) {
+
+            // On first Google sign-in (account is populated), sync with backend
+            if (account?.provider === 'google' && user?.email) {
                 try {
-                    const baseUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-                    
-                    // Parse tenant from the dynamically set NEXTAUTH_URL
+                    const baseUrl = process.env.BACKEND_INTERNAL_URL
+                        ? process.env.BACKEND_INTERNAL_URL.replace(/\/api\/?$/, '') + '/api'
+                        : 'http://backend:3001/api';
+
+                    // Parse tenant from NEXTAUTH_URL (set dynamically per-request)
                     const authUrl = process.env.NEXTAUTH_URL || '';
                     const tenantMatch = authUrl.match(/^https?:\/\/([^.]+)\./);
-                    const tenant = (tenantMatch && tenantMatch[1] !== 'www') ? tenantMatch[1] : (process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN || 'demo');
+                    const tenant = (tenantMatch && tenantMatch[1] !== 'www') 
+                        ? tenantMatch[1] 
+                        : (process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN || 'demo');
 
-                    console.log(`[NextAuth] Syncing Google user ${user.email} to tenant ${tenant} via ${baseUrl}`);
+                    console.log(`[NextAuth] jwt: syncing Google user ${user.email} → tenant "${tenant}" → ${baseUrl}`);
 
                     const res = await fetch(`${baseUrl}/auth/google-login`, {
                         method: 'POST',
@@ -77,16 +68,26 @@ const authOptions = {
 
                     if (res.ok) {
                         const data = await res.json();
-                        // Store token for the session
-                        (user as any).backendToken = data.access_token;
-                        (user as any).backendUser = data.user;
+                        token.backendToken = data.access_token;
+                        token.backendUser = data.user;
+                        console.log(`[NextAuth] jwt: backend sync SUCCESS for ${user.email}`);
+                    } else {
+                        const errText = await res.text();
+                        console.error(`[NextAuth] jwt: backend sync FAILED (${res.status}): ${errText}`);
                     }
                 } catch (err) {
-                    console.error('Google login backend sync failed:', err);
-                    // Allow sign-in even if backend sync fails
+                    console.error('[NextAuth] jwt: backend sync exception:', err);
                 }
             }
-            return true;
+
+            return token;
+        },
+        async session({ session, token }: any) {
+            if (token?.backendToken) {
+                (session as any).backendToken = token.backendToken;
+                (session as any).backendUser = token.backendUser;
+            }
+            return session;
         },
     },
     secret: process.env.NEXTAUTH_SECRET || 'retailstore-secret-key-change-in-production',
