@@ -725,7 +725,8 @@ export default function SuperAdminPage() {
         )
         }
 
-      </main >
+          </div> {/* end max-w-6xl */}
+        </main>
 
       {/* Edit Product Modal */}
       {editedProduct && (
@@ -877,9 +878,7 @@ export default function SuperAdminPage() {
           </div>
         </div>
       )}
-          </div>{/* end max-w-6xl */}
-        </main>{/* end scrollable main */}
       </div>{/* end main content flex wrapper */}
-    </div>{/* end outer root div */}
+    </div> // end outer root div
   );
 }
