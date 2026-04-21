@@ -53,7 +53,7 @@ export class SuperAdminService {
 
     async getDashboardData() {
         const products = await this.prisma.sharedCatalog.findMany({
-            orderBy: { syncedAt: 'desc' },
+            orderBy: { syncedAt: { sort: 'desc', nulls: 'last' } },
             take: 100,
         });
 
