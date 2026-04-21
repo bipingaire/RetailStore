@@ -75,6 +75,10 @@ export default function SuperAdminPage() {
     receipts: any[];
   }>({ subscriptionTiers: { free: 0, beta: 0, pro: 0, enterprise: 0 }, totalEarnings: 0, receipts: [] });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const itemsPerPage = 20;
+
   useEffect(() => {
     loadData();
   }, []);
@@ -270,6 +274,13 @@ export default function SuperAdminPage() {
     toast.success('Logged out successfully');
   };
 
+  const filteredProducts = products.filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (p.upc_ean && p.upc_ean.includes(searchQuery))
+  );
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="h-screen bg-gray-950 text-gray-100 font-sans flex overflow-hidden">
       {/* Sidebar Navigation */}
@@ -364,7 +375,7 @@ export default function SuperAdminPage() {
               <div className="flex gap-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
-                  <input type="text" placeholder="Search UPC, Name..." className="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none w-64" />
+                  <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="Search UPC, Name..." className="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none w-64" />
                 </div>
               </div>
             </div>
@@ -380,7 +391,7 @@ export default function SuperAdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                  {products.map((p) => (
+                  {paginatedProducts.length > 0 ? paginatedProducts.map((p) => (
                     <tr key={p.id} className="hover:bg-gray-700/50 transition cursor-pointer" onClick={() => setSelectedProduct(p)}>
                       <td className="p-4 flex items-center gap-3">
                         <div className="w-10 h-10 bg-gray-900 rounded-md flex items-center justify-center overflow-hidden border border-gray-600 shrink-0">
@@ -427,9 +438,38 @@ export default function SuperAdminPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-gray-500">No products found matching your search.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="p-4 border-t border-gray-700 flex items-center justify-between bg-gray-900">
+                  <div className="text-sm text-gray-400">
+                    Showing <span className="text-white font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="text-white font-medium">{filteredProducts.length}</span> products
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-700"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-700"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
