@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min, IsBoolean } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -8,31 +8,54 @@ export class CreateProductDto {
   @IsString()
   barcode?: string;
 
+  @IsOptional()
   @IsString()
-  sku: string;
+  sku?: string;
 
+  @IsOptional()
   @IsString()
-  category: string;
+  category?: string;
 
   @IsOptional()
   @IsString()
   description?: string;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  costPrice: number;
+  costPrice?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  sellingPrice: number;
+  sellingPrice?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  stock: number;
+  price?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  reorderLevel: number;
+  stock?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  reorderLevel?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isSellable?: boolean;
+
+  @IsOptional()
+  @IsString()
+  parentId?: string;
+
+  @IsOptional()
+  @IsNumber()
+  unitsPerParent?: number;
 }
 
 export class UpdateProductDto {
@@ -65,5 +88,14 @@ export class UpdateProductDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   reorderLevel?: number;
+
+  @IsOptional()
+  @IsNumber()
+  stock?: number;
 }

@@ -74,12 +74,15 @@ export class ProductService {
       data: {
         name: data.name,
         sku: sku,
-        category: data.category,
-        description: data.description,
-        price: data.price,
-        costPrice: data.costPrice,
-        stock: data.stock,
-        reorderLevel: data.reorderLevel,
+        category: data.category || 'Uncategorized',
+        description: data.description || '',
+        price: Number(data.price) || Number(data.sellingPrice) || 0,
+        costPrice: Number(data.costPrice) || 0,
+        stock: Number(data.stock) || 0,
+        reorderLevel: Number(data.reorderLevel) || 10,
+        isSellable: data.isSellable !== undefined ? data.isSellable : true,
+        parentId: data.parentId || null,
+        unitsPerParent: data.unitsPerParent || 1,
       },
     });
 
