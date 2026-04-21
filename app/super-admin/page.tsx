@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Database, Store, Truck, Sparkles, Search,
-  CheckCircle, AlertCircle, RefreshCw, Globe, UploadCloud, FileSpreadsheet, X, Image as ImageIcon, FileText, Activity, ExternalLink, Box, Layers, Link as LinkIcon, ArrowUp, ArrowRight, Loader2, FileWarning, Tag, MessageSquare, ThumbsUp, ThumbsDown, Lock, DollarSign, Receipt, TrendingUp
+  CheckCircle, AlertCircle, RefreshCw, Globe, UploadCloud, FileSpreadsheet, X, Image as ImageIcon, FileText, Activity, ExternalLink, Box, Layers, Link as LinkIcon, ArrowUp, ArrowRight, ChevronRight, Loader2, FileWarning, Tag, MessageSquare, ThumbsUp, ThumbsDown, Lock, DollarSign, Receipt, TrendingUp
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
@@ -271,66 +271,87 @@ export default function SuperAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
-      {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row md:justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-900/20">
-              <Database className="text-white" size={24} />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">Master Console</h1>
-              <p className="text-xs text-gray-400">Super Admin Access</p>
-            </div>
+    <div className="h-screen bg-gray-950 text-gray-100 font-sans flex overflow-hidden">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0 transition-all z-20 shadow-xl">
+        <div className="p-6 border-b border-gray-800 flex items-center gap-3 bg-gray-900/50 backdrop-blur">
+          <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-900/40">
+            <Database className="text-white" size={20} />
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex bg-gray-800/50 p-1 rounded-xl">
-              {[
-                { id: 'products', icon: Globe, label: 'Master Catalog' },
-                { id: 'pending', icon: MessageSquare, label: 'Approvals', count: pendingItems.length },
-                { id: 'tenants', icon: Store, label: 'Tenant Network' },
-                { id: 'revenue', icon: DollarSign, label: 'Revenue' },
-                { id: 'website', icon: ExternalLink, label: 'Master Website' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`
-                        px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2
-                        ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-gray-800'}
-                    `}
-                >
-                  <tab.icon size={16} />
-                  {tab.label}
-                  {tab.count ? <span className="bg-red-500 text-white text-[10px] px-1.5 rounded-full">{tab.count}</span> : null}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex bg-gray-800/50 p-1 rounded-xl items-center gap-1">
-              <Link href="/super-admin/categories" className="text-gray-400 hover:text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition">
-                <Tag size={16} /> Categories
-              </Link>
-              <Link href="/super-admin/taxes" className="text-gray-400 hover:text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition">
-                <Receipt size={16} /> Tax Engine
-              </Link>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 border border-gray-700"
-            >
-              <Lock size={16} />
-              Logout
-            </button>
+          <div>
+            <h1 className="text-lg font-bold tracking-tight text-white leading-tight">Master Console</h1>
+            <p className="text-[11px] text-blue-400 font-bold uppercase tracking-wider">Super Admin</p>
           </div>
         </div>
-      </header>
+        
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 hide-scrollbar">
+          <div className="text-[10px] font-bold text-gray-500 mb-3 px-3 uppercase tracking-widest">Main Menu</div>
+          {[
+            { id: 'products', icon: Database, label: 'Global Catalog' },
+            { id: 'pending', icon: MessageSquare, label: 'Approvals', count: pendingItems.length },
+            { id: 'tenants', icon: Store, label: 'Tenant Network' },
+            { id: 'revenue', icon: DollarSign, label: 'Revenue' },
+            { id: 'website', icon: Globe, label: 'Master Website' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`
+                w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-between group
+                ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800/80'}
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <tab.icon size={18} className={activeTab === tab.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'} />
+                {tab.label}
+              </div>
+              {tab.count ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === tab.id ? 'bg-white/20' : 'bg-red-500/20 text-red-400'}`}>{tab.count}</span> : null}
+            </button>
+          ))}
+          
+          <div className="mt-8 pt-6 border-t border-gray-800/60">
+            <div className="text-[10px] font-bold text-gray-500 mb-3 px-3 uppercase tracking-widest">Settings</div>
+            <Link href="/super-admin/categories" className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800/80 transition-all flex items-center gap-3 group">
+              <Tag size={18} className="text-gray-500 group-hover:text-gray-300" /> Categories
+            </Link>
+            <Link href="/super-admin/taxes" className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800/80 transition-all flex items-center gap-3 group mt-1">
+              <Receipt size={18} className="text-gray-500 group-hover:text-gray-300" /> Tax Engine
+            </Link>
+          </div>
+        </nav>
+        
+        <div className="p-4 border-t border-gray-800 bg-gray-900/30">
+          <button onClick={handleLogout} className="w-full flex items-center gap-2 justify-center bg-gray-800 hover:bg-gray-700 hover:border-gray-600 text-gray-300 py-2.5 rounded-xl text-sm font-bold border border-gray-700/50 transition-all group">
+             <Lock size={16} className="text-gray-500 group-hover:text-red-400 transition-colors" /> Logout
+          </button>
+        </div>
+      </aside>
 
-      <main className="max-w-7xl mx-auto p-6 space-y-8">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-gray-950 h-screen overflow-hidden">
+        
+        {/* Top Header */}
+        <header className="h-16 border-b border-gray-800 bg-gray-900/60 backdrop-blur-md px-6 flex items-center justify-between shrink-0 shadow-sm z-10 sticky top-0">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-400 capitalize">
+             <span className="text-gray-500">Super Admin Dashboard</span>
+             <ChevronRight size={14} className="text-gray-600" />
+             <span className="text-gray-200">{activeTab.replace('-', ' ')}</span>
+          </div>
+          <div className="flex items-center gap-4">
+             <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input type="text" placeholder="Jump to..." className="bg-gray-900/50 border border-gray-700 text-sm text-gray-200 rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:border-gray-500 focus:bg-gray-800 w-48 transition-all hover:border-gray-600" />
+             </div>
+             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 shadow-md flex items-center justify-center text-white text-xs font-bold ring-2 ring-gray-800 cursor-pointer hover:ring-gray-600 transition-all">
+                SA
+             </div>
+          </div>
+        </header>
 
-        {/* --- TABS CONTENT --- */}
+        {/* Scrollable Dashboard Space */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 no-scrollbar scroll-smooth">
+          <div className="max-w-6xl mx-auto space-y-8">
+            {/* --- TABS CONTENT --- */}
 
         {/* 1. MASTER CATALOG */}
         {activeTab === 'products' && (
