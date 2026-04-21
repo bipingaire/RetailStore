@@ -8,7 +8,13 @@ export const apiClient = {
     },
 
     async request(endpoint: string, options: RequestInit = {}) {
-        const token = localStorage.getItem('accessToken');
+        let token = null;
+        if (typeof window !== 'undefined') {
+            token = window.location.pathname.startsWith('/shop') 
+                ? (localStorage.getItem('retail_token') || localStorage.getItem('accessToken'))
+                : localStorage.getItem('accessToken');
+        }
+
         let headers: any = {
             ...options.headers,
         };
