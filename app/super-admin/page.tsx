@@ -877,6 +877,9 @@ export default function SuperAdminPage() {
           </div>
         </div>
       )}
-    </div>
+          </div>{/* end max-w-6xl */}
+        </main>{/* end scrollable main */}
+      </div>{/* end main content flex wrapper */}
+    </div>{/* end outer root div */}
   );
 }
