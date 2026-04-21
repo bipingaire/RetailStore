@@ -52,9 +52,15 @@ export class SuperAdminService {
     }
 
     async getDashboardData() {
-        const products = await this.prisma.sharedCatalog.findMany({
-            // @ts-ignore: Prisma supports nulls: 'last' but exact generated typings may reject the object form here
-            orderBy: { syncedAt: { sort: 'desc', nulls: 'last' } },
+        const productsRaw = await this.prisma.sharedCatalog.findMany({
+            orderBy: { syncedAt: 'desc' },
+        });
+
+        const products = productsRaw.sort((a, b) => {
+            if (!a.syncedAt && !b.syncedAt) return 0;
+            if (!a.syncedAt) return 1;
+            if (!b.syncedAt) return -1;
+            return b.syncedAt.getTime() - a.syncedAt.getTime();
         });
 
         const tenants = await this.prisma.tenant.findMany({
