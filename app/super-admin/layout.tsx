@@ -50,10 +50,10 @@ export default function SuperadminLayout({
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">
                 <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-500" />
-                    <p className="mt-4 text-gray-400">Verifying superadmin access...</p>
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
+                    <p className="mt-4 text-gray-600 font-medium">Verifying superadmin access...</p>
                 </div>
             </div>
         );
@@ -65,7 +65,7 @@ export default function SuperadminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
+        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
             <main>{children}</main>
         </div>
     );

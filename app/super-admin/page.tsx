@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -151,10 +150,7 @@ export default function SuperAdminPage() {
       }
 
       // Revenue
-      // Logic for aggregating simple counters from backend response if not pre-aggregated
-      // Assuming backend returns struct similar to what we need or we map it
       if (data.revenueData) {
-        // Construct tiers manually if backend doesn't aggregate
         const tiers = { free: 0, beta: 0, pro: 0, enterprise: 0 };
         data.revenueData.subscriptions.forEach((sub: any) => {
           if (tiers[sub.planType as keyof typeof tiers] !== undefined) {
@@ -211,7 +207,7 @@ export default function SuperAdminPage() {
     }
   };
 
-  // --- ACTIONS --- (Stubbed or simplified for now)
+  // --- ACTIONS ---
   const handleLinkToBulk = async (singleUnitId: string, bulkPackId: string) => {
     alert("Bulk linking not fully implemented in backend yet.");
   };
@@ -222,7 +218,6 @@ export default function SuperAdminPage() {
       const enriched = await apiClient.post(`/super-admin/products/${product.id}/enrich`);
       toast.success("Product enriched with AI!");
       
-      // If the modal is open for this product, update its state immediately
       if (editedProduct && editedProduct.id === product.id) {
         setEditedProduct(prev => prev ? {
           ...prev,
@@ -231,7 +226,6 @@ export default function SuperAdminPage() {
         } : prev);
       }
 
-      // Also update the product list
       setProducts(prev => prev.map(p => p.id === product.id ? {
         ...p,
         image_url: enriched.imageUrl || p.image_url,
@@ -254,7 +248,6 @@ export default function SuperAdminPage() {
         category: editedProduct.category,
         description: editedProduct.description,
         image_url: editedProduct.image_url,
-        // Add other mappings
       });
 
       setProducts(prev => prev.map(p => p.id === editedProduct.id ? editedProduct : p));
@@ -282,21 +275,21 @@ export default function SuperAdminPage() {
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="h-screen bg-gray-950 text-gray-100 font-sans flex overflow-hidden">
+    <div className="h-screen bg-gray-50 text-gray-900 font-sans flex overflow-hidden">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0 transition-all z-20 shadow-xl">
-        <div className="p-6 border-b border-gray-800 flex items-center gap-3 bg-gray-900/50 backdrop-blur">
-          <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-900/40">
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all z-20 shadow-sm">
+        <div className="p-6 border-b border-gray-100 flex items-center gap-3">
+          <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
             <Database className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-white leading-tight">Master Console</h1>
-            <p className="text-[11px] text-blue-400 font-bold uppercase tracking-wider">Super Admin</p>
+            <h1 className="text-lg font-bold tracking-tight text-gray-900 leading-tight">Master Console</h1>
+            <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wider">Super Admin</p>
           </div>
         </div>
         
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 hide-scrollbar">
-          <div className="text-[10px] font-bold text-gray-500 mb-3 px-3 uppercase tracking-widest">Main Menu</div>
+          <div className="text-[10px] font-bold text-gray-400 mb-3 px-3 uppercase tracking-wider">Main Menu</div>
           {[
             { id: 'products', icon: Database, label: 'Global Catalog' },
             { id: 'pending', icon: MessageSquare, label: 'Approvals', count: pendingItems.length },
@@ -308,52 +301,52 @@ export default function SuperAdminPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`
-                w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-between group
-                ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800/80'}
+                w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-between group
+                ${activeTab === tab.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}
               `}
             >
               <div className="flex items-center gap-3">
-                <tab.icon size={18} className={activeTab === tab.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'} />
+                <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'} />
                 {tab.label}
               </div>
-              {tab.count ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === tab.id ? 'bg-white/20' : 'bg-red-500/20 text-red-400'}`}>{tab.count}</span> : null}
+              {tab.count ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === tab.id ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>{tab.count}</span> : null}
             </button>
           ))}
           
-          <div className="mt-8 pt-6 border-t border-gray-800/60">
-            <div className="text-[10px] font-bold text-gray-500 mb-3 px-3 uppercase tracking-widest">Settings</div>
-            <Link href="/super-admin/categories" className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800/80 transition-all flex items-center gap-3 group">
-              <Tag size={18} className="text-gray-500 group-hover:text-gray-300" /> Categories
+          <div className="mt-8 pt-6 border-t border-gray-100">
+            <div className="text-[10px] font-bold text-gray-400 mb-3 px-3 uppercase tracking-wider">Settings</div>
+            <Link href="/super-admin/categories" className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all flex items-center gap-3 group">
+              <Tag size={18} className="text-gray-400 group-hover:text-gray-600" /> Categories
             </Link>
-            <Link href="/super-admin/taxes" className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800/80 transition-all flex items-center gap-3 group mt-1">
-              <Receipt size={18} className="text-gray-500 group-hover:text-gray-300" /> Tax Engine
+            <Link href="/super-admin/taxes" className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all flex items-center gap-3 group mt-1">
+              <Receipt size={18} className="text-gray-400 group-hover:text-gray-600" /> Tax Engine
             </Link>
           </div>
         </nav>
         
-        <div className="p-4 border-t border-gray-800 bg-gray-900/30">
-          <button onClick={handleLogout} className="w-full flex items-center gap-2 justify-center bg-gray-800 hover:bg-gray-700 hover:border-gray-600 text-gray-300 py-2.5 rounded-xl text-sm font-bold border border-gray-700/50 transition-all group">
-             <Lock size={16} className="text-gray-500 group-hover:text-red-400 transition-colors" /> Logout
+        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+          <button onClick={handleLogout} className="w-full flex items-center gap-2 justify-center bg-white hover:bg-gray-50 text-gray-700 py-2.5 rounded-lg text-sm font-medium border border-gray-200 transition-all shadow-sm group">
+             <Lock size={16} className="text-gray-400 group-hover:text-red-500 transition-colors" /> Logout
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-gray-950 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 bg-gray-50 h-screen overflow-hidden">
         
         {/* Top Header */}
-        <header className="h-16 border-b border-gray-800 bg-gray-900/60 backdrop-blur-md px-6 flex items-center justify-between shrink-0 shadow-sm z-10 sticky top-0">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-400 capitalize">
-             <span className="text-gray-500">Super Admin Dashboard</span>
-             <ChevronRight size={14} className="text-gray-600" />
-             <span className="text-gray-200">{activeTab.replace('-', ' ')}</span>
+        <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10 sticky top-0">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-500 capitalize">
+             <span>Super Admin Dashboard</span>
+             <ChevronRight size={14} className="text-gray-400" />
+             <span className="text-gray-900">{activeTab.replace('-', ' ')}</span>
           </div>
           <div className="flex items-center gap-4">
              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                <input type="text" placeholder="Jump to..." className="bg-gray-900/50 border border-gray-700 text-sm text-gray-200 rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:border-gray-500 focus:bg-gray-800 w-48 transition-all hover:border-gray-600" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input type="text" placeholder="Jump to..." className="bg-gray-100 border border-transparent text-sm text-gray-900 rounded-md pl-9 pr-4 py-1.5 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 w-48 transition-all hover:border-gray-300" />
              </div>
-             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 shadow-md flex items-center justify-center text-white text-xs font-bold ring-2 ring-gray-800 cursor-pointer hover:ring-gray-600 transition-all">
+             <div className="h-8 w-8 rounded-full bg-blue-600 shadow-sm flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:bg-blue-700 transition-colors">
                 SA
              </div>
           </div>
@@ -369,20 +362,20 @@ export default function SuperAdminPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-2xl font-bold text-white">Global Product Database</h2>
-                <p className="text-gray-400">The single source of truth for all products across the network.</p>
+                <h2 className="text-2xl font-bold text-gray-900">Global Product Database</h2>
+                <p className="text-gray-500 text-sm mt-1">The single source of truth for all products across the network.</p>
               </div>
               <div className="flex gap-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
-                  <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="Search UPC, Name..." className="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none w-64" />
+                  <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                  <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="Search UPC, Name..." className="bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-900 shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none w-64" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-xl">
-              <table className="w-full text-left text-sm text-gray-300">
-                <thead className="bg-gray-900/50 text-gray-500 uppercase text-xs font-bold">
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <table className="w-full text-left text-sm text-gray-600">
+                <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs font-semibold">
                   <tr>
                     <th className="p-4">Product</th>
                     <th className="p-4">Category</th>
@@ -390,28 +383,28 @@ export default function SuperAdminPage() {
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-700">
+                <tbody className="divide-y divide-gray-100">
                   {paginatedProducts.length > 0 ? paginatedProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-700/50 transition cursor-pointer" onClick={() => setSelectedProduct(p)}>
+                    <tr key={p.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => setSelectedProduct(p)}>
                       <td className="p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-900 rounded-md flex items-center justify-center overflow-hidden border border-gray-600 shrink-0">
-                          {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={16} />}
+                        <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border border-gray-200 shrink-0">
+                          {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-gray-400" />}
                         </div>
                         <div>
-                          <div className="font-bold text-white">{p.name}</div>
-                          <div className="text-xs text-gray-500 font-mono">{p.upc_ean || 'N/A'}</div>
+                          <div className="font-medium text-gray-900">{p.name}</div>
+                          <div className="text-xs text-gray-500 font-mono mt-0.5">{p.upc_ean || 'N/A'}</div>
                         </div>
                       </td>
                       <td className="p-4">{p.category}</td>
                       <td className="p-4">
                         {p.ai_enriched_at ? (
-                          <span className="bg-green-900/30 text-green-400 px-2 py-0.5 rounded text-xs border border-green-800 font-bold flex w-fit items-center gap-1"><Sparkles size={10} /> Enriched</span>
+                          <span className="bg-green-50 text-green-700 px-2.5 py-1 rounded-md text-xs border border-green-200 font-medium flex w-fit items-center gap-1.5"><Sparkles size={12} className="text-green-500" /> Enriched</span>
                         ) : (
-                          <span className="bg-gray-700 text-gray-400 px-2 py-0.5 rounded text-xs">Standard</span>
+                          <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md text-xs font-medium border border-gray-200">Standard</span>
                         )}
                       </td>
                       <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -419,8 +412,8 @@ export default function SuperAdminPage() {
                             }}
                             disabled={enriching === p.id}
                             className={`
-                                text-xs font-bold flex items-center gap-1 px-2 py-1 rounded
-                                ${enriching === p.id ? 'bg-purple-900/50 text-purple-300' : 'text-purple-400 hover:text-purple-300 hover:bg-purple-900/20'}
+                                text-xs font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-md transition
+                                ${enriching === p.id ? 'bg-purple-50 text-purple-400 cursor-not-allowed' : 'text-purple-600 bg-purple-50 hover:bg-purple-100'}
                             `}
                           >
                             {enriching === p.id ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
@@ -429,9 +422,9 @@ export default function SuperAdminPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setEditedProduct({ ...p }); // Create a copy to edit
+                              setEditedProduct({ ...p });
                             }}
-                            className="text-blue-400 hover:text-blue-300 text-xs font-bold"
+                            className="text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline"
                           >
                             Edit
                           </button>
@@ -448,22 +441,22 @@ export default function SuperAdminPage() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="p-4 border-t border-gray-700 flex items-center justify-between bg-gray-900">
-                  <div className="text-sm text-gray-400">
-                    Showing <span className="text-white font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="text-white font-medium">{filteredProducts.length}</span> products
+                <div className="p-4 border-t border-gray-200 flex items-center justify-between bg-white">
+                  <div className="text-sm text-gray-500">
+                    Showing <span className="font-medium text-gray-900">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="font-medium text-gray-900">{filteredProducts.length}</span> products
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-700"
+                      className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-300 shadow-sm"
                     >
                       Previous
                     </button>
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-700"
+                      className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-300 shadow-sm"
                     >
                       Next
                     </button>
@@ -478,52 +471,54 @@ export default function SuperAdminPage() {
         {activeTab === 'pending' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-white">Pending Approvals</h2>
-              <p className="text-gray-400">Review product submissions from retailers before adding them to the Master Catalog.</p>
+              <h2 className="text-2xl font-bold text-gray-900">Pending Approvals</h2>
+              <p className="text-gray-500 text-sm mt-1">Review product submissions from retailers before adding them to the Master Catalog.</p>
             </div>
 
             {pendingItems.length === 0 ? (
-              <div className="bg-gray-800 rounded-xl p-12 text-center border border-gray-700 border-dashed">
-                <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-                <h3 className="text-xl font-bold text-white">All Caught Up!</h3>
-                <p className="text-gray-400">There are no pending product submissions to review.</p>
+              <div className="bg-white rounded-xl p-12 text-center border border-gray-200 border-dashed">
+                <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle size={32} className="text-green-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">All Caught Up!</h3>
+                <p className="text-gray-500 text-sm mt-1">There are no pending product submissions to review.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {pendingItems.map((item) => (
-                  <div key={item['pending-id']} className="bg-gray-800 rounded-xl p-4 border border-gray-700 flex items-start gap-4">
-                    <div className="w-24 h-24 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden border border-gray-600 shrink-0">
-                      {item['image-url'] ? <img src={item['image-url']} className="w-full h-full object-cover" /> : <ImageIcon size={24} className="text-gray-500" />}
+                  <div key={item['pending-id']} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-start gap-5">
+                    <div className="w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 shrink-0">
+                      {item['image-url'] ? <img src={item['image-url']} className="w-full h-full object-cover" /> : <ImageIcon size={24} className="text-gray-300" />}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-lg font-bold text-white">{item['product-name']}</h3>
-                          <div className="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                            <Store size={14} /> Submitted by: <span className="text-white">{item.tenant?.['store-name'] || 'Unknown Store'}</span>
+                          <h3 className="text-lg font-bold text-gray-900">{item['product-name']}</h3>
+                          <div className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
+                            <Store size={14} className="text-gray-400" /> Submitted by: <span className="font-medium text-gray-700">{item.tenant?.['store-name'] || 'Unknown Store'}</span>
                           </div>
-                          <div className="flex gap-2 mt-2">
-                            <span className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300">UPC: {item['upc-ean-code']}</span>
-                            <span className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300">Brand: {item['brand-name']}</span>
+                          <div className="flex gap-2 mt-3">
+                            <span className="bg-gray-100 border border-gray-200 text-xs px-2.5 py-1 rounded-md text-gray-600 font-medium">UPC: {item['upc-ean-code']}</span>
+                            <span className="bg-gray-100 border border-gray-200 text-xs px-2.5 py-1 rounded-md text-gray-600 font-medium">Brand: {item['brand-name']}</span>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-500 font-bold uppercase mb-1">AI Confidence</div>
-                          <div className={`text-lg font-black ${item['ai-confidence-score'] > 0.8 ? 'text-green-400' : 'text-amber-400'}`}>
+                        <div className="text-right bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">
+                          <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">AI Confidence</div>
+                          <div className={`text-xl font-bold ${item['ai-confidence-score'] > 0.8 ? 'text-green-600' : 'text-amber-600'}`}>
                             {(item['ai-confidence-score'] * 100).toFixed(0)}%
                           </div>
                         </div>
                       </div>
 
-                      <div className="mt-4 bg-gray-900/50 p-3 rounded-lg text-sm text-gray-300 border border-gray-800">
+                      <div className="mt-4 bg-gray-50 p-3.5 rounded-lg text-sm text-gray-600 border border-gray-100">
                         {item['description-text'] || "No description provided."}
                       </div>
 
-                      <div className="mt-4 flex justify-end gap-3">
-                        <button onClick={() => handleRejectItem(item['pending-id'])} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition">
+                      <div className="mt-5 flex justify-end gap-3">
+                        <button onClick={() => handleRejectItem(item['pending-id'])} className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-2 transition shadow-sm">
                           <ThumbsDown size={16} /> Reject
                         </button>
-                        <button onClick={() => handleApproveItem(item)} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-green-900/20 transition">
+                        <button onClick={() => handleApproveItem(item)} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition">
                           <ThumbsUp size={16} /> Approve & Add to Master
                         </button>
                       </div>
@@ -537,29 +532,29 @@ export default function SuperAdminPage() {
 
         {/* 3. TENANT NETWORK */}
         {activeTab === 'tenants' && (
-          <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-            <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-              <h2 className="font-bold flex items-center gap-2"><Store size={18} /> Tenant Network</h2>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="p-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+              <h2 className="font-bold text-gray-900 flex items-center gap-2"><Store size={18} className="text-gray-500" /> Tenant Network</h2>
             </div>
-            <table className="w-full text-left text-sm text-gray-300">
-              <thead className="bg-gray-900/50 text-gray-500 uppercase text-xs font-bold">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="bg-white border-b border-gray-200 text-gray-500 uppercase text-xs font-semibold">
                 <tr><th className="p-4">Tenant Name</th><th className="p-4">Type</th><th className="p-4">Joined Date</th><th className="p-4 text-right">Status</th></tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+              <tbody className="divide-y divide-gray-100">
                 {tenants.map((t) => (
-                  <tr key={t.id} className="hover:bg-gray-700/50 transition">
+                  <tr key={t.id} className="hover:bg-gray-50 transition">
                     <td className="p-4">
-                      <div className="font-bold text-white">{t.name}</div>
-                      {t.subdomain && <div className="text-xs text-gray-500 font-mono">{t.subdomain}</div>}
+                      <div className="font-medium text-gray-900">{t.name}</div>
+                      {t.subdomain && <div className="text-xs text-gray-500 font-mono mt-0.5">{t.subdomain}</div>}
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-2 text-gray-300 capitalize">
-                        <Store size={16} className="text-blue-400" /> {t.subscription_tier || 'Standard'}
+                      <div className="flex items-center gap-2 text-gray-700 capitalize">
+                        <Store size={16} className="text-blue-500" /> {t.subscription_tier || 'Standard'}
                       </div>
                     </td>
                     <td className="p-4 text-gray-500">{new Date(t.created_at).toLocaleDateString()}</td>
                     <td className="p-4 text-right flex items-center justify-end gap-2">
-                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${t.is_active ? 'bg-green-900/20 text-green-400 border-green-800' : 'bg-red-900/20 text-red-400 border-red-800'}`}>
+                      <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${t.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                         {t.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -574,14 +569,14 @@ export default function SuperAdminPage() {
         {activeTab === 'revenue' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-white">Revenue Analytics</h2>
-              <p className="text-gray-400">Track subscriptions, earnings, and billing transactions</p>
+              <h2 className="text-2xl font-bold text-gray-900">Revenue Analytics</h2>
+              <p className="text-gray-500 text-sm mt-1">Track subscriptions, earnings, and billing transactions</p>
             </div>
 
             {/* Subscription Breakdown */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <TrendingUp size={20} className="text-blue-400" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <TrendingUp size={20} className="text-blue-500" />
                 Subscription Breakdown
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -591,45 +586,49 @@ export default function SuperAdminPage() {
                   { tier: 'pro', label: 'Pro', color: 'blue', price: '$49.99', count: revenueData.subscriptionTiers.pro },
                   { tier: 'enterprise', label: 'Enterprise', color: 'green', price: '$199.99', count: revenueData.subscriptionTiers.enterprise }
                 ].map((item) => (
-                  <div key={item.tier} className="bg-gray-800 rounded-xl border border-gray-700 p-6 hover:border-gray-600 transition">
-                    <div className={`text-${item.color}-400 text-sm font-bold uppercase mb-2`}>{item.label}</div>
-                    <div className="text-3xl font-bold text-white mb-1">{item.count}</div>
-                    <div className="text-xs text-gray-500">Tenants · {item.price}/mo</div>
+                  <div key={item.tier} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition">
+                    <div className={`text-${item.color}-600 text-xs font-bold uppercase tracking-wider mb-3`}>{item.label}</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{item.count}</div>
+                    <div className="text-sm text-gray-500">Tenants · {item.price}/mo</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Total Earnings */}
-            <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-xl border border-blue-700/50 p-8">
-              <div className="flex items-center justify-between">
+            <div className="bg-blue-600 rounded-xl shadow-lg p-8 text-white relative overflow-hidden">
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4"></div>
+              
+              <div className="flex items-center justify-between relative z-10">
                 <div>
-                  <div className="text-sm font-bold text-blue-300 uppercase mb-2 flex items-center gap-2">
+                  <div className="text-sm font-medium text-blue-100 mb-2 flex items-center gap-2">
                     <DollarSign size={18} />
                     Monthly Recurring Revenue
                   </div>
-                  <div className="text-5xl font-bold text-white mb-2">
+                  <div className="text-5xl font-bold mb-2">
                     ${revenueData.totalEarnings.toFixed(2)}
                   </div>
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-blue-100">
                     From {revenueData.subscriptionTiers.pro + revenueData.subscriptionTiers.enterprise} active paid subscriptions
                   </div>
                 </div>
-                <div className="bg-blue-600/20 p-6 rounded-full">
-                  <Receipt size={48} className="text-blue-400" />
+                <div className="bg-white/20 p-6 rounded-full backdrop-blur-sm border border-white/10">
+                  <Receipt size={48} className="text-white" />
                 </div>
               </div>
             </div>
 
             {/* Recent Transactions */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Receipt size={20} className="text-green-400" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Receipt size={20} className="text-green-500" />
                 Recent Transactions
               </h3>
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <table className="w-full text-left text-sm text-gray-300">
-                  <thead className="bg-gray-900/50 text-gray-500 uppercase text-xs font-bold">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs font-semibold">
                     <tr>
                       <th className="p-4">Date</th>
                       <th className="p-4">Tenant</th>
@@ -639,7 +638,7 @@ export default function SuperAdminPage() {
                       <th className="p-4 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-700">
+                  <tbody className="divide-y divide-gray-100">
                     {revenueData.receipts.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="p-8 text-center text-gray-500">
@@ -648,22 +647,22 @@ export default function SuperAdminPage() {
                       </tr>
                     ) : (
                       revenueData.receipts.map((receipt: any) => (
-                        <tr key={receipt['transaction-id']} className="hover:bg-gray-700/50 transition">
+                        <tr key={receipt['transaction-id']} className="hover:bg-gray-50 transition">
                           <td className="p-4 text-gray-500">
                             {new Date(receipt['transaction-date']).toLocaleDateString()}
                           </td>
                           <td className="p-4">
-                            <div className="font-bold text-white">
+                            <div className="font-medium text-gray-900">
                               {receipt['retail-store-tenant']?.['store-name'] || 'Unknown'}
                             </div>
                           </td>
-                          <td className="p-4 text-gray-400">{receipt.description}</td>
-                          <td className="p-4 font-bold text-green-400">
+                          <td className="p-4 text-gray-500">{receipt.description}</td>
+                          <td className="p-4 font-bold text-gray-900">
                             ${parseFloat(receipt.amount).toFixed(2)}
                           </td>
                           <td className="p-4 text-gray-500 capitalize">{receipt['payment-method'] || 'N/A'}</td>
                           <td className="p-4 text-right">
-                            <span className="px-2 py-1 rounded text-xs font-bold uppercase border bg-green-900/20 text-green-400 border-green-800">
+                            <span className="px-2.5 py-1 rounded-md text-xs font-medium border bg-green-50 text-green-700 border-green-200">
                               {receipt.status}
                             </span>
                           </td>
@@ -681,42 +680,42 @@ export default function SuperAdminPage() {
         {activeTab === 'website' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-white">Master Website Configuration</h2>
-              <p className="text-gray-400">Manage your primary website domain and settings</p>
+              <h2 className="text-2xl font-bold text-gray-900">Master Website Configuration</h2>
+              <p className="text-gray-500 text-sm mt-1">Manage your primary website domain and settings</p>
             </div>
 
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6 shadow-sm">
               {/* Domain Configuration */}
               <div>
-                <label className="block text-sm font-bold text-gray-400 uppercase mb-2">Primary Domain</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Primary Domain</label>
                 <div className="flex gap-3">
                   <input
                     type="text"
                     defaultValue="retailstore.com"
-                    className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white"
+                    className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm"
                     placeholder="yourdomain.com"
                   />
-                  <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-bold transition">
+                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition shadow-sm">
                     Update Domain
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">This is the main domain for the master website</p>
+                <p className="text-sm text-gray-500 mt-2">This is the main domain for the master website.</p>
               </div>
 
               {/* SSL Status */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
-                  <div className="text-xs font-bold text-gray-400 uppercase mb-2">SSL Status</div>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">SSL Status</div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-white font-bold">Active</span>
+                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-sm"></div>
+                    <span className="text-gray-900 font-medium">Active</span>
                   </div>
                 </div>
-                <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
-                  <div className="text-xs font-bold text-gray-400 uppercase mb-2">DNS Status</div>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">DNS Status</div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-white font-bold">Configured</span>
+                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-sm"></div>
+                    <span className="text-gray-900 font-medium">Configured</span>
                   </div>
                 </div>
               </div>
@@ -730,73 +729,73 @@ export default function SuperAdminPage() {
 
       {/* Edit Product Modal */}
       {editedProduct && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl border border-gray-700 w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Globe className="text-blue-400" /> Edit Global Product
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Globe className="text-blue-500" size={20} /> Edit Global Product
               </h3>
               <button
                 onClick={() => setEditedProduct(null)}
-                className="text-gray-400 hover:text-white transition"
+                className="text-gray-400 hover:text-gray-600 transition bg-white hover:bg-gray-100 p-1.5 rounded-md border border-transparent hover:border-gray-200"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="p-6 space-y-5 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Product Name</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Product Name</label>
                   <input
                     type="text"
                     value={editedProduct.name || ''}
                     onChange={(e) => setEditedProduct({ ...editedProduct, name: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Category</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
                   <input
                     type="text"
                     value={editedProduct.category || ''}
                     onChange={(e) => setEditedProduct({ ...editedProduct, category: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between items-end mb-1">
-                  <label className="block text-xs font-bold text-gray-400 uppercase">Product Image</label>
+                <div className="flex justify-between items-end mb-2">
+                  <label className="block text-sm font-semibold text-gray-700">Product Image</label>
                   <button
                     onClick={(e) => {
                       e.preventDefault();
                       handleAiEnrich(editedProduct);
                     }}
                     disabled={enriching === editedProduct.id}
-                    className="text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300 bg-purple-900/20 px-2 py-1 rounded transition"
+                    className="text-xs font-medium flex items-center gap-1.5 text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-md transition"
                   >
-                    {enriching === editedProduct.id ? <Loader2 className="animate-spin" size={12} /> : <Sparkles size={12} />}
+                    {enriching === editedProduct.id ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
                     {enriching === editedProduct.id ? 'Fetching...' : 'AI Enrich Data'}
                   </button>
                 </div>
                 
-                <div className="flex gap-4 items-start">
-                  <div className="w-24 h-24 bg-gray-900 rounded-lg border border-gray-700 overflow-hidden shrink-0 relative group">
+                <div className="flex gap-5 items-start">
+                  <div className="w-28 h-28 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden shrink-0 relative group shadow-sm">
                     {editedProduct.image_url ? (
                       <img src={editedProduct.image_url} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
-                        <ImageIcon size={24} className="mb-1" />
-                        <span className="text-[10px]">No Image</span>
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                        <ImageIcon size={28} className="mb-2" />
+                        <span className="text-xs font-medium">No Image</span>
                       </div>
                     )}
                     
                     {/* Hover Upload Overlay */}
-                    <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      <UploadCloud size={20} className="text-white mb-1" />
-                      <span className="text-white text-xs font-bold">Upload</span>
+                    <label className="absolute inset-0 bg-gray-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[1px]">
+                      <UploadCloud size={24} className="text-white mb-2" />
+                      <span className="text-white text-sm font-medium">Upload</span>
                       <input 
                         type="file" 
                         className="hidden" 
@@ -830,10 +829,10 @@ export default function SuperAdminPage() {
                       type="text"
                       value={editedProduct.image_url || ''}
                       onChange={(e) => setEditedProduct({ ...editedProduct, image_url: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                      className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm shadow-sm"
                       placeholder="Or paste an image URL..."
                     />
-                    <p className="text-xs text-gray-500 leading-tight">
+                    <p className="text-sm text-gray-500 leading-relaxed">
                       Click the image preview to upload a file directly from your computer, click AI Enrich to fetch one from the web automatically, or paste a URL.
                     </p>
                   </div>
@@ -841,35 +840,35 @@ export default function SuperAdminPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Description</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description</label>
                 <textarea
                   value={editedProduct.description || ''}
                   onChange={(e) => setEditedProduct({ ...editedProduct, description: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px]"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none min-h-[120px] shadow-sm resize-y"
                   placeholder="Enter product description..."
                 />
               </div>
 
-              <div className="bg-blue-900/20 p-4 rounded-lg border border-blue-800/50 flex items-start gap-3">
-                <AlertCircle className="text-blue-400 shrink-0 mt-0.5" size={18} />
-                <div className="text-sm text-blue-200">
-                  <strong>Note:</strong> Changes made here will be pushed to the Global Catalog.
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={18} />
+                <div className="text-sm text-blue-800">
+                  <span className="font-semibold">Note:</span> Changes made here will be pushed to the Global Catalog.
                   Tenants will receive these updates during their next sync or product fetch.
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-700 flex justify-end gap-3 bg-gray-800/50">
+            <div className="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
               <button
                 onClick={() => setEditedProduct(null)}
-                className="px-4 py-2 text-gray-300 hover:text-white font-bold transition"
+                className="px-5 py-2.5 text-gray-600 hover:text-gray-900 font-medium transition bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveProduct}
                 disabled={saving}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle size={18} />}
                 Save Changes
