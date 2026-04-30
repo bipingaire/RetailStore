@@ -13,9 +13,10 @@ type Product = {
   category: string | null;
 };
 
-type CategoryInfo = {
+interface Category {
   name: string;
   count: number;
+  imageUrl?: string | null;
 };
 
 const getCategoryEmoji = (cat: string): string => {
@@ -259,8 +260,12 @@ function CategoriesInner() {
             {categories.map((cat, i) => (
               <button key={cat.name} onClick={() => setActiveTab(cat.name)} className={`w-full py-4 flex flex-col items-center gap-1 transition-colors relative ${activeTab === cat.name ? 'bg-white font-bold' : 'text-gray-500'}`}>
                 {activeTab === cat.name && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-600" />}
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ backgroundColor: activeTab === cat.name ? 'transparent' : catBgColors[i % catBgColors.length] }}>
-                  {getCategoryEmoji(cat.name)}
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl overflow-hidden" style={{ backgroundColor: activeTab === cat.name || cat.imageUrl ? 'transparent' : catBgColors[i % catBgColors.length] }}>
+                  {cat.imageUrl ? (
+                    <img src={cat.imageUrl} alt={cat.name} className="w-full h-full object-contain mix-blend-multiply drop-shadow-sm" />
+                  ) : (
+                    getCategoryEmoji(cat.name)
+                  )}
                 </div>
                 <span className="text-[10px] text-center w-full px-1 leading-tight whitespace-normal break-words">{cat.name}</span>
               </button>
@@ -377,7 +382,13 @@ function CategoriesInner() {
                       onClick={() => setActiveTab(cat.name)}
                       className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-all hover:bg-gray-50 ${activeTab === cat.name ? 'bg-green-50 border-r-4 border-green-600' : ''}`}
                     >
-                      <span className="text-xl flex-shrink-0">{getCategoryEmoji(cat.name)}</span>
+                      {cat.imageUrl ? (
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-50 border border-gray-100 p-0.5">
+                          <img src={cat.imageUrl} alt={cat.name} className="w-full h-full object-contain mix-blend-multiply drop-shadow-sm" />
+                        </div>
+                      ) : (
+                        <span className="text-xl flex-shrink-0 w-8 text-center">{getCategoryEmoji(cat.name)}</span>
+                      )}
                       <div className="min-w-0">
                         <p className={`text-sm font-semibold truncate ${activeTab === cat.name ? 'text-green-700' : 'text-gray-800'}`}>{cat.name}</p>
                         <p className="text-xs text-gray-400">{cat.count} items</p>
@@ -400,8 +411,19 @@ function CategoriesInner() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-black text-gray-900">
-                    {activeTab ? `${getCategoryEmoji(activeTab)} ${activeTab}` : '🛒 All Products'}
+                  <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
+                    {activeTab ? (
+                      <>
+                        {categories.find(c => c.name === activeTab)?.imageUrl ? (
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-50 border border-gray-100 p-1">
+                            <img src={categories.find(c => c.name === activeTab)?.imageUrl!} alt={activeTab} className="w-full h-full object-contain mix-blend-multiply drop-shadow-sm" />
+                          </div>
+                        ) : (
+                          <span className="text-3xl">{getCategoryEmoji(activeTab)}</span>
+                        )}
+                        {activeTab}
+                      </>
+                    ) : '🛒 All Products'}
                   </h1>
                   <p className="text-sm text-gray-500 mt-1">{totalProducts} products{searchTerm ? ` matching "${searchTerm}"` : ''}</p>
                 </div>
@@ -429,7 +451,12 @@ function CategoriesInner() {
               {activeTab && (
                 <div className="flex gap-2 mt-3 flex-wrap">
                   <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full">
-                    {getCategoryEmoji(activeTab)} {activeTab}
+                    {categories.find(c => c.name === activeTab)?.imageUrl ? (
+                      <div className="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-white/50">
+                        <img src={categories.find(c => c.name === activeTab)?.imageUrl!} alt={activeTab} className="w-full h-full object-contain mix-blend-multiply" />
+                      </div>
+                    ) : getCategoryEmoji(activeTab)} 
+                    {activeTab}
                     <button onClick={() => setActiveTab(null)} className="ml-1 hover:text-green-600"><X size={12} /></button>
                   </span>
                 </div>

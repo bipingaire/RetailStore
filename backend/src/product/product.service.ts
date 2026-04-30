@@ -276,9 +276,24 @@ export class ProductService {
       categoryMap.set(normalizedName, (categoryMap.get(normalizedName) || 0) + c._count.id);
     }
 
+    // Get an image for each category
+    const imageMap = new Map<string, string>();
+    const imageProducts = await client.product.findMany({
+      where: { imageUrl: { not: null, not: '' } },
+      select: { category: true, imageUrl: true }
+    });
+    for (const p of imageProducts) {
+      if (!p.category || !p.imageUrl) continue;
+      const normalizedName = p.category.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      if (!imageMap.has(normalizedName)) {
+        imageMap.set(normalizedName, p.imageUrl);
+      }
+    }
+
     return Array.from(categoryMap.entries()).map(([name, count]) => ({
       name,
-      count
+      count,
+      imageUrl: imageMap.get(name) || null
     })).sort((a, b) => a.name.localeCompare(b.name));
   }
 
