@@ -267,7 +267,7 @@ export default function ShopHome() {
 
       {/* 1. TOP HEADER */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 h-20 flex items-center justify-between gap-8">
 
           {/* Logo */}
           <Link href="/shop" className="flex items-center gap-2 group">
@@ -338,7 +338,7 @@ export default function ShopHome() {
         const mainBanner = banners.find(b => b.type === 'main') || banners[0];
         const sideBanners = banners.filter(b => b.type === 'side').slice(0, 2);
         return (
-          <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-6">
+          <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[500px]">
 
               {/* Main Hero Banner */}
@@ -389,7 +389,7 @@ export default function ShopHome() {
 
       {/* 3.5 - LIVE CAMPAIGN SECTIONS (Moved above Categories) */}
       {campaigns.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12 space-y-10">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-12 space-y-10">
           {campaigns.map((campaign) => {
             // Filter out expired campaigns automatically
             if (campaign.endDate && new Date(campaign.endDate) < new Date()) {
@@ -467,7 +467,7 @@ export default function ShopHome() {
 
       {/* 3. CATEGORIES SECTION */}
       {!searchTerm && !selectedCategory && (
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-10">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-10">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-gray-900">Shop by Category</h2>
@@ -514,7 +514,7 @@ export default function ShopHome() {
 
       {/* 4. TOP 12 MOST POPULAR PRODUCTS */}
       {!searchTerm && !selectedCategory && top12PopularProducts.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-12">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-gray-900 flex items-center">
@@ -570,7 +570,7 @@ export default function ShopHome() {
 
       {/* 5. FEATURED PRODUCTS */}
       {!searchTerm && !selectedCategory && (
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-12">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-gray-900 flex items-center">
@@ -633,7 +633,7 @@ export default function ShopHome() {
 
         if (catProducts.length === 0) return null;
         return (
-          <div key={cat} id={`cat-section-${cat.replace(/\s+/g, '-').toLowerCase()}`} className="max-w-7xl mx-auto px-4 lg:px-8 mt-10 scroll-mt-24">
+          <div key={cat} id={`cat-section-${cat.replace(/\s+/g, '-').toLowerCase()}`} className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-10 scroll-mt-24">
             {/* Category section divider */}
             <div className="flex items-center justify-between py-3 border-b-2 border-gray-100 mb-4">
               <div className="flex items-center gap-3">
@@ -716,7 +716,7 @@ export default function ShopHome() {
 
       {/* 6. SEARCH / CATEGORY FILTERED VIEW */}
       {(searchTerm || selectedCategory) && (
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-10">
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-10">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-gray-900">
@@ -865,3 +865,5 @@ export default function ShopHome() {
     </div>
   );
 }
+
+
