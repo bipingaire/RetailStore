@@ -513,7 +513,7 @@ export default function ShopHome() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2">
-                <img src="/images/trending-badge.png" alt="Trending" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+                <img src="/images/trending-stamp.png" alt="Trending" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
                 Trending Now
               </h2>
               <p className="text-sm text-gray-400 mt-0.5">Top 12 most popular products right now</p>
@@ -568,7 +568,10 @@ export default function ShopHome() {
         <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-xl md:text-2xl font-black text-gray-900">✨ Featured Products</h2>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2">
+                <img src="/images/trending-stamp.png" alt="Featured" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+                Featured Products
+              </h2>
               <p className="text-sm text-gray-400 mt-0.5">Handpicked items just for you</p>
             </div>
             <Link
