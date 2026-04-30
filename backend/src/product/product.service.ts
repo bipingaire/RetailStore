@@ -178,7 +178,12 @@ export class ProductService {
   } = {}) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    const { skip, take, page, limit } = parsePagination(options.page, options.limit, 20);
+    
+    // Use parsePagination if page/limit provided, else no skip/take
+    const isPaginated = options.page || options.limit;
+    const { skip, take, page, limit } = isPaginated 
+      ? parsePagination(options.page, options.limit, 20)
+      : { skip: undefined, take: undefined, page: 1, limit: 0 };
 
     const where: any = {};
     if (options.sellableOnly) where.isSellable = true;
@@ -196,8 +201,7 @@ export class ProductService {
         where,
         include: { Batches: true },
         orderBy: { name: 'asc' },
-        skip,
-        take,
+        ...(isPaginated ? { skip, take } : {}),
       }),
       client.product.count({ where }),
     ]);
@@ -233,8 +237,32 @@ export class ProductService {
     }));
 
     // If no pagination requested, return plain array for backwards compat
-    if (!options.page && !options.limit) return data;
+    if (!isPaginated) return data;
     return buildPaginatedResponse(data, total, page, limit);
+  }
+
+  async getCategories(subdomain: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    
+    // Group by category to get unique categories and counts
+    const categories = await client.product.groupBy({
+      by: ['category'],
+      _count: {
+        id: true,
+      },
+      where: {
+        category: { not: null },
+      },
+      orderBy: {
+        category: 'asc'
+      }
+    });
+
+    return categories.map(c => ({
+      name: c.category,
+      count: c._count.id
+    }));
   }
 
   async syncAll(subdomain: string) {

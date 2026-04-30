@@ -37,6 +37,11 @@ export class ProductController {
     });
   }
 
+  @Get('categories')
+  getCategories(@Headers('x-tenant') subdomain: string) {
+    return this.productService.getCategories(subdomain);
+  }
+
   @Get(':id')
   findOne(@Headers('x-tenant') subdomain: string, @Param('id') id: string) {
     return this.productService.findOne(subdomain, id);

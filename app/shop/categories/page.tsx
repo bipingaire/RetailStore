@@ -13,6 +13,11 @@ type Product = {
   category: string | null;
 };
 
+type CategoryInfo = {
+  name: string;
+  count: number;
+};
+
 const getCategoryEmoji = (cat: string): string => {
   const c = cat.toLowerCase();
   if (c.includes('dairy') || c.includes('milk') || c.includes('cheese')) return '🥛';
@@ -42,12 +47,18 @@ function CategoriesInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>(searchParams.get('category'));
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // for debouncing
   const [cart, setCart] = useState<Record<string, number>>({});
   const [sortBy, setSortBy] = useState<SortOption>('default');
-  const [visibleCount, setVisibleCount] = useState(24);
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalProducts, setTotalProducts] = useState(0);
 
   useEffect(() => {
     try {
@@ -77,51 +88,86 @@ function CategoriesInner() {
 
   const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
 
+  // Initial load: Categories
   useEffect(() => {
-    async function loadProducts() {
+    async function loadCategories() {
       try {
-        const productsData = await apiClient.get('/products?sellableOnly=true');
-        const dataArray = Array.isArray(productsData) ? productsData : [];
-        const mappedProducts = dataArray.map((p: any) => ({
-          id: p.id,
-          price: Number(p.price) || 0,
-          name: p.name,
-          imageUrl: p.imageUrl || p.image,
-          category: p.category || 'Uncategorized',
-        }));
-        setProducts(mappedProducts);
-      } catch (error) {
-        console.error('Failed to load products:', error);
-      } finally {
-        setLoading(false);
+        const cats = await apiClient.get('/products/categories');
+        if (Array.isArray(cats)) setCategories(cats);
+      } catch (err) {
+        console.error('Failed to load categories', err);
       }
     }
-    loadProducts();
+    loadCategories();
   }, []);
 
-  const categories = useMemo(() => {
-    const cats = new Set<string>();
-    products.forEach((p) => cats.add(p.category!));
-    return Array.from(cats).sort();
-  }, [products]);
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  const filteredProducts = useMemo(() => {
-    let list = (activeTab === null ? products : products.filter(p => p.category === activeTab))
-      .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    if (sortBy === 'price_asc') list = [...list].sort((a, b) => a.price - b.price);
-    if (sortBy === 'price_desc') list = [...list].sort((a, b) => b.price - a.price);
-    if (sortBy === 'name_asc') list = [...list].sort((a, b) => a.name.localeCompare(b.name));
-    return list;
-  }, [products, activeTab, searchTerm, sortBy]);
+  // Load products when filters change
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setProducts([]);
+    fetchProducts(1, true);
+  }, [activeTab, searchTerm, sortBy]);
 
-  useEffect(() => { setSearchTerm(''); setVisibleCount(24); }, [activeTab]);
-  useEffect(() => { setVisibleCount(24); }, [searchTerm, sortBy]);
+  async function fetchProducts(pageNum: number, isNewSearch = false) {
+    if (pageNum === 1) setLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      let url = `/products?sellableOnly=true&page=${pageNum}&limit=24`;
+      if (activeTab) url += `&category=${encodeURIComponent(activeTab)}`;
+      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+      
+      const res = await apiClient.get(url);
+      const dataArray = res.data || [];
+      const meta = res.meta || { total: dataArray.length, hasNextPage: false };
+
+      const mappedProducts = dataArray.map((p: any) => ({
+        id: p.id,
+        price: Number(p.price) || 0,
+        name: p.name,
+        imageUrl: p.imageUrl || p.image,
+        category: p.category || 'Uncategorized',
+      }));
+
+      // Sort current page
+      let sorted = [...mappedProducts];
+      if (sortBy === 'price_asc') sorted.sort((a, b) => a.price - b.price);
+      if (sortBy === 'price_desc') sorted.sort((a, b) => b.price - a.price);
+      if (sortBy === 'name_asc') sorted.sort((a, b) => a.name.localeCompare(b.name));
+
+      setProducts(prev => isNewSearch ? sorted : [...prev, ...sorted]);
+      setHasMore(meta.hasNextPage);
+      setTotalProducts(meta.total);
+    } catch (err) {
+      console.error('Failed to load products', err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchProducts(nextPage);
+    }
+  };
 
   const productCard = (prod: Product, size: 'sm' | 'md' = 'sm') => {
     const qty = cart[prod.id] || 0;
     if (size === 'md') {
       return (
-        <div key={prod.id} className="flex flex-col bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all overflow-hidden group">
+        <div key={prod.id} className="flex flex-col bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all overflow-hidden group">
           <div className="relative bg-gray-50" style={{paddingBottom:'100%'}}>
             <div className="absolute inset-0 flex items-center justify-center p-3">
               <img
@@ -136,14 +182,14 @@ function CategoriesInner() {
             <h3 className="text-sm text-gray-800 line-clamp-2 flex-1 mb-3 leading-snug">{prod.name}</h3>
             <p className="text-lg font-black text-gray-900 mb-3">${prod.price.toFixed(2)}</p>
             {qty === 0 ? (
-              <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-blue-600 text-white font-bold py-2 rounded-full text-sm hover:bg-blue-700 transition-colors">
+              <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
                 Add to cart
               </button>
             ) : (
-              <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5 justify-center">
-                <button onClick={() => updateQty(prod.id, -1)} className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><Minus size={12} /></button>
-                <span className="text-sm font-bold w-6 text-center text-blue-800">{qty}</span>
-                <button onClick={() => updateQty(prod.id, 1)} className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><Plus size={12} /></button>
+              <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-3 py-1.5 justify-center">
+                <button onClick={() => updateQty(prod.id, -1)} className="w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Minus size={12} /></button>
+                <span className="text-sm font-bold w-6 text-center text-green-800">{qty}</span>
+                <button onClick={() => updateQty(prod.id, 1)} className="w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Plus size={12} /></button>
               </div>
             )}
           </div>
@@ -172,15 +218,6 @@ function CategoriesInner() {
       </div>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-4"></div>
-        <p className="text-gray-400 text-sm">Loading products...</p>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -215,12 +252,12 @@ function CategoriesInner() {
               <span className="text-[10px] text-center w-full px-1">All Products</span>
             </button>
             {categories.map((cat, i) => (
-              <button key={cat} onClick={() => setActiveTab(cat)} className={`w-full py-4 flex flex-col items-center gap-1 transition-colors relative ${activeTab === cat ? 'bg-white font-bold' : 'text-gray-500'}`}>
-                {activeTab === cat && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-600" />}
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ backgroundColor: activeTab === cat ? 'transparent' : catBgColors[i % catBgColors.length] }}>
-                  {getCategoryEmoji(cat)}
+              <button key={cat.name} onClick={() => setActiveTab(cat.name)} className={`w-full py-4 flex flex-col items-center gap-1 transition-colors relative ${activeTab === cat.name ? 'bg-white font-bold' : 'text-gray-500'}`}>
+                {activeTab === cat.name && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-600" />}
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ backgroundColor: activeTab === cat.name ? 'transparent' : catBgColors[i % catBgColors.length] }}>
+                  {getCategoryEmoji(cat.name)}
                 </div>
-                <span className="text-[10px] text-center w-full px-1 leading-tight whitespace-normal break-words">{cat}</span>
+                <span className="text-[10px] text-center w-full px-1 leading-tight whitespace-normal break-words">{cat.name}</span>
               </button>
             ))}
           </div>
@@ -229,21 +266,35 @@ function CategoriesInner() {
           <div className="flex-1 overflow-y-auto bg-white p-3 hide-scrollbar flex flex-col">
             <div className="relative mb-4 flex-shrink-0">
               <Search className="absolute left-2.5 top-2.5 text-gray-400 w-4 h-4" />
-              <input type="text" placeholder={`Search in ${activeTab || 'All Products'}...`} className="w-full bg-gray-100 rounded-xl py-2 pl-9 pr-3 text-[13px] font-medium outline-none focus:ring-1 focus:ring-green-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" placeholder={`Search in ${activeTab || 'All Products'}...`} className="w-full bg-gray-100 rounded-xl py-2 pl-9 pr-3 text-[13px] font-medium outline-none focus:ring-1 focus:ring-green-500" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
             </div>
-            <h2 className="font-bold text-gray-900 mb-3 px-1">{activeTab || 'All Products'} <span className="text-gray-400 font-normal text-sm ml-1">({filteredProducts.length})</span></h2>
-            <div className="grid grid-cols-2 gap-3">
-              {filteredProducts.slice(0, visibleCount).map(prod => productCard(prod, 'sm'))}
-            </div>
-            {visibleCount < filteredProducts.length && (
-              <button onClick={() => setVisibleCount(v => v + 24)} className="mt-4 mx-auto flex items-center gap-2 bg-green-600 text-white font-bold px-6 py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
-                Load More <ChevronDown size={16} />
-              </button>
+            
+            <h2 className="font-bold text-gray-900 mb-3 px-1">
+              {activeTab || 'All Products'} <span className="text-gray-400 font-normal text-sm ml-1">({totalProducts})</span>
+            </h2>
+            
+            {loading && page === 1 ? (
+              <div className="flex flex-col items-center justify-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-4"></div>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  {products.map(prod => productCard(prod, 'sm'))}
+                </div>
+                {hasMore && (
+                  <button onClick={loadMore} disabled={loadingMore} className="mt-4 mx-auto flex items-center gap-2 bg-green-600 text-white font-bold px-6 py-2 rounded-full text-sm hover:bg-green-700 transition-colors disabled:opacity-50">
+                    {loadingMore ? 'Loading...' : 'Load More'} <ChevronDown size={16} />
+                  </button>
+                )}
+                {!hasMore && products.length > 0 && (
+                  <div className="flex flex-col items-center justify-center py-10 opacity-50 text-xs text-gray-500 gap-2">
+                    <CheckCircle size={16} />
+                    End of list
+                  </div>
+                )}
+              </>
             )}
-            <div className="flex flex-col items-center justify-center py-10 opacity-50 text-xs text-gray-500 gap-2">
-              <CheckCircle size={16} />
-              End of list
-            </div>
           </div>
         </div>
       </div>
@@ -267,19 +318,19 @@ function CategoriesInner() {
               <input
                 type="text"
                 placeholder={`Search in ${activeTab || 'all products'}...`}
-                className="w-full bg-gray-100 border border-gray-200 rounded-full py-2.5 pl-11 pr-5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-100 border border-gray-200 rounded-full py-2.5 pl-11 pr-5 text-sm font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
-              {searchTerm && (
-                <button onClick={() => setSearchTerm('')} className="absolute right-4 top-3 text-gray-400 hover:text-gray-600">
+              {searchInput && (
+                <button onClick={() => setSearchInput('')} className="absolute right-4 top-3 text-gray-400 hover:text-gray-600">
                   <X size={16} />
                 </button>
               )}
             </div>
 
             {/* Cart */}
-            <Link href="/shop/cart" className="relative flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold text-sm hover:bg-blue-700 transition-colors">
+            <Link href="/shop/cart" className="relative flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-full font-bold text-sm hover:bg-green-700 transition-colors">
               <ShoppingBag size={18} />
               <span>Cart</span>
               {totalItems > 0 && (
@@ -305,27 +356,26 @@ function CategoriesInner() {
                 {/* All */}
                 <button
                   onClick={() => setActiveTab(null)}
-                  className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-all hover:bg-gray-50 ${activeTab === null ? 'bg-blue-50 border-r-4 border-blue-600' : ''}`}
+                  className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-all hover:bg-gray-50 ${activeTab === null ? 'bg-green-50 border-r-4 border-green-600' : ''}`}
                 >
                   <span className="text-xl flex-shrink-0">🛒</span>
                   <div className="min-w-0">
-                    <p className={`text-sm font-semibold truncate ${activeTab === null ? 'text-blue-700' : 'text-gray-800'}`}>All Products</p>
-                    <p className="text-xs text-gray-400">{products.length} items</p>
+                    <p className={`text-sm font-semibold truncate ${activeTab === null ? 'text-green-700' : 'text-gray-800'}`}>All Products</p>
+                    <p className="text-xs text-gray-400">{categories.reduce((acc, cat) => acc + cat.count, 0)} items</p>
                   </div>
                 </button>
 
                 {categories.map((cat, i) => {
-                  const count = products.filter(p => p.category === cat).length;
                   return (
                     <button
-                      key={cat}
-                      onClick={() => setActiveTab(cat)}
-                      className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-all hover:bg-gray-50 ${activeTab === cat ? 'bg-blue-50 border-r-4 border-blue-600' : ''}`}
+                      key={cat.name}
+                      onClick={() => setActiveTab(cat.name)}
+                      className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-all hover:bg-gray-50 ${activeTab === cat.name ? 'bg-green-50 border-r-4 border-green-600' : ''}`}
                     >
-                      <span className="text-xl flex-shrink-0">{getCategoryEmoji(cat)}</span>
+                      <span className="text-xl flex-shrink-0">{getCategoryEmoji(cat.name)}</span>
                       <div className="min-w-0">
-                        <p className={`text-sm font-semibold truncate ${activeTab === cat ? 'text-blue-700' : 'text-gray-800'}`}>{cat}</p>
-                        <p className="text-xs text-gray-400">{count} items</p>
+                        <p className={`text-sm font-semibold truncate ${activeTab === cat.name ? 'text-green-700' : 'text-gray-800'}`}>{cat.name}</p>
+                        <p className="text-xs text-gray-400">{cat.count} items</p>
                       </div>
                     </button>
                   );
@@ -339,7 +389,7 @@ function CategoriesInner() {
             {/* Breadcrumb + Title */}
             <div className="mb-6">
               <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                <Link href="/shop" className="hover:text-blue-600">Home</Link>
+                <Link href="/shop" className="hover:text-green-600">Home</Link>
                 <span>/</span>
                 <span className="text-gray-700 font-medium">{activeTab || 'All Products'}</span>
               </div>
@@ -348,7 +398,7 @@ function CategoriesInner() {
                   <h1 className="text-2xl font-black text-gray-900">
                     {activeTab ? `${getCategoryEmoji(activeTab)} ${activeTab}` : '🛒 All Products'}
                   </h1>
-                  <p className="text-sm text-gray-500 mt-1">{filteredProducts.length} products{searchTerm ? ` matching "${searchTerm}"` : ''}</p>
+                  <p className="text-sm text-gray-500 mt-1">{totalProducts} products{searchTerm ? ` matching "${searchTerm}"` : ''}</p>
                 </div>
 
                 {/* Sort */}
@@ -360,7 +410,7 @@ function CategoriesInner() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 bg-white focus:ring-2 focus:ring-green-500 outline-none cursor-pointer"
                   >
                     <option value="default">Featured</option>
                     <option value="price_asc">Price: Low to High</option>
@@ -373,43 +423,47 @@ function CategoriesInner() {
               {/* Active filter pill */}
               {activeTab && (
                 <div className="flex gap-2 mt-3 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+                  <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full">
                     {getCategoryEmoji(activeTab)} {activeTab}
-                    <button onClick={() => setActiveTab(null)} className="ml-1 hover:text-blue-600"><X size={12} /></button>
+                    <button onClick={() => setActiveTab(null)} className="ml-1 hover:text-green-600"><X size={12} /></button>
                   </span>
                 </div>
               )}
             </div>
 
             {/* Products Grid */}
-            {filteredProducts.length === 0 ? (
+            {loading && page === 1 ? (
+              <div className="flex flex-col items-center justify-center py-32 text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-4"></div>
+              </div>
+            ) : products.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-32 text-center">
                 <p className="text-5xl mb-4">🔍</p>
                 <h3 className="text-xl font-bold text-gray-700 mb-2">No products found</h3>
                 <p className="text-gray-400 text-sm mb-6">Try a different category or search term</p>
-                <button onClick={() => { setActiveTab(null); setSearchTerm(''); }} className="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-full hover:bg-blue-700 transition-colors text-sm">
+                <button onClick={() => { setActiveTab(null); setSearchInput(''); }} className="bg-green-600 text-white font-bold px-6 py-2.5 rounded-full hover:bg-green-700 transition-colors text-sm">
                   View All Products
                 </button>
               </div>
             ) : (
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                  {filteredProducts.slice(0, visibleCount).map(prod => productCard(prod, 'md'))}
+                  {products.map(prod => productCard(prod, 'md'))}
                 </div>
 
-                {visibleCount < filteredProducts.length && (
+                {hasMore && (
                   <div className="flex flex-col items-center mt-10 gap-2">
-                    <p className="text-sm text-gray-400">Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products</p>
-                    <button onClick={() => setVisibleCount(v => v + 24)} className="flex items-center gap-2 bg-blue-600 text-white font-bold px-10 py-3 rounded-full hover:bg-blue-700 transition-all shadow-md text-sm">
-                      Load More <ChevronDown size={18} />
+                    <p className="text-sm text-gray-400">Showing {products.length} of {totalProducts} products</p>
+                    <button onClick={loadMore} disabled={loadingMore} className="flex items-center gap-2 bg-green-600 text-white font-bold px-10 py-3 rounded-full hover:bg-green-700 transition-all shadow-md text-sm disabled:opacity-50">
+                      {loadingMore ? 'Loading...' : 'Load More'} <ChevronDown size={18} />
                     </button>
                   </div>
                 )}
 
-                {visibleCount >= filteredProducts.length && filteredProducts.length > 0 && (
+                {!hasMore && products.length > 0 && (
                   <div className="flex items-center justify-center mt-10 gap-2 text-sm text-gray-400">
                     <CheckCircle size={16} className="text-green-500" />
-                    All {filteredProducts.length} products loaded
+                    All {products.length} products loaded
                   </div>
                 )}
               </>
@@ -425,7 +479,7 @@ export default function MobileCategoriesPage() {
   return (
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-4"></div>
         <p className="text-sm text-gray-400">Loading...</p>
       </div>
     }>
