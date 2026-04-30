@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Headers, Query } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 
 @Controller('expenses')
@@ -14,7 +14,22 @@ export class ExpenseController {
     }
 
     @Get()
-    async findAll(@Headers('x-tenant') subdomain: string) {
-        return this.expenseService.getExpenses(subdomain);
+    async findAll(
+        @Headers('x-tenant') subdomain: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('search') search?: string,
+        @Query('category') category?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
+        return this.expenseService.getExpenses(subdomain, {
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            search,
+            category,
+            startDate,
+            endDate,
+        });
     }
 }

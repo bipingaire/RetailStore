@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import OpenAI from 'openai';
-
 import { SettingsService } from '../settings/settings.service';
 import Stripe from 'stripe';
+import { parsePagination, buildPaginatedResponse } from '../common/pagination.dto';
 
 @Injectable()
 export class SaleService {
@@ -116,19 +116,49 @@ export class SaleService {
     });
   }
 
-  async findAll(subdomain: string, options: any) {
+  async findAll(subdomain: string, options: {
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    userId?: string;
+    customerId?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+  } = {}) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    // basic mock of options implementation
-    return client.sale.findMany({
-      include: {
-        items: {
-          include: { product: true }
+    const { skip, take, page, limit } = parsePagination(options.page, options.limit, 20);
+
+    const where: any = {};
+    if (options.status) where.status = options.status.toUpperCase();
+    if (options.userId) where.userId = options.userId;
+    if (options.customerId) where.customerId = options.customerId;
+    if (options.startDate || options.endDate) {
+      where.createdAt = {};
+      if (options.startDate) where.createdAt.gte = new Date(options.startDate);
+      if (options.endDate) where.createdAt.lte = new Date(options.endDate);
+    }
+    if (options.search) {
+      where.saleNumber = { contains: options.search, mode: 'insensitive' };
+    }
+
+    const [sales, total] = await Promise.all([
+      client.sale.findMany({
+        where,
+        include: {
+          items: { include: { product: true } },
+          customer: true,
         },
-        customer: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      client.sale.count({ where }),
+    ]);
+
+    if (!options.page && !options.limit) return sales;
+    return buildPaginatedResponse(sales, total, page, limit);
   }
 
   async findOne(subdomain: string, id: string) {

@@ -6,6 +6,7 @@ import { CategoryService } from '../category/category.service';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
+import { parsePagination, buildPaginatedResponse } from '../common/pagination.dto';
 
 @Injectable()
 export class InvoiceService {
@@ -463,35 +464,47 @@ export class InvoiceService {
         }, { timeout: 20000 });
     }
 
-    async getAllInvoices(subdomain: string, status?: string) {
+    async getAllInvoices(subdomain: string, options: {
+        status?: string;
+        page?: number;
+        limit?: number;
+        search?: string;
+        vendorId?: string;
+    } | string = {}) {
+        // Backwards compat: accept plain string status
+        const opts = typeof options === 'string' ? { status: options } : options;
         console.log(`getAllInvoices called for subdomain: ${subdomain}`);
         try {
             const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
-            if (!tenant) {
-                console.log(`Tenant not found for subdomain: ${subdomain}`);
-                throw new Error(`Tenant not found for subdomain: ${subdomain}`);
-            }
-            console.log(`Tenant found: ${tenant.id}, DB: ${tenant.databaseUrl}`);
+            if (!tenant) throw new Error(`Tenant not found for subdomain: ${subdomain}`);
 
             const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-            console.log('Got tenant client');
+            const { skip, take, page, limit } = parsePagination(opts.page, opts.limit, 20);
 
-            const where: Prisma.VendorInvoiceWhereInput = status ? { status } : {};
+            const where: Prisma.VendorInvoiceWhereInput = {};
+            if (opts.status) where.status = opts.status;
+            if (opts.vendorId) where.vendorId = opts.vendorId;
+            if (opts.search) {
+                where.invoiceNumber = { contains: opts.search, mode: 'insensitive' };
+            }
 
-            const invoices = await client.vendorInvoice.findMany({
-                where,
-                include: {
-                    vendor: true,
-                    items: {
-                        include: {
-                            product: true
-                        }
+            const [invoices, total] = await Promise.all([
+                client.vendorInvoice.findMany({
+                    where,
+                    include: {
+                        vendor: true,
+                        items: { include: { product: true } },
                     },
-                },
-                orderBy: { createdAt: 'desc' },
-            });
-            console.log(`Found ${invoices.length} invoices`);
-            return invoices;
+                    orderBy: { createdAt: 'desc' },
+                    skip,
+                    take,
+                }),
+                client.vendorInvoice.count({ where }),
+            ]);
+
+            console.log(`Found ${invoices.length} invoices (total: ${total})`);
+            if (!opts.page && !opts.limit) return invoices;
+            return buildPaginatedResponse(invoices, total, page, limit);
         } catch (error) {
             console.error('Error in getAllInvoices:', error);
             throw error;

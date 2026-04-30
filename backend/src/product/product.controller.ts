@@ -20,8 +20,21 @@ export class ProductController {
   }
 
   @Get()
-  findAll(@Headers('x-tenant') subdomain: string, @Query('sellableOnly') sellableOnly?: string) {
-    return this.productService.findAll(subdomain, sellableOnly === 'true');
+  findAll(
+    @Headers('x-tenant') subdomain: string,
+    @Query('sellableOnly') sellableOnly?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+  ) {
+    return this.productService.findAll(subdomain, {
+      sellableOnly: sellableOnly === 'true',
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      search,
+      category,
+    });
   }
 
   @Get(':id')

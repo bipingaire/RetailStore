@@ -4,6 +4,7 @@ import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
 import { MasterCatalogService } from '../master-catalog/master-catalog.service';
 import OpenAI from 'openai';
+import { parsePagination, buildPaginatedResponse } from '../common/pagination.dto';
 
 @Injectable()
 export class ProductService {
@@ -168,33 +169,53 @@ export class ProductService {
     return { success: true };
   }
 
-  async findAll(subdomain: string, sellableOnly: boolean = false) {
+  async findAll(subdomain: string, options: {
+    sellableOnly?: boolean;
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+  } = {}) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    const { skip, take, page, limit } = parsePagination(options.page, options.limit, 20);
 
-    // Now fetching real data with relations!
-    const whereClause = sellableOnly ? { isSellable: true } : {};
-    const products = await client.product.findMany({
-      where: whereClause,
-      include: {
-        Batches: true
-      }
-    });
+    const where: any = {};
+    if (options.sellableOnly) where.isSellable = true;
+    if (options.category) where.category = options.category;
+    if (options.search) {
+      where.OR = [
+        { name: { contains: options.search, mode: 'insensitive' } },
+        { sku: { contains: options.search, mode: 'insensitive' } },
+        { category: { contains: options.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [products, total] = await Promise.all([
+      client.product.findMany({
+        where,
+        include: { Batches: true },
+        orderBy: { name: 'asc' },
+        skip,
+        take,
+      }),
+      client.product.count({ where }),
+    ]);
 
     // Fetch master catalog images for fallback
     const skus = products.map(p => p.sku).filter(Boolean);
     const globals = await this.masterPrisma.sharedCatalog.findMany({
       where: { sku: { in: skus } },
-      select: { sku: true, imageUrl: true }
+      select: { sku: true, imageUrl: true },
     });
     const globalMap = new Map(globals.map(g => [g.sku, g.imageUrl]));
 
-    // Map to Frontend 'ProductRow' shape
-    return products.map(p => ({
+    const data = products.map(p => ({
       id: p.id,
       name: p.name,
       sku: p.sku || 'N/A',
       image: p.imageUrl || globalMap.get(p.sku) || null,
+      imageUrl: p.imageUrl || globalMap.get(p.sku) || null,
       category: p.category,
       description: p.description,
       price: p.price,
@@ -206,10 +227,14 @@ export class ProductService {
         id: b.id,
         qty: b.quantity,
         expiry: b.expiryDate.toISOString(),
-        days_left: 0, // Frontend handles calculation
-        status: 'GOOD'
-      }))
+        days_left: 0,
+        status: 'GOOD',
+      })),
     }));
+
+    // If no pagination requested, return plain array for backwards compat
+    if (!options.page && !options.limit) return data;
+    return buildPaginatedResponse(data, total, page, limit);
   }
 
   async syncAll(subdomain: string) {

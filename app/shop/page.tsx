@@ -439,184 +439,288 @@ export default function ShopHome() {
         </div>
       )}
 
-      {/* 3. CATEGORY RAIL */}
-      <div id="category-rail" className="max-w-7xl mx-auto px-4 lg:px-8 mt-12 bg-white md:bg-transparent pt-6 md:pt-0 rounded-t-[2rem] md:rounded-none relative z-10 -mt-6 md:mt-12">
-        <div className="flex items-center justify-between mb-4 md:mb-6">
-          <h3 className="font-bold text-lg md:text-xl text-gray-900">Shop by Category</h3>
-          <Link href="/shop/categories" className="text-sm font-bold text-green-600 hover:text-green-700 flex items-center gap-1 md:hidden">
-            See All <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        {/* Desktop Category Rail (Circles) */}
-        <div className="hidden md:flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-          <div
-            onClick={() => setSelectedCategory(null)}
-            className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transition-all ${selectedCategory === null ? 'scale-110' : ''}`}
-          >
-            <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === null ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
-              <ShoppingBag className={`w-10 h-10 transition-colors ${selectedCategory === null ? 'text-green-600' : 'text-gray-400 group-hover:text-green-600'}`} />
+      {/* 3. CATEGORIES SECTION */}
+      {!searchTerm && !selectedCategory && (
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-10">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900">Shop by Category</h2>
+              <p className="text-sm text-gray-400 mt-0.5">Browse all product categories</p>
             </div>
-            <span className={`text-sm font-medium transition-colors ${selectedCategory === null ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>All Products</span>
+            <Link
+              href="/shop/categories"
+              className="flex items-center gap-1.5 text-sm font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-full transition-all"
+            >
+              See All <ArrowRight size={14} />
+            </Link>
           </div>
 
-          {availableCategories.map((cat, i) => (
-            <div
-              key={i}
-              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-              className={`flex flex-col items-center gap-3 min-w-[100px] cursor-pointer group transition-all ${selectedCategory === cat ? 'scale-110' : ''}`}
-            >
-              <div className={`w-20 h-20 rounded-full bg-white border shadow-sm flex items-center justify-center group-hover:border-green-500 group-hover:shadow-md transition-all ${selectedCategory === cat ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
-                <img
-                  src={`https://cdn-icons-png.flaticon.com/512/${i === 0 ? '2909/2909859' : i === 1 ? '3194/3194766' : i === 2 ? '1046/1046774' : i === 3 ? '2395/2395796' : '706/706164'}.png`}
-                  className={`w-10 h-10 transition-opacity ${selectedCategory === cat ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}
-                  alt={cat}
-                />
-              </div>
-              <span className={`text-sm font-medium transition-colors ${selectedCategory === cat ? 'text-green-700 font-bold' : 'text-gray-700 group-hover:text-green-600'}`}>{cat}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile Category Grid (Squares with emojis - exact 6 items, wraps in 2 rows) */}
-        <div className="md:hidden grid grid-cols-3 gap-3">
-          {/* All */}
-          <button
-            onClick={() => { setSelectedCategory(null); setSearchTerm(''); }}
-            className="flex flex-col items-center gap-1.5 outline-none"
-          >
-            <div
-              className={`w-full aspect-square rounded-2xl flex items-center justify-center text-4xl transition-all ${selectedCategory === null ? 'ring-2 ring-green-500 ring-offset-2 scale-95' : 'hover:scale-95'}`}
-              style={{ backgroundColor: '#FFE5D0' }}
-            >
-              🛒
-            </div>
-            <span className="text-[11px] font-semibold text-gray-700 leading-tight">All</span>
-          </button>
-
-          {top5Categories.map((cat, i) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-              className="flex flex-col items-center gap-1.5 outline-none"
-            >
-              <div
-                className={`w-full aspect-square rounded-2xl flex items-center justify-center text-4xl transition-all ${selectedCategory === cat ? 'ring-2 ring-green-500 ring-offset-2 scale-95' : 'hover:scale-95'}`}
-                style={{ backgroundColor: catBgColors[(i + 1) % catBgColors.length] }}
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-3 md:gap-4">
+            {availableCategories.map((cat, i) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className="flex flex-col items-center gap-2 group outline-none"
               >
-                {getCategoryEmoji(cat)}
-              </div>
-              <span className="text-[11px] font-semibold text-gray-700 leading-tight w-full truncate text-center px-1">{cat}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-
-      {/* 4. PRODUCTS GRID */}
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
-        <h3 className="font-bold text-2xl text-gray-900 mb-6">
-          {searchTerm ? `Results for "${searchTerm}"` : selectedCategory || 'All Products'}
-        </h3>
-
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No products found</p>
+                <div
+                  className="w-full aspect-square rounded-2xl flex items-center justify-center text-3xl md:text-4xl shadow-sm group-hover:scale-105 group-hover:shadow-md transition-all"
+                  style={{ backgroundColor: catBgColors[i % catBgColors.length] }}
+                >
+                  {getCategoryEmoji(cat)}
+                </div>
+                <span className="text-[11px] md:text-xs font-semibold text-gray-700 text-center leading-tight w-full truncate px-1">
+                  {cat}
+                </span>
+              </button>
+            ))}
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {filteredProducts.slice(0, visibleCount).map((prod) => {
+        </div>
+      )}
+
+      {/* 4. FEATURED PRODUCTS */}
+      {!searchTerm && !selectedCategory && (
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900">✨ Featured Products</h2>
+              <p className="text-sm text-gray-400 mt-0.5">Handpicked items just for you</p>
+            </div>
+            <Link
+              href="/shop/categories"
+              className="flex items-center gap-1.5 text-sm font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-full transition-all"
+            >
+              See All <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-3 hide-scrollbar">
+            {products.filter(p => p.imageUrl).slice(0, 10).map((prod) => {
+              const qty = cart[prod.id] || 0;
+              const promo = getPromoForProduct(prod.id);
+              return (
+                <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all flex flex-col flex-shrink-0 overflow-hidden">
+                  <div className="relative aspect-square bg-gray-50">
+                    {promo && (
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
+                        {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
+                      </div>
+                    )}
+                    <img src={prod.imageUrl!} className="w-full h-full object-cover" alt={prod.name} />
+                  </div>
+                  <div className="p-3 flex flex-col flex-1">
+                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
+                    <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 flex-1 mb-2">{cleanName(prod.name)}</h4>
+                    <div className="text-base font-black text-green-700 mb-3">${prod.price.toFixed(2)}</div>
+                    {qty === 0 ? (
+                      <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
+                        Add to Cart
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
+                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
+                        <span className="text-xs font-bold w-4 text-center">{qty}</span>
+                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 5. POPULAR BY CATEGORY — one horizontal row per category (ALL categories) */}
+      {!searchTerm && !selectedCategory && availableCategories.map((cat) => {
+        const catProducts = products.filter(p => p.category === cat);
+        if (catProducts.length === 0) return null;
+        return (
+          <div key={cat} className="max-w-7xl mx-auto px-4 lg:px-8 mt-10">
+            {/* Category section divider */}
+            <div className="flex items-center justify-between py-3 border-b-2 border-gray-100 mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{getCategoryEmoji(cat)}</span>
+                <div>
+                  <h2 className="text-lg md:text-xl font-black text-gray-900 leading-tight">{cat}</h2>
+                  <p className="text-xs text-gray-400">{catProducts.length} products available</p>
+                </div>
+              </div>
+              <Link
+                href={`/shop/categories?category=${encodeURIComponent(cat)}`}
+                className="flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline transition-all"
+              >
+                See all {catProducts.length} items <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar -mx-1 px-1">
+              {catProducts.slice(0, 12).map((prod) => {
                 const qty = cart[prod.id] || 0;
+                const promo = getPromoForProduct(prod.id);
                 return (
-                  <div key={prod.id} className="bg-white rounded-2xl p-3 md:p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all flex flex-col justify-between">
-                    
-                    <div className="flex-1 flex flex-col">
-                      <div className="aspect-square bg-gray-50 rounded-xl mb-3 md:mb-4 flex items-center justify-center overflow-hidden relative">
-                        {/* SAVE badge – shown when a live promo targets this product */}
-                        {(() => {
-                          const promo = getPromoForProduct(prod.id);
-                          if (!promo) return null;
-                          const saveText = promo.discount_type === 'percentage'
-                            ? `SAVE ${Math.round(promo.discount_value)}%`
-                            : `SAVE $${promo.discount_value.toFixed(0)}`;
-                          return (
-                            <div className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10 leading-tight">
-                              {saveText}
-                            </div>
-                          );
-                        })()}
+                  <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all flex flex-col flex-shrink-0 overflow-hidden group">
+                    <div className="relative bg-gray-50" style={{paddingBottom:'100%'}}>
+                      <div className="absolute inset-0 flex items-center justify-center p-2">
+                        {promo && (
+                          <div className="absolute top-2 left-2 bg-yellow-400 text-gray-900 text-[9px] font-black px-1.5 py-0.5 rounded-sm z-10 uppercase tracking-wide">
+                            {promo.discount_type === 'percentage' ? `Save ${Math.round(promo.discount_value)}%` : `Save $${promo.discount_value.toFixed(0)}`}
+                          </div>
+                        )}
                         <img
-                          src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                          className="w-full h-full object-cover"
+                          src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                           alt={prod.name}
                         />
                       </div>
-
-                      <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">
-                        {prod.category || 'Product'}
-                      </div>
-
-                      <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">
-                        {cleanName(prod.name)}
-                      </h4>
-
-                      <div className="text-lg font-black text-green-700 mb-4">
-                        ${prod.price.toFixed(2)}
-                      </div>
                     </div>
-
-                    <div className="mt-auto">
+                    <div className="p-3 flex flex-col flex-1 border-t border-gray-100">
+                      <h4 className="text-xs text-gray-800 line-clamp-2 flex-1 mb-2 leading-snug">{cleanName(prod.name)}</h4>
+                      <div className="mb-2">
+                        <span className="text-base font-black text-gray-900">${prod.price.toFixed(2)}</span>
+                      </div>
                       {qty === 0 ? (
-                        <button
-                          onClick={() => updateQty(prod.id, 1)}
-                          className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
-                        >
-                          Add to Cart
+                        <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-blue-600 text-white font-bold py-1.5 rounded-full text-[11px] hover:bg-blue-700 transition-colors shadow-sm">
+                          Add to cart
                         </button>
                       ) : (
-                        <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
-                          <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500">
-                            <Minus size={12} />
-                          </button>
-                          <span className="text-xs font-bold w-5 text-center">{qty}</span>
-                          <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600">
-                            <Plus size={12} />
-                          </button>
+                        <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-full px-2 py-1 justify-center">
+                          <button onClick={() => updateQty(prod.id, -1)} className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><Minus size={10} /></button>
+                          <span className="text-xs font-bold w-5 text-center text-blue-800">{qty}</span>
+                          <button onClick={() => updateQty(prod.id, 1)} className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><Plus size={10} /></button>
                         </div>
                       )}
                     </div>
                   </div>
                 );
               })}
-            </div>
-
-            {/* Load More Button */}
-            {visibleCount < filteredProducts.length && (
-              <div className="flex flex-col items-center mt-10 gap-2">
-                <p className="text-sm text-gray-400 font-medium">
-                  Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
-                </p>
-                <button
-                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-                  className="flex items-center gap-2 bg-green-600 text-white font-bold px-10 py-3 rounded-full hover:bg-green-700 active:scale-95 transition-all shadow-md shadow-green-200"
+              {/* See All Card at end of row */}
+              {catProducts.length > 12 && (
+                <Link
+                  href={`/shop/categories?category=${encodeURIComponent(cat)}`}
+                  className="min-w-[160px] md:min-w-[190px] flex-shrink-0 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50 transition-all group p-6"
                 >
-                  Load More Products
-                  <ChevronDown size={18} />
-                </button>
-              </div>
-            )}
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <ArrowRight className="text-blue-600" size={20} />
+                  </div>
+                  <span className="text-xs font-bold text-blue-600 text-center">See all {catProducts.length} items</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        );
+      })}
 
-            {/* All Products Loaded Indicator */}
-            {visibleCount >= filteredProducts.length && filteredProducts.length > PAGE_SIZE && (
-              <div className="flex items-center justify-center mt-10 gap-2 text-sm text-gray-400 font-medium">
-                <CheckCircle size={16} className="text-green-500" />
-                All {filteredProducts.length} products loaded
-              </div>
+      {/* 6. SEARCH / CATEGORY FILTERED VIEW */}
+      {(searchTerm || selectedCategory) && (
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-10">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900">
+                {searchTerm ? `Results for "${searchTerm}"` : `${getCategoryEmoji(selectedCategory!)} ${selectedCategory}`}
+              </h2>
+              <p className="text-sm text-gray-400 mt-0.5">{filteredProducts.length} products found</p>
+            </div>
+            {selectedCategory && (
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="text-xs text-gray-500 hover:text-red-500 font-semibold bg-gray-100 hover:bg-red-50 px-3 py-1.5 rounded-full transition-all"
+              >
+                ✕ Clear
+              </button>
             )}
-          </>
-        )}
-      </div>
+          </div>
+
+          {/* Desktop category pill row */}
+          {!searchTerm && (
+            <div className="hidden md:flex gap-2 flex-wrap mb-6">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${selectedCategory === null ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700'}`}
+              >
+                All
+              </button>
+              {availableCategories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${selectedCategory === cat ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700'}`}
+                >
+                  {getCategoryEmoji(cat)} {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg">No products found</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                {filteredProducts.slice(0, visibleCount).map((prod) => {
+                  const qty = cart[prod.id] || 0;
+                  const promo = getPromoForProduct(prod.id);
+                  return (
+                    <div key={prod.id} className="bg-white rounded-2xl p-3 md:p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all flex flex-col justify-between">
+                      <div className="flex-1 flex flex-col">
+                        <div className="aspect-square bg-gray-50 rounded-xl mb-3 flex items-center justify-center overflow-hidden relative">
+                          {promo && (
+                            <div className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
+                              {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
+                            </div>
+                          )}
+                          <img
+                            src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
+                            className="w-full h-full object-cover" alt={prod.name}
+                          />
+                        </div>
+                        <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
+                        <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{cleanName(prod.name)}</h4>
+                        <div className="text-lg font-black text-green-700 mb-4">${prod.price.toFixed(2)}</div>
+                      </div>
+                      <div className="mt-auto">
+                        {qty === 0 ? (
+                          <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
+                            Add to Cart
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
+                            <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={12} /></button>
+                            <span className="text-xs font-bold w-5 text-center">{qty}</span>
+                            <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={12} /></button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {visibleCount < filteredProducts.length && (
+                <div className="flex flex-col items-center mt-10 gap-2">
+                  <p className="text-sm text-gray-400 font-medium">
+                    Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length} products
+                  </p>
+                  <button
+                    onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                    className="flex items-center gap-2 bg-green-600 text-white font-bold px-10 py-3 rounded-full hover:bg-green-700 active:scale-95 transition-all shadow-md shadow-green-200"
+                  >
+                    Load More <ChevronDown size={18} />
+                  </button>
+                </div>
+              )}
+
+              {visibleCount >= filteredProducts.length && filteredProducts.length > PAGE_SIZE && (
+                <div className="flex items-center justify-center mt-10 gap-2 text-sm text-gray-400 font-medium">
+                  <CheckCircle size={16} className="text-green-500" />
+                  All {filteredProducts.length} products loaded
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* MOBILE: Fixed Bottom Navigation (Daraz-style) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 flex items-center justify-around py-1.5 z-50 md:hidden">

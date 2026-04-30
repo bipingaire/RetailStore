@@ -194,9 +194,19 @@ export class InvoiceController {
     @Get()
     async getAllInvoices(
         @Headers('x-tenant') subdomain: string,
-        @Query('status') status?: string
+        @Query('status') status?: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('search') search?: string,
+        @Query('vendorId') vendorId?: string,
     ) {
-        return this.invoiceService.getAllInvoices(subdomain, status);
+        return this.invoiceService.getAllInvoices(subdomain, {
+            status,
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            search,
+            vendorId,
+        });
     }
 
     @Get(':id')

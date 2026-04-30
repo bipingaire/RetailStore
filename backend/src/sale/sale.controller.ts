@@ -30,8 +30,9 @@ export class SaleController {
     @Query('endDate') endDate?: string,
     @Query('userId') userId?: string,
     @Query('customerId') customerId?: string,
+    @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('search') search?: string,
   ) {
     return this.saleService.findAll(subdomain, {
       status,
@@ -39,8 +40,9 @@ export class SaleController {
       endDate,
       userId,
       customerId,
+      page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined,
+      search,
     });
   }
 
