@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { ChevronLeft, Search, CheckCircle, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -37,7 +37,7 @@ const getCategoryEmoji = (cat: string): string => {
 
 const catBgColors = ['#FFE5D0','#D4EDDA','#D1ECF1','#FCE4EC','#EDE7F6','#FFF3E0','#E8F5E9','#E3F2FD','#FFF8E1','#F3E5F5'];
 
-export default function MobileCategoriesPage() {
+function CategoriesInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
@@ -240,5 +240,17 @@ export default function MobileCategoriesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MobileCategoriesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-4"></div>
+      </div>
+    }>
+      <CategoriesInner />
+    </Suspense>
   );
 }
