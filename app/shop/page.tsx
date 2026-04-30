@@ -626,7 +626,13 @@ export default function ShopHome() {
             {/* Category section divider */}
             <div className="flex items-center justify-between py-3 border-b-2 border-gray-100 mb-4">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{getCategoryEmoji(cat)}</span>
+                {categoryImages.get(cat) ? (
+                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 p-1">
+                    <img src={categoryImages.get(cat)!} alt={cat} className="w-full h-full object-contain mix-blend-multiply drop-shadow-sm" />
+                  </div>
+                ) : (
+                  <span className="text-2xl">{getCategoryEmoji(cat)}</span>
+                )}
                 <div>
                   <h2 className="text-lg md:text-xl font-black text-gray-900 leading-tight">{cat}</h2>
                   <p className="text-xs text-gray-400">{catProducts.length} products available</p>
@@ -634,7 +640,7 @@ export default function ShopHome() {
               </div>
               <Link
                 href={`/shop/categories?category=${encodeURIComponent(cat)}`}
-                className="flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline transition-all"
+                className="flex items-center gap-1.5 text-sm font-bold text-green-600 hover:text-green-700 hover:underline transition-all"
               >
                 See all {catProducts.length} items <ArrowRight size={14} />
               </Link>
@@ -645,7 +651,7 @@ export default function ShopHome() {
                 const qty = cart[prod.id] || 0;
                 const promo = getPromoForProduct(prod.id);
                 return (
-                  <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all flex flex-col flex-shrink-0 overflow-hidden group">
+                  <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all flex flex-col flex-shrink-0 overflow-hidden group">
                     <div className="relative bg-gray-50" style={{paddingBottom:'100%'}}>
                       <div className="absolute inset-0 flex items-center justify-center p-2">
                         {promo && (
@@ -666,14 +672,14 @@ export default function ShopHome() {
                         <span className="text-base font-black text-gray-900">${prod.price.toFixed(2)}</span>
                       </div>
                       {qty === 0 ? (
-                        <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-blue-600 text-white font-bold py-1.5 rounded-full text-[11px] hover:bg-blue-700 transition-colors shadow-sm">
+                        <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-full text-[11px] hover:bg-green-700 transition-colors shadow-sm">
                           Add to cart
                         </button>
                       ) : (
-                        <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-full px-2 py-1 justify-center">
-                          <button onClick={() => updateQty(prod.id, -1)} className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><Minus size={10} /></button>
-                          <span className="text-xs font-bold w-5 text-center text-blue-800">{qty}</span>
-                          <button onClick={() => updateQty(prod.id, 1)} className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"><Plus size={10} /></button>
+                        <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-2 py-1 justify-center">
+                          <button onClick={() => updateQty(prod.id, -1)} className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Minus size={10} /></button>
+                          <span className="text-xs font-bold w-5 text-center text-green-800">{qty}</span>
+                          <button onClick={() => updateQty(prod.id, 1)} className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Plus size={10} /></button>
                         </div>
                       )}
                     </div>
@@ -684,12 +690,12 @@ export default function ShopHome() {
               {catProducts.length > 12 && (
                 <Link
                   href={`/shop/categories?category=${encodeURIComponent(cat)}`}
-                  className="min-w-[160px] md:min-w-[190px] flex-shrink-0 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50 transition-all group p-6"
+                  className="min-w-[160px] md:min-w-[190px] flex-shrink-0 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-green-300 hover:bg-green-50 transition-all group p-6"
                 >
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                    <ArrowRight className="text-blue-600" size={20} />
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                    <ArrowRight className="text-green-600" size={20} />
                   </div>
-                  <span className="text-xs font-bold text-blue-600 text-center">See all {catProducts.length} items</span>
+                  <span className="text-xs font-bold text-green-600 text-center">See all {catProducts.length} items</span>
                 </Link>
               )}
             </div>
