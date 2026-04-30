@@ -9,8 +9,8 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function ProductDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const router = useRouter();
     const [product, setProduct] = useState<any>(null);
     const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
