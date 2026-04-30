@@ -485,7 +485,12 @@ export default function ShopHome() {
             {availableCategories.map((cat, i) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  const el = document.getElementById(`cat-section-${cat.replace(/\s+/g, '-').toLowerCase()}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
                 className="flex flex-col items-center gap-2 group outline-none"
               >
                 <div
@@ -628,7 +633,7 @@ export default function ShopHome() {
 
         if (catProducts.length === 0) return null;
         return (
-          <div key={cat} className="max-w-7xl mx-auto px-4 lg:px-8 mt-10">
+          <div key={cat} id={`cat-section-${cat.replace(/\s+/g, '-').toLowerCase()}`} className="max-w-7xl mx-auto px-4 lg:px-8 mt-10 scroll-mt-24">
             {/* Category section divider */}
             <div className="flex items-center justify-between py-3 border-b-2 border-gray-100 mb-4">
               <div className="flex items-center gap-3">
