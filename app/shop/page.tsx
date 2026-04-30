@@ -211,6 +211,18 @@ export default function ShopHome() {
     return [...products].sort((a, b) => b.salesCount - a.salesCount).slice(0, 12);
   }, [products]);
 
+  const categoryImages = useMemo(() => {
+    const images = new Map<string, string>();
+    // Sort products by sales descending so the top-selling product's image is used
+    const sortedProducts = [...products].sort((a, b) => b.salesCount - a.salesCount);
+    for (const p of sortedProducts) {
+      if (p.category && p.imageUrl && !images.has(p.category)) {
+        images.set(p.category, p.imageUrl);
+      }
+    }
+    return images;
+  }, [products]);
+
   const cleanName = (name?: string) =>
     (name || '')
       .replace(/\\(pos import\\)/gi, '')
@@ -477,10 +489,14 @@ export default function ShopHome() {
                 className="flex flex-col items-center gap-2 group outline-none"
               >
                 <div
-                  className="w-full aspect-square rounded-2xl flex items-center justify-center text-3xl md:text-4xl shadow-sm group-hover:scale-105 group-hover:shadow-md transition-all"
+                  className="w-full aspect-square rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 group-hover:shadow-md transition-all overflow-hidden p-2 border border-gray-100"
                   style={{ backgroundColor: catBgColors[i % catBgColors.length] }}
                 >
-                  {getCategoryEmoji(cat)}
+                  {categoryImages.get(cat) ? (
+                    <img src={categoryImages.get(cat)!} alt={cat} className="w-full h-full object-contain drop-shadow-sm mix-blend-multiply" />
+                  ) : (
+                    <span className="text-3xl md:text-4xl">{getCategoryEmoji(cat)}</span>
+                  )}
                 </div>
                 <span className="text-[11px] md:text-xs font-semibold text-gray-700 text-center leading-tight w-full truncate px-1">
                   {cat}
