@@ -17,6 +17,7 @@ type Product = {
   imageUrl: string | null;
   category: string | null;
   manufacturer: string | null;
+  salesCount: number;
 };
 
 // Simplified promotion type - will be replaced when campaign API is ready
@@ -145,7 +146,8 @@ export default function ShopHome() {
           name: p.name,
           imageUrl: p.imageUrl || p.image, // Handle both potential keys
           category: normalizeCategory(p.category),
-          manufacturer: p.manufacturer || 'Unknown'
+          manufacturer: p.manufacturer || 'Unknown',
+          salesCount: Number(p.salesCount) || 0
         }));
 
         setProducts(mappedProducts);
@@ -184,11 +186,14 @@ export default function ShopHome() {
   }, [selectedCategory, searchTerm]);
 
   const availableCategories = useMemo(() => {
-    const cats = new Set<string>();
+    const catSales = new Map<string, number>();
     products.forEach((p) => {
-      if (p.category) cats.add(p.category);
+      if (p.category) {
+        catSales.set(p.category, (catSales.get(p.category) || 0) + p.salesCount);
+      }
     });
-    return Array.from(cats).sort();
+    // Sort categories by total sales descending
+    return Array.from(catSales.keys()).sort((a, b) => (catSales.get(b) || 0) - (catSales.get(a) || 0));
   }, [products]);
 
   const top5Categories = useMemo(() => {
@@ -535,9 +540,13 @@ export default function ShopHome() {
         </div>
       )}
 
-      {/* 5. POPULAR BY CATEGORY — one horizontal row per category (ALL categories) */}
+      {/* 5. POPULAR BY CATEGORY — one horizontal row per category, sorted by category sales */}
       {!searchTerm && !selectedCategory && availableCategories.map((cat) => {
-        const catProducts = products.filter(p => p.category === cat);
+        // Get products for category, sort by sales, take top 6
+        const catProducts = products
+          .filter(p => p.category === cat)
+          .sort((a, b) => b.salesCount - a.salesCount);
+
         if (catProducts.length === 0) return null;
         return (
           <div key={cat} className="max-w-7xl mx-auto px-4 lg:px-8 mt-10">
@@ -559,7 +568,7 @@ export default function ShopHome() {
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar -mx-1 px-1">
-              {catProducts.slice(0, 12).map((prod) => {
+              {catProducts.slice(0, 6).map((prod) => {
                 const qty = cart[prod.id] || 0;
                 const promo = getPromoForProduct(prod.id);
                 return (

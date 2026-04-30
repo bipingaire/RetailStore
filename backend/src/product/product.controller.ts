@@ -37,6 +37,11 @@ export class ProductController {
     });
   }
 
+  @Get('homepage')
+  getHomepageData(@Headers('x-tenant') subdomain: string) {
+    return this.productService.getHomepageData(subdomain);
+  }
+
   @Get('categories')
   getCategories(@Headers('x-tenant') subdomain: string) {
     return this.productService.getCategories(subdomain);

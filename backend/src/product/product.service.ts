@@ -214,6 +214,16 @@ export class ProductService {
     });
     const globalMap = new Map(globals.map(g => [g.sku, g.imageUrl]));
 
+    // Fetch sales count for sorting by popularity
+    const productIds = products.map(p => p.id);
+    const salesData = await client.saleItem.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds } },
+      _sum: { quantity: true }
+    });
+    const salesMap = new Map<string, number>();
+    salesData.forEach(s => salesMap.set(s.productId, s._sum.quantity || 0));
+
     const data = products.map(p => ({
       id: p.id,
       name: p.name,
@@ -227,6 +237,7 @@ export class ProductService {
       is_sellable: p.isSellable,
       parent_id: p.parentId,
       units_per_parent: p.unitsPerParent,
+      salesCount: salesMap.get(p.id) || 0,
       batches: (p.Batches || []).map(b => ({
         id: b.id,
         qty: b.quantity,
@@ -269,6 +280,91 @@ export class ProductService {
       name,
       count
     })).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async getHomepageData(subdomain: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    // 1. Fetch all sellable products
+    const products = await client.product.findMany({
+      where: { isSellable: true },
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        imageUrl: true,
+        category: true,
+        price: true,
+      }
+    });
+
+    // 2. Fetch all-time sales per product
+    const salesData = await client.saleItem.groupBy({
+      by: ['productId'],
+      _sum: {
+        quantity: true
+      }
+    });
+    const salesMap = new Map<string, number>();
+    salesData.forEach(s => salesMap.set(s.productId, s._sum.quantity || 0));
+
+    // 3. Normalize categories & group products
+    const normalizeCategory = (cat: string | null) => {
+      if (!cat) return 'Uncategorized';
+      return cat.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    };
+
+    const categoryMap = new Map<string, {
+      name: string;
+      totalCategorySales: number;
+      products: any[];
+    }>();
+
+    for (const p of products) {
+      const catName = normalizeCategory(p.category);
+      const salesCount = salesMap.get(p.id) || 0;
+      
+      if (!categoryMap.has(catName)) {
+        categoryMap.set(catName, {
+          name: catName,
+          totalCategorySales: 0,
+          products: []
+        });
+      }
+
+      const catEntry = categoryMap.get(catName)!;
+      catEntry.totalCategorySales += salesCount;
+      catEntry.products.push({
+        id: p.id,
+        name: p.name,
+        sku: p.sku || 'N/A',
+        imageUrl: p.imageUrl,
+        category: catName,
+        price: p.price,
+        salesCount
+      });
+    }
+
+    // 4. Sort categories by sales DESC
+    const sortedCategories = Array.from(categoryMap.values()).sort((a, b) => {
+      // If sales are equal, sort alphabetically
+      if (b.totalCategorySales === a.totalCategorySales) {
+         return a.name.localeCompare(b.name);
+      }
+      return b.totalCategorySales - a.totalCategorySales;
+    });
+
+    // 5. Sort products within each category by sales DESC, and slice to top 6
+    for (const cat of sortedCategories) {
+      cat.products.sort((a, b) => {
+        if (b.salesCount === a.salesCount) return a.name.localeCompare(b.name);
+        return b.salesCount - a.salesCount;
+      });
+      cat.products = cat.products.slice(0, 6);
+    }
+
+    return sortedCategories;
   }
 
   async syncAll(subdomain: string) {
