@@ -130,12 +130,17 @@ function CategoriesInner() {
       const dataArray = res.data || [];
       const meta = res.meta || { total: dataArray.length, hasNextPage: false };
 
+      const normalizeCategory = (cat: string | null) => {
+        if (!cat) return 'Uncategorized';
+        return cat.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      };
+
       const mappedProducts = dataArray.map((p: any) => ({
         id: p.id,
         price: Number(p.price) || 0,
         name: p.name,
         imageUrl: p.imageUrl || p.image,
-        category: p.category || 'Uncategorized',
+        category: normalizeCategory(p.category),
       }));
 
       // Sort current page

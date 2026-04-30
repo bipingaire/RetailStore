@@ -187,7 +187,7 @@ export class ProductService {
 
     const where: any = {};
     if (options.sellableOnly) where.isSellable = true;
-    if (options.category) where.category = options.category;
+    if (options.category) where.category = { equals: options.category, mode: 'insensitive' };
     if (options.search) {
       where.OR = [
         { name: { contains: options.search, mode: 'insensitive' } },
@@ -253,16 +253,22 @@ export class ProductService {
       },
       where: {
         category: { not: null },
-      },
-      orderBy: {
-        category: 'asc'
       }
     });
 
-    return categories.map(c => ({
-      name: c.category,
-      count: c._count.id
-    }));
+    // Deduplicate case variations (e.g. "grocery" and "Grocery")
+    const categoryMap = new Map<string, number>();
+    for (const c of categories) {
+      if (!c.category) continue;
+      // Normalize to Title Case
+      const normalizedName = c.category.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+      categoryMap.set(normalizedName, (categoryMap.get(normalizedName) || 0) + c._count.id);
+    }
+
+    return Array.from(categoryMap.entries()).map(([name, count]) => ({
+      name,
+      count
+    })).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async syncAll(subdomain: string) {

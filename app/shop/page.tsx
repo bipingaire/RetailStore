@@ -133,13 +133,18 @@ export default function ShopHome() {
         const productsData = await apiClient.get('/products?sellableOnly=true');
         const dataArray = Array.isArray(productsData) ? productsData : [];
 
+        const normalizeCategory = (cat: string | null) => {
+          if (!cat) return null;
+          return cat.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        };
+
         // Map backend response to our Product type
         const mappedProducts = dataArray.map((p: any) => ({
           id: p.id,
           price: Number(p.price) || 0,
           name: p.name,
           imageUrl: p.imageUrl || p.image, // Handle both potential keys
-          category: p.category,
+          category: normalizeCategory(p.category),
           manufacturer: p.manufacturer || 'Unknown'
         }));
 
