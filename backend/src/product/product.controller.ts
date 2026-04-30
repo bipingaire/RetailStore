@@ -84,18 +84,4 @@ export class ProductController {
   ) {
     return this.productService.enrichProduct(subdomain, id);
   }
-
-  @Get(':id/reviews')
-  getReviews(@Headers('x-tenant') subdomain: string, @Param('id') id: string) {
-    return this.productService.getReviews(subdomain, id);
-  }
-
-  @Post(':id/reviews')
-  addReview(
-    @Headers('x-tenant') subdomain: string,
-    @Param('id') id: string,
-    @Body() body: { userId: string; userName: string; rating: number; comment?: string }
-  ) {
-    return this.productService.addReview(subdomain, id, body);
-  }
 }
