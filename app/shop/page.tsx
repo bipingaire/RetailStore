@@ -207,6 +207,10 @@ export default function ShopHome() {
       .slice(0, 5);
   }, [products]);
 
+  const top12PopularProducts = useMemo(() => {
+    return [...products].sort((a, b) => b.salesCount - a.salesCount).slice(0, 12);
+  }, [products]);
+
   const cleanName = (name?: string) =>
     (name || '')
       .replace(/\\(pos import\\)/gi, '')
@@ -487,7 +491,60 @@ export default function ShopHome() {
         </div>
       )}
 
-      {/* 4. FEATURED PRODUCTS */}
+      {/* 4. TOP 12 MOST POPULAR PRODUCTS */}
+      {!searchTerm && !selectedCategory && top12PopularProducts.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900">🔥 Trending Now</h2>
+              <p className="text-sm text-gray-400 mt-0.5">Top 12 most popular products right now</p>
+            </div>
+            <Link
+              href="/shop/categories"
+              className="flex items-center gap-1.5 text-sm font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-full transition-all"
+            >
+              Shop All <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-3 hide-scrollbar">
+            {top12PopularProducts.map((prod) => {
+              const qty = cart[prod.id] || 0;
+              const promo = getPromoForProduct(prod.id);
+              return (
+                <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all flex flex-col flex-shrink-0 overflow-hidden">
+                  <div className="relative aspect-square bg-gray-50 flex items-center justify-center p-2">
+                    {promo && (
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
+                        {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
+                      </div>
+                    )}
+                    <img src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"} className="w-full h-full object-contain" alt={prod.name} />
+                  </div>
+                  <div className="p-3 flex flex-col flex-1">
+                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
+                    <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 flex-1 mb-2">{cleanName(prod.name)}</h4>
+                    <div className="text-base font-black text-green-700 mb-3">${prod.price.toFixed(2)}</div>
+                    {qty === 0 ? (
+                      <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
+                        Add to Cart
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
+                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
+                        <span className="text-xs font-bold w-4 text-center">{qty}</span>
+                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 5. FEATURED PRODUCTS */}
       {!searchTerm && !selectedCategory && (
         <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-12">
           <div className="flex items-center justify-between mb-5">
