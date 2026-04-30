@@ -445,3 +445,15 @@ model LocalTaxRule {
   
   @@map("local_tax_rules")
 }
+
+model ProductReview {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  userName  String
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+  
+  @@map("product_reviews")
+}

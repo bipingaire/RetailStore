@@ -475,4 +475,47 @@ export class ProductService {
     }
     return { success: true, processed: results.length, details: results };
   }
+
+  async getReviews(subdomain: string, productId: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+    
+    const reviews = await client.productReview.findMany({
+      where: { productId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const stats = await client.productReview.aggregate({
+      where: { productId },
+      _avg: { rating: true },
+      _count: { id: true }
+    });
+
+    return {
+      reviews,
+      averageRating: stats._avg.rating || 0,
+      totalCount: stats._count.id || 0
+    };
+  }
+
+  async addReview(subdomain: string, productId: string, data: { userId: string; userName: string; rating: number; comment?: string }) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    // Validate if product exists
+    const product = await client.product.findUnique({ where: { id: productId } });
+    if (!product) throw new Error('Product not found');
+
+    const review = await client.productReview.create({
+      data: {
+        productId,
+        userId: data.userId,
+        userName: data.userName,
+        rating: data.rating,
+        comment: data.comment
+      }
+    });
+
+    return review;
+  }
 }

@@ -47,6 +47,75 @@ const DEFAULT_BANNERS: Banner[] = [
   { id: '3', type: 'side', title: 'Daily Hygiene', subtitle: 'Soaps & Sanitizers', cta: '15% OFF', bgColor: '#eef5ff', imageUrl: 'https://cdn-icons-png.flaticon.com/512/2954/2954888.png', link: '' },
 ];
 
+const ProductCard = ({ prod, cart, updateQty, getPromoForProduct, cleanName, className = "" }: any) => {
+  const qty = cart[prod.id] || 0;
+  const promo = getPromoForProduct(prod.id);
+  const priceNum = prod.price || 0;
+  const priceStr = priceNum.toFixed(2);
+  const [dollars, cents] = priceStr.split('.');
+  
+  return (
+    <div className={`bg-white flex flex-col flex-shrink-0 relative group border border-transparent hover:shadow-lg hover:border-green-100 rounded-2xl transition-all pb-2 h-full ${className}`}>
+      {/* Image Container */}
+      <div className="relative aspect-square bg-white flex items-center justify-center p-2 mb-2 rounded-t-2xl overflow-hidden">
+        <Link href={`/shop/product/${prod.id}`} className="absolute inset-0 z-0"></Link>
+        {promo && (
+          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
+            {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
+          </div>
+        )}
+        <button className="absolute top-2 right-2 text-gray-400 hover:text-red-500 z-10 bg-white rounded-full p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+          <Heart size={18} className="stroke-current" fill="none" />
+        </button>
+        <img src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"} className="w-full h-full object-contain" alt={prod.name} />
+        
+        {/* Floating Add Button */}
+        <div className="absolute -bottom-0 left-2 z-10">
+          {qty === 0 ? (
+            <button 
+              onClick={(e) => { e.preventDefault(); updateQty(prod.id, 1); }} 
+              className="bg-green-600 text-white font-bold py-1.5 px-4 rounded-full text-sm hover:bg-green-700 transition-colors shadow-md flex items-center gap-1"
+            >
+              <Plus size={16} strokeWidth={3} /> Add
+            </button>
+          ) : (
+            <div className="flex items-center gap-3 bg-green-600 text-white rounded-full px-3 py-1.5 shadow-md">
+              <button onClick={(e) => { e.preventDefault(); updateQty(prod.id, -1); }} className="hover:text-green-200"><Minus size={16} strokeWidth={3} /></button>
+              <span className="text-sm font-bold w-4 text-center">{qty}</span>
+              <button onClick={(e) => { e.preventDefault(); updateQty(prod.id, 1); }} className="hover:text-green-200"><Plus size={16} strokeWidth={3} /></button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Info Container */}
+      <div className="flex flex-col flex-1 px-3 pt-3">
+        <Link href={`/shop/product/${prod.id}`} className="flex flex-col gap-1 flex-1">
+          <div className="text-xl font-black text-gray-900 flex items-start leading-none mb-1">
+            <span className="text-sm mt-0.5">$</span>
+            <span>{dollars}</span>
+            <span className="text-sm mt-0.5">{cents}</span>
+          </div>
+          <h4 className="text-xs md:text-sm text-gray-800 line-clamp-2 leading-snug flex-1">{cleanName(prod.name)}</h4>
+          <div className="flex items-center gap-1 mt-1 mb-1">
+            <div className="flex text-yellow-400">
+              <Star size={12} fill="currentColor" />
+              <Star size={12} fill="currentColor" />
+              <Star size={12} fill="currentColor" />
+              <Star size={12} fill="currentColor" />
+              <Star size={12} className="text-gray-300" fill="currentColor" />
+            </div>
+            <span className="text-xs text-gray-500">47</span>
+          </div>
+          <p className="text-[10px] md:text-[11px] text-gray-500 mt-1">
+            Shipping, arrives <span className="font-bold text-gray-700">in 3+ days</span>
+          </p>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
 export default function ShopHome() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -532,38 +601,17 @@ export default function ShopHome() {
           </div>
 
           <div className="flex gap-4 overflow-x-auto pb-3 hide-scrollbar">
-            {top12PopularProducts.map((prod) => {
-              const qty = cart[prod.id] || 0;
-              const promo = getPromoForProduct(prod.id);
-              return (
-                <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all flex flex-col flex-shrink-0 overflow-hidden">
-                  <div className="relative aspect-square bg-gray-50 flex items-center justify-center p-2">
-                    {promo && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-                        {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
-                      </div>
-                    )}
-                    <img src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"} className="w-full h-full object-contain" alt={prod.name} />
-                  </div>
-                  <div className="p-3 flex flex-col flex-1">
-                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                    <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 flex-1 mb-2">{cleanName(prod.name)}</h4>
-                    <div className="text-base font-black text-green-700 mb-3">${prod.price.toFixed(2)}</div>
-                    {qty === 0 ? (
-                      <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
-                        Add to Cart
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
-                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
-                        <span className="text-xs font-bold w-4 text-center">{qty}</span>
-                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {top12PopularProducts.map((prod) => (
+              <ProductCard 
+                key={prod.id} 
+                prod={prod} 
+                cart={cart} 
+                updateQty={updateQty} 
+                getPromoForProduct={getPromoForProduct} 
+                cleanName={cleanName}
+                className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px]"
+              />
+            ))}
           </div>
         </div>
       )}
@@ -588,38 +636,17 @@ export default function ShopHome() {
           </div>
 
           <div className="flex gap-4 overflow-x-auto pb-3 hide-scrollbar">
-            {products.filter(p => p.imageUrl).slice(0, 10).map((prod) => {
-              const qty = cart[prod.id] || 0;
-              const promo = getPromoForProduct(prod.id);
-              return (
-                <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all flex flex-col flex-shrink-0 overflow-hidden">
-                  <div className="relative aspect-square bg-gray-50">
-                    {promo && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-                        {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
-                      </div>
-                    )}
-                    <img src={prod.imageUrl!} className="w-full h-full object-cover" alt={prod.name} />
-                  </div>
-                  <div className="p-3 flex flex-col flex-1">
-                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                    <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 flex-1 mb-2">{cleanName(prod.name)}</h4>
-                    <div className="text-base font-black text-green-700 mb-3">${prod.price.toFixed(2)}</div>
-                    {qty === 0 ? (
-                      <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
-                        Add to Cart
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
-                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
-                        <span className="text-xs font-bold w-4 text-center">{qty}</span>
-                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {products.filter(p => p.imageUrl).slice(0, 10).map((prod) => (
+              <ProductCard 
+                key={prod.id} 
+                prod={prod} 
+                cart={cart} 
+                updateQty={updateQty} 
+                getPromoForProduct={getPromoForProduct} 
+                cleanName={cleanName}
+                className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px]"
+              />
+            ))}
           </div>
         </div>
       )}
@@ -658,45 +685,17 @@ export default function ShopHome() {
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar -mx-1 px-1">
-              {catProducts.slice(0, 6).map((prod) => {
-                const qty = cart[prod.id] || 0;
-                const promo = getPromoForProduct(prod.id);
-                return (
-                  <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all flex flex-col flex-shrink-0 overflow-hidden group">
-                    <div className="relative bg-gray-50" style={{paddingBottom:'100%'}}>
-                      <div className="absolute inset-0 flex items-center justify-center p-2">
-                        {promo && (
-                          <div className="absolute top-2 left-2 bg-yellow-400 text-gray-900 text-[9px] font-black px-1.5 py-0.5 rounded-sm z-10 uppercase tracking-wide">
-                            {promo.discount_type === 'percentage' ? `Save ${Math.round(promo.discount_value)}%` : `Save $${promo.discount_value.toFixed(0)}`}
-                          </div>
-                        )}
-                        <img
-                          src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                          alt={prod.name}
-                        />
-                      </div>
-                    </div>
-                    <div className="p-3 flex flex-col flex-1 border-t border-gray-100">
-                      <h4 className="text-xs text-gray-800 line-clamp-2 flex-1 mb-2 leading-snug">{cleanName(prod.name)}</h4>
-                      <div className="mb-2">
-                        <span className="text-base font-black text-gray-900">${prod.price.toFixed(2)}</span>
-                      </div>
-                      {qty === 0 ? (
-                        <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-full text-[11px] hover:bg-green-700 transition-colors shadow-sm">
-                          Add to cart
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-2 py-1 justify-center">
-                          <button onClick={() => updateQty(prod.id, -1)} className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Minus size={10} /></button>
-                          <span className="text-xs font-bold w-5 text-center text-green-800">{qty}</span>
-                          <button onClick={() => updateQty(prod.id, 1)} className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Plus size={10} /></button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              {catProducts.slice(0, 6).map((prod) => (
+                <ProductCard 
+                  key={prod.id} 
+                  prod={prod} 
+                  cart={cart} 
+                  updateQty={updateQty} 
+                  getPromoForProduct={getPromoForProduct} 
+                  cleanName={cleanName}
+                  className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px]"
+                />
+              ))}
               {/* See All Card at end of row */}
               {catProducts.length > 12 && (
                 <Link
@@ -762,43 +761,17 @@ export default function ShopHome() {
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-                {filteredProducts.slice(0, visibleCount).map((prod) => {
-                  const qty = cart[prod.id] || 0;
-                  const promo = getPromoForProduct(prod.id);
-                  return (
-                    <div key={prod.id} className="bg-white rounded-2xl p-3 md:p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all flex flex-col justify-between">
-                      <div className="flex-1 flex flex-col">
-                        <div className="aspect-square bg-gray-50 rounded-xl mb-3 flex items-center justify-center overflow-hidden relative">
-                          {promo && (
-                            <div className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-                              {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
-                            </div>
-                          )}
-                          <img
-                            src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                            className="w-full h-full object-cover" alt={prod.name}
-                          />
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                        <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{cleanName(prod.name)}</h4>
-                        <div className="text-lg font-black text-green-700 mb-4">${prod.price.toFixed(2)}</div>
-                      </div>
-                      <div className="mt-auto">
-                        {qty === 0 ? (
-                          <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
-                            Add to Cart
-                          </button>
-                        ) : (
-                          <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
-                            <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={12} /></button>
-                            <span className="text-xs font-bold w-5 text-center">{qty}</span>
-                            <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={12} /></button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {filteredProducts.slice(0, visibleCount).map((prod) => (
+                  <ProductCard 
+                    key={prod.id} 
+                    prod={prod} 
+                    cart={cart} 
+                    updateQty={updateQty} 
+                    getPromoForProduct={getPromoForProduct} 
+                    cleanName={cleanName}
+                    className="w-full"
+                  />
+                ))}
               </div>
 
               {visibleCount < filteredProducts.length && (
