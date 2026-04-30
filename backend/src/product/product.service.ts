@@ -279,7 +279,7 @@ export class ProductService {
     // Get an image for each category
     const imageMap = new Map<string, string>();
     const imageProducts = await client.product.findMany({
-      where: { imageUrl: { not: null, not: '' } },
+      where: { imageUrl: { not: null } },
       select: { category: true, imageUrl: true }
     });
     for (const p of imageProducts) {
