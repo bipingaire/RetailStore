@@ -3,6 +3,13 @@ import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantService } from '../tenant/tenant.service';
 
+function standardizeCategory(cat: string | null | undefined): string {
+    if (!cat) return '';
+    return cat.trim().split(/\s+/).map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+}
+
 @Injectable()
 export class CategoryService {
     constructor(
@@ -96,8 +103,9 @@ export class CategoryService {
     }
 
     async addGlobalCategory(name: string, description?: string) {
+        const standardName = standardizeCategory(name) || name;
         const newGlobalCat = await this.prisma.globalCategory.create({
-            data: { name, description }
+            data: { name: standardName, description }
         });
 
         // Sync to all tenants
@@ -106,9 +114,9 @@ export class CategoryService {
             try {
                 const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
                 await tClient.category.upsert({
-                    where: { name },
+                    where: { name: standardName },
                     update: {},
-                    create: { name, description, isActive: true }
+                    create: { name: standardName, description, isActive: true }
                 });
             } catch (err) {
                 console.error(`Failed to sync global category to tenant ${t.subdomain}`, err);
@@ -146,11 +154,12 @@ export class CategoryService {
         if (!cat) throw new NotFoundException('Global Category not found');
 
         const oldName = cat.name;
+        const standardName = standardizeCategory(name) || name;
 
         // Update the global category
         const updatedCat = await this.prisma.globalCategory.update({
             where: { id },
-            data: { name, description }
+            data: { name: standardName, description }
         });
 
         // Sync rename to all tenants
@@ -163,7 +172,7 @@ export class CategoryService {
                 if (existingTenantCat) {
                     await tClient.category.update({
                         where: { id: existingTenantCat.id },
-                        data: { name, description }
+                        data: { name: standardName, description }
                     });
                 }
             } catch (err) {
@@ -175,12 +184,13 @@ export class CategoryService {
     }
 
     async renameDynamicCategory(oldName: string, newName: string) {
+        const standardNewName = standardizeCategory(newName) || newName;
         // Update all products in Global Catalog that use this category
         await this.prisma.globalProductMasterCatalog.updateMany({
             where: { category: oldName },
-            data: { category: newName }
+            data: { category: standardNewName }
         });
         
-        return { success: true, oldName, newName };
+        return { success: true, oldName, newName: standardNewName };
     }
 }

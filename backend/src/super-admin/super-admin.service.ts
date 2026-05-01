@@ -1,8 +1,14 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { AiService } from '../ai/ai.service';
+
+function standardizeCategory(cat: string | null | undefined): string | undefined {
+    if (!cat) return undefined;
+    return cat.trim().split(/\s+/).map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+}
 
 @Injectable()
 export class SuperAdminService {
@@ -137,7 +143,7 @@ export class SuperAdminService {
             create: {
                 sku,
                 productName: item.productName,
-                category: item.categoryName,
+                category: standardizeCategory(item.categoryName) || item.categoryName,
                 description: item.descriptionText,
                 basePrice: 0, // Defaultor retrieval needed?
                 imageUrl: item.imageUrl,
@@ -177,7 +183,7 @@ export class SuperAdminService {
             where: { sku: id },
             data: {
                 productName: data.name,
-                category: data.category,
+                category: standardizeCategory(data.category) || data.category,
                 description: data.description,
                 imageUrl: data.image_url,
                 syncedAt: new Date(),
