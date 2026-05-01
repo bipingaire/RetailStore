@@ -719,8 +719,17 @@ export default function ShopHome() {
         <div className="max-w-screen-2xl mx-auto px-4 lg:px-6 mt-10">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl md:text-2xl font-black text-gray-900">
-                {searchTerm ? `Results for "${searchTerm}"` : `${getCategoryEmoji(selectedCategory!)} ${selectedCategory}`}
+              <h2 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2">
+                {searchTerm ? `Results for "${searchTerm}"` : (
+                  <>
+                    {categoryImages.get(selectedCategory!) ? (
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-50 border border-gray-100 p-1">
+                        <img src={categoryImages.get(selectedCategory!)!} alt={selectedCategory!} className="w-full h-full object-contain mix-blend-multiply" />
+                      </div>
+                    ) : getCategoryEmoji(selectedCategory!)}
+                    {selectedCategory}
+                  </>
+                )}
               </h2>
               <p className="text-sm text-gray-400 mt-0.5">{filteredProducts.length} products found</p>
             </div>
@@ -747,9 +756,14 @@ export default function ShopHome() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${selectedCategory === cat ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700'}`}
+                  className={`px-4 py-1.5 flex items-center gap-2 rounded-full text-sm font-semibold transition-all ${selectedCategory === cat ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700'}`}
                 >
-                  {getCategoryEmoji(cat)} {cat}
+                  {categoryImages.get(cat) ? (
+                    <div className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-200">
+                      <img src={categoryImages.get(cat)!} alt={cat} className="w-full h-full object-contain mix-blend-multiply" />
+                    </div>
+                  ) : getCategoryEmoji(cat)}
+                  {cat}
                 </button>
               ))}
             </div>

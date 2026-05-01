@@ -279,8 +279,15 @@ function CategoriesInner() {
               <input type="text" placeholder={`Search in ${activeTab || 'All Products'}...`} className="w-full bg-gray-100 rounded-xl py-2 pl-9 pr-3 text-[13px] font-medium outline-none focus:ring-1 focus:ring-green-500" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
             </div>
             
-            <h2 className="font-bold text-gray-900 mb-3 px-1">
-              {activeTab || 'All Products'} <span className="text-gray-400 font-normal text-sm ml-1">({totalProducts})</span>
+            <h2 className="font-bold text-gray-900 mb-3 px-1 flex items-center gap-2">
+              {activeTab && categories.find(c => c.name === activeTab)?.imageUrl ? (
+                <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-white border border-gray-100 overflow-hidden">
+                  <img src={categories.find(c => c.name === activeTab)?.imageUrl!} alt={activeTab} className="w-full h-full object-contain mix-blend-multiply" />
+                </div>
+              ) : activeTab ? (
+                <span>{getCategoryEmoji(activeTab)}</span>
+              ) : null}
+              {activeTab || '🛒 All Products'} <span className="text-gray-400 font-normal text-sm ml-1">({totalProducts})</span>
             </h2>
             
             {loading && page === 1 ? (
