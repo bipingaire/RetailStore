@@ -526,15 +526,15 @@ export default function SuperAdminPage() {
                           <button
                             onClick={(e) => { e.stopPropagation(); handleAiEnrich(p); }}
                             disabled={enriching === p.id}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                               enriching === p.id
-                                ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
-                                : 'bg-white text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-300'
+                                ? 'bg-gray-300 text-white cursor-not-allowed'
+                                : 'bg-[#2a2d32] hover:bg-black text-white'
                             }`}
                           >
                             {enriching === p.id
                               ? <><Loader2 className="animate-spin" size={12} /> Processing</>
-                              : <><Sparkles size={12} /> Enrich with AI</>}
+                              : 'Enrich with AI'}
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditedProduct({ ...p }); }}
@@ -1041,14 +1041,13 @@ export default function SuperAdminPage() {
                   <button
                     onClick={(e) => { e.preventDefault(); handleAiEnrich(editedProduct); }}
                     disabled={enriching === editedProduct.id}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                       enriching === editedProduct.id
-                        ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
-                        : 'bg-white text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-300'
+                        ? 'bg-gray-300 text-white cursor-not-allowed'
+                        : 'bg-[#2a2d32] hover:bg-black text-white'
                     }`}
                   >
-                    {enriching === editedProduct.id ? <Loader2 className="animate-spin" size={12} /> : <Sparkles size={12} />}
-                    {enriching === editedProduct.id ? 'Fetching...' : 'Enrich with AI'}
+                    {enriching === editedProduct.id ? <><Loader2 className="animate-spin" size={12} /> Fetching...</> : 'Enrich with AI'}
                   </button>
                 </div>
 
