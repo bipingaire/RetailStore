@@ -955,7 +955,12 @@ export default function SuperAdminPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Target Category</label>
                       <select value={newTaxCategory} onChange={e => setNewTaxCategory(e.target.value)} className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
                         <option value="" disabled>Select a category...</option>
-                        {taxCategories.map(c => <option key={c['category-id']} value={c['category-name']}>{c['category-name']}</option>)}
+                        {Array.from(new Set([
+                          ...taxCategories.map(c => c['category-name']),
+                          ...products.map(p => p.category)
+                        ].filter(Boolean))).sort().map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
                       </select>
                     </div>
                     <div>
