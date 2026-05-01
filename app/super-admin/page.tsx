@@ -465,58 +465,81 @@ export default function SuperAdminPage() {
               </div>
             </div>
 
-            <div className="bg-white/60 backdrop-blur-xl rounded-[2.5rem] border border-white/50 overflow-hidden shadow-lg p-6">
-              <table className="w-full text-left text-sm text-gray-600">
-                <thead className="border-b border-gray-100 text-gray-400 text-xs font-medium">
-                  <tr>
-                    <th className="p-4 font-medium">Product</th>
-                    <th className="p-4 font-medium">Category</th>
-                    <th className="p-4 font-medium">Status</th>
-                    <th className="p-4 text-right font-medium">Actions</th>
+            <div className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm overflow-hidden">
+              {/* Table Header bar */}
+              <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-white/50">
+                <p className="text-sm text-gray-500">
+                  <span className="font-semibold text-gray-900">{filteredProducts.length}</span> products
+                </p>
+              </div>
+
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 uppercase border-b border-gray-100 bg-gray-50/50">
+                    <th className="px-5 py-3 text-left font-medium">Product</th>
+                    <th className="px-5 py-3 text-left font-medium">SKU / UPC</th>
+                    <th className="px-5 py-3 text-left font-medium">Category</th>
+                    <th className="px-5 py-3 text-left font-medium">Status</th>
+                    <th className="px-5 py-3 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-50">
                   {paginatedProducts.length > 0 ? paginatedProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => setSelectedProduct(p)}>
-                      <td className="p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border border-gray-200 shrink-0">
-                          {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-gray-400" />}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{p.name}</div>
-                          <div className="text-xs text-gray-500 font-mono mt-0.5">{p.upc_ean || 'N/A'}</div>
+                    <tr key={p.id} className="hover:bg-gray-50/70 transition-colors group" onClick={() => setSelectedProduct(p)}>
+                      {/* Product Name + Image */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3 cursor-pointer">
+                          <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 shrink-0">
+                            {p.image_url
+                              ? <img src={p.image_url} className="w-full h-full object-cover" alt={p.name} />
+                              : <ImageIcon size={15} className="text-gray-400" />}
+                          </div>
+                          <span className="font-medium text-gray-900 leading-snug">{p.name}</span>
                         </div>
                       </td>
-                      <td className="p-4">{p.category}</td>
-                      <td className="p-4">
+
+                      {/* SKU */}
+                      <td className="px-5 py-3.5">
+                        <span className="text-xs font-mono text-gray-400">{p.upc_ean || '—'}</span>
+                      </td>
+
+                      {/* Category */}
+                      <td className="px-5 py-3.5">
+                        <span className="text-gray-600 text-sm">{p.category}</span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-5 py-3.5">
                         {p.ai_enriched_at ? (
-                          <span className="bg-green-50 text-green-700 px-2.5 py-1 rounded-md text-xs border border-green-200 font-medium flex w-fit items-center gap-1.5"><Sparkles size={12} className="text-green-500" /> Enriched</span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                            <Sparkles size={11} /> Enriched
+                          </span>
                         ) : (
-                          <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md text-xs font-medium border border-gray-200">Standard</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                            Standard
+                          </span>
                         )}
                       </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-3">
+
+                      {/* Actions */}
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAiEnrich(p);
-                            }}
+                            onClick={(e) => { e.stopPropagation(); handleAiEnrich(p); }}
                             disabled={enriching === p.id}
-                            className={`
-                                text-xs font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-md transition
-                                ${enriching === p.id ? 'bg-purple-50 text-purple-400 cursor-not-allowed' : 'text-purple-600 bg-purple-50 hover:bg-purple-100'}
-                            `}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                              enriching === p.id
+                                ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
+                                : 'bg-white text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-300'
+                            }`}
                           >
-                            {enriching === p.id ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
-                            {enriching === p.id ? 'Enriching...' : 'Enrich AI'}
+                            {enriching === p.id
+                              ? <><Loader2 className="animate-spin" size={12} /> Processing</>
+                              : <><Sparkles size={12} /> Enrich with AI</>}
                           </button>
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditedProduct({ ...p });
-                            }}
-                            className="text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline"
+                            onClick={(e) => { e.stopPropagation(); setEditedProduct({ ...p }); }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                           >
                             Edit
                           </button>
@@ -525,33 +548,30 @@ export default function SuperAdminPage() {
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-gray-500">No products found matching your search.</td>
+                      <td colSpan={5} className="px-5 py-12 text-center text-gray-400 text-sm">No products found matching your search.</td>
                     </tr>
                   )}
                 </tbody>
               </table>
 
-              {/* Pagination Controls */}
+              {/* Pagination */}
               {totalPages > 1 && (
-                <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-white mt-2">
-                  <div className="text-sm text-gray-500">
-                    Showing <span className="font-medium text-gray-900">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="font-medium text-gray-900">{filteredProducts.length}</span> products
-                  </div>
-                  <div className="flex gap-2">
+                <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between bg-white/50">
+                  <span className="text-xs text-gray-500">
+                    Showing <strong className="text-gray-700">{((currentPage - 1) * itemsPerPage) + 1}</strong>–<strong className="text-gray-700">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</strong> of <strong className="text-gray-700">{filteredProducts.length}</strong>
+                  </span>
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-300 shadow-sm"
-                    >
-                      Previous
-                    </button>
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >← Prev</button>
+                    <span className="px-3 py-1.5 text-xs text-gray-500">{currentPage} / {totalPages}</span>
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition border border-gray-300 shadow-sm"
-                    >
-                      Next
-                    </button>
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >Next →</button>
                   </div>
                 </div>
               )}
