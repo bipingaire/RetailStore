@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Put, Body, Param, Headers } from '@nestjs/common';
 import { CategoryService } from './category.service';
 
 @Controller('categories')
@@ -41,5 +41,18 @@ export class CategoryController {
     @Delete('global/:id')
     async deleteGlobalCategory(@Param('id') id: string) {
         return this.categoryService.deleteGlobalCategory(id);
+    }
+
+    @Put('global/:id')
+    async updateGlobalCategory(
+        @Param('id') id: string,
+        @Body() body: { name: string; description?: string }
+    ) {
+        return this.categoryService.updateGlobalCategory(id, body.name, body.description);
+    }
+
+    @Put('global/rename/dynamic')
+    async renameDynamicCategory(@Body() body: { oldName: string; newName: string }) {
+        return this.categoryService.renameDynamicCategory(body.oldName, body.newName);
     }
 }

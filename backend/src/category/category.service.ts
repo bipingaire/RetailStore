@@ -140,4 +140,47 @@ export class CategoryService {
 
         return deletedCat;
     }
+
+    async updateGlobalCategory(id: string, name: string, description?: string) {
+        const cat = await this.prisma.globalCategory.findUnique({ where: { id } });
+        if (!cat) throw new NotFoundException('Global Category not found');
+
+        const oldName = cat.name;
+
+        // Update the global category
+        const updatedCat = await this.prisma.globalCategory.update({
+            where: { id },
+            data: { name, description }
+        });
+
+        // Sync rename to all tenants
+        const allTenants = await this.tenantService.findAll();
+        for (const t of allTenants) {
+            try {
+                const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
+                // First try to find if the old name exists in tenant
+                const existingTenantCat = await tClient.category.findUnique({ where: { name: oldName } });
+                if (existingTenantCat) {
+                    await tClient.category.update({
+                        where: { id: existingTenantCat.id },
+                        data: { name, description }
+                    });
+                }
+            } catch (err) {
+                console.error(`Failed to update global category on tenant ${t.subdomain}`, err);
+            }
+        }
+
+        return updatedCat;
+    }
+
+    async renameDynamicCategory(oldName: string, newName: string) {
+        // Update all products in Global Catalog that use this category
+        await this.prisma.globalProductMasterCatalog.updateMany({
+            where: { category: oldName },
+            data: { category: newName }
+        });
+        
+        return { success: true, oldName, newName };
+    }
 }

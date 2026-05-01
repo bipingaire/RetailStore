@@ -85,6 +85,9 @@ export default function SuperAdminPage() {
   const [catSaving, setCatSaving] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState('');
+  const [editCategoryDesc, setEditCategoryDesc] = useState('');
 
   // --- Tax State ---
   interface GlobalTaxRule { 'tax-rule-id': string; state: string; 'target-type': string; 'target-value': string; 'tax-rate': number; 'is-active': boolean; }
@@ -235,6 +238,21 @@ export default function SuperAdminPage() {
     if (!confirm('Delete this category?')) return;
     try { await apiClient.delete(`/categories/global/${id}`); await loadCategories(); toast.success('Category deleted'); }
     catch { toast.error('Failed to delete category'); }
+  }
+
+  async function handleSaveEditCategory(id: string, isDynamic: boolean) {
+    if (!editCategoryName.trim()) return;
+    try {
+      if (isDynamic) {
+        await apiClient.put('/categories/global/rename/dynamic', { oldName: id, newName: editCategoryName.trim() });
+        setProducts(prev => prev.map(p => p.category === id ? { ...p, category: editCategoryName.trim() } : p));
+      } else {
+        await apiClient.put(`/categories/global/${id}`, { name: editCategoryName.trim(), description: editCategoryDesc.trim() || undefined });
+        await loadCategories();
+      }
+      toast.success('Category updated!');
+      setEditingCategoryId(null);
+    } catch (err: any) { toast.error('Failed to update category: ' + err.message); }
   }
 
   // --- TAX HANDLERS ---
@@ -928,20 +946,49 @@ export default function SuperAdminPage() {
                         ) : (
                           <ul className="divide-y divide-white/30">
                             {catList.map(cat => (
-                              <li key={cat['category-id']} className="p-4 hover:bg-white/20 flex items-center justify-between transition-colors">
-                                <div>
-                                  <p className="font-bold text-gray-900">{cat['category-name']}</p>
-                                  {cat.description && <p className="text-sm text-gray-500 mt-0.5">{cat.description}</p>}
-                                </div>
-                                <button onClick={() => handleDeleteCategory(cat['category-id'])} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete"><X className="w-4 h-4" /></button>
+                              <li key={cat['category-id']} className="p-4 hover:bg-white/20 transition-colors">
+                                {editingCategoryId === cat['category-id'] ? (
+                                  <div className="flex flex-col gap-2">
+                                    <input type="text" value={editCategoryName} onChange={e => setEditCategoryName(e.target.value)} className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm" placeholder="Category Name" />
+                                    <input type="text" value={editCategoryDesc} onChange={e => setEditCategoryDesc(e.target.value)} className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm" placeholder="Description" />
+                                    <div className="flex gap-2 justify-end mt-1">
+                                      <button onClick={() => setEditingCategoryId(null)} className="px-3 py-1 text-xs rounded-md border bg-white hover:bg-gray-50 text-gray-600">Cancel</button>
+                                      <button onClick={() => handleSaveEditCategory(cat['category-id'], false)} className="px-3 py-1 text-xs rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium">Save</button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="font-bold text-gray-900">{cat['category-name']}</p>
+                                      {cat.description && <p className="text-sm text-gray-500 mt-0.5">{cat.description}</p>}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <button onClick={() => { setEditingCategoryId(cat['category-id']); setEditCategoryName(cat['category-name']); setEditCategoryDesc(cat.description || ''); }} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-xs font-medium border border-transparent hover:border-blue-200">Edit</button>
+                                      <button onClick={() => handleDeleteCategory(cat['category-id'])} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete"><X className="w-4 h-4" /></button>
+                                    </div>
+                                  </div>
+                                )}
                               </li>
                             ))}
                             {uniqueDynamicCategories.sort().map((cat: string) => (
-                              <li key={`dynamic-${cat}`} className="p-4 hover:bg-white/20 flex items-center justify-between transition-colors">
-                                <div>
-                                  <p className="font-bold text-gray-900 flex items-center gap-2">{cat} <span className="px-2 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded-full font-medium">From Catalog</span></p>
-                                  <p className="text-sm text-gray-500 mt-0.5">Dynamically extracted from Global Catalog products</p>
-                                </div>
+                              <li key={`dynamic-${cat}`} className="p-4 hover:bg-white/20 transition-colors">
+                                {editingCategoryId === cat ? (
+                                  <div className="flex flex-col gap-2">
+                                    <input type="text" value={editCategoryName} onChange={e => setEditCategoryName(e.target.value)} className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm" placeholder="Rename Category" />
+                                    <div className="flex gap-2 justify-end mt-1">
+                                      <button onClick={() => setEditingCategoryId(null)} className="px-3 py-1 text-xs rounded-md border bg-white hover:bg-gray-50 text-gray-600">Cancel</button>
+                                      <button onClick={() => handleSaveEditCategory(cat, true)} className="px-3 py-1 text-xs rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium">Rename Across Catalog</button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="font-bold text-gray-900 flex items-center gap-2">{cat} <span className="px-2 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded-full font-medium">From Catalog</span></p>
+                                      <p className="text-sm text-gray-500 mt-0.5">Dynamically extracted from Global Catalog products</p>
+                                    </div>
+                                    <button onClick={() => { setEditingCategoryId(cat); setEditCategoryName(cat); }} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-xs font-medium border border-transparent hover:border-blue-200">Rename</button>
+                                  </div>
+                                )}
                               </li>
                             ))}
                           </ul>
