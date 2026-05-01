@@ -162,12 +162,12 @@ export class CategoryService {
             data: { name: standardName, description }
         });
 
-        // Sync rename to all tenants
+        // Sync rename to all tenants — both category table AND product category strings
         const allTenants = await this.tenantService.findAll();
         for (const t of allTenants) {
             try {
                 const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
-                // First try to find if the old name exists in tenant
+                // Update the category registry entry
                 const existingTenantCat = await tClient.category.findUnique({ where: { name: oldName } });
                 if (existingTenantCat) {
                     await tClient.category.update({
@@ -175,6 +175,11 @@ export class CategoryService {
                         data: { name: standardName, description }
                     });
                 }
+                // Also update all products that have the old category string
+                await tClient.product.updateMany({
+                    where: { category: oldName },
+                    data: { category: standardName }
+                });
             } catch (err) {
                 console.error(`Failed to update global category on tenant ${t.subdomain}`, err);
             }
@@ -185,12 +190,36 @@ export class CategoryService {
 
     async renameDynamicCategory(oldName: string, newName: string) {
         const standardNewName = standardizeCategory(newName) || newName;
-        // Update all products in Global Catalog that use this category
+
+        // 1. Update all products in Global SharedCatalog
         await this.prisma.sharedCatalog.updateMany({
             where: { category: oldName },
             data: { category: standardNewName }
         });
-        
+
+        // 2. Propagate to all tenant product tables (shop page reads from here)
+        const allTenants = await this.tenantService.findAll();
+        for (const t of allTenants) {
+            try {
+                const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
+                // Update product category strings
+                await tClient.product.updateMany({
+                    where: { category: oldName },
+                    data: { category: standardNewName }
+                });
+                // Also update/create the category registry entry
+                const existingCat = await tClient.category.findUnique({ where: { name: oldName } });
+                if (existingCat) {
+                    await tClient.category.update({
+                        where: { id: existingCat.id },
+                        data: { name: standardNewName }
+                    });
+                }
+            } catch (err) {
+                console.error(`Failed to rename category on tenant ${t.subdomain}`, err);
+            }
+        }
+
         return { success: true, oldName, newName: standardNewName };
     }
 }

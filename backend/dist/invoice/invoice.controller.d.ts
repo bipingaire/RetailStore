@@ -11,13 +11,13 @@ export declare class InvoiceController {
     }): Promise<{
         message: string;
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
     testEndpoint(): {
@@ -35,22 +35,22 @@ export declare class InvoiceController {
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
@@ -71,34 +71,34 @@ export declare class InvoiceController {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     })[] | import("../common/pagination.dto").PaginatedResponse<{
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
@@ -119,35 +119,35 @@ export declare class InvoiceController {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>>;
     getInvoice(subdomain: string, id: string): Promise<{
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
@@ -168,13 +168,13 @@ export declare class InvoiceController {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
     getInvoiceParsed(subdomain: string, id: string): Promise<{
@@ -209,13 +209,13 @@ export declare class InvoiceController {
         items?: any[];
     }): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
     addItems(subdomain: string, id: string, body: {
@@ -229,22 +229,22 @@ export declare class InvoiceController {
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
@@ -265,13 +265,13 @@ export declare class InvoiceController {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: import("src/generated/tenant-client/runtime/library").Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
 }

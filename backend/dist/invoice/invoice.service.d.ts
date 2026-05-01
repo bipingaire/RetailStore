@@ -22,35 +22,35 @@ export declare class InvoiceService {
         expiryDate?: string;
     }>, fileUrl?: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: Prisma.Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
     getInvoice(subdomain: string, id: string): Promise<{
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
@@ -71,13 +71,13 @@ export declare class InvoiceService {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: Prisma.Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
     getInvoiceParsed(subdomain: string, id: string): Promise<{
@@ -106,13 +106,13 @@ export declare class InvoiceService {
     }>;
     updateInvoice(subdomain: string, id: string, vendorId: string, invoiceNumber: string, invoiceDate: Date, totalAmount: number, items: any[]): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: Prisma.Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
     getAllInvoices(subdomain: string, options?: {
@@ -125,22 +125,22 @@ export declare class InvoiceService {
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
@@ -161,34 +161,34 @@ export declare class InvoiceService {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: Prisma.Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     })[] | import("../common/pagination.dto").PaginatedResponse<{
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
@@ -209,13 +209,13 @@ export declare class InvoiceService {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: Prisma.Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>>;
     addInvoiceItems(subdomain: string, invoiceId: string, items: Array<{
@@ -227,22 +227,22 @@ export declare class InvoiceService {
         vendor: {
             id: string;
             name: string;
+            isActive: boolean;
             contactPerson: string | null;
             email: string | null;
             phone: string | null;
             address: string | null;
-            isActive: boolean;
         };
         items: ({
             product: {
-                category: string | null;
                 id: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                name: string;
-                isActive: boolean;
+                category: string | null;
                 sku: string;
-                description: string | null;
                 price: Prisma.Decimal;
                 costPrice: Prisma.Decimal;
                 stock: number;
@@ -263,13 +263,13 @@ export declare class InvoiceService {
         })[];
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         invoiceNumber: string;
         invoiceDate: Date;
         totalAmount: Prisma.Decimal;
         fileUrl: string | null;
         status: string;
-        createdAt: Date;
-        updatedAt: Date;
         vendorId: string;
     }>;
     parseInvoiceOCR(subdomain: string, fileUrl: string): Promise<{
