@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Search, ShoppingBag, Star, ArrowRight, Check, Plus, Minus,
-  Phone, Menu, Heart, User, ChevronDown, Clock, Zap, CheckCircle, Home, LayoutGrid
+  Phone, Menu, Heart, User, ChevronDown, Clock, Zap, CheckCircle, Home, LayoutGrid, Package
 } from 'lucide-react';
 import CountdownTimer from './components/countdown-timer';
 import ShopFooter from './components/shop-footer';
@@ -48,6 +48,7 @@ const DEFAULT_BANNERS: Banner[] = [
 ];
 
 export default function ShopHome() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -115,6 +116,14 @@ export default function ShopHome() {
     loadBanners();
   }, []);
 
+
+  // --- AUTH STATUS ---
+  useEffect(() => {
+    const checkAuth = () => setIsLoggedIn(!!localStorage.getItem('retail_token'));
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
 
   // --- CART LOGIC ---
   useEffect(() => {
@@ -304,16 +313,41 @@ export default function ShopHome() {
               </div>
             </div>
 
+            {/* Account & Orders */}
+            <div className="hidden md:flex items-center gap-3">
+              {isLoggedIn && (
+                <Link
+                  href="/shop/orders"
+                  className="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-green-50 transition-colors">
+                    <Package size={20} />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wide mt-1">Orders</span>
+                </Link>
+              )}
+              <Link
+                href="/shop/account"
+                className="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-green-50 transition-colors">
+                  <User size={20} />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wide mt-1">Account</span>
+              </Link>
+            </div>
+
             {/* Cart Icon */}
-            <Link href="/shop/cart" className="relative group">
-              <div className="w-12 h-12 bg-green-50 text-green-700 rounded-full flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                <ShoppingBag size={22} />
+            <Link href="/shop/cart" className="relative group flex flex-col items-center justify-center text-gray-500 hover:text-green-600 transition-colors">
+              <div className="w-10 h-10 bg-green-50 text-green-700 rounded-full flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors relative">
+                <ShoppingBag size={20} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full border-2 border-white">
                     {totalItems}
                   </span>
                 )}
               </div>
+              <span className="text-[10px] font-bold uppercase tracking-wide mt-1">Cart</span>
             </Link>
           </div>
         </div>

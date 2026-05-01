@@ -72,39 +72,6 @@ export default function ShopLayout({
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <header className="hidden md:block border-b bg-background">
-        <div className="w-full flex items-center justify-between gap-4 px-6 py-4">
-          <Link href="/shop" className="text-lg font-semibold">
-            {storeName}
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/shop/cart"
-              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2")}
-            >
-              <ShoppingBag className="h-4 w-4" />
-              Cart
-            </Link>
-            {/* Only show My Orders when the user is logged in */}
-            {isLoggedIn && (
-              <Link
-                href="/shop/orders"
-                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2")}
-              >
-                <Package className="h-4 w-4" />
-                My Orders
-              </Link>
-            )}
-            <Link
-              href="/shop/account"
-              className={cn(buttonVariants({ size: "sm" }), "gap-2")}
-            >
-              <UserRound className="h-4 w-4" />
-              Account
-            </Link>
-          </div>
-        </div>
-      </header>
       <main className="w-full">{children}</main>
     </div>
   );
