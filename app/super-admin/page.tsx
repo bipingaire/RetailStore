@@ -912,25 +912,43 @@ export default function SuperAdminPage() {
                   </form>
                 </div>
                 <div className="md:col-span-2 bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-white/40 bg-white/20">
-                    <h3 className="font-semibold text-gray-900">Active Global Categories ({catList.length})</h3>
-                    <p className="text-gray-500 text-xs mt-0.5">Pushed to every store tenant and used for AI invoice parsing.</p>
-                  </div>
-                  {catList.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">No global categories defined yet.</div>
-                  ) : (
-                    <ul className="divide-y divide-white/30">
-                      {catList.map(cat => (
-                        <li key={cat['category-id']} className="p-4 hover:bg-white/20 flex items-center justify-between transition-colors">
-                          <div>
-                            <p className="font-bold text-gray-900">{cat['category-name']}</p>
-                            {cat.description && <p className="text-sm text-gray-500 mt-0.5">{cat.description}</p>}
-                          </div>
-                          <button onClick={() => handleDeleteCategory(cat['category-id'])} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete"><X className="w-4 h-4" /></button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {(() => {
+                    const globalCatalogCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+                    const uniqueDynamicCategories = globalCatalogCategories.filter(cat => !catList.some(c => c['category-name'] === cat));
+                    const totalCount = catList.length + uniqueDynamicCategories.length;
+
+                    return (
+                      <>
+                        <div className="px-6 py-4 border-b border-white/40 bg-white/20">
+                          <h3 className="font-semibold text-gray-900">Active Global Categories ({totalCount})</h3>
+                          <p className="text-gray-500 text-xs mt-0.5">Pushed to every store tenant and used for AI invoice parsing.</p>
+                        </div>
+                        {totalCount === 0 ? (
+                          <div className="p-8 text-center text-gray-500">No global categories defined yet.</div>
+                        ) : (
+                          <ul className="divide-y divide-white/30">
+                            {catList.map(cat => (
+                              <li key={cat['category-id']} className="p-4 hover:bg-white/20 flex items-center justify-between transition-colors">
+                                <div>
+                                  <p className="font-bold text-gray-900">{cat['category-name']}</p>
+                                  {cat.description && <p className="text-sm text-gray-500 mt-0.5">{cat.description}</p>}
+                                </div>
+                                <button onClick={() => handleDeleteCategory(cat['category-id'])} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete"><X className="w-4 h-4" /></button>
+                              </li>
+                            ))}
+                            {uniqueDynamicCategories.sort().map((cat: string) => (
+                              <li key={`dynamic-${cat}`} className="p-4 hover:bg-white/20 flex items-center justify-between transition-colors">
+                                <div>
+                                  <p className="font-bold text-gray-900 flex items-center gap-2">{cat} <span className="px-2 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded-full font-medium">From Catalog</span></p>
+                                  <p className="text-sm text-gray-500 mt-0.5">Dynamically extracted from Global Catalog products</p>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             )}
