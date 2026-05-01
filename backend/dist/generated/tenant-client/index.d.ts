@@ -143,6 +143,16 @@ export type Expense = $Result.DefaultSelection<Prisma.$ExpensePayload>
  * 
  */
 export type ZReport = $Result.DefaultSelection<Prisma.$ZReportPayload>
+/**
+ * Model Category
+ * 
+ */
+export type Category = $Result.DefaultSelection<Prisma.$CategoryPayload>
+/**
+ * Model LocalTaxRule
+ * 
+ */
+export type LocalTaxRule = $Result.DefaultSelection<Prisma.$LocalTaxRulePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -526,6 +536,26 @@ export class PrismaClient<
     * ```
     */
   get zReport(): Prisma.ZReportDelegate<ExtArgs>;
+
+  /**
+   * `prisma.category`: Exposes CRUD operations for the **Category** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Categories
+    * const categories = await prisma.category.findMany()
+    * ```
+    */
+  get category(): Prisma.CategoryDelegate<ExtArgs>;
+
+  /**
+   * `prisma.localTaxRule`: Exposes CRUD operations for the **LocalTaxRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LocalTaxRules
+    * const localTaxRules = await prisma.localTaxRule.findMany()
+    * ```
+    */
+  get localTaxRule(): Prisma.LocalTaxRuleDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -992,7 +1022,9 @@ export namespace Prisma {
     PurchaseOrder: 'PurchaseOrder',
     ProfitReport: 'ProfitReport',
     Expense: 'Expense',
-    ZReport: 'ZReport'
+    ZReport: 'ZReport',
+    Category: 'Category',
+    LocalTaxRule: 'LocalTaxRule'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1008,7 +1040,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "product" | "sale" | "saleItem" | "customer" | "vendor" | "purchaseOrderItem" | "stockMovement" | "invoice" | "campaign" | "promotion" | "campaignProduct" | "socialAccount" | "reconciliation" | "settings" | "pOSItemMapping" | "productBatch" | "vendorInvoice" | "vendorInvoiceItem" | "auditSession" | "auditCount" | "inventoryAdjustment" | "purchaseOrder" | "profitReport" | "expense" | "zReport"
+      modelProps: "user" | "product" | "sale" | "saleItem" | "customer" | "vendor" | "purchaseOrderItem" | "stockMovement" | "invoice" | "campaign" | "promotion" | "campaignProduct" | "socialAccount" | "reconciliation" | "settings" | "pOSItemMapping" | "productBatch" | "vendorInvoice" | "vendorInvoiceItem" | "auditSession" | "auditCount" | "inventoryAdjustment" | "purchaseOrder" | "profitReport" | "expense" | "zReport" | "category" | "localTaxRule"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2832,6 +2864,146 @@ export namespace Prisma {
           }
         }
       }
+      Category: {
+        payload: Prisma.$CategoryPayload<ExtArgs>
+        fields: Prisma.CategoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CategoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CategoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>
+          }
+          findFirst: {
+            args: Prisma.CategoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CategoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>
+          }
+          findMany: {
+            args: Prisma.CategoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>[]
+          }
+          create: {
+            args: Prisma.CategoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>
+          }
+          createMany: {
+            args: Prisma.CategoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CategoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>[]
+          }
+          delete: {
+            args: Prisma.CategoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>
+          }
+          update: {
+            args: Prisma.CategoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.CategoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CategoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CategoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPayload>
+          }
+          aggregate: {
+            args: Prisma.CategoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCategory>
+          }
+          groupBy: {
+            args: Prisma.CategoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CategoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CategoryCountArgs<ExtArgs>
+            result: $Utils.Optional<CategoryCountAggregateOutputType> | number
+          }
+        }
+      }
+      LocalTaxRule: {
+        payload: Prisma.$LocalTaxRulePayload<ExtArgs>
+        fields: Prisma.LocalTaxRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LocalTaxRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LocalTaxRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>
+          }
+          findFirst: {
+            args: Prisma.LocalTaxRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LocalTaxRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>
+          }
+          findMany: {
+            args: Prisma.LocalTaxRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>[]
+          }
+          create: {
+            args: Prisma.LocalTaxRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>
+          }
+          createMany: {
+            args: Prisma.LocalTaxRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LocalTaxRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>[]
+          }
+          delete: {
+            args: Prisma.LocalTaxRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>
+          }
+          update: {
+            args: Prisma.LocalTaxRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.LocalTaxRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LocalTaxRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.LocalTaxRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LocalTaxRulePayload>
+          }
+          aggregate: {
+            args: Prisma.LocalTaxRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLocalTaxRule>
+          }
+          groupBy: {
+            args: Prisma.LocalTaxRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LocalTaxRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LocalTaxRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<LocalTaxRuleCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3403,6 +3575,37 @@ export namespace Prisma {
    */
   export type PurchaseOrderCountOutputTypeCountItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PurchaseOrderItemWhereInput
+  }
+
+
+  /**
+   * Count Type ZReportCountOutputType
+   */
+
+  export type ZReportCountOutputType = {
+    Sales: number
+  }
+
+  export type ZReportCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    Sales?: boolean | ZReportCountOutputTypeCountSalesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ZReportCountOutputType without action
+   */
+  export type ZReportCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ZReportCountOutputType
+     */
+    select?: ZReportCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ZReportCountOutputType without action
+   */
+  export type ZReportCountOutputTypeCountSalesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SaleWhereInput
   }
 
 
@@ -5841,6 +6044,7 @@ export namespace Prisma {
     createdAt: Date | null
     userId: string | null
     customerId: string | null
+    zReportId: string | null
   }
 
   export type SaleMaxAggregateOutputType = {
@@ -5856,6 +6060,7 @@ export namespace Prisma {
     createdAt: Date | null
     userId: string | null
     customerId: string | null
+    zReportId: string | null
   }
 
   export type SaleCountAggregateOutputType = {
@@ -5871,6 +6076,7 @@ export namespace Prisma {
     createdAt: number
     userId: number
     customerId: number
+    zReportId: number
     _all: number
   }
 
@@ -5902,6 +6108,7 @@ export namespace Prisma {
     createdAt?: true
     userId?: true
     customerId?: true
+    zReportId?: true
   }
 
   export type SaleMaxAggregateInputType = {
@@ -5917,6 +6124,7 @@ export namespace Prisma {
     createdAt?: true
     userId?: true
     customerId?: true
+    zReportId?: true
   }
 
   export type SaleCountAggregateInputType = {
@@ -5932,6 +6140,7 @@ export namespace Prisma {
     createdAt?: true
     userId?: true
     customerId?: true
+    zReportId?: true
     _all?: true
   }
 
@@ -6034,6 +6243,7 @@ export namespace Prisma {
     createdAt: Date
     userId: string
     customerId: string | null
+    zReportId: string | null
     _count: SaleCountAggregateOutputType | null
     _avg: SaleAvgAggregateOutputType | null
     _sum: SaleSumAggregateOutputType | null
@@ -6068,10 +6278,12 @@ export namespace Prisma {
     createdAt?: boolean
     userId?: boolean
     customerId?: boolean
+    zReportId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     customer?: boolean | Sale$customerArgs<ExtArgs>
     items?: boolean | Sale$itemsArgs<ExtArgs>
     Invoice?: boolean | Sale$InvoiceArgs<ExtArgs>
+    zReport?: boolean | Sale$zReportArgs<ExtArgs>
     _count?: boolean | SaleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["sale"]>
 
@@ -6088,8 +6300,10 @@ export namespace Prisma {
     createdAt?: boolean
     userId?: boolean
     customerId?: boolean
+    zReportId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     customer?: boolean | Sale$customerArgs<ExtArgs>
+    zReport?: boolean | Sale$zReportArgs<ExtArgs>
   }, ExtArgs["result"]["sale"]>
 
   export type SaleSelectScalar = {
@@ -6105,6 +6319,7 @@ export namespace Prisma {
     createdAt?: boolean
     userId?: boolean
     customerId?: boolean
+    zReportId?: boolean
   }
 
   export type SaleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6112,11 +6327,13 @@ export namespace Prisma {
     customer?: boolean | Sale$customerArgs<ExtArgs>
     items?: boolean | Sale$itemsArgs<ExtArgs>
     Invoice?: boolean | Sale$InvoiceArgs<ExtArgs>
+    zReport?: boolean | Sale$zReportArgs<ExtArgs>
     _count?: boolean | SaleCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type SaleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     customer?: boolean | Sale$customerArgs<ExtArgs>
+    zReport?: boolean | Sale$zReportArgs<ExtArgs>
   }
 
   export type $SalePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6126,6 +6343,7 @@ export namespace Prisma {
       customer: Prisma.$CustomerPayload<ExtArgs> | null
       items: Prisma.$SaleItemPayload<ExtArgs>[]
       Invoice: Prisma.$InvoicePayload<ExtArgs> | null
+      zReport: Prisma.$ZReportPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6140,6 +6358,7 @@ export namespace Prisma {
       createdAt: Date
       userId: string
       customerId: string | null
+      zReportId: string | null
     }, ExtArgs["result"]["sale"]>
     composites: {}
   }
@@ -6508,6 +6727,7 @@ export namespace Prisma {
     customer<T extends Sale$customerArgs<ExtArgs> = {}>(args?: Subset<T, Sale$customerArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     items<T extends Sale$itemsArgs<ExtArgs> = {}>(args?: Subset<T, Sale$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SaleItemPayload<ExtArgs>, T, "findMany"> | Null>
     Invoice<T extends Sale$InvoiceArgs<ExtArgs> = {}>(args?: Subset<T, Sale$InvoiceArgs<ExtArgs>>): Prisma__InvoiceClient<$Result.GetResult<Prisma.$InvoicePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    zReport<T extends Sale$zReportArgs<ExtArgs> = {}>(args?: Subset<T, Sale$zReportArgs<ExtArgs>>): Prisma__ZReportClient<$Result.GetResult<Prisma.$ZReportPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6549,6 +6769,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Sale", 'DateTime'>
     readonly userId: FieldRef<"Sale", 'String'>
     readonly customerId: FieldRef<"Sale", 'String'>
+    readonly zReportId: FieldRef<"Sale", 'String'>
   }
     
 
@@ -6914,6 +7135,21 @@ export namespace Prisma {
      */
     include?: InvoiceInclude<ExtArgs> | null
     where?: InvoiceWhereInput
+  }
+
+  /**
+   * Sale.zReport
+   */
+  export type Sale$zReportArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ZReport
+     */
+    select?: ZReportSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    where?: ZReportWhereInput
   }
 
   /**
@@ -28784,6 +29020,8 @@ export namespace Prisma {
     status?: boolean
     processedAt?: boolean
     createdAt?: boolean
+    Sales?: boolean | ZReport$SalesArgs<ExtArgs>
+    _count?: boolean | ZReportCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["zReport"]>
 
   export type ZReportSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -28810,10 +29048,17 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
+  export type ZReportInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    Sales?: boolean | ZReport$SalesArgs<ExtArgs>
+    _count?: boolean | ZReportCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ZReportIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $ZReportPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ZReport"
-    objects: {}
+    objects: {
+      Sales: Prisma.$SalePayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       reportDate: Date
@@ -29188,6 +29433,7 @@ export namespace Prisma {
    */
   export interface Prisma__ZReportClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    Sales<T extends ZReport$SalesArgs<ExtArgs> = {}>(args?: Subset<T, ZReport$SalesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -29239,6 +29485,10 @@ export namespace Prisma {
      */
     select?: ZReportSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    /**
      * Filter, which ZReport to fetch.
      */
     where: ZReportWhereUniqueInput
@@ -29253,6 +29503,10 @@ export namespace Prisma {
      */
     select?: ZReportSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    /**
      * Filter, which ZReport to fetch.
      */
     where: ZReportWhereUniqueInput
@@ -29266,6 +29520,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ZReport
      */
     select?: ZReportSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
     /**
      * Filter, which ZReport to fetch.
      */
@@ -29311,6 +29569,10 @@ export namespace Prisma {
      */
     select?: ZReportSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    /**
      * Filter, which ZReport to fetch.
      */
     where?: ZReportWhereInput
@@ -29355,6 +29617,10 @@ export namespace Prisma {
      */
     select?: ZReportSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    /**
      * Filter, which ZReports to fetch.
      */
     where?: ZReportWhereInput
@@ -29393,6 +29659,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ZReport
      */
     select?: ZReportSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
     /**
      * The data needed to create a ZReport.
      */
@@ -29434,6 +29704,10 @@ export namespace Prisma {
      */
     select?: ZReportSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    /**
      * The data needed to update a ZReport.
      */
     data: XOR<ZReportUpdateInput, ZReportUncheckedUpdateInput>
@@ -29466,6 +29740,10 @@ export namespace Prisma {
      */
     select?: ZReportSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    /**
      * The filter to search for the ZReport to update in case it exists.
      */
     where: ZReportWhereUniqueInput
@@ -29488,6 +29766,10 @@ export namespace Prisma {
      */
     select?: ZReportSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+    /**
      * Filter which ZReport to delete.
      */
     where: ZReportWhereUniqueInput
@@ -29504,6 +29786,26 @@ export namespace Prisma {
   }
 
   /**
+   * ZReport.Sales
+   */
+  export type ZReport$SalesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sale
+     */
+    select?: SaleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SaleInclude<ExtArgs> | null
+    where?: SaleWhereInput
+    orderBy?: SaleOrderByWithRelationInput | SaleOrderByWithRelationInput[]
+    cursor?: SaleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SaleScalarFieldEnum | SaleScalarFieldEnum[]
+  }
+
+  /**
    * ZReport without action
    */
   export type ZReportDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -29511,6 +29813,1812 @@ export namespace Prisma {
      * Select specific fields to fetch from the ZReport
      */
     select?: ZReportSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ZReportInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Category
+   */
+
+  export type AggregateCategory = {
+    _count: CategoryCountAggregateOutputType | null
+    _min: CategoryMinAggregateOutputType | null
+    _max: CategoryMaxAggregateOutputType | null
+  }
+
+  export type CategoryMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type CategoryMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type CategoryCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    isActive: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CategoryMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type CategoryMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type CategoryCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    isActive?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CategoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Category to aggregate.
+     */
+    where?: CategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Categories to fetch.
+     */
+    orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Categories
+    **/
+    _count?: true | CategoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CategoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CategoryMaxAggregateInputType
+  }
+
+  export type GetCategoryAggregateType<T extends CategoryAggregateArgs> = {
+        [P in keyof T & keyof AggregateCategory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCategory[P]>
+      : GetScalarType<T[P], AggregateCategory[P]>
+  }
+
+
+
+
+  export type CategoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CategoryWhereInput
+    orderBy?: CategoryOrderByWithAggregationInput | CategoryOrderByWithAggregationInput[]
+    by: CategoryScalarFieldEnum[] | CategoryScalarFieldEnum
+    having?: CategoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CategoryCountAggregateInputType | true
+    _min?: CategoryMinAggregateInputType
+    _max?: CategoryMaxAggregateInputType
+  }
+
+  export type CategoryGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    isActive: boolean
+    createdAt: Date
+    _count: CategoryCountAggregateOutputType | null
+    _min: CategoryMinAggregateOutputType | null
+    _max: CategoryMaxAggregateOutputType | null
+  }
+
+  type GetCategoryGroupByPayload<T extends CategoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CategoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CategoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CategoryGroupByOutputType[P]>
+            : GetScalarType<T[P], CategoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CategorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["category"]>
+
+  export type CategorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["category"]>
+
+  export type CategorySelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $CategoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Category"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      isActive: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["category"]>
+    composites: {}
+  }
+
+  type CategoryGetPayload<S extends boolean | null | undefined | CategoryDefaultArgs> = $Result.GetResult<Prisma.$CategoryPayload, S>
+
+  type CategoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CategoryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CategoryCountAggregateInputType | true
+    }
+
+  export interface CategoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Category'], meta: { name: 'Category' } }
+    /**
+     * Find zero or one Category that matches the filter.
+     * @param {CategoryFindUniqueArgs} args - Arguments to find a Category
+     * @example
+     * // Get one Category
+     * const category = await prisma.category.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CategoryFindUniqueArgs>(args: SelectSubset<T, CategoryFindUniqueArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Category that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CategoryFindUniqueOrThrowArgs} args - Arguments to find a Category
+     * @example
+     * // Get one Category
+     * const category = await prisma.category.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CategoryFindUniqueOrThrowArgs>(args: SelectSubset<T, CategoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Category that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryFindFirstArgs} args - Arguments to find a Category
+     * @example
+     * // Get one Category
+     * const category = await prisma.category.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CategoryFindFirstArgs>(args?: SelectSubset<T, CategoryFindFirstArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Category that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryFindFirstOrThrowArgs} args - Arguments to find a Category
+     * @example
+     * // Get one Category
+     * const category = await prisma.category.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CategoryFindFirstOrThrowArgs>(args?: SelectSubset<T, CategoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Categories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Categories
+     * const categories = await prisma.category.findMany()
+     * 
+     * // Get first 10 Categories
+     * const categories = await prisma.category.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const categoryWithIdOnly = await prisma.category.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CategoryFindManyArgs>(args?: SelectSubset<T, CategoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Category.
+     * @param {CategoryCreateArgs} args - Arguments to create a Category.
+     * @example
+     * // Create one Category
+     * const Category = await prisma.category.create({
+     *   data: {
+     *     // ... data to create a Category
+     *   }
+     * })
+     * 
+     */
+    create<T extends CategoryCreateArgs>(args: SelectSubset<T, CategoryCreateArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Categories.
+     * @param {CategoryCreateManyArgs} args - Arguments to create many Categories.
+     * @example
+     * // Create many Categories
+     * const category = await prisma.category.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CategoryCreateManyArgs>(args?: SelectSubset<T, CategoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Categories and returns the data saved in the database.
+     * @param {CategoryCreateManyAndReturnArgs} args - Arguments to create many Categories.
+     * @example
+     * // Create many Categories
+     * const category = await prisma.category.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Categories and only return the `id`
+     * const categoryWithIdOnly = await prisma.category.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CategoryCreateManyAndReturnArgs>(args?: SelectSubset<T, CategoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Category.
+     * @param {CategoryDeleteArgs} args - Arguments to delete one Category.
+     * @example
+     * // Delete one Category
+     * const Category = await prisma.category.delete({
+     *   where: {
+     *     // ... filter to delete one Category
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CategoryDeleteArgs>(args: SelectSubset<T, CategoryDeleteArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Category.
+     * @param {CategoryUpdateArgs} args - Arguments to update one Category.
+     * @example
+     * // Update one Category
+     * const category = await prisma.category.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CategoryUpdateArgs>(args: SelectSubset<T, CategoryUpdateArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Categories.
+     * @param {CategoryDeleteManyArgs} args - Arguments to filter Categories to delete.
+     * @example
+     * // Delete a few Categories
+     * const { count } = await prisma.category.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CategoryDeleteManyArgs>(args?: SelectSubset<T, CategoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Categories
+     * const category = await prisma.category.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CategoryUpdateManyArgs>(args: SelectSubset<T, CategoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Category.
+     * @param {CategoryUpsertArgs} args - Arguments to update or create a Category.
+     * @example
+     * // Update or create a Category
+     * const category = await prisma.category.upsert({
+     *   create: {
+     *     // ... data to create a Category
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Category we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CategoryUpsertArgs>(args: SelectSubset<T, CategoryUpsertArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Categories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryCountArgs} args - Arguments to filter Categories to count.
+     * @example
+     * // Count the number of Categories
+     * const count = await prisma.category.count({
+     *   where: {
+     *     // ... the filter for the Categories we want to count
+     *   }
+     * })
+    **/
+    count<T extends CategoryCountArgs>(
+      args?: Subset<T, CategoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CategoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Category.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CategoryAggregateArgs>(args: Subset<T, CategoryAggregateArgs>): Prisma.PrismaPromise<GetCategoryAggregateType<T>>
+
+    /**
+     * Group by Category.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CategoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CategoryGroupByArgs['orderBy'] }
+        : { orderBy?: CategoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CategoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCategoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Category model
+   */
+  readonly fields: CategoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Category.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CategoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Category model
+   */ 
+  interface CategoryFieldRefs {
+    readonly id: FieldRef<"Category", 'String'>
+    readonly name: FieldRef<"Category", 'String'>
+    readonly description: FieldRef<"Category", 'String'>
+    readonly isActive: FieldRef<"Category", 'Boolean'>
+    readonly createdAt: FieldRef<"Category", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Category findUnique
+   */
+  export type CategoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * Filter, which Category to fetch.
+     */
+    where: CategoryWhereUniqueInput
+  }
+
+  /**
+   * Category findUniqueOrThrow
+   */
+  export type CategoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * Filter, which Category to fetch.
+     */
+    where: CategoryWhereUniqueInput
+  }
+
+  /**
+   * Category findFirst
+   */
+  export type CategoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * Filter, which Category to fetch.
+     */
+    where?: CategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Categories to fetch.
+     */
+    orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Categories.
+     */
+    cursor?: CategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Categories.
+     */
+    distinct?: CategoryScalarFieldEnum | CategoryScalarFieldEnum[]
+  }
+
+  /**
+   * Category findFirstOrThrow
+   */
+  export type CategoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * Filter, which Category to fetch.
+     */
+    where?: CategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Categories to fetch.
+     */
+    orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Categories.
+     */
+    cursor?: CategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Categories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Categories.
+     */
+    distinct?: CategoryScalarFieldEnum | CategoryScalarFieldEnum[]
+  }
+
+  /**
+   * Category findMany
+   */
+  export type CategoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * Filter, which Categories to fetch.
+     */
+    where?: CategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Categories to fetch.
+     */
+    orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Categories.
+     */
+    cursor?: CategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Categories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Categories.
+     */
+    skip?: number
+    distinct?: CategoryScalarFieldEnum | CategoryScalarFieldEnum[]
+  }
+
+  /**
+   * Category create
+   */
+  export type CategoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * The data needed to create a Category.
+     */
+    data: XOR<CategoryCreateInput, CategoryUncheckedCreateInput>
+  }
+
+  /**
+   * Category createMany
+   */
+  export type CategoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Categories.
+     */
+    data: CategoryCreateManyInput | CategoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Category createManyAndReturn
+   */
+  export type CategoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Categories.
+     */
+    data: CategoryCreateManyInput | CategoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Category update
+   */
+  export type CategoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * The data needed to update a Category.
+     */
+    data: XOR<CategoryUpdateInput, CategoryUncheckedUpdateInput>
+    /**
+     * Choose, which Category to update.
+     */
+    where: CategoryWhereUniqueInput
+  }
+
+  /**
+   * Category updateMany
+   */
+  export type CategoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Categories.
+     */
+    data: XOR<CategoryUpdateManyMutationInput, CategoryUncheckedUpdateManyInput>
+    /**
+     * Filter which Categories to update
+     */
+    where?: CategoryWhereInput
+  }
+
+  /**
+   * Category upsert
+   */
+  export type CategoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * The filter to search for the Category to update in case it exists.
+     */
+    where: CategoryWhereUniqueInput
+    /**
+     * In case the Category found by the `where` argument doesn't exist, create a new Category with this data.
+     */
+    create: XOR<CategoryCreateInput, CategoryUncheckedCreateInput>
+    /**
+     * In case the Category was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CategoryUpdateInput, CategoryUncheckedUpdateInput>
+  }
+
+  /**
+   * Category delete
+   */
+  export type CategoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+    /**
+     * Filter which Category to delete.
+     */
+    where: CategoryWhereUniqueInput
+  }
+
+  /**
+   * Category deleteMany
+   */
+  export type CategoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Categories to delete
+     */
+    where?: CategoryWhereInput
+  }
+
+  /**
+   * Category without action
+   */
+  export type CategoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Category
+     */
+    select?: CategorySelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model LocalTaxRule
+   */
+
+  export type AggregateLocalTaxRule = {
+    _count: LocalTaxRuleCountAggregateOutputType | null
+    _avg: LocalTaxRuleAvgAggregateOutputType | null
+    _sum: LocalTaxRuleSumAggregateOutputType | null
+    _min: LocalTaxRuleMinAggregateOutputType | null
+    _max: LocalTaxRuleMaxAggregateOutputType | null
+  }
+
+  export type LocalTaxRuleAvgAggregateOutputType = {
+    taxRate: Decimal | null
+  }
+
+  export type LocalTaxRuleSumAggregateOutputType = {
+    taxRate: Decimal | null
+  }
+
+  export type LocalTaxRuleMinAggregateOutputType = {
+    id: string | null
+    category: string | null
+    taxRate: Decimal | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LocalTaxRuleMaxAggregateOutputType = {
+    id: string | null
+    category: string | null
+    taxRate: Decimal | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type LocalTaxRuleCountAggregateOutputType = {
+    id: number
+    category: number
+    taxRate: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type LocalTaxRuleAvgAggregateInputType = {
+    taxRate?: true
+  }
+
+  export type LocalTaxRuleSumAggregateInputType = {
+    taxRate?: true
+  }
+
+  export type LocalTaxRuleMinAggregateInputType = {
+    id?: true
+    category?: true
+    taxRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LocalTaxRuleMaxAggregateInputType = {
+    id?: true
+    category?: true
+    taxRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type LocalTaxRuleCountAggregateInputType = {
+    id?: true
+    category?: true
+    taxRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type LocalTaxRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LocalTaxRule to aggregate.
+     */
+    where?: LocalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocalTaxRules to fetch.
+     */
+    orderBy?: LocalTaxRuleOrderByWithRelationInput | LocalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LocalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocalTaxRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LocalTaxRules
+    **/
+    _count?: true | LocalTaxRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: LocalTaxRuleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: LocalTaxRuleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LocalTaxRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LocalTaxRuleMaxAggregateInputType
+  }
+
+  export type GetLocalTaxRuleAggregateType<T extends LocalTaxRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateLocalTaxRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLocalTaxRule[P]>
+      : GetScalarType<T[P], AggregateLocalTaxRule[P]>
+  }
+
+
+
+
+  export type LocalTaxRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LocalTaxRuleWhereInput
+    orderBy?: LocalTaxRuleOrderByWithAggregationInput | LocalTaxRuleOrderByWithAggregationInput[]
+    by: LocalTaxRuleScalarFieldEnum[] | LocalTaxRuleScalarFieldEnum
+    having?: LocalTaxRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LocalTaxRuleCountAggregateInputType | true
+    _avg?: LocalTaxRuleAvgAggregateInputType
+    _sum?: LocalTaxRuleSumAggregateInputType
+    _min?: LocalTaxRuleMinAggregateInputType
+    _max?: LocalTaxRuleMaxAggregateInputType
+  }
+
+  export type LocalTaxRuleGroupByOutputType = {
+    id: string
+    category: string
+    taxRate: Decimal
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: LocalTaxRuleCountAggregateOutputType | null
+    _avg: LocalTaxRuleAvgAggregateOutputType | null
+    _sum: LocalTaxRuleSumAggregateOutputType | null
+    _min: LocalTaxRuleMinAggregateOutputType | null
+    _max: LocalTaxRuleMaxAggregateOutputType | null
+  }
+
+  type GetLocalTaxRuleGroupByPayload<T extends LocalTaxRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LocalTaxRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LocalTaxRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LocalTaxRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], LocalTaxRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LocalTaxRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    category?: boolean
+    taxRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["localTaxRule"]>
+
+  export type LocalTaxRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    category?: boolean
+    taxRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["localTaxRule"]>
+
+  export type LocalTaxRuleSelectScalar = {
+    id?: boolean
+    category?: boolean
+    taxRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $LocalTaxRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LocalTaxRule"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      category: string
+      taxRate: Prisma.Decimal
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["localTaxRule"]>
+    composites: {}
+  }
+
+  type LocalTaxRuleGetPayload<S extends boolean | null | undefined | LocalTaxRuleDefaultArgs> = $Result.GetResult<Prisma.$LocalTaxRulePayload, S>
+
+  type LocalTaxRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<LocalTaxRuleFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: LocalTaxRuleCountAggregateInputType | true
+    }
+
+  export interface LocalTaxRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LocalTaxRule'], meta: { name: 'LocalTaxRule' } }
+    /**
+     * Find zero or one LocalTaxRule that matches the filter.
+     * @param {LocalTaxRuleFindUniqueArgs} args - Arguments to find a LocalTaxRule
+     * @example
+     * // Get one LocalTaxRule
+     * const localTaxRule = await prisma.localTaxRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LocalTaxRuleFindUniqueArgs>(args: SelectSubset<T, LocalTaxRuleFindUniqueArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one LocalTaxRule that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {LocalTaxRuleFindUniqueOrThrowArgs} args - Arguments to find a LocalTaxRule
+     * @example
+     * // Get one LocalTaxRule
+     * const localTaxRule = await prisma.localTaxRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LocalTaxRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, LocalTaxRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first LocalTaxRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocalTaxRuleFindFirstArgs} args - Arguments to find a LocalTaxRule
+     * @example
+     * // Get one LocalTaxRule
+     * const localTaxRule = await prisma.localTaxRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LocalTaxRuleFindFirstArgs>(args?: SelectSubset<T, LocalTaxRuleFindFirstArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first LocalTaxRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocalTaxRuleFindFirstOrThrowArgs} args - Arguments to find a LocalTaxRule
+     * @example
+     * // Get one LocalTaxRule
+     * const localTaxRule = await prisma.localTaxRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LocalTaxRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, LocalTaxRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more LocalTaxRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocalTaxRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LocalTaxRules
+     * const localTaxRules = await prisma.localTaxRule.findMany()
+     * 
+     * // Get first 10 LocalTaxRules
+     * const localTaxRules = await prisma.localTaxRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const localTaxRuleWithIdOnly = await prisma.localTaxRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LocalTaxRuleFindManyArgs>(args?: SelectSubset<T, LocalTaxRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a LocalTaxRule.
+     * @param {LocalTaxRuleCreateArgs} args - Arguments to create a LocalTaxRule.
+     * @example
+     * // Create one LocalTaxRule
+     * const LocalTaxRule = await prisma.localTaxRule.create({
+     *   data: {
+     *     // ... data to create a LocalTaxRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends LocalTaxRuleCreateArgs>(args: SelectSubset<T, LocalTaxRuleCreateArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many LocalTaxRules.
+     * @param {LocalTaxRuleCreateManyArgs} args - Arguments to create many LocalTaxRules.
+     * @example
+     * // Create many LocalTaxRules
+     * const localTaxRule = await prisma.localTaxRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LocalTaxRuleCreateManyArgs>(args?: SelectSubset<T, LocalTaxRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LocalTaxRules and returns the data saved in the database.
+     * @param {LocalTaxRuleCreateManyAndReturnArgs} args - Arguments to create many LocalTaxRules.
+     * @example
+     * // Create many LocalTaxRules
+     * const localTaxRule = await prisma.localTaxRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LocalTaxRules and only return the `id`
+     * const localTaxRuleWithIdOnly = await prisma.localTaxRule.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LocalTaxRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, LocalTaxRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a LocalTaxRule.
+     * @param {LocalTaxRuleDeleteArgs} args - Arguments to delete one LocalTaxRule.
+     * @example
+     * // Delete one LocalTaxRule
+     * const LocalTaxRule = await prisma.localTaxRule.delete({
+     *   where: {
+     *     // ... filter to delete one LocalTaxRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LocalTaxRuleDeleteArgs>(args: SelectSubset<T, LocalTaxRuleDeleteArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one LocalTaxRule.
+     * @param {LocalTaxRuleUpdateArgs} args - Arguments to update one LocalTaxRule.
+     * @example
+     * // Update one LocalTaxRule
+     * const localTaxRule = await prisma.localTaxRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LocalTaxRuleUpdateArgs>(args: SelectSubset<T, LocalTaxRuleUpdateArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more LocalTaxRules.
+     * @param {LocalTaxRuleDeleteManyArgs} args - Arguments to filter LocalTaxRules to delete.
+     * @example
+     * // Delete a few LocalTaxRules
+     * const { count } = await prisma.localTaxRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LocalTaxRuleDeleteManyArgs>(args?: SelectSubset<T, LocalTaxRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LocalTaxRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocalTaxRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LocalTaxRules
+     * const localTaxRule = await prisma.localTaxRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LocalTaxRuleUpdateManyArgs>(args: SelectSubset<T, LocalTaxRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one LocalTaxRule.
+     * @param {LocalTaxRuleUpsertArgs} args - Arguments to update or create a LocalTaxRule.
+     * @example
+     * // Update or create a LocalTaxRule
+     * const localTaxRule = await prisma.localTaxRule.upsert({
+     *   create: {
+     *     // ... data to create a LocalTaxRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LocalTaxRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LocalTaxRuleUpsertArgs>(args: SelectSubset<T, LocalTaxRuleUpsertArgs<ExtArgs>>): Prisma__LocalTaxRuleClient<$Result.GetResult<Prisma.$LocalTaxRulePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of LocalTaxRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocalTaxRuleCountArgs} args - Arguments to filter LocalTaxRules to count.
+     * @example
+     * // Count the number of LocalTaxRules
+     * const count = await prisma.localTaxRule.count({
+     *   where: {
+     *     // ... the filter for the LocalTaxRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends LocalTaxRuleCountArgs>(
+      args?: Subset<T, LocalTaxRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LocalTaxRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LocalTaxRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocalTaxRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LocalTaxRuleAggregateArgs>(args: Subset<T, LocalTaxRuleAggregateArgs>): Prisma.PrismaPromise<GetLocalTaxRuleAggregateType<T>>
+
+    /**
+     * Group by LocalTaxRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LocalTaxRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LocalTaxRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LocalTaxRuleGroupByArgs['orderBy'] }
+        : { orderBy?: LocalTaxRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LocalTaxRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLocalTaxRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LocalTaxRule model
+   */
+  readonly fields: LocalTaxRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LocalTaxRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LocalTaxRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LocalTaxRule model
+   */ 
+  interface LocalTaxRuleFieldRefs {
+    readonly id: FieldRef<"LocalTaxRule", 'String'>
+    readonly category: FieldRef<"LocalTaxRule", 'String'>
+    readonly taxRate: FieldRef<"LocalTaxRule", 'Decimal'>
+    readonly isActive: FieldRef<"LocalTaxRule", 'Boolean'>
+    readonly createdAt: FieldRef<"LocalTaxRule", 'DateTime'>
+    readonly updatedAt: FieldRef<"LocalTaxRule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LocalTaxRule findUnique
+   */
+  export type LocalTaxRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which LocalTaxRule to fetch.
+     */
+    where: LocalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * LocalTaxRule findUniqueOrThrow
+   */
+  export type LocalTaxRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which LocalTaxRule to fetch.
+     */
+    where: LocalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * LocalTaxRule findFirst
+   */
+  export type LocalTaxRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which LocalTaxRule to fetch.
+     */
+    where?: LocalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocalTaxRules to fetch.
+     */
+    orderBy?: LocalTaxRuleOrderByWithRelationInput | LocalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LocalTaxRules.
+     */
+    cursor?: LocalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocalTaxRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LocalTaxRules.
+     */
+    distinct?: LocalTaxRuleScalarFieldEnum | LocalTaxRuleScalarFieldEnum[]
+  }
+
+  /**
+   * LocalTaxRule findFirstOrThrow
+   */
+  export type LocalTaxRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which LocalTaxRule to fetch.
+     */
+    where?: LocalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocalTaxRules to fetch.
+     */
+    orderBy?: LocalTaxRuleOrderByWithRelationInput | LocalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LocalTaxRules.
+     */
+    cursor?: LocalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocalTaxRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LocalTaxRules.
+     */
+    distinct?: LocalTaxRuleScalarFieldEnum | LocalTaxRuleScalarFieldEnum[]
+  }
+
+  /**
+   * LocalTaxRule findMany
+   */
+  export type LocalTaxRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which LocalTaxRules to fetch.
+     */
+    where?: LocalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LocalTaxRules to fetch.
+     */
+    orderBy?: LocalTaxRuleOrderByWithRelationInput | LocalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LocalTaxRules.
+     */
+    cursor?: LocalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LocalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LocalTaxRules.
+     */
+    skip?: number
+    distinct?: LocalTaxRuleScalarFieldEnum | LocalTaxRuleScalarFieldEnum[]
+  }
+
+  /**
+   * LocalTaxRule create
+   */
+  export type LocalTaxRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * The data needed to create a LocalTaxRule.
+     */
+    data: XOR<LocalTaxRuleCreateInput, LocalTaxRuleUncheckedCreateInput>
+  }
+
+  /**
+   * LocalTaxRule createMany
+   */
+  export type LocalTaxRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LocalTaxRules.
+     */
+    data: LocalTaxRuleCreateManyInput | LocalTaxRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LocalTaxRule createManyAndReturn
+   */
+  export type LocalTaxRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many LocalTaxRules.
+     */
+    data: LocalTaxRuleCreateManyInput | LocalTaxRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LocalTaxRule update
+   */
+  export type LocalTaxRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * The data needed to update a LocalTaxRule.
+     */
+    data: XOR<LocalTaxRuleUpdateInput, LocalTaxRuleUncheckedUpdateInput>
+    /**
+     * Choose, which LocalTaxRule to update.
+     */
+    where: LocalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * LocalTaxRule updateMany
+   */
+  export type LocalTaxRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LocalTaxRules.
+     */
+    data: XOR<LocalTaxRuleUpdateManyMutationInput, LocalTaxRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which LocalTaxRules to update
+     */
+    where?: LocalTaxRuleWhereInput
+  }
+
+  /**
+   * LocalTaxRule upsert
+   */
+  export type LocalTaxRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * The filter to search for the LocalTaxRule to update in case it exists.
+     */
+    where: LocalTaxRuleWhereUniqueInput
+    /**
+     * In case the LocalTaxRule found by the `where` argument doesn't exist, create a new LocalTaxRule with this data.
+     */
+    create: XOR<LocalTaxRuleCreateInput, LocalTaxRuleUncheckedCreateInput>
+    /**
+     * In case the LocalTaxRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LocalTaxRuleUpdateInput, LocalTaxRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * LocalTaxRule delete
+   */
+  export type LocalTaxRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter which LocalTaxRule to delete.
+     */
+    where: LocalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * LocalTaxRule deleteMany
+   */
+  export type LocalTaxRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LocalTaxRules to delete
+     */
+    where?: LocalTaxRuleWhereInput
+  }
+
+  /**
+   * LocalTaxRule without action
+   */
+  export type LocalTaxRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LocalTaxRule
+     */
+    select?: LocalTaxRuleSelect<ExtArgs> | null
   }
 
 
@@ -29577,7 +31685,8 @@ export namespace Prisma {
     paymentStatus: 'paymentStatus',
     createdAt: 'createdAt',
     userId: 'userId',
-    customerId: 'customerId'
+    customerId: 'customerId',
+    zReportId: 'zReportId'
   };
 
   export type SaleScalarFieldEnum = (typeof SaleScalarFieldEnum)[keyof typeof SaleScalarFieldEnum]
@@ -29880,6 +31989,29 @@ export namespace Prisma {
   };
 
   export type ZReportScalarFieldEnum = (typeof ZReportScalarFieldEnum)[keyof typeof ZReportScalarFieldEnum]
+
+
+  export const CategoryScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    isActive: 'isActive',
+    createdAt: 'createdAt'
+  };
+
+  export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
+
+
+  export const LocalTaxRuleScalarFieldEnum: {
+    id: 'id',
+    category: 'category',
+    taxRate: 'taxRate',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type LocalTaxRuleScalarFieldEnum = (typeof LocalTaxRuleScalarFieldEnum)[keyof typeof LocalTaxRuleScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -30251,10 +32383,12 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Sale"> | Date | string
     userId?: StringFilter<"Sale"> | string
     customerId?: StringNullableFilter<"Sale"> | string | null
+    zReportId?: StringNullableFilter<"Sale"> | string | null
     user?: XOR<UserRelationFilter, UserWhereInput>
     customer?: XOR<CustomerNullableRelationFilter, CustomerWhereInput> | null
     items?: SaleItemListRelationFilter
     Invoice?: XOR<InvoiceNullableRelationFilter, InvoiceWhereInput> | null
+    zReport?: XOR<ZReportNullableRelationFilter, ZReportWhereInput> | null
   }
 
   export type SaleOrderByWithRelationInput = {
@@ -30270,10 +32404,12 @@ export namespace Prisma {
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrderInput | SortOrder
+    zReportId?: SortOrderInput | SortOrder
     user?: UserOrderByWithRelationInput
     customer?: CustomerOrderByWithRelationInput
     items?: SaleItemOrderByRelationAggregateInput
     Invoice?: InvoiceOrderByWithRelationInput
+    zReport?: ZReportOrderByWithRelationInput
   }
 
   export type SaleWhereUniqueInput = Prisma.AtLeast<{
@@ -30292,10 +32428,12 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Sale"> | Date | string
     userId?: StringFilter<"Sale"> | string
     customerId?: StringNullableFilter<"Sale"> | string | null
+    zReportId?: StringNullableFilter<"Sale"> | string | null
     user?: XOR<UserRelationFilter, UserWhereInput>
     customer?: XOR<CustomerNullableRelationFilter, CustomerWhereInput> | null
     items?: SaleItemListRelationFilter
     Invoice?: XOR<InvoiceNullableRelationFilter, InvoiceWhereInput> | null
+    zReport?: XOR<ZReportNullableRelationFilter, ZReportWhereInput> | null
   }, "id" | "saleNumber">
 
   export type SaleOrderByWithAggregationInput = {
@@ -30311,6 +32449,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrderInput | SortOrder
+    zReportId?: SortOrderInput | SortOrder
     _count?: SaleCountOrderByAggregateInput
     _avg?: SaleAvgOrderByAggregateInput
     _max?: SaleMaxOrderByAggregateInput
@@ -30334,6 +32473,7 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Sale"> | Date | string
     userId?: StringWithAggregatesFilter<"Sale"> | string
     customerId?: StringNullableWithAggregatesFilter<"Sale"> | string | null
+    zReportId?: StringNullableWithAggregatesFilter<"Sale"> | string | null
   }
 
   export type SaleItemWhereInput = {
@@ -31821,6 +33961,7 @@ export namespace Prisma {
     status?: StringFilter<"ZReport"> | string
     processedAt?: DateTimeNullableFilter<"ZReport"> | Date | string | null
     createdAt?: DateTimeFilter<"ZReport"> | Date | string
+    Sales?: SaleListRelationFilter
   }
 
   export type ZReportOrderByWithRelationInput = {
@@ -31833,6 +33974,7 @@ export namespace Prisma {
     status?: SortOrder
     processedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    Sales?: SaleOrderByRelationAggregateInput
   }
 
   export type ZReportWhereUniqueInput = Prisma.AtLeast<{
@@ -31848,6 +33990,7 @@ export namespace Prisma {
     status?: StringFilter<"ZReport"> | string
     processedAt?: DateTimeNullableFilter<"ZReport"> | Date | string | null
     createdAt?: DateTimeFilter<"ZReport"> | Date | string
+    Sales?: SaleListRelationFilter
   }, "id" | "reportNumber">
 
   export type ZReportOrderByWithAggregationInput = {
@@ -31880,6 +34023,117 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"ZReport"> | string
     processedAt?: DateTimeNullableWithAggregatesFilter<"ZReport"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ZReport"> | Date | string
+  }
+
+  export type CategoryWhereInput = {
+    AND?: CategoryWhereInput | CategoryWhereInput[]
+    OR?: CategoryWhereInput[]
+    NOT?: CategoryWhereInput | CategoryWhereInput[]
+    id?: StringFilter<"Category"> | string
+    name?: StringFilter<"Category"> | string
+    description?: StringNullableFilter<"Category"> | string | null
+    isActive?: BoolFilter<"Category"> | boolean
+    createdAt?: DateTimeFilter<"Category"> | Date | string
+  }
+
+  export type CategoryOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CategoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: CategoryWhereInput | CategoryWhereInput[]
+    OR?: CategoryWhereInput[]
+    NOT?: CategoryWhereInput | CategoryWhereInput[]
+    description?: StringNullableFilter<"Category"> | string | null
+    isActive?: BoolFilter<"Category"> | boolean
+    createdAt?: DateTimeFilter<"Category"> | Date | string
+  }, "id" | "name">
+
+  export type CategoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    _count?: CategoryCountOrderByAggregateInput
+    _max?: CategoryMaxOrderByAggregateInput
+    _min?: CategoryMinOrderByAggregateInput
+  }
+
+  export type CategoryScalarWhereWithAggregatesInput = {
+    AND?: CategoryScalarWhereWithAggregatesInput | CategoryScalarWhereWithAggregatesInput[]
+    OR?: CategoryScalarWhereWithAggregatesInput[]
+    NOT?: CategoryScalarWhereWithAggregatesInput | CategoryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Category"> | string
+    name?: StringWithAggregatesFilter<"Category"> | string
+    description?: StringNullableWithAggregatesFilter<"Category"> | string | null
+    isActive?: BoolWithAggregatesFilter<"Category"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
+  }
+
+  export type LocalTaxRuleWhereInput = {
+    AND?: LocalTaxRuleWhereInput | LocalTaxRuleWhereInput[]
+    OR?: LocalTaxRuleWhereInput[]
+    NOT?: LocalTaxRuleWhereInput | LocalTaxRuleWhereInput[]
+    id?: StringFilter<"LocalTaxRule"> | string
+    category?: StringFilter<"LocalTaxRule"> | string
+    taxRate?: DecimalFilter<"LocalTaxRule"> | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFilter<"LocalTaxRule"> | boolean
+    createdAt?: DateTimeFilter<"LocalTaxRule"> | Date | string
+    updatedAt?: DateTimeFilter<"LocalTaxRule"> | Date | string
+  }
+
+  export type LocalTaxRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    category?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LocalTaxRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    category?: string
+    AND?: LocalTaxRuleWhereInput | LocalTaxRuleWhereInput[]
+    OR?: LocalTaxRuleWhereInput[]
+    NOT?: LocalTaxRuleWhereInput | LocalTaxRuleWhereInput[]
+    taxRate?: DecimalFilter<"LocalTaxRule"> | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFilter<"LocalTaxRule"> | boolean
+    createdAt?: DateTimeFilter<"LocalTaxRule"> | Date | string
+    updatedAt?: DateTimeFilter<"LocalTaxRule"> | Date | string
+  }, "id" | "category">
+
+  export type LocalTaxRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    category?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: LocalTaxRuleCountOrderByAggregateInput
+    _avg?: LocalTaxRuleAvgOrderByAggregateInput
+    _max?: LocalTaxRuleMaxOrderByAggregateInput
+    _min?: LocalTaxRuleMinOrderByAggregateInput
+    _sum?: LocalTaxRuleSumOrderByAggregateInput
+  }
+
+  export type LocalTaxRuleScalarWhereWithAggregatesInput = {
+    AND?: LocalTaxRuleScalarWhereWithAggregatesInput | LocalTaxRuleScalarWhereWithAggregatesInput[]
+    OR?: LocalTaxRuleScalarWhereWithAggregatesInput[]
+    NOT?: LocalTaxRuleScalarWhereWithAggregatesInput | LocalTaxRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LocalTaxRule"> | string
+    category?: StringWithAggregatesFilter<"LocalTaxRule"> | string
+    taxRate?: DecimalWithAggregatesFilter<"LocalTaxRule"> | Decimal | DecimalJsLike | number | string
+    isActive?: BoolWithAggregatesFilter<"LocalTaxRule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"LocalTaxRule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"LocalTaxRule"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -32161,6 +34415,7 @@ export namespace Prisma {
     customer?: CustomerCreateNestedOneWithoutSalesInput
     items?: SaleItemCreateNestedManyWithoutSaleInput
     Invoice?: InvoiceCreateNestedOneWithoutSaleInput
+    zReport?: ZReportCreateNestedOneWithoutSalesInput
   }
 
   export type SaleUncheckedCreateInput = {
@@ -32176,6 +34431,7 @@ export namespace Prisma {
     createdAt?: Date | string
     userId: string
     customerId?: string | null
+    zReportId?: string | null
     items?: SaleItemUncheckedCreateNestedManyWithoutSaleInput
     Invoice?: InvoiceUncheckedCreateNestedOneWithoutSaleInput
   }
@@ -32195,6 +34451,7 @@ export namespace Prisma {
     customer?: CustomerUpdateOneWithoutSalesNestedInput
     items?: SaleItemUpdateManyWithoutSaleNestedInput
     Invoice?: InvoiceUpdateOneWithoutSaleNestedInput
+    zReport?: ZReportUpdateOneWithoutSalesNestedInput
   }
 
   export type SaleUncheckedUpdateInput = {
@@ -32210,6 +34467,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
     items?: SaleItemUncheckedUpdateManyWithoutSaleNestedInput
     Invoice?: InvoiceUncheckedUpdateOneWithoutSaleNestedInput
   }
@@ -32227,6 +34485,7 @@ export namespace Prisma {
     createdAt?: Date | string
     userId: string
     customerId?: string | null
+    zReportId?: string | null
   }
 
   export type SaleUpdateManyMutationInput = {
@@ -32255,6 +34514,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type SaleItemCreateInput = {
@@ -33809,6 +36069,7 @@ export namespace Prisma {
     status?: string
     processedAt?: Date | string | null
     createdAt?: Date | string
+    Sales?: SaleCreateNestedManyWithoutZReportInput
   }
 
   export type ZReportUncheckedCreateInput = {
@@ -33821,6 +36082,7 @@ export namespace Prisma {
     status?: string
     processedAt?: Date | string | null
     createdAt?: Date | string
+    Sales?: SaleUncheckedCreateNestedManyWithoutZReportInput
   }
 
   export type ZReportUpdateInput = {
@@ -33833,6 +36095,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Sales?: SaleUpdateManyWithoutZReportNestedInput
   }
 
   export type ZReportUncheckedUpdateInput = {
@@ -33845,6 +36108,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Sales?: SaleUncheckedUpdateManyWithoutZReportNestedInput
   }
 
   export type ZReportCreateManyInput = {
@@ -33881,6 +36145,125 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CategoryCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type CategoryUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type CategoryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CategoryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CategoryCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type CategoryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CategoryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocalTaxRuleCreateInput = {
+    id?: string
+    category: string
+    taxRate: Decimal | DecimalJsLike | number | string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocalTaxRuleUncheckedCreateInput = {
+    id?: string
+    category: string
+    taxRate: Decimal | DecimalJsLike | number | string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocalTaxRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocalTaxRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocalTaxRuleCreateManyInput = {
+    id?: string
+    category: string
+    taxRate: Decimal | DecimalJsLike | number | string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type LocalTaxRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LocalTaxRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -34295,6 +36678,11 @@ export namespace Prisma {
     isNot?: InvoiceWhereInput | null
   }
 
+  export type ZReportNullableRelationFilter = {
+    is?: ZReportWhereInput | null
+    isNot?: ZReportWhereInput | null
+  }
+
   export type SaleCountOrderByAggregateInput = {
     id?: SortOrder
     saleNumber?: SortOrder
@@ -34308,6 +36696,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrder
+    zReportId?: SortOrder
   }
 
   export type SaleAvgOrderByAggregateInput = {
@@ -34330,6 +36719,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrder
+    zReportId?: SortOrder
   }
 
   export type SaleMinOrderByAggregateInput = {
@@ -34345,6 +36735,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     userId?: SortOrder
     customerId?: SortOrder
+    zReportId?: SortOrder
   }
 
   export type SaleSumOrderByAggregateInput = {
@@ -35369,6 +37760,65 @@ export namespace Prisma {
     totalTax?: SortOrder
   }
 
+  export type CategoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CategoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CategoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type LocalTaxRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    category?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LocalTaxRuleAvgOrderByAggregateInput = {
+    taxRate?: SortOrder
+  }
+
+  export type LocalTaxRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    category?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LocalTaxRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    category?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type LocalTaxRuleSumOrderByAggregateInput = {
+    taxRate?: SortOrder
+  }
+
   export type SaleCreateNestedManyWithoutUserInput = {
     create?: XOR<SaleCreateWithoutUserInput, SaleUncheckedCreateWithoutUserInput> | SaleCreateWithoutUserInput[] | SaleUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SaleCreateOrConnectWithoutUserInput | SaleCreateOrConnectWithoutUserInput[]
@@ -35946,6 +38396,12 @@ export namespace Prisma {
     connect?: InvoiceWhereUniqueInput
   }
 
+  export type ZReportCreateNestedOneWithoutSalesInput = {
+    create?: XOR<ZReportCreateWithoutSalesInput, ZReportUncheckedCreateWithoutSalesInput>
+    connectOrCreate?: ZReportCreateOrConnectWithoutSalesInput
+    connect?: ZReportWhereUniqueInput
+  }
+
   export type SaleItemUncheckedCreateNestedManyWithoutSaleInput = {
     create?: XOR<SaleItemCreateWithoutSaleInput, SaleItemUncheckedCreateWithoutSaleInput> | SaleItemCreateWithoutSaleInput[] | SaleItemUncheckedCreateWithoutSaleInput[]
     connectOrCreate?: SaleItemCreateOrConnectWithoutSaleInput | SaleItemCreateOrConnectWithoutSaleInput[]
@@ -35999,6 +38455,16 @@ export namespace Prisma {
     delete?: InvoiceWhereInput | boolean
     connect?: InvoiceWhereUniqueInput
     update?: XOR<XOR<InvoiceUpdateToOneWithWhereWithoutSaleInput, InvoiceUpdateWithoutSaleInput>, InvoiceUncheckedUpdateWithoutSaleInput>
+  }
+
+  export type ZReportUpdateOneWithoutSalesNestedInput = {
+    create?: XOR<ZReportCreateWithoutSalesInput, ZReportUncheckedCreateWithoutSalesInput>
+    connectOrCreate?: ZReportCreateOrConnectWithoutSalesInput
+    upsert?: ZReportUpsertWithoutSalesInput
+    disconnect?: ZReportWhereInput | boolean
+    delete?: ZReportWhereInput | boolean
+    connect?: ZReportWhereUniqueInput
+    update?: XOR<XOR<ZReportUpdateToOneWithWhereWithoutSalesInput, ZReportUpdateWithoutSalesInput>, ZReportUncheckedUpdateWithoutSalesInput>
   }
 
   export type SaleItemUncheckedUpdateManyWithoutSaleNestedInput = {
@@ -36699,6 +39165,48 @@ export namespace Prisma {
     deleteMany?: PurchaseOrderItemScalarWhereInput | PurchaseOrderItemScalarWhereInput[]
   }
 
+  export type SaleCreateNestedManyWithoutZReportInput = {
+    create?: XOR<SaleCreateWithoutZReportInput, SaleUncheckedCreateWithoutZReportInput> | SaleCreateWithoutZReportInput[] | SaleUncheckedCreateWithoutZReportInput[]
+    connectOrCreate?: SaleCreateOrConnectWithoutZReportInput | SaleCreateOrConnectWithoutZReportInput[]
+    createMany?: SaleCreateManyZReportInputEnvelope
+    connect?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+  }
+
+  export type SaleUncheckedCreateNestedManyWithoutZReportInput = {
+    create?: XOR<SaleCreateWithoutZReportInput, SaleUncheckedCreateWithoutZReportInput> | SaleCreateWithoutZReportInput[] | SaleUncheckedCreateWithoutZReportInput[]
+    connectOrCreate?: SaleCreateOrConnectWithoutZReportInput | SaleCreateOrConnectWithoutZReportInput[]
+    createMany?: SaleCreateManyZReportInputEnvelope
+    connect?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+  }
+
+  export type SaleUpdateManyWithoutZReportNestedInput = {
+    create?: XOR<SaleCreateWithoutZReportInput, SaleUncheckedCreateWithoutZReportInput> | SaleCreateWithoutZReportInput[] | SaleUncheckedCreateWithoutZReportInput[]
+    connectOrCreate?: SaleCreateOrConnectWithoutZReportInput | SaleCreateOrConnectWithoutZReportInput[]
+    upsert?: SaleUpsertWithWhereUniqueWithoutZReportInput | SaleUpsertWithWhereUniqueWithoutZReportInput[]
+    createMany?: SaleCreateManyZReportInputEnvelope
+    set?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    disconnect?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    delete?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    connect?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    update?: SaleUpdateWithWhereUniqueWithoutZReportInput | SaleUpdateWithWhereUniqueWithoutZReportInput[]
+    updateMany?: SaleUpdateManyWithWhereWithoutZReportInput | SaleUpdateManyWithWhereWithoutZReportInput[]
+    deleteMany?: SaleScalarWhereInput | SaleScalarWhereInput[]
+  }
+
+  export type SaleUncheckedUpdateManyWithoutZReportNestedInput = {
+    create?: XOR<SaleCreateWithoutZReportInput, SaleUncheckedCreateWithoutZReportInput> | SaleCreateWithoutZReportInput[] | SaleUncheckedCreateWithoutZReportInput[]
+    connectOrCreate?: SaleCreateOrConnectWithoutZReportInput | SaleCreateOrConnectWithoutZReportInput[]
+    upsert?: SaleUpsertWithWhereUniqueWithoutZReportInput | SaleUpsertWithWhereUniqueWithoutZReportInput[]
+    createMany?: SaleCreateManyZReportInputEnvelope
+    set?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    disconnect?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    delete?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    connect?: SaleWhereUniqueInput | SaleWhereUniqueInput[]
+    update?: SaleUpdateWithWhereUniqueWithoutZReportInput | SaleUpdateWithWhereUniqueWithoutZReportInput[]
+    updateMany?: SaleUpdateManyWithWhereWithoutZReportInput | SaleUpdateManyWithWhereWithoutZReportInput[]
+    deleteMany?: SaleScalarWhereInput | SaleScalarWhereInput[]
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -36963,6 +39471,7 @@ export namespace Prisma {
     customer?: CustomerCreateNestedOneWithoutSalesInput
     items?: SaleItemCreateNestedManyWithoutSaleInput
     Invoice?: InvoiceCreateNestedOneWithoutSaleInput
+    zReport?: ZReportCreateNestedOneWithoutSalesInput
   }
 
   export type SaleUncheckedCreateWithoutUserInput = {
@@ -36977,6 +39486,7 @@ export namespace Prisma {
     paymentStatus?: string
     createdAt?: Date | string
     customerId?: string | null
+    zReportId?: string | null
     items?: SaleItemUncheckedCreateNestedManyWithoutSaleInput
     Invoice?: InvoiceUncheckedCreateNestedOneWithoutSaleInput
   }
@@ -37023,6 +39533,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Sale"> | Date | string
     userId?: StringFilter<"Sale"> | string
     customerId?: StringNullableFilter<"Sale"> | string | null
+    zReportId?: StringNullableFilter<"Sale"> | string | null
   }
 
   export type ProductCreateWithoutChildrenInput = {
@@ -37933,6 +40444,35 @@ export namespace Prisma {
     create: XOR<InvoiceCreateWithoutSaleInput, InvoiceUncheckedCreateWithoutSaleInput>
   }
 
+  export type ZReportCreateWithoutSalesInput = {
+    id?: string
+    reportDate: Date | string
+    reportNumber: string
+    totalSales: Decimal | DecimalJsLike | number | string
+    totalTax: Decimal | DecimalJsLike | number | string
+    fileUrl?: string | null
+    status?: string
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ZReportUncheckedCreateWithoutSalesInput = {
+    id?: string
+    reportDate: Date | string
+    reportNumber: string
+    totalSales: Decimal | DecimalJsLike | number | string
+    totalTax: Decimal | DecimalJsLike | number | string
+    fileUrl?: string | null
+    status?: string
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ZReportCreateOrConnectWithoutSalesInput = {
+    where: ZReportWhereUniqueInput
+    create: XOR<ZReportCreateWithoutSalesInput, ZReportUncheckedCreateWithoutSalesInput>
+  }
+
   export type UserUpsertWithoutSalesInput = {
     update: XOR<UserUpdateWithoutSalesInput, UserUncheckedUpdateWithoutSalesInput>
     create: XOR<UserCreateWithoutSalesInput, UserUncheckedCreateWithoutSalesInput>
@@ -38040,6 +40580,41 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ZReportUpsertWithoutSalesInput = {
+    update: XOR<ZReportUpdateWithoutSalesInput, ZReportUncheckedUpdateWithoutSalesInput>
+    create: XOR<ZReportCreateWithoutSalesInput, ZReportUncheckedCreateWithoutSalesInput>
+    where?: ZReportWhereInput
+  }
+
+  export type ZReportUpdateToOneWithWhereWithoutSalesInput = {
+    where?: ZReportWhereInput
+    data: XOR<ZReportUpdateWithoutSalesInput, ZReportUncheckedUpdateWithoutSalesInput>
+  }
+
+  export type ZReportUpdateWithoutSalesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reportDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reportNumber?: StringFieldUpdateOperationsInput | string
+    totalSales?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ZReportUncheckedUpdateWithoutSalesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reportDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    reportNumber?: StringFieldUpdateOperationsInput | string
+    totalSales?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    totalTax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    fileUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type SaleCreateWithoutItemsInput = {
     id?: string
     saleNumber: string
@@ -38054,6 +40629,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutSalesInput
     customer?: CustomerCreateNestedOneWithoutSalesInput
     Invoice?: InvoiceCreateNestedOneWithoutSaleInput
+    zReport?: ZReportCreateNestedOneWithoutSalesInput
   }
 
   export type SaleUncheckedCreateWithoutItemsInput = {
@@ -38069,6 +40645,7 @@ export namespace Prisma {
     createdAt?: Date | string
     userId: string
     customerId?: string | null
+    zReportId?: string | null
     Invoice?: InvoiceUncheckedCreateNestedOneWithoutSaleInput
   }
 
@@ -38167,6 +40744,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutSalesNestedInput
     customer?: CustomerUpdateOneWithoutSalesNestedInput
     Invoice?: InvoiceUpdateOneWithoutSaleNestedInput
+    zReport?: ZReportUpdateOneWithoutSalesNestedInput
   }
 
   export type SaleUncheckedUpdateWithoutItemsInput = {
@@ -38182,6 +40760,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
     Invoice?: InvoiceUncheckedUpdateOneWithoutSaleNestedInput
   }
 
@@ -38270,6 +40849,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutSalesInput
     items?: SaleItemCreateNestedManyWithoutSaleInput
     Invoice?: InvoiceCreateNestedOneWithoutSaleInput
+    zReport?: ZReportCreateNestedOneWithoutSalesInput
   }
 
   export type SaleUncheckedCreateWithoutCustomerInput = {
@@ -38284,6 +40864,7 @@ export namespace Prisma {
     paymentStatus?: string
     createdAt?: Date | string
     userId: string
+    zReportId?: string | null
     items?: SaleItemUncheckedCreateNestedManyWithoutSaleInput
     Invoice?: InvoiceUncheckedCreateNestedOneWithoutSaleInput
   }
@@ -38852,6 +41433,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutSalesInput
     customer?: CustomerCreateNestedOneWithoutSalesInput
     items?: SaleItemCreateNestedManyWithoutSaleInput
+    zReport?: ZReportCreateNestedOneWithoutSalesInput
   }
 
   export type SaleUncheckedCreateWithoutInvoiceInput = {
@@ -38867,6 +41449,7 @@ export namespace Prisma {
     createdAt?: Date | string
     userId: string
     customerId?: string | null
+    zReportId?: string | null
     items?: SaleItemUncheckedCreateNestedManyWithoutSaleInput
   }
 
@@ -38900,6 +41483,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutSalesNestedInput
     customer?: CustomerUpdateOneWithoutSalesNestedInput
     items?: SaleItemUpdateManyWithoutSaleNestedInput
+    zReport?: ZReportUpdateOneWithoutSalesNestedInput
   }
 
   export type SaleUncheckedUpdateWithoutInvoiceInput = {
@@ -38915,6 +41499,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
     items?: SaleItemUncheckedUpdateManyWithoutSaleNestedInput
   }
 
@@ -40484,6 +43069,66 @@ export namespace Prisma {
     data: XOR<PurchaseOrderItemUpdateManyMutationInput, PurchaseOrderItemUncheckedUpdateManyWithoutPurchaseOrderInput>
   }
 
+  export type SaleCreateWithoutZReportInput = {
+    id?: string
+    saleNumber: string
+    subtotal: Decimal | DecimalJsLike | number | string
+    tax: Decimal | DecimalJsLike | number | string
+    discount: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    status?: string
+    paymentMethod?: string
+    paymentStatus?: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutSalesInput
+    customer?: CustomerCreateNestedOneWithoutSalesInput
+    items?: SaleItemCreateNestedManyWithoutSaleInput
+    Invoice?: InvoiceCreateNestedOneWithoutSaleInput
+  }
+
+  export type SaleUncheckedCreateWithoutZReportInput = {
+    id?: string
+    saleNumber: string
+    subtotal: Decimal | DecimalJsLike | number | string
+    tax: Decimal | DecimalJsLike | number | string
+    discount: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    status?: string
+    paymentMethod?: string
+    paymentStatus?: string
+    createdAt?: Date | string
+    userId: string
+    customerId?: string | null
+    items?: SaleItemUncheckedCreateNestedManyWithoutSaleInput
+    Invoice?: InvoiceUncheckedCreateNestedOneWithoutSaleInput
+  }
+
+  export type SaleCreateOrConnectWithoutZReportInput = {
+    where: SaleWhereUniqueInput
+    create: XOR<SaleCreateWithoutZReportInput, SaleUncheckedCreateWithoutZReportInput>
+  }
+
+  export type SaleCreateManyZReportInputEnvelope = {
+    data: SaleCreateManyZReportInput | SaleCreateManyZReportInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SaleUpsertWithWhereUniqueWithoutZReportInput = {
+    where: SaleWhereUniqueInput
+    update: XOR<SaleUpdateWithoutZReportInput, SaleUncheckedUpdateWithoutZReportInput>
+    create: XOR<SaleCreateWithoutZReportInput, SaleUncheckedCreateWithoutZReportInput>
+  }
+
+  export type SaleUpdateWithWhereUniqueWithoutZReportInput = {
+    where: SaleWhereUniqueInput
+    data: XOR<SaleUpdateWithoutZReportInput, SaleUncheckedUpdateWithoutZReportInput>
+  }
+
+  export type SaleUpdateManyWithWhereWithoutZReportInput = {
+    where: SaleScalarWhereInput
+    data: XOR<SaleUpdateManyMutationInput, SaleUncheckedUpdateManyWithoutZReportInput>
+  }
+
   export type SaleCreateManyUserInput = {
     id?: string
     saleNumber: string
@@ -40496,6 +43141,7 @@ export namespace Prisma {
     paymentStatus?: string
     createdAt?: Date | string
     customerId?: string | null
+    zReportId?: string | null
   }
 
   export type SaleUpdateWithoutUserInput = {
@@ -40512,6 +43158,7 @@ export namespace Prisma {
     customer?: CustomerUpdateOneWithoutSalesNestedInput
     items?: SaleItemUpdateManyWithoutSaleNestedInput
     Invoice?: InvoiceUpdateOneWithoutSaleNestedInput
+    zReport?: ZReportUpdateOneWithoutSalesNestedInput
   }
 
   export type SaleUncheckedUpdateWithoutUserInput = {
@@ -40526,6 +43173,7 @@ export namespace Prisma {
     paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
     items?: SaleItemUncheckedUpdateManyWithoutSaleNestedInput
     Invoice?: InvoiceUncheckedUpdateOneWithoutSaleNestedInput
   }
@@ -40542,6 +43190,7 @@ export namespace Prisma {
     paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ProductCreateManyParentInput = {
@@ -41038,6 +43687,7 @@ export namespace Prisma {
     paymentStatus?: string
     createdAt?: Date | string
     userId: string
+    zReportId?: string | null
   }
 
   export type SaleUpdateWithoutCustomerInput = {
@@ -41054,6 +43704,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutSalesNestedInput
     items?: SaleItemUpdateManyWithoutSaleNestedInput
     Invoice?: InvoiceUpdateOneWithoutSaleNestedInput
+    zReport?: ZReportUpdateOneWithoutSalesNestedInput
   }
 
   export type SaleUncheckedUpdateWithoutCustomerInput = {
@@ -41068,6 +43719,7 @@ export namespace Prisma {
     paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
     items?: SaleItemUncheckedUpdateManyWithoutSaleNestedInput
     Invoice?: InvoiceUncheckedUpdateOneWithoutSaleNestedInput
   }
@@ -41084,6 +43736,7 @@ export namespace Prisma {
     paymentStatus?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    zReportId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PurchaseOrderCreateManyVendorInput = {
@@ -41390,6 +44043,70 @@ export namespace Prisma {
     totalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
   }
 
+  export type SaleCreateManyZReportInput = {
+    id?: string
+    saleNumber: string
+    subtotal: Decimal | DecimalJsLike | number | string
+    tax: Decimal | DecimalJsLike | number | string
+    discount: Decimal | DecimalJsLike | number | string
+    total: Decimal | DecimalJsLike | number | string
+    status?: string
+    paymentMethod?: string
+    paymentStatus?: string
+    createdAt?: Date | string
+    userId: string
+    customerId?: string | null
+  }
+
+  export type SaleUpdateWithoutZReportInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    saleNumber?: StringFieldUpdateOperationsInput | string
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSalesNestedInput
+    customer?: CustomerUpdateOneWithoutSalesNestedInput
+    items?: SaleItemUpdateManyWithoutSaleNestedInput
+    Invoice?: InvoiceUpdateOneWithoutSaleNestedInput
+  }
+
+  export type SaleUncheckedUpdateWithoutZReportInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    saleNumber?: StringFieldUpdateOperationsInput | string
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    items?: SaleItemUncheckedUpdateManyWithoutSaleNestedInput
+    Invoice?: InvoiceUncheckedUpdateOneWithoutSaleNestedInput
+  }
+
+  export type SaleUncheckedUpdateManyWithoutZReportInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    saleNumber?: StringFieldUpdateOperationsInput | string
+    subtotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    tax?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: StringFieldUpdateOperationsInput | string
+    paymentStatus?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
 
 
   /**
@@ -41435,6 +44152,10 @@ export namespace Prisma {
      * @deprecated Use PurchaseOrderCountOutputTypeDefaultArgs instead
      */
     export type PurchaseOrderCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PurchaseOrderCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ZReportCountOutputTypeDefaultArgs instead
+     */
+    export type ZReportCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ZReportCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use UserDefaultArgs instead
      */
@@ -41539,6 +44260,14 @@ export namespace Prisma {
      * @deprecated Use ZReportDefaultArgs instead
      */
     export type ZReportArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ZReportDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CategoryDefaultArgs instead
+     */
+    export type CategoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CategoryDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use LocalTaxRuleDefaultArgs instead
+     */
+    export type LocalTaxRuleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = LocalTaxRuleDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

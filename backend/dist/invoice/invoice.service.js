@@ -14,13 +14,16 @@ const common_1 = require("@nestjs/common");
 const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
 const tenant_service_1 = require("../tenant/tenant.service");
 const tenant_client_1 = require("../generated/tenant-client");
+const category_service_1 = require("../category/category.service");
 const openai_1 = require("openai");
 const fs = require("fs");
 const path = require("path");
+const pagination_dto_1 = require("../common/pagination.dto");
 let InvoiceService = class InvoiceService {
-    constructor(tenantPrisma, tenantService) {
+    constructor(tenantPrisma, tenantService, categoryService) {
         this.tenantPrisma = tenantPrisma;
         this.tenantService = tenantService;
+        this.categoryService = categoryService;
     }
     cleanProductName(name) {
         return name
@@ -45,17 +48,19 @@ let InvoiceService = class InvoiceService {
             });
             for (const item of items) {
                 const unitsPerCase = item.unitsPerCase || 1;
-                const retailUnits = item.quantity * unitsPerCase;
+                const retailUnit = item.retailUnit || 1;
+                const effectiveUnitsPerParent = Math.max(1, unitsPerCase / retailUnit);
+                const retailUnits = item.quantity * effectiveUnitsPerParent;
                 const casePrice = item.casePrice || (item.costPerUnit || item.unitPrice);
-                const costPerUnit = unitsPerCase > 1
-                    ? casePrice / unitsPerCase
-                    : (item.costPerUnit || item.unitPrice);
+                const costPerUnit = effectiveUnitsPerParent > 1
+                    ? casePrice / effectiveUnitsPerParent
+                    : casePrice;
                 const expiry = item.expiryDate
                     ? new Date(item.expiryDate)
                     : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
                 let retailProduct = null;
                 let bulkProduct = null;
-                if (unitsPerCase > 1) {
+                if (effectiveUnitsPerParent > 1) {
                     const bulkName = `${item.description} (Case of ${unitsPerCase})`;
                     bulkProduct = await tx.product.findFirst({
                         where: { name: { equals: bulkName, mode: 'insensitive' } },
@@ -109,7 +114,7 @@ let InvoiceService = class InvoiceService {
                                 isActive: true,
                                 isSellable: true,
                                 parentId: bulkProduct.id,
-                                unitsPerParent: unitsPerCase,
+                                unitsPerParent: effectiveUnitsPerParent,
                             },
                         });
                     }
@@ -119,7 +124,7 @@ let InvoiceService = class InvoiceService {
                             data: {
                                 costPrice: new tenant_client_1.Prisma.Decimal(costPerUnit),
                                 parentId: bulkProduct.id,
-                                unitsPerParent: unitsPerCase,
+                                unitsPerParent: effectiveUnitsPerParent,
                                 ...(item.sellingPrice ? { price: new tenant_client_1.Prisma.Decimal(item.sellingPrice) } : {}),
                             },
                         });
@@ -300,9 +305,11 @@ let InvoiceService = class InvoiceService {
             for (const item of items) {
                 const cases = Number(item.quantity) || 1;
                 const unitsPerCase = Number(item.unitsPerCase) || 1;
-                const retailUnits = cases * unitsPerCase;
+                const retailUnit = Number(item.retailUnit) || 1;
+                const effectiveUnitsPerParent = Math.max(1, unitsPerCase / retailUnit);
+                const retailUnits = cases * effectiveUnitsPerParent;
                 const casePrice = Number(item.casePrice) || Number(item.unitPrice) || 0;
-                const costPerUnit = unitsPerCase > 1 ? (casePrice / unitsPerCase) : casePrice;
+                const costPerUnit = effectiveUnitsPerParent > 1 ? (casePrice / effectiveUnitsPerParent) : casePrice;
                 let productId = item.productId;
                 if (productId) {
                     if (item.sellingPrice !== null && item.sellingPrice !== undefined) {
@@ -354,32 +361,40 @@ let InvoiceService = class InvoiceService {
             return updatedInvoice;
         }, { timeout: 20000 });
     }
-    async getAllInvoices(subdomain, status) {
+    async getAllInvoices(subdomain, options = {}) {
+        const opts = typeof options === 'string' ? { status: options } : options;
         console.log(`getAllInvoices called for subdomain: ${subdomain}`);
         try {
             const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
-            if (!tenant) {
-                console.log(`Tenant not found for subdomain: ${subdomain}`);
+            if (!tenant)
                 throw new Error(`Tenant not found for subdomain: ${subdomain}`);
-            }
-            console.log(`Tenant found: ${tenant.id}, DB: ${tenant.databaseUrl}`);
             const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-            console.log('Got tenant client');
-            const where = status ? { status } : {};
-            const invoices = await client.vendorInvoice.findMany({
-                where,
-                include: {
-                    vendor: true,
-                    items: {
-                        include: {
-                            product: true
-                        }
+            const { skip, take, page, limit } = (0, pagination_dto_1.parsePagination)(opts.page, opts.limit, 20);
+            const where = {};
+            if (opts.status)
+                where.status = opts.status;
+            if (opts.vendorId)
+                where.vendorId = opts.vendorId;
+            if (opts.search) {
+                where.invoiceNumber = { contains: opts.search, mode: 'insensitive' };
+            }
+            const [invoices, total] = await Promise.all([
+                client.vendorInvoice.findMany({
+                    where,
+                    include: {
+                        vendor: true,
+                        items: { include: { product: true } },
                     },
-                },
-                orderBy: { createdAt: 'desc' },
-            });
-            console.log(`Found ${invoices.length} invoices`);
-            return invoices;
+                    orderBy: { createdAt: 'desc' },
+                    skip,
+                    take,
+                }),
+                client.vendorInvoice.count({ where }),
+            ]);
+            console.log(`Found ${invoices.length} invoices (total: ${total})`);
+            if (!opts.page && !opts.limit)
+                return invoices;
+            return (0, pagination_dto_1.buildPaginatedResponse)(invoices, total, page, limit);
         }
         catch (error) {
             console.error('Error in getAllInvoices:', error);
@@ -440,12 +455,15 @@ let InvoiceService = class InvoiceService {
         });
         return this.getInvoice(subdomain, invoiceId);
     }
-    async parseInvoiceOCR(fileUrl) {
+    async parseInvoiceOCR(subdomain, fileUrl) {
         if (!process.env.OPENAI_API_KEY) {
             console.error('❌ Missing OPENAI_API_KEY in environment variables');
             throw new Error('OPENAI_API_KEY is not configured');
         }
         console.log(`🔑 Using OpenAI Key: ${process.env.OPENAI_API_KEY?.substring(0, 10)}... (Length: ${process.env.OPENAI_API_KEY?.length})`);
+        const catData = await this.categoryService.getCategories(subdomain);
+        const authorizedCategories = catData.combined.length > 0 ? catData.combined.map(c => `"${c}"`).join(', ') : '"Uncategorized"';
+        const categoryPromptText = `- category: Product category. You MUST categorize the item using EXACTLY one of the following authorized categories: [${authorizedCategories}]. If it doesn't fit any, use "Uncategorized". Under NO CIRCUMSTANCES should you invent a new category.`;
         try {
             console.log('📂 Resolving file path...');
             const publicDir = path.join(process.cwd(), '..', 'public');
@@ -524,7 +542,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
   - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  ${categoryPromptText}
   - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
   - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
   - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
@@ -574,7 +592,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
   - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  ${categoryPromptText}
   - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
   - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
   - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
@@ -618,7 +636,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
 - totalAmount: Total amount (number)
 - items: Array of items, each with:
   - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
-  - category: Product category (e.g. "Beverages", "Dairy", "Snacks", "Frozen", "Packaged Goods", etc.)
+  ${categoryPromptText}
   - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
   - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
   - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
@@ -726,6 +744,7 @@ exports.InvoiceService = InvoiceService;
 exports.InvoiceService = InvoiceService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [tenant_prisma_service_1.TenantPrismaService,
-        tenant_service_1.TenantService])
+        tenant_service_1.TenantService,
+        category_service_1.CategoryService])
 ], InvoiceService);
 //# sourceMappingURL=invoice.service.js.map

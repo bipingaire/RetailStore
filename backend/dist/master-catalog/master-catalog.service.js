@@ -46,22 +46,6 @@ let MasterCatalogService = class MasterCatalogService {
                     syncedAt: new Date(),
                 },
             });
-            await this.prisma.globalProductMasterCatalog.upsert({
-                where: { sku: data.sku },
-                update: {
-                    productName: data.productName,
-                    category: data.category,
-                    description: data.description,
-                    ...(data.imageUrl ? { imageUrl: data.imageUrl } : {})
-                },
-                create: {
-                    sku: data.sku,
-                    productName: data.productName,
-                    category: data.category,
-                    description: data.description,
-                    imageUrl: data.imageUrl,
-                },
-            });
         }
         catch (error) {
             console.error("Failed to sync to Master Catalog:", error);
@@ -78,18 +62,10 @@ let MasterCatalogService = class MasterCatalogService {
                 { sku: { contains: filters.search } },
             ];
         }
-        const items = await this.prisma.globalProductMasterCatalog.findMany({
+        return this.prisma.sharedCatalog.findMany({
             where,
             orderBy: { productName: 'asc' },
         });
-        return items.map(i => ({
-            sku: i.sku,
-            productName: i.productName,
-            category: i.category,
-            description: i.description,
-            basePrice: 0,
-            imageUrl: i.imageUrl
-        }));
     }
 };
 exports.MasterCatalogService = MasterCatalogService;

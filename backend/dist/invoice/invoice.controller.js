@@ -69,7 +69,7 @@ let InvoiceController = class InvoiceController {
     testEndpoint() {
         return { success: true, message: 'Invoice controller is working!' };
     }
-    async parseInvoice(file) {
+    async parseInvoice(subdomain, file) {
         try {
             console.log('📄 Parse invoice request received');
             console.log('File:', file ? `${file.originalname} (${file.size} bytes)` : 'NO FILE');
@@ -102,7 +102,7 @@ let InvoiceController = class InvoiceController {
             console.log('✅ File saved successfully');
             const fileUrl = `/uploads/temp/${filename}`;
             console.log('🤖 Calling OpenAI OCR with fileUrl:', fileUrl);
-            const result = await this.invoiceService.parseInvoiceOCR(fileUrl);
+            const result = await this.invoiceService.parseInvoiceOCR(subdomain, fileUrl);
             console.log('✅ OCR result:', result);
             return result;
         }
@@ -145,8 +145,14 @@ let InvoiceController = class InvoiceController {
             }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async getAllInvoices(subdomain, status) {
-        return this.invoiceService.getAllInvoices(subdomain, status);
+    async getAllInvoices(subdomain, status, page, limit, search, vendorId) {
+        return this.invoiceService.getAllInvoices(subdomain, {
+            status,
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            search,
+            vendorId,
+        });
     }
     async getInvoice(subdomain, id) {
         return this.invoiceService.getInvoice(subdomain, id);
@@ -192,17 +198,22 @@ __decorate([
             fileSize: 10 * 1024 * 1024 * 1024,
         }
     })),
-    __param(0, (0, common_1.UploadedFile)()),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "parseInvoice", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Headers)('x-tenant')),
     __param(1, (0, common_1.Query)('status')),
+    __param(2, (0, common_1.Query)('page')),
+    __param(3, (0, common_1.Query)('limit')),
+    __param(4, (0, common_1.Query)('search')),
+    __param(5, (0, common_1.Query)('vendorId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], InvoiceController.prototype, "getAllInvoices", null);
 __decorate([

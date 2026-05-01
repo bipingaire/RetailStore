@@ -10,29 +10,30 @@ export declare class ProductController {
         errors: string[];
     }>;
     create(subdomain: string, dto: CreateProductDto): Promise<{
-        sku: string;
         category: string | null;
-        description: string | null;
-        imageUrl: string | null;
-        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        sku: string;
+        description: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
         isSellable: boolean;
         parentId: string | null;
         unitsPerParent: number;
     }>;
-    findAll(subdomain: string, sellableOnly?: string): Promise<{
+    findAll(subdomain: string, sellableOnly?: string, page?: string, limit?: string, search?: string, category?: string): Promise<{
         id: string;
         name: string;
         sku: string;
         image: string;
+        imageUrl: string;
         category: string;
         description: string;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -40,6 +41,7 @@ export declare class ProductController {
         is_sellable: boolean;
         parent_id: string;
         units_per_parent: number;
+        salesCount: number;
         batches: {
             id: string;
             qty: number;
@@ -47,68 +49,99 @@ export declare class ProductController {
             days_left: number;
             status: string;
         }[];
+    }[] | import("../common/pagination.dto").PaginatedResponse<{
+        id: string;
+        name: string;
+        sku: string;
+        image: string;
+        imageUrl: string;
+        category: string;
+        description: string;
+        price: import("src/generated/tenant-client/runtime/library").Decimal;
+        total_qty: number;
+        is_sellable: boolean;
+        parent_id: string;
+        units_per_parent: number;
+        salesCount: number;
+        batches: {
+            id: string;
+            qty: number;
+            expiry: string;
+            days_left: number;
+            status: string;
+        }[];
+    }>>;
+    getHomepageData(subdomain: string): Promise<{
+        name: string;
+        totalCategorySales: number;
+        products: any[];
+    }[]>;
+    getCategories(subdomain: string): Promise<{
+        name: string;
+        count: number;
+        imageUrl: string;
     }[]>;
     findOne(subdomain: string, id: string): Promise<{
         Batches: {
-            sku: string;
             id: string;
             productId: string;
             quantity: number;
+            sku: string;
             expiryDate: Date;
             receivedDate: Date;
         }[];
     } & {
-        sku: string;
         category: string | null;
-        description: string | null;
-        imageUrl: string | null;
-        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        sku: string;
+        description: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
         isSellable: boolean;
         parentId: string | null;
         unitsPerParent: number;
     }>;
     update(subdomain: string, id: string, dto: UpdateProductDto): Promise<{
-        sku: string;
         category: string | null;
-        description: string | null;
-        imageUrl: string | null;
-        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        sku: string;
+        description: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
         isSellable: boolean;
         parentId: string | null;
         unitsPerParent: number;
     }>;
     delete(subdomain: string, id: string): Promise<{
-        sku: string;
         category: string | null;
-        description: string | null;
-        imageUrl: string | null;
-        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        sku: string;
+        description: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
         isSellable: boolean;
         parentId: string | null;
@@ -122,6 +155,6 @@ export declare class ProductController {
     }>;
     enrich(subdomain: string, id: string): Promise<{
         success: boolean;
-        imageUrl: string;
+        description: string;
     }>;
 }

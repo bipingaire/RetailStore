@@ -5,6 +5,7 @@ export declare class DashboardService {
     private tenantPrisma;
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
     getOverview(subdomain: string, startDate?: Date, endDate?: Date): Promise<{
+        storeName: string;
         revenue: number;
         orders: number;
         lowStock: number;

@@ -55,7 +55,7 @@ let AuthService = class AuthService {
         console.log(`[AuthService] User lookup result:`, user ? `Found user ${user.id}` : 'User not found');
         if (!user) {
             console.log(`[AuthService] User not found for email: ${email}`);
-            throw new common_1.UnauthorizedException('Invalid credentials');
+            throw new common_1.UnauthorizedException('User does not exist');
         }
         console.log(`[AuthService] Password hash starts with:`, user.password.substring(0, 10));
         console.log(`[AuthService] Password is hashed:`, user.password.startsWith('$2b$'));
@@ -137,14 +137,26 @@ let AuthService = class AuthService {
         }
         return this.login({ ...user, tenantId, subdomain });
     }
-    async getProfile(userId) {
+    async getProfile(userId, subdomain) {
         if (!userId)
             return null;
+        if (subdomain && subdomain !== 'demo' && subdomain !== 'localhost') {
+            try {
+                const tenant = await this.prisma.tenant.findUnique({ where: { subdomain } });
+                if (tenant) {
+                    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+                    const tenantUser = await client.user.findUnique({ where: { id: userId } });
+                    if (tenantUser)
+                        return tenantUser;
+                }
+            }
+            catch (e) {
+                console.error('[getProfile] Tenant DB lookup failed, falling back to local DB:', e);
+            }
+        }
         let user = await this.localPrisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            const superAdmin = await this.prisma.superAdmin.findUnique({
-                where: { id: userId }
-            });
+            const superAdmin = await this.prisma.superAdmin.findUnique({ where: { id: userId } });
             if (superAdmin)
                 return superAdmin;
         }

@@ -81,6 +81,9 @@ model Sale {
   items   SaleItem[]
   Invoice Invoice?
 
+  zReportId String?
+  zReport   ZReport? @relation(fields: [zReportId], references: [id])
+
   @@map("sales")
 }
 
@@ -421,5 +424,28 @@ model ZReport {
   processedAt  DateTime?
   createdAt    DateTime  @default(now())
 
+  Sales Sale[]
+
   @@map("z_reports")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("categories")
+}
+
+model LocalTaxRule {
+  id        String   @id @default(uuid())
+  category  String   @unique
+  taxRate   Decimal  @db.Decimal(5, 2)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("local_tax_rules")
 }

@@ -27,8 +27,20 @@ let ProductController = class ProductController {
     create(subdomain, dto) {
         return this.productService.create(subdomain, dto);
     }
-    findAll(subdomain, sellableOnly) {
-        return this.productService.findAll(subdomain, sellableOnly === 'true');
+    findAll(subdomain, sellableOnly, page, limit, search, category) {
+        return this.productService.findAll(subdomain, {
+            sellableOnly: sellableOnly === 'true',
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            search,
+            category,
+        });
+    }
+    getHomepageData(subdomain) {
+        return this.productService.getHomepageData(subdomain);
+    }
+    getCategories(subdomain) {
+        return this.productService.getCategories(subdomain);
     }
     findOne(subdomain, id) {
         return this.productService.findOne(subdomain, id);
@@ -68,10 +80,28 @@ __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Headers)('x-tenant')),
     __param(1, (0, common_1.Query)('sellableOnly')),
+    __param(2, (0, common_1.Query)('page')),
+    __param(3, (0, common_1.Query)('limit')),
+    __param(4, (0, common_1.Query)('search')),
+    __param(5, (0, common_1.Query)('category')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], ProductController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('homepage'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ProductController.prototype, "getHomepageData", null);
+__decorate([
+    (0, common_1.Get)('categories'),
+    __param(0, (0, common_1.Headers)('x-tenant')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ProductController.prototype, "getCategories", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Headers)('x-tenant')),

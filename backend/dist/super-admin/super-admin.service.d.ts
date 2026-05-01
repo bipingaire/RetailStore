@@ -1,63 +1,66 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { AiService } from '../ai/ai.service';
 export declare class SuperAdminService {
     private prisma;
+    private tenantPrisma;
     private aiService;
-    constructor(prisma: PrismaService, aiService: AiService);
+    constructor(prisma: PrismaService, tenantPrisma: TenantPrismaService, aiService: AiService);
+    private broadcastUpdateToTenants;
     getGlobalProduct(id: string): Promise<{
-        sku: string;
-        productName: string;
         category: string | null;
+        sku: string;
         description: string | null;
-        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         imageUrl: string | null;
+        tenantId: string;
+        productName: string;
+        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     getDashboardData(): Promise<{
         products: {
-            sku: string;
-            productName: string;
             category: string | null;
+            sku: string;
             description: string | null;
-            basePrice: import("src/generated/master-client/runtime/library").Decimal;
             imageUrl: string | null;
+            tenantId: string;
+            productName: string;
+            basePrice: import("src/generated/master-client/runtime/library").Decimal;
             aiEnrichedAt: Date | null;
             syncedAt: Date;
-            tenantId: string;
         }[];
         tenants: {
             subscriptionTier: string;
             TenantSubscriptions: {
-                tenantId: string;
                 id: string;
-                planType: string;
-                monthlyPrice: import("src/generated/master-client/runtime/library").Decimal;
                 status: string;
+                tenantId: string;
                 startDate: Date;
                 endDate: Date | null;
+                planType: string;
+                monthlyPrice: import("src/generated/master-client/runtime/library").Decimal;
             }[];
             id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            isActive: boolean;
             storeName: string;
             subdomain: string;
             databaseUrl: string;
             adminEmail: string;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
         }[];
         pendingItems: ({
             tenant: {
                 storeName: string;
             };
         } & {
-            productName: string;
+            id: string;
+            status: string;
+            createdAt: Date;
             imageUrl: string | null;
             tenantId: string;
-            id: string;
-            createdAt: Date;
-            status: string;
+            productName: string;
             upcEanCode: string;
             brandName: string;
             categoryName: string;
@@ -68,26 +71,26 @@ export declare class SuperAdminService {
         })[];
         revenueData: {
             subscriptions: {
-                tenantId: string;
                 id: string;
-                planType: string;
-                monthlyPrice: import("src/generated/master-client/runtime/library").Decimal;
                 status: string;
+                tenantId: string;
                 startDate: Date;
                 endDate: Date | null;
+                planType: string;
+                monthlyPrice: import("src/generated/master-client/runtime/library").Decimal;
             }[];
             transactions: ({
                 tenant: {
                     storeName: string;
                 };
             } & {
-                description: string | null;
-                tenantId: string;
                 id: string;
                 status: string;
+                description: string | null;
+                tenantId: string;
                 amount: import("src/generated/master-client/runtime/library").Decimal;
-                transactionDate: Date;
                 paymentMethod: string;
+                transactionDate: Date;
             })[];
         };
         websiteConfig: {
@@ -99,23 +102,23 @@ export declare class SuperAdminService {
         };
     }>;
     approveProduct(pendingId: string): Promise<{
-        sku: string;
-        productName: string;
         category: string | null;
+        sku: string;
         description: string | null;
-        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         imageUrl: string | null;
+        tenantId: string;
+        productName: string;
+        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     rejectProduct(pendingId: string): Promise<{
-        productName: string;
+        id: string;
+        status: string;
+        createdAt: Date;
         imageUrl: string | null;
         tenantId: string;
-        id: string;
-        createdAt: Date;
-        status: string;
+        productName: string;
         upcEanCode: string;
         brandName: string;
         categoryName: string;
@@ -125,37 +128,37 @@ export declare class SuperAdminService {
         suggestedMatchProductId: string | null;
     }>;
     updateProduct(id: string, data: any): Promise<{
-        sku: string;
-        productName: string;
         category: string | null;
+        sku: string;
         description: string | null;
-        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         imageUrl: string | null;
+        tenantId: string;
+        productName: string;
+        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     uploadProductImage(id: string, imageUrl: string): Promise<{
-        sku: string;
-        productName: string;
         category: string | null;
+        sku: string;
         description: string | null;
-        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         imageUrl: string | null;
+        tenantId: string;
+        productName: string;
+        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     enrichProduct(id: string): Promise<{
-        sku: string;
-        productName: string;
         category: string | null;
+        sku: string;
         description: string | null;
-        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         imageUrl: string | null;
+        tenantId: string;
+        productName: string;
+        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     getAiSuggestions(id: string): Promise<any>;
 }

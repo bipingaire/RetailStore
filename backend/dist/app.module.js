@@ -29,6 +29,8 @@ const dashboard_module_1 = require("./dashboard/dashboard.module");
 const pos_mapping_module_1 = require("./pos-mapping/pos-mapping.module");
 const social_module_1 = require("./social/social.module");
 const expense_module_1 = require("./expense/expense.module");
+const category_module_1 = require("./category/category.module");
+const tax_module_1 = require("./tax/tax.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -57,6 +59,8 @@ exports.AppModule = AppModule = __decorate([
             reports_module_1.ReportsModule,
             social_module_1.SocialModule,
             expense_module_1.ExpenseModule,
+            category_module_1.CategoryModule,
+            tax_module_1.TaxModule,
         ],
         controllers: [],
         providers: [tenant_prisma_service_1.TenantPrismaService],

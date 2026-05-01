@@ -16,6 +16,7 @@ const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
 const openai_1 = require("openai");
 const settings_service_1 = require("../settings/settings.service");
 const stripe_1 = require("stripe");
+const pagination_dto_1 = require("../common/pagination.dto");
 let SaleService = class SaleService {
     constructor(tenantService, tenantPrisma, settingsService) {
         this.tenantService = tenantService;
@@ -113,18 +114,43 @@ let SaleService = class SaleService {
             orderBy: { createdAt: 'desc' }
         });
     }
-    async findAll(subdomain, options) {
+    async findAll(subdomain, options = {}) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-        return client.sale.findMany({
-            include: {
-                items: {
-                    include: { product: true }
+        const { skip, take, page, limit } = (0, pagination_dto_1.parsePagination)(options.page, options.limit, 20);
+        const where = {};
+        if (options.status)
+            where.status = options.status.toUpperCase();
+        if (options.userId)
+            where.userId = options.userId;
+        if (options.customerId)
+            where.customerId = options.customerId;
+        if (options.startDate || options.endDate) {
+            where.createdAt = {};
+            if (options.startDate)
+                where.createdAt.gte = new Date(options.startDate);
+            if (options.endDate)
+                where.createdAt.lte = new Date(options.endDate);
+        }
+        if (options.search) {
+            where.saleNumber = { contains: options.search, mode: 'insensitive' };
+        }
+        const [sales, total] = await Promise.all([
+            client.sale.findMany({
+                where,
+                include: {
+                    items: { include: { product: true } },
+                    customer: true,
                 },
-                customer: true
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take,
+            }),
+            client.sale.count({ where }),
+        ]);
+        if (!options.page && !options.limit)
+            return sales;
+        return (0, pagination_dto_1.buildPaginatedResponse)(sales, total, page, limit);
     }
     async findOne(subdomain, id) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);

@@ -14,6 +14,7 @@ const invoice_controller_1 = require("./invoice.controller");
 const invoice_service_1 = require("./invoice.service");
 const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
 const tenant_module_1 = require("../tenant/tenant.module");
+const category_module_1 = require("../category/category.module");
 let InvoiceModule = class InvoiceModule {
 };
 exports.InvoiceModule = InvoiceModule;
@@ -21,6 +22,7 @@ exports.InvoiceModule = InvoiceModule = __decorate([
     (0, common_1.Module)({
         imports: [
             tenant_module_1.TenantModule,
+            category_module_1.CategoryModule,
             platform_express_1.MulterModule.register({
                 storage: (0, multer_1.diskStorage)({
                     destination: './uploads/invoices',

@@ -22,12 +22,12 @@ export declare class AuthService {
     validateUser(subdomain: string, email: string, password: string): Promise<{
         tenantId: string;
         subdomain: string;
-        name: string | null;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        name: string | null;
         email: string;
+        isActive: boolean;
         role: string;
     }>;
     login(user: any): Promise<{
@@ -46,7 +46,7 @@ export declare class AuthService {
         access_token: string;
         user: any;
     }>;
-    getProfile(userId: string): Promise<{
+    getProfile(userId: string, subdomain?: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -62,15 +62,15 @@ export declare class AuthService {
     registerOwner(subdomain: string, dto: RegisterDto): Promise<{
         access_token: string;
         user: {
-            tenantId: string | null;
-            name: string | null;
             id: string;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            name: string | null;
             email: string;
+            isActive: boolean;
             password: string;
             role: string;
+            tenantId: string | null;
         };
     }>;
     loginOwner(dto: LoginDto): Promise<{
@@ -78,26 +78,26 @@ export declare class AuthService {
         user: {
             tenantId: string;
             RetailStoreTenants: {
-                tenantId: string;
+                isActive: boolean;
                 storeName: string;
                 subdomain: string | null;
-                isActive: boolean;
+                tenantId: string;
                 ownerUserId: string | null;
             }[];
-            name: string | null;
             id: string;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            name: string | null;
             email: string;
+            isActive: boolean;
             password: string;
             role: string;
         };
         tenant: {
-            tenantId: string;
+            isActive: boolean;
             storeName: string;
             subdomain: string | null;
-            isActive: boolean;
+            tenantId: string;
             ownerUserId: string | null;
         };
     }>;

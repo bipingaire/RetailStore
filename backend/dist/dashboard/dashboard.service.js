@@ -77,6 +77,7 @@ let DashboardService = class DashboardService {
                 weeklyData.push(Number(daySales._sum.total || 0));
             }
             return {
+                storeName: tenant.storeName,
                 revenue: Number(salesAgg._sum.total || 0),
                 orders: pendingOrders,
                 lowStock: lowStockCount,

@@ -27,15 +27,16 @@ let SaleController = class SaleController {
     findMyOrders(subdomain, req) {
         return this.saleService.findMyOrders(subdomain, req.user.id);
     }
-    findAll(subdomain, status, startDate, endDate, userId, customerId, limit, offset) {
+    findAll(subdomain, status, startDate, endDate, userId, customerId, page, limit, search) {
         return this.saleService.findAll(subdomain, {
             status,
             startDate,
             endDate,
             userId,
             customerId,
+            page: page ? parseInt(page) : undefined,
             limit: limit ? parseInt(limit) : undefined,
-            offset: offset ? parseInt(offset) : undefined,
+            search,
         });
     }
     getStats(subdomain, startDate, endDate) {
@@ -86,10 +87,11 @@ __decorate([
     __param(3, (0, common_1.Query)('endDate')),
     __param(4, (0, common_1.Query)('userId')),
     __param(5, (0, common_1.Query)('customerId')),
-    __param(6, (0, common_1.Query)('limit')),
-    __param(7, (0, common_1.Query)('offset')),
+    __param(6, (0, common_1.Query)('page')),
+    __param(7, (0, common_1.Query)('limit')),
+    __param(8, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], SaleController.prototype, "findAll", null);
 __decorate([

@@ -46,41 +46,41 @@ export declare class AuthController {
         user: {
             tenantId: string;
             RetailStoreTenants: {
-                tenantId: string;
+                isActive: boolean;
                 storeName: string;
                 subdomain: string | null;
-                isActive: boolean;
+                tenantId: string;
                 ownerUserId: string | null;
             }[];
-            name: string | null;
             id: string;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            name: string | null;
             email: string;
+            isActive: boolean;
             password: string;
             role: string;
         };
         tenant: {
-            tenantId: string;
+            isActive: boolean;
             storeName: string;
             subdomain: string | null;
-            isActive: boolean;
+            tenantId: string;
             ownerUserId: string | null;
         };
     }>;
     registerOwner(body: any): Promise<{
         access_token: string;
         user: {
-            tenantId: string | null;
-            name: string | null;
             id: string;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            name: string | null;
             email: string;
+            isActive: boolean;
             password: string;
             role: string;
+            tenantId: string | null;
         };
     }>;
 }

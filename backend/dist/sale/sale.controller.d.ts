@@ -8,40 +8,41 @@ export declare class SaleController {
             id: string;
             productId: string;
             quantity: number;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         }[];
     } & {
         id: string;
-        createdAt: Date;
         status: string;
-        paymentMethod: string;
+        createdAt: Date;
         total: import("src/generated/tenant-client/runtime/library").Decimal;
+        saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
         discount: import("src/generated/tenant-client/runtime/library").Decimal;
-        saleNumber: string;
+        paymentMethod: string;
         paymentStatus: string;
         userId: string;
         customerId: string | null;
+        zReportId: string | null;
     }>;
     findMyOrders(subdomain: string, req: any): Promise<({
         items: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -51,50 +52,51 @@ export declare class SaleController {
             id: string;
             productId: string;
             quantity: number;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         })[];
     } & {
         id: string;
-        createdAt: Date;
         status: string;
-        paymentMethod: string;
+        createdAt: Date;
         total: import("src/generated/tenant-client/runtime/library").Decimal;
+        saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
         discount: import("src/generated/tenant-client/runtime/library").Decimal;
-        saleNumber: string;
+        paymentMethod: string;
         paymentStatus: string;
         userId: string;
         customerId: string | null;
+        zReportId: string | null;
     })[]>;
-    findAll(subdomain: string, status?: string, startDate?: string, endDate?: string, userId?: string, customerId?: string, limit?: string, offset?: string): Promise<({
+    findAll(subdomain: string, status?: string, startDate?: string, endDate?: string, userId?: string, customerId?: string, page?: string, limit?: string, search?: string): Promise<({
         customer: {
-            name: string;
             id: string;
-            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            name: string;
             email: string | null;
             phone: string | null;
+            isActive: boolean;
             loyaltyPoints: number;
         };
         items: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -104,24 +106,78 @@ export declare class SaleController {
             id: string;
             productId: string;
             quantity: number;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         })[];
     } & {
         id: string;
-        createdAt: Date;
         status: string;
-        paymentMethod: string;
+        createdAt: Date;
         total: import("src/generated/tenant-client/runtime/library").Decimal;
+        saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
         discount: import("src/generated/tenant-client/runtime/library").Decimal;
-        saleNumber: string;
+        paymentMethod: string;
         paymentStatus: string;
         userId: string;
         customerId: string | null;
-    })[]>;
+        zReportId: string | null;
+    })[] | import("../common/pagination.dto").PaginatedResponse<{
+        customer: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            isActive: boolean;
+            loyaltyPoints: number;
+        };
+        items: ({
+            product: {
+                category: string | null;
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
+                price: import("src/generated/tenant-client/runtime/library").Decimal;
+                costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+                stock: number;
+                reorderLevel: number;
+                imageUrl: string | null;
+                barcode: string | null;
+                isSellable: boolean;
+                parentId: string | null;
+                unitsPerParent: number;
+            };
+        } & {
+            id: string;
+            productId: string;
+            quantity: number;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
+            subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+            saleId: string;
+        })[];
+    } & {
+        id: string;
+        status: string;
+        createdAt: Date;
+        total: import("src/generated/tenant-client/runtime/library").Decimal;
+        saleNumber: string;
+        subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
+        tax: import("src/generated/tenant-client/runtime/library").Decimal;
+        discount: import("src/generated/tenant-client/runtime/library").Decimal;
+        paymentMethod: string;
+        paymentStatus: string;
+        userId: string;
+        customerId: string | null;
+        zReportId: string | null;
+    }>>;
     getStats(subdomain: string, startDate?: string, endDate?: string): Promise<{
         totalSales: number;
         totalRevenue: number;
@@ -129,19 +185,19 @@ export declare class SaleController {
     findOne(subdomain: string, id: string): Promise<{
         items: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -151,37 +207,39 @@ export declare class SaleController {
             id: string;
             productId: string;
             quantity: number;
+            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
             subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
             saleId: string;
-            unitPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         })[];
     } & {
         id: string;
-        createdAt: Date;
         status: string;
-        paymentMethod: string;
+        createdAt: Date;
         total: import("src/generated/tenant-client/runtime/library").Decimal;
+        saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
         discount: import("src/generated/tenant-client/runtime/library").Decimal;
-        saleNumber: string;
+        paymentMethod: string;
         paymentStatus: string;
         userId: string;
         customerId: string | null;
+        zReportId: string | null;
     }>;
     cancel(subdomain: string, id: string, req: any): Promise<{
         id: string;
-        createdAt: Date;
         status: string;
-        paymentMethod: string;
+        createdAt: Date;
         total: import("src/generated/tenant-client/runtime/library").Decimal;
+        saleNumber: string;
         subtotal: import("src/generated/tenant-client/runtime/library").Decimal;
         tax: import("src/generated/tenant-client/runtime/library").Decimal;
         discount: import("src/generated/tenant-client/runtime/library").Decimal;
-        saleNumber: string;
+        paymentMethod: string;
         paymentStatus: string;
         userId: string;
         customerId: string | null;
+        zReportId: string | null;
     }>;
     updateStatus(subdomain: string, id: string, body: {
         status: string;

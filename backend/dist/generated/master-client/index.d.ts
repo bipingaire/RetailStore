@@ -24,11 +24,6 @@ export type Tenant = $Result.DefaultSelection<Prisma.$TenantPayload>
  */
 export type SharedCatalog = $Result.DefaultSelection<Prisma.$SharedCatalogPayload>
 /**
- * Model GlobalProductMasterCatalog
- * 
- */
-export type GlobalProductMasterCatalog = $Result.DefaultSelection<Prisma.$GlobalProductMasterCatalogPayload>
-/**
  * Model SuperAdmin
  * 
  */
@@ -53,6 +48,16 @@ export type TenantSubscription = $Result.DefaultSelection<Prisma.$TenantSubscrip
  * 
  */
 export type BillingTransaction = $Result.DefaultSelection<Prisma.$BillingTransactionPayload>
+/**
+ * Model GlobalCategory
+ * 
+ */
+export type GlobalCategory = $Result.DefaultSelection<Prisma.$GlobalCategoryPayload>
+/**
+ * Model GlobalTaxRule
+ * 
+ */
+export type GlobalTaxRule = $Result.DefaultSelection<Prisma.$GlobalTaxRulePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -198,16 +203,6 @@ export class PrismaClient<
   get sharedCatalog(): Prisma.SharedCatalogDelegate<ExtArgs>;
 
   /**
-   * `prisma.globalProductMasterCatalog`: Exposes CRUD operations for the **GlobalProductMasterCatalog** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more GlobalProductMasterCatalogs
-    * const globalProductMasterCatalogs = await prisma.globalProductMasterCatalog.findMany()
-    * ```
-    */
-  get globalProductMasterCatalog(): Prisma.GlobalProductMasterCatalogDelegate<ExtArgs>;
-
-  /**
    * `prisma.superAdmin`: Exposes CRUD operations for the **SuperAdmin** model.
     * Example usage:
     * ```ts
@@ -256,6 +251,26 @@ export class PrismaClient<
     * ```
     */
   get billingTransaction(): Prisma.BillingTransactionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.globalCategory`: Exposes CRUD operations for the **GlobalCategory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GlobalCategories
+    * const globalCategories = await prisma.globalCategory.findMany()
+    * ```
+    */
+  get globalCategory(): Prisma.GlobalCategoryDelegate<ExtArgs>;
+
+  /**
+   * `prisma.globalTaxRule`: Exposes CRUD operations for the **GlobalTaxRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GlobalTaxRules
+    * const globalTaxRules = await prisma.globalTaxRule.findMany()
+    * ```
+    */
+  get globalTaxRule(): Prisma.GlobalTaxRuleDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -699,12 +714,13 @@ export namespace Prisma {
   export const ModelName: {
     Tenant: 'Tenant',
     SharedCatalog: 'SharedCatalog',
-    GlobalProductMasterCatalog: 'GlobalProductMasterCatalog',
     SuperAdmin: 'SuperAdmin',
     PendingProductAddition: 'PendingProductAddition',
     MasterWebsiteConfig: 'MasterWebsiteConfig',
     TenantSubscription: 'TenantSubscription',
-    BillingTransaction: 'BillingTransaction'
+    BillingTransaction: 'BillingTransaction',
+    GlobalCategory: 'GlobalCategory',
+    GlobalTaxRule: 'GlobalTaxRule'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -720,7 +736,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "sharedCatalog" | "globalProductMasterCatalog" | "superAdmin" | "pendingProductAddition" | "masterWebsiteConfig" | "tenantSubscription" | "billingTransaction"
+      modelProps: "tenant" | "sharedCatalog" | "superAdmin" | "pendingProductAddition" | "masterWebsiteConfig" | "tenantSubscription" | "billingTransaction" | "globalCategory" | "globalTaxRule"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -861,76 +877,6 @@ export namespace Prisma {
           count: {
             args: Prisma.SharedCatalogCountArgs<ExtArgs>
             result: $Utils.Optional<SharedCatalogCountAggregateOutputType> | number
-          }
-        }
-      }
-      GlobalProductMasterCatalog: {
-        payload: Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>
-        fields: Prisma.GlobalProductMasterCatalogFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.GlobalProductMasterCatalogFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.GlobalProductMasterCatalogFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>
-          }
-          findFirst: {
-            args: Prisma.GlobalProductMasterCatalogFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.GlobalProductMasterCatalogFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>
-          }
-          findMany: {
-            args: Prisma.GlobalProductMasterCatalogFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>[]
-          }
-          create: {
-            args: Prisma.GlobalProductMasterCatalogCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>
-          }
-          createMany: {
-            args: Prisma.GlobalProductMasterCatalogCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.GlobalProductMasterCatalogCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>[]
-          }
-          delete: {
-            args: Prisma.GlobalProductMasterCatalogDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>
-          }
-          update: {
-            args: Prisma.GlobalProductMasterCatalogUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>
-          }
-          deleteMany: {
-            args: Prisma.GlobalProductMasterCatalogDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.GlobalProductMasterCatalogUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          upsert: {
-            args: Prisma.GlobalProductMasterCatalogUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$GlobalProductMasterCatalogPayload>
-          }
-          aggregate: {
-            args: Prisma.GlobalProductMasterCatalogAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateGlobalProductMasterCatalog>
-          }
-          groupBy: {
-            args: Prisma.GlobalProductMasterCatalogGroupByArgs<ExtArgs>
-            result: $Utils.Optional<GlobalProductMasterCatalogGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.GlobalProductMasterCatalogCountArgs<ExtArgs>
-            result: $Utils.Optional<GlobalProductMasterCatalogCountAggregateOutputType> | number
           }
         }
       }
@@ -1281,6 +1227,146 @@ export namespace Prisma {
           count: {
             args: Prisma.BillingTransactionCountArgs<ExtArgs>
             result: $Utils.Optional<BillingTransactionCountAggregateOutputType> | number
+          }
+        }
+      }
+      GlobalCategory: {
+        payload: Prisma.$GlobalCategoryPayload<ExtArgs>
+        fields: Prisma.GlobalCategoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GlobalCategoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GlobalCategoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>
+          }
+          findFirst: {
+            args: Prisma.GlobalCategoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GlobalCategoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>
+          }
+          findMany: {
+            args: Prisma.GlobalCategoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>[]
+          }
+          create: {
+            args: Prisma.GlobalCategoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>
+          }
+          createMany: {
+            args: Prisma.GlobalCategoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GlobalCategoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>[]
+          }
+          delete: {
+            args: Prisma.GlobalCategoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>
+          }
+          update: {
+            args: Prisma.GlobalCategoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.GlobalCategoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GlobalCategoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.GlobalCategoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalCategoryPayload>
+          }
+          aggregate: {
+            args: Prisma.GlobalCategoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGlobalCategory>
+          }
+          groupBy: {
+            args: Prisma.GlobalCategoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GlobalCategoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GlobalCategoryCountArgs<ExtArgs>
+            result: $Utils.Optional<GlobalCategoryCountAggregateOutputType> | number
+          }
+        }
+      }
+      GlobalTaxRule: {
+        payload: Prisma.$GlobalTaxRulePayload<ExtArgs>
+        fields: Prisma.GlobalTaxRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GlobalTaxRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GlobalTaxRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>
+          }
+          findFirst: {
+            args: Prisma.GlobalTaxRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GlobalTaxRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>
+          }
+          findMany: {
+            args: Prisma.GlobalTaxRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>[]
+          }
+          create: {
+            args: Prisma.GlobalTaxRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>
+          }
+          createMany: {
+            args: Prisma.GlobalTaxRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GlobalTaxRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>[]
+          }
+          delete: {
+            args: Prisma.GlobalTaxRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>
+          }
+          update: {
+            args: Prisma.GlobalTaxRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.GlobalTaxRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GlobalTaxRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.GlobalTaxRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GlobalTaxRulePayload>
+          }
+          aggregate: {
+            args: Prisma.GlobalTaxRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGlobalTaxRule>
+          }
+          groupBy: {
+            args: Prisma.GlobalTaxRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GlobalTaxRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GlobalTaxRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<GlobalTaxRuleCountAggregateOutputType> | number
           }
         }
       }
@@ -3570,908 +3656,6 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: SharedCatalogInclude<ExtArgs> | null
-  }
-
-
-  /**
-   * Model GlobalProductMasterCatalog
-   */
-
-  export type AggregateGlobalProductMasterCatalog = {
-    _count: GlobalProductMasterCatalogCountAggregateOutputType | null
-    _min: GlobalProductMasterCatalogMinAggregateOutputType | null
-    _max: GlobalProductMasterCatalogMaxAggregateOutputType | null
-  }
-
-  export type GlobalProductMasterCatalogMinAggregateOutputType = {
-    productId: string | null
-    productName: string | null
-    sku: string | null
-    category: string | null
-    description: string | null
-    imageUrl: string | null
-    isActive: boolean | null
-  }
-
-  export type GlobalProductMasterCatalogMaxAggregateOutputType = {
-    productId: string | null
-    productName: string | null
-    sku: string | null
-    category: string | null
-    description: string | null
-    imageUrl: string | null
-    isActive: boolean | null
-  }
-
-  export type GlobalProductMasterCatalogCountAggregateOutputType = {
-    productId: number
-    productName: number
-    sku: number
-    category: number
-    description: number
-    imageUrl: number
-    isActive: number
-    _all: number
-  }
-
-
-  export type GlobalProductMasterCatalogMinAggregateInputType = {
-    productId?: true
-    productName?: true
-    sku?: true
-    category?: true
-    description?: true
-    imageUrl?: true
-    isActive?: true
-  }
-
-  export type GlobalProductMasterCatalogMaxAggregateInputType = {
-    productId?: true
-    productName?: true
-    sku?: true
-    category?: true
-    description?: true
-    imageUrl?: true
-    isActive?: true
-  }
-
-  export type GlobalProductMasterCatalogCountAggregateInputType = {
-    productId?: true
-    productName?: true
-    sku?: true
-    category?: true
-    description?: true
-    imageUrl?: true
-    isActive?: true
-    _all?: true
-  }
-
-  export type GlobalProductMasterCatalogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which GlobalProductMasterCatalog to aggregate.
-     */
-    where?: GlobalProductMasterCatalogWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of GlobalProductMasterCatalogs to fetch.
-     */
-    orderBy?: GlobalProductMasterCatalogOrderByWithRelationInput | GlobalProductMasterCatalogOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: GlobalProductMasterCatalogWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` GlobalProductMasterCatalogs from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` GlobalProductMasterCatalogs.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned GlobalProductMasterCatalogs
-    **/
-    _count?: true | GlobalProductMasterCatalogCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: GlobalProductMasterCatalogMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: GlobalProductMasterCatalogMaxAggregateInputType
-  }
-
-  export type GetGlobalProductMasterCatalogAggregateType<T extends GlobalProductMasterCatalogAggregateArgs> = {
-        [P in keyof T & keyof AggregateGlobalProductMasterCatalog]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateGlobalProductMasterCatalog[P]>
-      : GetScalarType<T[P], AggregateGlobalProductMasterCatalog[P]>
-  }
-
-
-
-
-  export type GlobalProductMasterCatalogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: GlobalProductMasterCatalogWhereInput
-    orderBy?: GlobalProductMasterCatalogOrderByWithAggregationInput | GlobalProductMasterCatalogOrderByWithAggregationInput[]
-    by: GlobalProductMasterCatalogScalarFieldEnum[] | GlobalProductMasterCatalogScalarFieldEnum
-    having?: GlobalProductMasterCatalogScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: GlobalProductMasterCatalogCountAggregateInputType | true
-    _min?: GlobalProductMasterCatalogMinAggregateInputType
-    _max?: GlobalProductMasterCatalogMaxAggregateInputType
-  }
-
-  export type GlobalProductMasterCatalogGroupByOutputType = {
-    productId: string
-    productName: string
-    sku: string | null
-    category: string | null
-    description: string | null
-    imageUrl: string | null
-    isActive: boolean
-    _count: GlobalProductMasterCatalogCountAggregateOutputType | null
-    _min: GlobalProductMasterCatalogMinAggregateOutputType | null
-    _max: GlobalProductMasterCatalogMaxAggregateOutputType | null
-  }
-
-  type GetGlobalProductMasterCatalogGroupByPayload<T extends GlobalProductMasterCatalogGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<GlobalProductMasterCatalogGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof GlobalProductMasterCatalogGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], GlobalProductMasterCatalogGroupByOutputType[P]>
-            : GetScalarType<T[P], GlobalProductMasterCatalogGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type GlobalProductMasterCatalogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    productId?: boolean
-    productName?: boolean
-    sku?: boolean
-    category?: boolean
-    description?: boolean
-    imageUrl?: boolean
-    isActive?: boolean
-  }, ExtArgs["result"]["globalProductMasterCatalog"]>
-
-  export type GlobalProductMasterCatalogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    productId?: boolean
-    productName?: boolean
-    sku?: boolean
-    category?: boolean
-    description?: boolean
-    imageUrl?: boolean
-    isActive?: boolean
-  }, ExtArgs["result"]["globalProductMasterCatalog"]>
-
-  export type GlobalProductMasterCatalogSelectScalar = {
-    productId?: boolean
-    productName?: boolean
-    sku?: boolean
-    category?: boolean
-    description?: boolean
-    imageUrl?: boolean
-    isActive?: boolean
-  }
-
-
-  export type $GlobalProductMasterCatalogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "GlobalProductMasterCatalog"
-    objects: {}
-    scalars: $Extensions.GetPayloadResult<{
-      productId: string
-      productName: string
-      sku: string | null
-      category: string | null
-      description: string | null
-      imageUrl: string | null
-      isActive: boolean
-    }, ExtArgs["result"]["globalProductMasterCatalog"]>
-    composites: {}
-  }
-
-  type GlobalProductMasterCatalogGetPayload<S extends boolean | null | undefined | GlobalProductMasterCatalogDefaultArgs> = $Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload, S>
-
-  type GlobalProductMasterCatalogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<GlobalProductMasterCatalogFindManyArgs, 'select' | 'include' | 'distinct'> & {
-      select?: GlobalProductMasterCatalogCountAggregateInputType | true
-    }
-
-  export interface GlobalProductMasterCatalogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GlobalProductMasterCatalog'], meta: { name: 'GlobalProductMasterCatalog' } }
-    /**
-     * Find zero or one GlobalProductMasterCatalog that matches the filter.
-     * @param {GlobalProductMasterCatalogFindUniqueArgs} args - Arguments to find a GlobalProductMasterCatalog
-     * @example
-     * // Get one GlobalProductMasterCatalog
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends GlobalProductMasterCatalogFindUniqueArgs>(args: SelectSubset<T, GlobalProductMasterCatalogFindUniqueArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
-
-    /**
-     * Find one GlobalProductMasterCatalog that matches the filter or throw an error with `error.code='P2025'` 
-     * if no matches were found.
-     * @param {GlobalProductMasterCatalogFindUniqueOrThrowArgs} args - Arguments to find a GlobalProductMasterCatalog
-     * @example
-     * // Get one GlobalProductMasterCatalog
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends GlobalProductMasterCatalogFindUniqueOrThrowArgs>(args: SelectSubset<T, GlobalProductMasterCatalogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
-
-    /**
-     * Find the first GlobalProductMasterCatalog that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {GlobalProductMasterCatalogFindFirstArgs} args - Arguments to find a GlobalProductMasterCatalog
-     * @example
-     * // Get one GlobalProductMasterCatalog
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends GlobalProductMasterCatalogFindFirstArgs>(args?: SelectSubset<T, GlobalProductMasterCatalogFindFirstArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
-
-    /**
-     * Find the first GlobalProductMasterCatalog that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {GlobalProductMasterCatalogFindFirstOrThrowArgs} args - Arguments to find a GlobalProductMasterCatalog
-     * @example
-     * // Get one GlobalProductMasterCatalog
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends GlobalProductMasterCatalogFindFirstOrThrowArgs>(args?: SelectSubset<T, GlobalProductMasterCatalogFindFirstOrThrowArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
-
-    /**
-     * Find zero or more GlobalProductMasterCatalogs that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {GlobalProductMasterCatalogFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all GlobalProductMasterCatalogs
-     * const globalProductMasterCatalogs = await prisma.globalProductMasterCatalog.findMany()
-     * 
-     * // Get first 10 GlobalProductMasterCatalogs
-     * const globalProductMasterCatalogs = await prisma.globalProductMasterCatalog.findMany({ take: 10 })
-     * 
-     * // Only select the `productId`
-     * const globalProductMasterCatalogWithProductIdOnly = await prisma.globalProductMasterCatalog.findMany({ select: { productId: true } })
-     * 
-     */
-    findMany<T extends GlobalProductMasterCatalogFindManyArgs>(args?: SelectSubset<T, GlobalProductMasterCatalogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "findMany">>
-
-    /**
-     * Create a GlobalProductMasterCatalog.
-     * @param {GlobalProductMasterCatalogCreateArgs} args - Arguments to create a GlobalProductMasterCatalog.
-     * @example
-     * // Create one GlobalProductMasterCatalog
-     * const GlobalProductMasterCatalog = await prisma.globalProductMasterCatalog.create({
-     *   data: {
-     *     // ... data to create a GlobalProductMasterCatalog
-     *   }
-     * })
-     * 
-     */
-    create<T extends GlobalProductMasterCatalogCreateArgs>(args: SelectSubset<T, GlobalProductMasterCatalogCreateArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "create">, never, ExtArgs>
-
-    /**
-     * Create many GlobalProductMasterCatalogs.
-     * @param {GlobalProductMasterCatalogCreateManyArgs} args - Arguments to create many GlobalProductMasterCatalogs.
-     * @example
-     * // Create many GlobalProductMasterCatalogs
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends GlobalProductMasterCatalogCreateManyArgs>(args?: SelectSubset<T, GlobalProductMasterCatalogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many GlobalProductMasterCatalogs and returns the data saved in the database.
-     * @param {GlobalProductMasterCatalogCreateManyAndReturnArgs} args - Arguments to create many GlobalProductMasterCatalogs.
-     * @example
-     * // Create many GlobalProductMasterCatalogs
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many GlobalProductMasterCatalogs and only return the `productId`
-     * const globalProductMasterCatalogWithProductIdOnly = await prisma.globalProductMasterCatalog.createManyAndReturn({ 
-     *   select: { productId: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends GlobalProductMasterCatalogCreateManyAndReturnArgs>(args?: SelectSubset<T, GlobalProductMasterCatalogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "createManyAndReturn">>
-
-    /**
-     * Delete a GlobalProductMasterCatalog.
-     * @param {GlobalProductMasterCatalogDeleteArgs} args - Arguments to delete one GlobalProductMasterCatalog.
-     * @example
-     * // Delete one GlobalProductMasterCatalog
-     * const GlobalProductMasterCatalog = await prisma.globalProductMasterCatalog.delete({
-     *   where: {
-     *     // ... filter to delete one GlobalProductMasterCatalog
-     *   }
-     * })
-     * 
-     */
-    delete<T extends GlobalProductMasterCatalogDeleteArgs>(args: SelectSubset<T, GlobalProductMasterCatalogDeleteArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "delete">, never, ExtArgs>
-
-    /**
-     * Update one GlobalProductMasterCatalog.
-     * @param {GlobalProductMasterCatalogUpdateArgs} args - Arguments to update one GlobalProductMasterCatalog.
-     * @example
-     * // Update one GlobalProductMasterCatalog
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends GlobalProductMasterCatalogUpdateArgs>(args: SelectSubset<T, GlobalProductMasterCatalogUpdateArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "update">, never, ExtArgs>
-
-    /**
-     * Delete zero or more GlobalProductMasterCatalogs.
-     * @param {GlobalProductMasterCatalogDeleteManyArgs} args - Arguments to filter GlobalProductMasterCatalogs to delete.
-     * @example
-     * // Delete a few GlobalProductMasterCatalogs
-     * const { count } = await prisma.globalProductMasterCatalog.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends GlobalProductMasterCatalogDeleteManyArgs>(args?: SelectSubset<T, GlobalProductMasterCatalogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more GlobalProductMasterCatalogs.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {GlobalProductMasterCatalogUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many GlobalProductMasterCatalogs
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends GlobalProductMasterCatalogUpdateManyArgs>(args: SelectSubset<T, GlobalProductMasterCatalogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create or update one GlobalProductMasterCatalog.
-     * @param {GlobalProductMasterCatalogUpsertArgs} args - Arguments to update or create a GlobalProductMasterCatalog.
-     * @example
-     * // Update or create a GlobalProductMasterCatalog
-     * const globalProductMasterCatalog = await prisma.globalProductMasterCatalog.upsert({
-     *   create: {
-     *     // ... data to create a GlobalProductMasterCatalog
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the GlobalProductMasterCatalog we want to update
-     *   }
-     * })
-     */
-    upsert<T extends GlobalProductMasterCatalogUpsertArgs>(args: SelectSubset<T, GlobalProductMasterCatalogUpsertArgs<ExtArgs>>): Prisma__GlobalProductMasterCatalogClient<$Result.GetResult<Prisma.$GlobalProductMasterCatalogPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
-
-
-    /**
-     * Count the number of GlobalProductMasterCatalogs.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {GlobalProductMasterCatalogCountArgs} args - Arguments to filter GlobalProductMasterCatalogs to count.
-     * @example
-     * // Count the number of GlobalProductMasterCatalogs
-     * const count = await prisma.globalProductMasterCatalog.count({
-     *   where: {
-     *     // ... the filter for the GlobalProductMasterCatalogs we want to count
-     *   }
-     * })
-    **/
-    count<T extends GlobalProductMasterCatalogCountArgs>(
-      args?: Subset<T, GlobalProductMasterCatalogCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], GlobalProductMasterCatalogCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a GlobalProductMasterCatalog.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {GlobalProductMasterCatalogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends GlobalProductMasterCatalogAggregateArgs>(args: Subset<T, GlobalProductMasterCatalogAggregateArgs>): Prisma.PrismaPromise<GetGlobalProductMasterCatalogAggregateType<T>>
-
-    /**
-     * Group by GlobalProductMasterCatalog.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {GlobalProductMasterCatalogGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends GlobalProductMasterCatalogGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: GlobalProductMasterCatalogGroupByArgs['orderBy'] }
-        : { orderBy?: GlobalProductMasterCatalogGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, GlobalProductMasterCatalogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGlobalProductMasterCatalogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the GlobalProductMasterCatalog model
-   */
-  readonly fields: GlobalProductMasterCatalogFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for GlobalProductMasterCatalog.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__GlobalProductMasterCatalogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the GlobalProductMasterCatalog model
-   */ 
-  interface GlobalProductMasterCatalogFieldRefs {
-    readonly productId: FieldRef<"GlobalProductMasterCatalog", 'String'>
-    readonly productName: FieldRef<"GlobalProductMasterCatalog", 'String'>
-    readonly sku: FieldRef<"GlobalProductMasterCatalog", 'String'>
-    readonly category: FieldRef<"GlobalProductMasterCatalog", 'String'>
-    readonly description: FieldRef<"GlobalProductMasterCatalog", 'String'>
-    readonly imageUrl: FieldRef<"GlobalProductMasterCatalog", 'String'>
-    readonly isActive: FieldRef<"GlobalProductMasterCatalog", 'Boolean'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * GlobalProductMasterCatalog findUnique
-   */
-  export type GlobalProductMasterCatalogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * Filter, which GlobalProductMasterCatalog to fetch.
-     */
-    where: GlobalProductMasterCatalogWhereUniqueInput
-  }
-
-  /**
-   * GlobalProductMasterCatalog findUniqueOrThrow
-   */
-  export type GlobalProductMasterCatalogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * Filter, which GlobalProductMasterCatalog to fetch.
-     */
-    where: GlobalProductMasterCatalogWhereUniqueInput
-  }
-
-  /**
-   * GlobalProductMasterCatalog findFirst
-   */
-  export type GlobalProductMasterCatalogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * Filter, which GlobalProductMasterCatalog to fetch.
-     */
-    where?: GlobalProductMasterCatalogWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of GlobalProductMasterCatalogs to fetch.
-     */
-    orderBy?: GlobalProductMasterCatalogOrderByWithRelationInput | GlobalProductMasterCatalogOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for GlobalProductMasterCatalogs.
-     */
-    cursor?: GlobalProductMasterCatalogWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` GlobalProductMasterCatalogs from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` GlobalProductMasterCatalogs.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of GlobalProductMasterCatalogs.
-     */
-    distinct?: GlobalProductMasterCatalogScalarFieldEnum | GlobalProductMasterCatalogScalarFieldEnum[]
-  }
-
-  /**
-   * GlobalProductMasterCatalog findFirstOrThrow
-   */
-  export type GlobalProductMasterCatalogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * Filter, which GlobalProductMasterCatalog to fetch.
-     */
-    where?: GlobalProductMasterCatalogWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of GlobalProductMasterCatalogs to fetch.
-     */
-    orderBy?: GlobalProductMasterCatalogOrderByWithRelationInput | GlobalProductMasterCatalogOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for GlobalProductMasterCatalogs.
-     */
-    cursor?: GlobalProductMasterCatalogWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` GlobalProductMasterCatalogs from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` GlobalProductMasterCatalogs.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of GlobalProductMasterCatalogs.
-     */
-    distinct?: GlobalProductMasterCatalogScalarFieldEnum | GlobalProductMasterCatalogScalarFieldEnum[]
-  }
-
-  /**
-   * GlobalProductMasterCatalog findMany
-   */
-  export type GlobalProductMasterCatalogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * Filter, which GlobalProductMasterCatalogs to fetch.
-     */
-    where?: GlobalProductMasterCatalogWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of GlobalProductMasterCatalogs to fetch.
-     */
-    orderBy?: GlobalProductMasterCatalogOrderByWithRelationInput | GlobalProductMasterCatalogOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing GlobalProductMasterCatalogs.
-     */
-    cursor?: GlobalProductMasterCatalogWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` GlobalProductMasterCatalogs from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` GlobalProductMasterCatalogs.
-     */
-    skip?: number
-    distinct?: GlobalProductMasterCatalogScalarFieldEnum | GlobalProductMasterCatalogScalarFieldEnum[]
-  }
-
-  /**
-   * GlobalProductMasterCatalog create
-   */
-  export type GlobalProductMasterCatalogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * The data needed to create a GlobalProductMasterCatalog.
-     */
-    data: XOR<GlobalProductMasterCatalogCreateInput, GlobalProductMasterCatalogUncheckedCreateInput>
-  }
-
-  /**
-   * GlobalProductMasterCatalog createMany
-   */
-  export type GlobalProductMasterCatalogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many GlobalProductMasterCatalogs.
-     */
-    data: GlobalProductMasterCatalogCreateManyInput | GlobalProductMasterCatalogCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * GlobalProductMasterCatalog createManyAndReturn
-   */
-  export type GlobalProductMasterCatalogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * The data used to create many GlobalProductMasterCatalogs.
-     */
-    data: GlobalProductMasterCatalogCreateManyInput | GlobalProductMasterCatalogCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * GlobalProductMasterCatalog update
-   */
-  export type GlobalProductMasterCatalogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * The data needed to update a GlobalProductMasterCatalog.
-     */
-    data: XOR<GlobalProductMasterCatalogUpdateInput, GlobalProductMasterCatalogUncheckedUpdateInput>
-    /**
-     * Choose, which GlobalProductMasterCatalog to update.
-     */
-    where: GlobalProductMasterCatalogWhereUniqueInput
-  }
-
-  /**
-   * GlobalProductMasterCatalog updateMany
-   */
-  export type GlobalProductMasterCatalogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update GlobalProductMasterCatalogs.
-     */
-    data: XOR<GlobalProductMasterCatalogUpdateManyMutationInput, GlobalProductMasterCatalogUncheckedUpdateManyInput>
-    /**
-     * Filter which GlobalProductMasterCatalogs to update
-     */
-    where?: GlobalProductMasterCatalogWhereInput
-  }
-
-  /**
-   * GlobalProductMasterCatalog upsert
-   */
-  export type GlobalProductMasterCatalogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * The filter to search for the GlobalProductMasterCatalog to update in case it exists.
-     */
-    where: GlobalProductMasterCatalogWhereUniqueInput
-    /**
-     * In case the GlobalProductMasterCatalog found by the `where` argument doesn't exist, create a new GlobalProductMasterCatalog with this data.
-     */
-    create: XOR<GlobalProductMasterCatalogCreateInput, GlobalProductMasterCatalogUncheckedCreateInput>
-    /**
-     * In case the GlobalProductMasterCatalog was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<GlobalProductMasterCatalogUpdateInput, GlobalProductMasterCatalogUncheckedUpdateInput>
-  }
-
-  /**
-   * GlobalProductMasterCatalog delete
-   */
-  export type GlobalProductMasterCatalogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
-    /**
-     * Filter which GlobalProductMasterCatalog to delete.
-     */
-    where: GlobalProductMasterCatalogWhereUniqueInput
-  }
-
-  /**
-   * GlobalProductMasterCatalog deleteMany
-   */
-  export type GlobalProductMasterCatalogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which GlobalProductMasterCatalogs to delete
-     */
-    where?: GlobalProductMasterCatalogWhereInput
-  }
-
-  /**
-   * GlobalProductMasterCatalog without action
-   */
-  export type GlobalProductMasterCatalogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the GlobalProductMasterCatalog
-     */
-    select?: GlobalProductMasterCatalogSelect<ExtArgs> | null
   }
 
 
@@ -9277,6 +8461,1844 @@ export namespace Prisma {
 
 
   /**
+   * Model GlobalCategory
+   */
+
+  export type AggregateGlobalCategory = {
+    _count: GlobalCategoryCountAggregateOutputType | null
+    _min: GlobalCategoryMinAggregateOutputType | null
+    _max: GlobalCategoryMaxAggregateOutputType | null
+  }
+
+  export type GlobalCategoryMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GlobalCategoryMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GlobalCategoryCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GlobalCategoryMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GlobalCategoryMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GlobalCategoryCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GlobalCategoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GlobalCategory to aggregate.
+     */
+    where?: GlobalCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalCategories to fetch.
+     */
+    orderBy?: GlobalCategoryOrderByWithRelationInput | GlobalCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GlobalCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalCategories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GlobalCategories
+    **/
+    _count?: true | GlobalCategoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GlobalCategoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GlobalCategoryMaxAggregateInputType
+  }
+
+  export type GetGlobalCategoryAggregateType<T extends GlobalCategoryAggregateArgs> = {
+        [P in keyof T & keyof AggregateGlobalCategory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGlobalCategory[P]>
+      : GetScalarType<T[P], AggregateGlobalCategory[P]>
+  }
+
+
+
+
+  export type GlobalCategoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GlobalCategoryWhereInput
+    orderBy?: GlobalCategoryOrderByWithAggregationInput | GlobalCategoryOrderByWithAggregationInput[]
+    by: GlobalCategoryScalarFieldEnum[] | GlobalCategoryScalarFieldEnum
+    having?: GlobalCategoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GlobalCategoryCountAggregateInputType | true
+    _min?: GlobalCategoryMinAggregateInputType
+    _max?: GlobalCategoryMaxAggregateInputType
+  }
+
+  export type GlobalCategoryGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: GlobalCategoryCountAggregateOutputType | null
+    _min: GlobalCategoryMinAggregateOutputType | null
+    _max: GlobalCategoryMaxAggregateOutputType | null
+  }
+
+  type GetGlobalCategoryGroupByPayload<T extends GlobalCategoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GlobalCategoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GlobalCategoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GlobalCategoryGroupByOutputType[P]>
+            : GetScalarType<T[P], GlobalCategoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GlobalCategorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["globalCategory"]>
+
+  export type GlobalCategorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["globalCategory"]>
+
+  export type GlobalCategorySelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $GlobalCategoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GlobalCategory"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["globalCategory"]>
+    composites: {}
+  }
+
+  type GlobalCategoryGetPayload<S extends boolean | null | undefined | GlobalCategoryDefaultArgs> = $Result.GetResult<Prisma.$GlobalCategoryPayload, S>
+
+  type GlobalCategoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<GlobalCategoryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: GlobalCategoryCountAggregateInputType | true
+    }
+
+  export interface GlobalCategoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GlobalCategory'], meta: { name: 'GlobalCategory' } }
+    /**
+     * Find zero or one GlobalCategory that matches the filter.
+     * @param {GlobalCategoryFindUniqueArgs} args - Arguments to find a GlobalCategory
+     * @example
+     * // Get one GlobalCategory
+     * const globalCategory = await prisma.globalCategory.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GlobalCategoryFindUniqueArgs>(args: SelectSubset<T, GlobalCategoryFindUniqueArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one GlobalCategory that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {GlobalCategoryFindUniqueOrThrowArgs} args - Arguments to find a GlobalCategory
+     * @example
+     * // Get one GlobalCategory
+     * const globalCategory = await prisma.globalCategory.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GlobalCategoryFindUniqueOrThrowArgs>(args: SelectSubset<T, GlobalCategoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first GlobalCategory that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalCategoryFindFirstArgs} args - Arguments to find a GlobalCategory
+     * @example
+     * // Get one GlobalCategory
+     * const globalCategory = await prisma.globalCategory.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GlobalCategoryFindFirstArgs>(args?: SelectSubset<T, GlobalCategoryFindFirstArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first GlobalCategory that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalCategoryFindFirstOrThrowArgs} args - Arguments to find a GlobalCategory
+     * @example
+     * // Get one GlobalCategory
+     * const globalCategory = await prisma.globalCategory.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GlobalCategoryFindFirstOrThrowArgs>(args?: SelectSubset<T, GlobalCategoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more GlobalCategories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalCategoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GlobalCategories
+     * const globalCategories = await prisma.globalCategory.findMany()
+     * 
+     * // Get first 10 GlobalCategories
+     * const globalCategories = await prisma.globalCategory.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const globalCategoryWithIdOnly = await prisma.globalCategory.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GlobalCategoryFindManyArgs>(args?: SelectSubset<T, GlobalCategoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a GlobalCategory.
+     * @param {GlobalCategoryCreateArgs} args - Arguments to create a GlobalCategory.
+     * @example
+     * // Create one GlobalCategory
+     * const GlobalCategory = await prisma.globalCategory.create({
+     *   data: {
+     *     // ... data to create a GlobalCategory
+     *   }
+     * })
+     * 
+     */
+    create<T extends GlobalCategoryCreateArgs>(args: SelectSubset<T, GlobalCategoryCreateArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many GlobalCategories.
+     * @param {GlobalCategoryCreateManyArgs} args - Arguments to create many GlobalCategories.
+     * @example
+     * // Create many GlobalCategories
+     * const globalCategory = await prisma.globalCategory.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GlobalCategoryCreateManyArgs>(args?: SelectSubset<T, GlobalCategoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GlobalCategories and returns the data saved in the database.
+     * @param {GlobalCategoryCreateManyAndReturnArgs} args - Arguments to create many GlobalCategories.
+     * @example
+     * // Create many GlobalCategories
+     * const globalCategory = await prisma.globalCategory.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GlobalCategories and only return the `id`
+     * const globalCategoryWithIdOnly = await prisma.globalCategory.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GlobalCategoryCreateManyAndReturnArgs>(args?: SelectSubset<T, GlobalCategoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a GlobalCategory.
+     * @param {GlobalCategoryDeleteArgs} args - Arguments to delete one GlobalCategory.
+     * @example
+     * // Delete one GlobalCategory
+     * const GlobalCategory = await prisma.globalCategory.delete({
+     *   where: {
+     *     // ... filter to delete one GlobalCategory
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GlobalCategoryDeleteArgs>(args: SelectSubset<T, GlobalCategoryDeleteArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one GlobalCategory.
+     * @param {GlobalCategoryUpdateArgs} args - Arguments to update one GlobalCategory.
+     * @example
+     * // Update one GlobalCategory
+     * const globalCategory = await prisma.globalCategory.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GlobalCategoryUpdateArgs>(args: SelectSubset<T, GlobalCategoryUpdateArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more GlobalCategories.
+     * @param {GlobalCategoryDeleteManyArgs} args - Arguments to filter GlobalCategories to delete.
+     * @example
+     * // Delete a few GlobalCategories
+     * const { count } = await prisma.globalCategory.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GlobalCategoryDeleteManyArgs>(args?: SelectSubset<T, GlobalCategoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GlobalCategories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalCategoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GlobalCategories
+     * const globalCategory = await prisma.globalCategory.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GlobalCategoryUpdateManyArgs>(args: SelectSubset<T, GlobalCategoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one GlobalCategory.
+     * @param {GlobalCategoryUpsertArgs} args - Arguments to update or create a GlobalCategory.
+     * @example
+     * // Update or create a GlobalCategory
+     * const globalCategory = await prisma.globalCategory.upsert({
+     *   create: {
+     *     // ... data to create a GlobalCategory
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GlobalCategory we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GlobalCategoryUpsertArgs>(args: SelectSubset<T, GlobalCategoryUpsertArgs<ExtArgs>>): Prisma__GlobalCategoryClient<$Result.GetResult<Prisma.$GlobalCategoryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of GlobalCategories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalCategoryCountArgs} args - Arguments to filter GlobalCategories to count.
+     * @example
+     * // Count the number of GlobalCategories
+     * const count = await prisma.globalCategory.count({
+     *   where: {
+     *     // ... the filter for the GlobalCategories we want to count
+     *   }
+     * })
+    **/
+    count<T extends GlobalCategoryCountArgs>(
+      args?: Subset<T, GlobalCategoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GlobalCategoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GlobalCategory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalCategoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GlobalCategoryAggregateArgs>(args: Subset<T, GlobalCategoryAggregateArgs>): Prisma.PrismaPromise<GetGlobalCategoryAggregateType<T>>
+
+    /**
+     * Group by GlobalCategory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalCategoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GlobalCategoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GlobalCategoryGroupByArgs['orderBy'] }
+        : { orderBy?: GlobalCategoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GlobalCategoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGlobalCategoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GlobalCategory model
+   */
+  readonly fields: GlobalCategoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GlobalCategory.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GlobalCategoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GlobalCategory model
+   */ 
+  interface GlobalCategoryFieldRefs {
+    readonly id: FieldRef<"GlobalCategory", 'String'>
+    readonly name: FieldRef<"GlobalCategory", 'String'>
+    readonly description: FieldRef<"GlobalCategory", 'String'>
+    readonly isActive: FieldRef<"GlobalCategory", 'Boolean'>
+    readonly createdAt: FieldRef<"GlobalCategory", 'DateTime'>
+    readonly updatedAt: FieldRef<"GlobalCategory", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GlobalCategory findUnique
+   */
+  export type GlobalCategoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalCategory to fetch.
+     */
+    where: GlobalCategoryWhereUniqueInput
+  }
+
+  /**
+   * GlobalCategory findUniqueOrThrow
+   */
+  export type GlobalCategoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalCategory to fetch.
+     */
+    where: GlobalCategoryWhereUniqueInput
+  }
+
+  /**
+   * GlobalCategory findFirst
+   */
+  export type GlobalCategoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalCategory to fetch.
+     */
+    where?: GlobalCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalCategories to fetch.
+     */
+    orderBy?: GlobalCategoryOrderByWithRelationInput | GlobalCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GlobalCategories.
+     */
+    cursor?: GlobalCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalCategories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GlobalCategories.
+     */
+    distinct?: GlobalCategoryScalarFieldEnum | GlobalCategoryScalarFieldEnum[]
+  }
+
+  /**
+   * GlobalCategory findFirstOrThrow
+   */
+  export type GlobalCategoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalCategory to fetch.
+     */
+    where?: GlobalCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalCategories to fetch.
+     */
+    orderBy?: GlobalCategoryOrderByWithRelationInput | GlobalCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GlobalCategories.
+     */
+    cursor?: GlobalCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalCategories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GlobalCategories.
+     */
+    distinct?: GlobalCategoryScalarFieldEnum | GlobalCategoryScalarFieldEnum[]
+  }
+
+  /**
+   * GlobalCategory findMany
+   */
+  export type GlobalCategoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalCategories to fetch.
+     */
+    where?: GlobalCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalCategories to fetch.
+     */
+    orderBy?: GlobalCategoryOrderByWithRelationInput | GlobalCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GlobalCategories.
+     */
+    cursor?: GlobalCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalCategories.
+     */
+    skip?: number
+    distinct?: GlobalCategoryScalarFieldEnum | GlobalCategoryScalarFieldEnum[]
+  }
+
+  /**
+   * GlobalCategory create
+   */
+  export type GlobalCategoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * The data needed to create a GlobalCategory.
+     */
+    data: XOR<GlobalCategoryCreateInput, GlobalCategoryUncheckedCreateInput>
+  }
+
+  /**
+   * GlobalCategory createMany
+   */
+  export type GlobalCategoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GlobalCategories.
+     */
+    data: GlobalCategoryCreateManyInput | GlobalCategoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GlobalCategory createManyAndReturn
+   */
+  export type GlobalCategoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many GlobalCategories.
+     */
+    data: GlobalCategoryCreateManyInput | GlobalCategoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GlobalCategory update
+   */
+  export type GlobalCategoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * The data needed to update a GlobalCategory.
+     */
+    data: XOR<GlobalCategoryUpdateInput, GlobalCategoryUncheckedUpdateInput>
+    /**
+     * Choose, which GlobalCategory to update.
+     */
+    where: GlobalCategoryWhereUniqueInput
+  }
+
+  /**
+   * GlobalCategory updateMany
+   */
+  export type GlobalCategoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GlobalCategories.
+     */
+    data: XOR<GlobalCategoryUpdateManyMutationInput, GlobalCategoryUncheckedUpdateManyInput>
+    /**
+     * Filter which GlobalCategories to update
+     */
+    where?: GlobalCategoryWhereInput
+  }
+
+  /**
+   * GlobalCategory upsert
+   */
+  export type GlobalCategoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * The filter to search for the GlobalCategory to update in case it exists.
+     */
+    where: GlobalCategoryWhereUniqueInput
+    /**
+     * In case the GlobalCategory found by the `where` argument doesn't exist, create a new GlobalCategory with this data.
+     */
+    create: XOR<GlobalCategoryCreateInput, GlobalCategoryUncheckedCreateInput>
+    /**
+     * In case the GlobalCategory was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GlobalCategoryUpdateInput, GlobalCategoryUncheckedUpdateInput>
+  }
+
+  /**
+   * GlobalCategory delete
+   */
+  export type GlobalCategoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+    /**
+     * Filter which GlobalCategory to delete.
+     */
+    where: GlobalCategoryWhereUniqueInput
+  }
+
+  /**
+   * GlobalCategory deleteMany
+   */
+  export type GlobalCategoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GlobalCategories to delete
+     */
+    where?: GlobalCategoryWhereInput
+  }
+
+  /**
+   * GlobalCategory without action
+   */
+  export type GlobalCategoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalCategory
+     */
+    select?: GlobalCategorySelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GlobalTaxRule
+   */
+
+  export type AggregateGlobalTaxRule = {
+    _count: GlobalTaxRuleCountAggregateOutputType | null
+    _avg: GlobalTaxRuleAvgAggregateOutputType | null
+    _sum: GlobalTaxRuleSumAggregateOutputType | null
+    _min: GlobalTaxRuleMinAggregateOutputType | null
+    _max: GlobalTaxRuleMaxAggregateOutputType | null
+  }
+
+  export type GlobalTaxRuleAvgAggregateOutputType = {
+    taxRate: Decimal | null
+  }
+
+  export type GlobalTaxRuleSumAggregateOutputType = {
+    taxRate: Decimal | null
+  }
+
+  export type GlobalTaxRuleMinAggregateOutputType = {
+    id: string | null
+    state: string | null
+    targetType: string | null
+    targetValue: string | null
+    taxRate: Decimal | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GlobalTaxRuleMaxAggregateOutputType = {
+    id: string | null
+    state: string | null
+    targetType: string | null
+    targetValue: string | null
+    taxRate: Decimal | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GlobalTaxRuleCountAggregateOutputType = {
+    id: number
+    state: number
+    targetType: number
+    targetValue: number
+    taxRate: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GlobalTaxRuleAvgAggregateInputType = {
+    taxRate?: true
+  }
+
+  export type GlobalTaxRuleSumAggregateInputType = {
+    taxRate?: true
+  }
+
+  export type GlobalTaxRuleMinAggregateInputType = {
+    id?: true
+    state?: true
+    targetType?: true
+    targetValue?: true
+    taxRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GlobalTaxRuleMaxAggregateInputType = {
+    id?: true
+    state?: true
+    targetType?: true
+    targetValue?: true
+    taxRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GlobalTaxRuleCountAggregateInputType = {
+    id?: true
+    state?: true
+    targetType?: true
+    targetValue?: true
+    taxRate?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GlobalTaxRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GlobalTaxRule to aggregate.
+     */
+    where?: GlobalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalTaxRules to fetch.
+     */
+    orderBy?: GlobalTaxRuleOrderByWithRelationInput | GlobalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GlobalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalTaxRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GlobalTaxRules
+    **/
+    _count?: true | GlobalTaxRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: GlobalTaxRuleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GlobalTaxRuleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GlobalTaxRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GlobalTaxRuleMaxAggregateInputType
+  }
+
+  export type GetGlobalTaxRuleAggregateType<T extends GlobalTaxRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateGlobalTaxRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGlobalTaxRule[P]>
+      : GetScalarType<T[P], AggregateGlobalTaxRule[P]>
+  }
+
+
+
+
+  export type GlobalTaxRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GlobalTaxRuleWhereInput
+    orderBy?: GlobalTaxRuleOrderByWithAggregationInput | GlobalTaxRuleOrderByWithAggregationInput[]
+    by: GlobalTaxRuleScalarFieldEnum[] | GlobalTaxRuleScalarFieldEnum
+    having?: GlobalTaxRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GlobalTaxRuleCountAggregateInputType | true
+    _avg?: GlobalTaxRuleAvgAggregateInputType
+    _sum?: GlobalTaxRuleSumAggregateInputType
+    _min?: GlobalTaxRuleMinAggregateInputType
+    _max?: GlobalTaxRuleMaxAggregateInputType
+  }
+
+  export type GlobalTaxRuleGroupByOutputType = {
+    id: string
+    state: string
+    targetType: string
+    targetValue: string
+    taxRate: Decimal
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: GlobalTaxRuleCountAggregateOutputType | null
+    _avg: GlobalTaxRuleAvgAggregateOutputType | null
+    _sum: GlobalTaxRuleSumAggregateOutputType | null
+    _min: GlobalTaxRuleMinAggregateOutputType | null
+    _max: GlobalTaxRuleMaxAggregateOutputType | null
+  }
+
+  type GetGlobalTaxRuleGroupByPayload<T extends GlobalTaxRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GlobalTaxRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GlobalTaxRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GlobalTaxRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], GlobalTaxRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GlobalTaxRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    state?: boolean
+    targetType?: boolean
+    targetValue?: boolean
+    taxRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["globalTaxRule"]>
+
+  export type GlobalTaxRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    state?: boolean
+    targetType?: boolean
+    targetValue?: boolean
+    taxRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["globalTaxRule"]>
+
+  export type GlobalTaxRuleSelectScalar = {
+    id?: boolean
+    state?: boolean
+    targetType?: boolean
+    targetValue?: boolean
+    taxRate?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $GlobalTaxRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GlobalTaxRule"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      state: string
+      targetType: string
+      targetValue: string
+      taxRate: Prisma.Decimal
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["globalTaxRule"]>
+    composites: {}
+  }
+
+  type GlobalTaxRuleGetPayload<S extends boolean | null | undefined | GlobalTaxRuleDefaultArgs> = $Result.GetResult<Prisma.$GlobalTaxRulePayload, S>
+
+  type GlobalTaxRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<GlobalTaxRuleFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: GlobalTaxRuleCountAggregateInputType | true
+    }
+
+  export interface GlobalTaxRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GlobalTaxRule'], meta: { name: 'GlobalTaxRule' } }
+    /**
+     * Find zero or one GlobalTaxRule that matches the filter.
+     * @param {GlobalTaxRuleFindUniqueArgs} args - Arguments to find a GlobalTaxRule
+     * @example
+     * // Get one GlobalTaxRule
+     * const globalTaxRule = await prisma.globalTaxRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GlobalTaxRuleFindUniqueArgs>(args: SelectSubset<T, GlobalTaxRuleFindUniqueArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one GlobalTaxRule that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {GlobalTaxRuleFindUniqueOrThrowArgs} args - Arguments to find a GlobalTaxRule
+     * @example
+     * // Get one GlobalTaxRule
+     * const globalTaxRule = await prisma.globalTaxRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GlobalTaxRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, GlobalTaxRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first GlobalTaxRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalTaxRuleFindFirstArgs} args - Arguments to find a GlobalTaxRule
+     * @example
+     * // Get one GlobalTaxRule
+     * const globalTaxRule = await prisma.globalTaxRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GlobalTaxRuleFindFirstArgs>(args?: SelectSubset<T, GlobalTaxRuleFindFirstArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first GlobalTaxRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalTaxRuleFindFirstOrThrowArgs} args - Arguments to find a GlobalTaxRule
+     * @example
+     * // Get one GlobalTaxRule
+     * const globalTaxRule = await prisma.globalTaxRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GlobalTaxRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, GlobalTaxRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more GlobalTaxRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalTaxRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GlobalTaxRules
+     * const globalTaxRules = await prisma.globalTaxRule.findMany()
+     * 
+     * // Get first 10 GlobalTaxRules
+     * const globalTaxRules = await prisma.globalTaxRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const globalTaxRuleWithIdOnly = await prisma.globalTaxRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GlobalTaxRuleFindManyArgs>(args?: SelectSubset<T, GlobalTaxRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a GlobalTaxRule.
+     * @param {GlobalTaxRuleCreateArgs} args - Arguments to create a GlobalTaxRule.
+     * @example
+     * // Create one GlobalTaxRule
+     * const GlobalTaxRule = await prisma.globalTaxRule.create({
+     *   data: {
+     *     // ... data to create a GlobalTaxRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends GlobalTaxRuleCreateArgs>(args: SelectSubset<T, GlobalTaxRuleCreateArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many GlobalTaxRules.
+     * @param {GlobalTaxRuleCreateManyArgs} args - Arguments to create many GlobalTaxRules.
+     * @example
+     * // Create many GlobalTaxRules
+     * const globalTaxRule = await prisma.globalTaxRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GlobalTaxRuleCreateManyArgs>(args?: SelectSubset<T, GlobalTaxRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GlobalTaxRules and returns the data saved in the database.
+     * @param {GlobalTaxRuleCreateManyAndReturnArgs} args - Arguments to create many GlobalTaxRules.
+     * @example
+     * // Create many GlobalTaxRules
+     * const globalTaxRule = await prisma.globalTaxRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GlobalTaxRules and only return the `id`
+     * const globalTaxRuleWithIdOnly = await prisma.globalTaxRule.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GlobalTaxRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, GlobalTaxRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a GlobalTaxRule.
+     * @param {GlobalTaxRuleDeleteArgs} args - Arguments to delete one GlobalTaxRule.
+     * @example
+     * // Delete one GlobalTaxRule
+     * const GlobalTaxRule = await prisma.globalTaxRule.delete({
+     *   where: {
+     *     // ... filter to delete one GlobalTaxRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GlobalTaxRuleDeleteArgs>(args: SelectSubset<T, GlobalTaxRuleDeleteArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one GlobalTaxRule.
+     * @param {GlobalTaxRuleUpdateArgs} args - Arguments to update one GlobalTaxRule.
+     * @example
+     * // Update one GlobalTaxRule
+     * const globalTaxRule = await prisma.globalTaxRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GlobalTaxRuleUpdateArgs>(args: SelectSubset<T, GlobalTaxRuleUpdateArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more GlobalTaxRules.
+     * @param {GlobalTaxRuleDeleteManyArgs} args - Arguments to filter GlobalTaxRules to delete.
+     * @example
+     * // Delete a few GlobalTaxRules
+     * const { count } = await prisma.globalTaxRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GlobalTaxRuleDeleteManyArgs>(args?: SelectSubset<T, GlobalTaxRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GlobalTaxRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalTaxRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GlobalTaxRules
+     * const globalTaxRule = await prisma.globalTaxRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GlobalTaxRuleUpdateManyArgs>(args: SelectSubset<T, GlobalTaxRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one GlobalTaxRule.
+     * @param {GlobalTaxRuleUpsertArgs} args - Arguments to update or create a GlobalTaxRule.
+     * @example
+     * // Update or create a GlobalTaxRule
+     * const globalTaxRule = await prisma.globalTaxRule.upsert({
+     *   create: {
+     *     // ... data to create a GlobalTaxRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GlobalTaxRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GlobalTaxRuleUpsertArgs>(args: SelectSubset<T, GlobalTaxRuleUpsertArgs<ExtArgs>>): Prisma__GlobalTaxRuleClient<$Result.GetResult<Prisma.$GlobalTaxRulePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of GlobalTaxRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalTaxRuleCountArgs} args - Arguments to filter GlobalTaxRules to count.
+     * @example
+     * // Count the number of GlobalTaxRules
+     * const count = await prisma.globalTaxRule.count({
+     *   where: {
+     *     // ... the filter for the GlobalTaxRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends GlobalTaxRuleCountArgs>(
+      args?: Subset<T, GlobalTaxRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GlobalTaxRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GlobalTaxRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalTaxRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GlobalTaxRuleAggregateArgs>(args: Subset<T, GlobalTaxRuleAggregateArgs>): Prisma.PrismaPromise<GetGlobalTaxRuleAggregateType<T>>
+
+    /**
+     * Group by GlobalTaxRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GlobalTaxRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GlobalTaxRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GlobalTaxRuleGroupByArgs['orderBy'] }
+        : { orderBy?: GlobalTaxRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GlobalTaxRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGlobalTaxRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GlobalTaxRule model
+   */
+  readonly fields: GlobalTaxRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GlobalTaxRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GlobalTaxRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GlobalTaxRule model
+   */ 
+  interface GlobalTaxRuleFieldRefs {
+    readonly id: FieldRef<"GlobalTaxRule", 'String'>
+    readonly state: FieldRef<"GlobalTaxRule", 'String'>
+    readonly targetType: FieldRef<"GlobalTaxRule", 'String'>
+    readonly targetValue: FieldRef<"GlobalTaxRule", 'String'>
+    readonly taxRate: FieldRef<"GlobalTaxRule", 'Decimal'>
+    readonly isActive: FieldRef<"GlobalTaxRule", 'Boolean'>
+    readonly createdAt: FieldRef<"GlobalTaxRule", 'DateTime'>
+    readonly updatedAt: FieldRef<"GlobalTaxRule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GlobalTaxRule findUnique
+   */
+  export type GlobalTaxRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalTaxRule to fetch.
+     */
+    where: GlobalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * GlobalTaxRule findUniqueOrThrow
+   */
+  export type GlobalTaxRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalTaxRule to fetch.
+     */
+    where: GlobalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * GlobalTaxRule findFirst
+   */
+  export type GlobalTaxRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalTaxRule to fetch.
+     */
+    where?: GlobalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalTaxRules to fetch.
+     */
+    orderBy?: GlobalTaxRuleOrderByWithRelationInput | GlobalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GlobalTaxRules.
+     */
+    cursor?: GlobalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalTaxRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GlobalTaxRules.
+     */
+    distinct?: GlobalTaxRuleScalarFieldEnum | GlobalTaxRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GlobalTaxRule findFirstOrThrow
+   */
+  export type GlobalTaxRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalTaxRule to fetch.
+     */
+    where?: GlobalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalTaxRules to fetch.
+     */
+    orderBy?: GlobalTaxRuleOrderByWithRelationInput | GlobalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GlobalTaxRules.
+     */
+    cursor?: GlobalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalTaxRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GlobalTaxRules.
+     */
+    distinct?: GlobalTaxRuleScalarFieldEnum | GlobalTaxRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GlobalTaxRule findMany
+   */
+  export type GlobalTaxRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter, which GlobalTaxRules to fetch.
+     */
+    where?: GlobalTaxRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GlobalTaxRules to fetch.
+     */
+    orderBy?: GlobalTaxRuleOrderByWithRelationInput | GlobalTaxRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GlobalTaxRules.
+     */
+    cursor?: GlobalTaxRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GlobalTaxRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GlobalTaxRules.
+     */
+    skip?: number
+    distinct?: GlobalTaxRuleScalarFieldEnum | GlobalTaxRuleScalarFieldEnum[]
+  }
+
+  /**
+   * GlobalTaxRule create
+   */
+  export type GlobalTaxRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * The data needed to create a GlobalTaxRule.
+     */
+    data: XOR<GlobalTaxRuleCreateInput, GlobalTaxRuleUncheckedCreateInput>
+  }
+
+  /**
+   * GlobalTaxRule createMany
+   */
+  export type GlobalTaxRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GlobalTaxRules.
+     */
+    data: GlobalTaxRuleCreateManyInput | GlobalTaxRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GlobalTaxRule createManyAndReturn
+   */
+  export type GlobalTaxRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many GlobalTaxRules.
+     */
+    data: GlobalTaxRuleCreateManyInput | GlobalTaxRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GlobalTaxRule update
+   */
+  export type GlobalTaxRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * The data needed to update a GlobalTaxRule.
+     */
+    data: XOR<GlobalTaxRuleUpdateInput, GlobalTaxRuleUncheckedUpdateInput>
+    /**
+     * Choose, which GlobalTaxRule to update.
+     */
+    where: GlobalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * GlobalTaxRule updateMany
+   */
+  export type GlobalTaxRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GlobalTaxRules.
+     */
+    data: XOR<GlobalTaxRuleUpdateManyMutationInput, GlobalTaxRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which GlobalTaxRules to update
+     */
+    where?: GlobalTaxRuleWhereInput
+  }
+
+  /**
+   * GlobalTaxRule upsert
+   */
+  export type GlobalTaxRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * The filter to search for the GlobalTaxRule to update in case it exists.
+     */
+    where: GlobalTaxRuleWhereUniqueInput
+    /**
+     * In case the GlobalTaxRule found by the `where` argument doesn't exist, create a new GlobalTaxRule with this data.
+     */
+    create: XOR<GlobalTaxRuleCreateInput, GlobalTaxRuleUncheckedCreateInput>
+    /**
+     * In case the GlobalTaxRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GlobalTaxRuleUpdateInput, GlobalTaxRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * GlobalTaxRule delete
+   */
+  export type GlobalTaxRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+    /**
+     * Filter which GlobalTaxRule to delete.
+     */
+    where: GlobalTaxRuleWhereUniqueInput
+  }
+
+  /**
+   * GlobalTaxRule deleteMany
+   */
+  export type GlobalTaxRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GlobalTaxRules to delete
+     */
+    where?: GlobalTaxRuleWhereInput
+  }
+
+  /**
+   * GlobalTaxRule without action
+   */
+  export type GlobalTaxRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GlobalTaxRule
+     */
+    select?: GlobalTaxRuleSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -9317,19 +10339,6 @@ export namespace Prisma {
   };
 
   export type SharedCatalogScalarFieldEnum = (typeof SharedCatalogScalarFieldEnum)[keyof typeof SharedCatalogScalarFieldEnum]
-
-
-  export const GlobalProductMasterCatalogScalarFieldEnum: {
-    productId: 'productId',
-    productName: 'productName',
-    sku: 'sku',
-    category: 'category',
-    description: 'description',
-    imageUrl: 'imageUrl',
-    isActive: 'isActive'
-  };
-
-  export type GlobalProductMasterCatalogScalarFieldEnum = (typeof GlobalProductMasterCatalogScalarFieldEnum)[keyof typeof GlobalProductMasterCatalogScalarFieldEnum]
 
 
   export const SuperAdminScalarFieldEnum: {
@@ -9397,6 +10406,32 @@ export namespace Prisma {
   };
 
   export type BillingTransactionScalarFieldEnum = (typeof BillingTransactionScalarFieldEnum)[keyof typeof BillingTransactionScalarFieldEnum]
+
+
+  export const GlobalCategoryScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GlobalCategoryScalarFieldEnum = (typeof GlobalCategoryScalarFieldEnum)[keyof typeof GlobalCategoryScalarFieldEnum]
+
+
+  export const GlobalTaxRuleScalarFieldEnum: {
+    id: 'id',
+    state: 'state',
+    targetType: 'targetType',
+    targetValue: 'targetValue',
+    taxRate: 'taxRate',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GlobalTaxRuleScalarFieldEnum = (typeof GlobalTaxRuleScalarFieldEnum)[keyof typeof GlobalTaxRuleScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -9662,68 +10697,6 @@ export namespace Prisma {
     aiEnrichedAt?: DateTimeNullableWithAggregatesFilter<"SharedCatalog"> | Date | string | null
     syncedAt?: DateTimeWithAggregatesFilter<"SharedCatalog"> | Date | string
     tenantId?: StringWithAggregatesFilter<"SharedCatalog"> | string
-  }
-
-  export type GlobalProductMasterCatalogWhereInput = {
-    AND?: GlobalProductMasterCatalogWhereInput | GlobalProductMasterCatalogWhereInput[]
-    OR?: GlobalProductMasterCatalogWhereInput[]
-    NOT?: GlobalProductMasterCatalogWhereInput | GlobalProductMasterCatalogWhereInput[]
-    productId?: StringFilter<"GlobalProductMasterCatalog"> | string
-    productName?: StringFilter<"GlobalProductMasterCatalog"> | string
-    sku?: StringNullableFilter<"GlobalProductMasterCatalog"> | string | null
-    category?: StringNullableFilter<"GlobalProductMasterCatalog"> | string | null
-    description?: StringNullableFilter<"GlobalProductMasterCatalog"> | string | null
-    imageUrl?: StringNullableFilter<"GlobalProductMasterCatalog"> | string | null
-    isActive?: BoolFilter<"GlobalProductMasterCatalog"> | boolean
-  }
-
-  export type GlobalProductMasterCatalogOrderByWithRelationInput = {
-    productId?: SortOrder
-    productName?: SortOrder
-    sku?: SortOrderInput | SortOrder
-    category?: SortOrderInput | SortOrder
-    description?: SortOrderInput | SortOrder
-    imageUrl?: SortOrderInput | SortOrder
-    isActive?: SortOrder
-  }
-
-  export type GlobalProductMasterCatalogWhereUniqueInput = Prisma.AtLeast<{
-    productId?: string
-    sku?: string
-    AND?: GlobalProductMasterCatalogWhereInput | GlobalProductMasterCatalogWhereInput[]
-    OR?: GlobalProductMasterCatalogWhereInput[]
-    NOT?: GlobalProductMasterCatalogWhereInput | GlobalProductMasterCatalogWhereInput[]
-    productName?: StringFilter<"GlobalProductMasterCatalog"> | string
-    category?: StringNullableFilter<"GlobalProductMasterCatalog"> | string | null
-    description?: StringNullableFilter<"GlobalProductMasterCatalog"> | string | null
-    imageUrl?: StringNullableFilter<"GlobalProductMasterCatalog"> | string | null
-    isActive?: BoolFilter<"GlobalProductMasterCatalog"> | boolean
-  }, "productId" | "sku">
-
-  export type GlobalProductMasterCatalogOrderByWithAggregationInput = {
-    productId?: SortOrder
-    productName?: SortOrder
-    sku?: SortOrderInput | SortOrder
-    category?: SortOrderInput | SortOrder
-    description?: SortOrderInput | SortOrder
-    imageUrl?: SortOrderInput | SortOrder
-    isActive?: SortOrder
-    _count?: GlobalProductMasterCatalogCountOrderByAggregateInput
-    _max?: GlobalProductMasterCatalogMaxOrderByAggregateInput
-    _min?: GlobalProductMasterCatalogMinOrderByAggregateInput
-  }
-
-  export type GlobalProductMasterCatalogScalarWhereWithAggregatesInput = {
-    AND?: GlobalProductMasterCatalogScalarWhereWithAggregatesInput | GlobalProductMasterCatalogScalarWhereWithAggregatesInput[]
-    OR?: GlobalProductMasterCatalogScalarWhereWithAggregatesInput[]
-    NOT?: GlobalProductMasterCatalogScalarWhereWithAggregatesInput | GlobalProductMasterCatalogScalarWhereWithAggregatesInput[]
-    productId?: StringWithAggregatesFilter<"GlobalProductMasterCatalog"> | string
-    productName?: StringWithAggregatesFilter<"GlobalProductMasterCatalog"> | string
-    sku?: StringNullableWithAggregatesFilter<"GlobalProductMasterCatalog"> | string | null
-    category?: StringNullableWithAggregatesFilter<"GlobalProductMasterCatalog"> | string | null
-    description?: StringNullableWithAggregatesFilter<"GlobalProductMasterCatalog"> | string | null
-    imageUrl?: StringNullableWithAggregatesFilter<"GlobalProductMasterCatalog"> | string | null
-    isActive?: BoolWithAggregatesFilter<"GlobalProductMasterCatalog"> | boolean
   }
 
   export type SuperAdminWhereInput = {
@@ -10061,6 +11034,132 @@ export namespace Prisma {
     description?: StringNullableWithAggregatesFilter<"BillingTransaction"> | string | null
   }
 
+  export type GlobalCategoryWhereInput = {
+    AND?: GlobalCategoryWhereInput | GlobalCategoryWhereInput[]
+    OR?: GlobalCategoryWhereInput[]
+    NOT?: GlobalCategoryWhereInput | GlobalCategoryWhereInput[]
+    id?: StringFilter<"GlobalCategory"> | string
+    name?: StringFilter<"GlobalCategory"> | string
+    description?: StringNullableFilter<"GlobalCategory"> | string | null
+    isActive?: BoolFilter<"GlobalCategory"> | boolean
+    createdAt?: DateTimeFilter<"GlobalCategory"> | Date | string
+    updatedAt?: DateTimeFilter<"GlobalCategory"> | Date | string
+  }
+
+  export type GlobalCategoryOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalCategoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: GlobalCategoryWhereInput | GlobalCategoryWhereInput[]
+    OR?: GlobalCategoryWhereInput[]
+    NOT?: GlobalCategoryWhereInput | GlobalCategoryWhereInput[]
+    description?: StringNullableFilter<"GlobalCategory"> | string | null
+    isActive?: BoolFilter<"GlobalCategory"> | boolean
+    createdAt?: DateTimeFilter<"GlobalCategory"> | Date | string
+    updatedAt?: DateTimeFilter<"GlobalCategory"> | Date | string
+  }, "id" | "name">
+
+  export type GlobalCategoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GlobalCategoryCountOrderByAggregateInput
+    _max?: GlobalCategoryMaxOrderByAggregateInput
+    _min?: GlobalCategoryMinOrderByAggregateInput
+  }
+
+  export type GlobalCategoryScalarWhereWithAggregatesInput = {
+    AND?: GlobalCategoryScalarWhereWithAggregatesInput | GlobalCategoryScalarWhereWithAggregatesInput[]
+    OR?: GlobalCategoryScalarWhereWithAggregatesInput[]
+    NOT?: GlobalCategoryScalarWhereWithAggregatesInput | GlobalCategoryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GlobalCategory"> | string
+    name?: StringWithAggregatesFilter<"GlobalCategory"> | string
+    description?: StringNullableWithAggregatesFilter<"GlobalCategory"> | string | null
+    isActive?: BoolWithAggregatesFilter<"GlobalCategory"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"GlobalCategory"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GlobalCategory"> | Date | string
+  }
+
+  export type GlobalTaxRuleWhereInput = {
+    AND?: GlobalTaxRuleWhereInput | GlobalTaxRuleWhereInput[]
+    OR?: GlobalTaxRuleWhereInput[]
+    NOT?: GlobalTaxRuleWhereInput | GlobalTaxRuleWhereInput[]
+    id?: StringFilter<"GlobalTaxRule"> | string
+    state?: StringFilter<"GlobalTaxRule"> | string
+    targetType?: StringFilter<"GlobalTaxRule"> | string
+    targetValue?: StringFilter<"GlobalTaxRule"> | string
+    taxRate?: DecimalFilter<"GlobalTaxRule"> | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFilter<"GlobalTaxRule"> | boolean
+    createdAt?: DateTimeFilter<"GlobalTaxRule"> | Date | string
+    updatedAt?: DateTimeFilter<"GlobalTaxRule"> | Date | string
+  }
+
+  export type GlobalTaxRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    state?: SortOrder
+    targetType?: SortOrder
+    targetValue?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalTaxRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: GlobalTaxRuleWhereInput | GlobalTaxRuleWhereInput[]
+    OR?: GlobalTaxRuleWhereInput[]
+    NOT?: GlobalTaxRuleWhereInput | GlobalTaxRuleWhereInput[]
+    state?: StringFilter<"GlobalTaxRule"> | string
+    targetType?: StringFilter<"GlobalTaxRule"> | string
+    targetValue?: StringFilter<"GlobalTaxRule"> | string
+    taxRate?: DecimalFilter<"GlobalTaxRule"> | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFilter<"GlobalTaxRule"> | boolean
+    createdAt?: DateTimeFilter<"GlobalTaxRule"> | Date | string
+    updatedAt?: DateTimeFilter<"GlobalTaxRule"> | Date | string
+  }, "id">
+
+  export type GlobalTaxRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    state?: SortOrder
+    targetType?: SortOrder
+    targetValue?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GlobalTaxRuleCountOrderByAggregateInput
+    _avg?: GlobalTaxRuleAvgOrderByAggregateInput
+    _max?: GlobalTaxRuleMaxOrderByAggregateInput
+    _min?: GlobalTaxRuleMinOrderByAggregateInput
+    _sum?: GlobalTaxRuleSumOrderByAggregateInput
+  }
+
+  export type GlobalTaxRuleScalarWhereWithAggregatesInput = {
+    AND?: GlobalTaxRuleScalarWhereWithAggregatesInput | GlobalTaxRuleScalarWhereWithAggregatesInput[]
+    OR?: GlobalTaxRuleScalarWhereWithAggregatesInput[]
+    NOT?: GlobalTaxRuleScalarWhereWithAggregatesInput | GlobalTaxRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GlobalTaxRule"> | string
+    state?: StringWithAggregatesFilter<"GlobalTaxRule"> | string
+    targetType?: StringWithAggregatesFilter<"GlobalTaxRule"> | string
+    targetValue?: StringWithAggregatesFilter<"GlobalTaxRule"> | string
+    taxRate?: DecimalWithAggregatesFilter<"GlobalTaxRule"> | Decimal | DecimalJsLike | number | string
+    isActive?: BoolWithAggregatesFilter<"GlobalTaxRule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"GlobalTaxRule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GlobalTaxRule"> | Date | string
+  }
+
   export type TenantCreateInput = {
     id?: string
     storeName: string
@@ -10235,76 +11334,6 @@ export namespace Prisma {
     aiEnrichedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     syncedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenantId?: StringFieldUpdateOperationsInput | string
-  }
-
-  export type GlobalProductMasterCatalogCreateInput = {
-    productId?: string
-    productName: string
-    sku?: string | null
-    category?: string | null
-    description?: string | null
-    imageUrl?: string | null
-    isActive?: boolean
-  }
-
-  export type GlobalProductMasterCatalogUncheckedCreateInput = {
-    productId?: string
-    productName: string
-    sku?: string | null
-    category?: string | null
-    description?: string | null
-    imageUrl?: string | null
-    isActive?: boolean
-  }
-
-  export type GlobalProductMasterCatalogUpdateInput = {
-    productId?: StringFieldUpdateOperationsInput | string
-    productName?: StringFieldUpdateOperationsInput | string
-    sku?: NullableStringFieldUpdateOperationsInput | string | null
-    category?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-  }
-
-  export type GlobalProductMasterCatalogUncheckedUpdateInput = {
-    productId?: StringFieldUpdateOperationsInput | string
-    productName?: StringFieldUpdateOperationsInput | string
-    sku?: NullableStringFieldUpdateOperationsInput | string | null
-    category?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-  }
-
-  export type GlobalProductMasterCatalogCreateManyInput = {
-    productId?: string
-    productName: string
-    sku?: string | null
-    category?: string | null
-    description?: string | null
-    imageUrl?: string | null
-    isActive?: boolean
-  }
-
-  export type GlobalProductMasterCatalogUpdateManyMutationInput = {
-    productId?: StringFieldUpdateOperationsInput | string
-    productName?: StringFieldUpdateOperationsInput | string
-    sku?: NullableStringFieldUpdateOperationsInput | string | null
-    category?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-  }
-
-  export type GlobalProductMasterCatalogUncheckedUpdateManyInput = {
-    productId?: StringFieldUpdateOperationsInput | string
-    productName?: StringFieldUpdateOperationsInput | string
-    sku?: NullableStringFieldUpdateOperationsInput | string | null
-    category?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type SuperAdminCreateInput = {
@@ -10668,6 +11697,146 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type GlobalCategoryCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GlobalCategoryUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GlobalCategoryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GlobalCategoryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GlobalCategoryCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GlobalCategoryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GlobalCategoryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GlobalTaxRuleCreateInput = {
+    id?: string
+    state: string
+    targetType: string
+    targetValue: string
+    taxRate: Decimal | DecimalJsLike | number | string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GlobalTaxRuleUncheckedCreateInput = {
+    id?: string
+    state: string
+    targetType: string
+    targetValue: string
+    taxRate: Decimal | DecimalJsLike | number | string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GlobalTaxRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    state?: StringFieldUpdateOperationsInput | string
+    targetType?: StringFieldUpdateOperationsInput | string
+    targetValue?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GlobalTaxRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    state?: StringFieldUpdateOperationsInput | string
+    targetType?: StringFieldUpdateOperationsInput | string
+    targetValue?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GlobalTaxRuleCreateManyInput = {
+    id?: string
+    state: string
+    targetType: string
+    targetValue: string
+    taxRate: Decimal | DecimalJsLike | number | string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GlobalTaxRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    state?: StringFieldUpdateOperationsInput | string
+    targetType?: StringFieldUpdateOperationsInput | string
+    targetValue?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GlobalTaxRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    state?: StringFieldUpdateOperationsInput | string
+    targetType?: StringFieldUpdateOperationsInput | string
+    targetValue?: StringFieldUpdateOperationsInput | string
+    taxRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -10951,36 +12120,6 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
-  export type GlobalProductMasterCatalogCountOrderByAggregateInput = {
-    productId?: SortOrder
-    productName?: SortOrder
-    sku?: SortOrder
-    category?: SortOrder
-    description?: SortOrder
-    imageUrl?: SortOrder
-    isActive?: SortOrder
-  }
-
-  export type GlobalProductMasterCatalogMaxOrderByAggregateInput = {
-    productId?: SortOrder
-    productName?: SortOrder
-    sku?: SortOrder
-    category?: SortOrder
-    description?: SortOrder
-    imageUrl?: SortOrder
-    isActive?: SortOrder
-  }
-
-  export type GlobalProductMasterCatalogMinOrderByAggregateInput = {
-    productId?: SortOrder
-    productName?: SortOrder
-    sku?: SortOrder
-    category?: SortOrder
-    description?: SortOrder
-    imageUrl?: SortOrder
-    isActive?: SortOrder
-  }
-
   export type SuperAdminCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
@@ -11186,6 +12325,74 @@ export namespace Prisma {
 
   export type BillingTransactionSumOrderByAggregateInput = {
     amount?: SortOrder
+  }
+
+  export type GlobalCategoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalCategoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalCategoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalTaxRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    state?: SortOrder
+    targetType?: SortOrder
+    targetValue?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalTaxRuleAvgOrderByAggregateInput = {
+    taxRate?: SortOrder
+  }
+
+  export type GlobalTaxRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    state?: SortOrder
+    targetType?: SortOrder
+    targetValue?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalTaxRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    state?: SortOrder
+    targetType?: SortOrder
+    targetValue?: SortOrder
+    taxRate?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GlobalTaxRuleSumOrderByAggregateInput = {
+    taxRate?: SortOrder
   }
 
   export type SharedCatalogCreateNestedManyWithoutTenantInput = {
@@ -12383,10 +13590,6 @@ export namespace Prisma {
      */
     export type SharedCatalogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SharedCatalogDefaultArgs<ExtArgs>
     /**
-     * @deprecated Use GlobalProductMasterCatalogDefaultArgs instead
-     */
-    export type GlobalProductMasterCatalogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = GlobalProductMasterCatalogDefaultArgs<ExtArgs>
-    /**
      * @deprecated Use SuperAdminDefaultArgs instead
      */
     export type SuperAdminArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SuperAdminDefaultArgs<ExtArgs>
@@ -12406,6 +13609,14 @@ export namespace Prisma {
      * @deprecated Use BillingTransactionDefaultArgs instead
      */
     export type BillingTransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BillingTransactionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use GlobalCategoryDefaultArgs instead
+     */
+    export type GlobalCategoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = GlobalCategoryDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use GlobalTaxRuleDefaultArgs instead
+     */
+    export type GlobalTaxRuleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = GlobalTaxRuleDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

@@ -9,6 +9,7 @@ export declare class ProfitController {
     }): Promise<{
         id: string;
         createdAt: Date;
+        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
         startDate: Date;
         endDate: Date;
         period: string;
@@ -16,13 +17,13 @@ export declare class ProfitController {
         cogs: import("src/generated/tenant-client/runtime/library").Decimal;
         grossProfit: import("src/generated/tenant-client/runtime/library").Decimal;
         grossMargin: import("src/generated/tenant-client/runtime/library").Decimal;
-        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
         netProfit: import("src/generated/tenant-client/runtime/library").Decimal;
         metadata: import("src/generated/tenant-client/runtime/library").JsonValue | null;
     }>;
     getReports(subdomain: string, period?: string): Promise<{
         id: string;
         createdAt: Date;
+        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
         startDate: Date;
         endDate: Date;
         period: string;
@@ -30,13 +31,13 @@ export declare class ProfitController {
         cogs: import("src/generated/tenant-client/runtime/library").Decimal;
         grossProfit: import("src/generated/tenant-client/runtime/library").Decimal;
         grossMargin: import("src/generated/tenant-client/runtime/library").Decimal;
-        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
         netProfit: import("src/generated/tenant-client/runtime/library").Decimal;
         metadata: import("src/generated/tenant-client/runtime/library").JsonValue | null;
     }[]>;
     getTrends(subdomain: string, days?: string): Promise<{
         id: string;
         createdAt: Date;
+        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
         startDate: Date;
         endDate: Date;
         period: string;
@@ -44,7 +45,6 @@ export declare class ProfitController {
         cogs: import("src/generated/tenant-client/runtime/library").Decimal;
         grossProfit: import("src/generated/tenant-client/runtime/library").Decimal;
         grossMargin: import("src/generated/tenant-client/runtime/library").Decimal;
-        expenses: import("src/generated/tenant-client/runtime/library").Decimal;
         netProfit: import("src/generated/tenant-client/runtime/library").Decimal;
         metadata: import("src/generated/tenant-client/runtime/library").JsonValue | null;
     }[]>;
@@ -63,9 +63,9 @@ export declare class ProfitController {
         expenseDate?: string;
     }): Promise<{
         category: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        description: string | null;
         amount: import("src/generated/tenant-client/runtime/library").Decimal;
         expenseDate: Date;
     }>;
@@ -74,9 +74,9 @@ export declare class ProfitController {
         endDate?: string;
     }): Promise<{
         category: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        description: string | null;
         amount: import("src/generated/tenant-client/runtime/library").Decimal;
         expenseDate: Date;
     }[]>;

@@ -36,7 +36,8 @@ let AuthController = class AuthController {
         return this.authService.loginSuperAdmin(admin);
     }
     getProfile(subdomain, req) {
-        return this.authService.getProfile(req.user.id);
+        const sub = req.user.subdomain || subdomain;
+        return this.authService.getProfile(req.user.id, sub);
     }
     forgotPassword(subdomain, body) {
         return this.authService.forgotPassword(body.email);

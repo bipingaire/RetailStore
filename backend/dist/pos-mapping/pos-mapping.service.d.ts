@@ -6,16 +6,16 @@ export declare class PosMappingService {
     constructor(tenantService: TenantService, tenantPrisma: TenantPrismaService);
     findAll(subdomain: string): Promise<({
         product: {
+            id: string;
+            name: string;
             sku: string;
             imageUrl: string;
-            name: string;
-            id: string;
         };
     } & {
-        tenantId: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         posItemName: string;
         matchedInventoryId: string;
         lastSoldPrice: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -23,25 +23,25 @@ export declare class PosMappingService {
     })[]>;
     updateMapping(subdomain: string, id: string, data: any): Promise<{
         product: {
-            imageUrl: string;
-            name: string;
             id: string;
+            name: string;
+            imageUrl: string;
         };
     } & {
-        tenantId: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         posItemName: string;
         matchedInventoryId: string;
         lastSoldPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         confidenceScore: import("src/generated/tenant-client/runtime/library").Decimal | null;
     }>;
     verifyMapping(subdomain: string, id: string): Promise<{
-        tenantId: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         posItemName: string;
         matchedInventoryId: string;
         lastSoldPrice: import("src/generated/tenant-client/runtime/library").Decimal;

@@ -8,9 +8,9 @@ export declare class AuditService {
         id: string;
         status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        notes: string | null;
     }>;
     addAuditCount(subdomain: string, sessionId: string, productId: string, countedQuantity: number, reason?: string): Promise<{
         id: string;
@@ -25,19 +25,19 @@ export declare class AuditService {
     completeAuditSession(subdomain: string, sessionId: string): Promise<{
         counts: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -55,19 +55,19 @@ export declare class AuditService {
         })[];
         adjustments: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -86,34 +86,34 @@ export declare class AuditService {
         id: string;
         status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        notes: string | null;
     }>;
     rejectAuditSession(subdomain: string, sessionId: string): Promise<{
         id: string;
         status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        notes: string | null;
     }>;
     getAuditSession(subdomain: string, id: string): Promise<{
         counts: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -131,19 +131,19 @@ export declare class AuditService {
         })[];
         adjustments: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -162,9 +162,9 @@ export declare class AuditService {
         id: string;
         status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        notes: string | null;
     }>;
     getAllAuditSessions(subdomain: string): Promise<({
         counts: {
@@ -190,26 +190,26 @@ export declare class AuditService {
         id: string;
         status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        notes: string | null;
     })[]>;
     getVarianceReport(subdomain: string): Promise<({
         adjustments: ({
             product: {
-                sku: string;
                 category: string | null;
-                description: string | null;
-                imageUrl: string | null;
-                name: string;
                 id: string;
-                isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                sku: string;
+                description: string | null;
                 price: import("src/generated/tenant-client/runtime/library").Decimal;
                 costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
                 stock: number;
                 reorderLevel: number;
+                imageUrl: string | null;
                 barcode: string | null;
                 isSellable: boolean;
                 parentId: string | null;
@@ -228,9 +228,9 @@ export declare class AuditService {
         id: string;
         status: string;
         userId: string;
-        notes: string | null;
         startedAt: Date;
         completedAt: Date | null;
+        notes: string | null;
     })[]>;
     submitBulkAudit(subdomain: string, userId: string, items: {
         productId: string;

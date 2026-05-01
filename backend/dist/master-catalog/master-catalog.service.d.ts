@@ -12,25 +12,28 @@ export declare class MasterCatalogService {
         imageUrl?: string;
         tenantId: string;
     }): Promise<{
-        sku: string;
-        productName: string;
         category: string | null;
+        sku: string;
         description: string | null;
-        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         imageUrl: string | null;
+        tenantId: string;
+        productName: string;
+        basePrice: import("src/generated/master-client/runtime/library").Decimal;
         aiEnrichedAt: Date | null;
         syncedAt: Date;
-        tenantId: string;
     }>;
     getSharedCatalog(filters?: {
         category?: string;
         search?: string;
     }): Promise<{
+        category: string | null;
         sku: string;
+        description: string | null;
+        imageUrl: string | null;
+        tenantId: string;
         productName: string;
-        category: string;
-        description: string;
-        basePrice: number;
-        imageUrl: string;
+        basePrice: import("src/generated/master-client/runtime/library").Decimal;
+        aiEnrichedAt: Date | null;
+        syncedAt: Date;
     }[]>;
 }

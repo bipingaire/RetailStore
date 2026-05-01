@@ -34,9 +34,9 @@ export declare class ZReportController {
         data: {
             transactionCount: number;
             id: string;
-            createdAt: Date;
-            status: string;
             fileUrl: string | null;
+            status: string;
+            createdAt: Date;
             reportDate: Date;
             reportNumber: string;
             totalSales: import("src/generated/tenant-client/runtime/library").Decimal;
@@ -50,9 +50,9 @@ export declare class ZReportController {
     }>;
     getZReports(subdomain: string): Promise<{
         id: string;
-        createdAt: Date;
-        status: string;
         fileUrl: string | null;
+        status: string;
+        createdAt: Date;
         reportDate: Date;
         reportNumber: string;
         totalSales: import("src/generated/tenant-client/runtime/library").Decimal;

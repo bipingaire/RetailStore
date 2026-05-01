@@ -145,16 +145,6 @@ exports.Prisma.SharedCatalogScalarFieldEnum = {
   tenantId: 'tenantId'
 };
 
-exports.Prisma.GlobalProductMasterCatalogScalarFieldEnum = {
-  productId: 'productId',
-  productName: 'productName',
-  sku: 'sku',
-  category: 'category',
-  description: 'description',
-  imageUrl: 'imageUrl',
-  isActive: 'isActive'
-};
-
 exports.Prisma.SuperAdminScalarFieldEnum = {
   id: 'id',
   email: 'email',
@@ -207,6 +197,26 @@ exports.Prisma.BillingTransactionScalarFieldEnum = {
   description: 'description'
 };
 
+exports.Prisma.GlobalCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GlobalTaxRuleScalarFieldEnum = {
+  id: 'id',
+  state: 'state',
+  targetType: 'targetType',
+  targetValue: 'targetValue',
+  taxRate: 'taxRate',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -226,12 +236,13 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   SharedCatalog: 'SharedCatalog',
-  GlobalProductMasterCatalog: 'GlobalProductMasterCatalog',
   SuperAdmin: 'SuperAdmin',
   PendingProductAddition: 'PendingProductAddition',
   MasterWebsiteConfig: 'MasterWebsiteConfig',
   TenantSubscription: 'TenantSubscription',
-  BillingTransaction: 'BillingTransaction'
+  BillingTransaction: 'BillingTransaction',
+  GlobalCategory: 'GlobalCategory',
+  GlobalTaxRule: 'GlobalTaxRule'
 };
 
 /**

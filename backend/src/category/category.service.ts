@@ -186,7 +186,7 @@ export class CategoryService {
     async renameDynamicCategory(oldName: string, newName: string) {
         const standardNewName = standardizeCategory(newName) || newName;
         // Update all products in Global Catalog that use this category
-        await this.prisma.globalProductMasterCatalog.updateMany({
+        await this.prisma.sharedCatalog.updateMany({
             where: { category: oldName },
             data: { category: standardNewName }
         });

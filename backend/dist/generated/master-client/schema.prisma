@@ -42,18 +42,6 @@ model SharedCatalog {
   @@map("shared_catalog")
 }
 
-model GlobalProductMasterCatalog {
-  productId   String  @id @default(uuid()) @map("product-id")
-  productName String  @map("product-name")
-  sku         String? @unique @map("upc-ean-code")
-  category    String? @map("category-name")
-  description String? @map("description-text")
-  imageUrl    String? @map("image-url")
-  isActive    Boolean @default(true) @map("is-active")
-
-  @@map("global-product-master-catalog")
-}
-
 model SuperAdmin {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -120,4 +108,28 @@ model BillingTransaction {
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
   @@map("billing-transactions")
+}
+
+model GlobalCategory {
+  id          String   @id @default(uuid()) @map("category-id")
+  name        String   @unique @map("category-name")
+  description String?
+  isActive    Boolean  @default(true) @map("is-active")
+  createdAt   DateTime @default(now()) @map("created-at")
+  updatedAt   DateTime @updatedAt @map("updated-at")
+
+  @@map("global-categories")
+}
+
+model GlobalTaxRule {
+  id          String   @id @default(uuid()) @map("tax-rule-id")
+  state       String   @map("state") // e.g. "NY", "CA", "ALL"
+  targetType  String   @map("target-type") // "CATEGORY", "PRODUCT", "DEFAULT"
+  targetValue String   @map("target-value") // e.g. "Dairy", "SKU123", "*"
+  taxRate     Decimal  @map("tax-rate") @db.Decimal(5, 2)
+  isActive    Boolean  @default(true) @map("is-active")
+  createdAt   DateTime @default(now()) @map("created-at")
+  updatedAt   DateTime @updatedAt @map("updated-at")
+
+  @@map("global-tax-rules")
 }

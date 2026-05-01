@@ -13,6 +13,7 @@ exports.ExpenseService = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_prisma_service_1 = require("../prisma/tenant-prisma.service");
 const tenant_service_1 = require("../tenant/tenant.service");
+const pagination_dto_1 = require("../common/pagination.dto");
 let ExpenseService = class ExpenseService {
     constructor(tenantPrisma, tenantService) {
         this.tenantPrisma = tenantPrisma;
@@ -30,12 +31,38 @@ let ExpenseService = class ExpenseService {
             }
         });
     }
-    async getExpenses(subdomain) {
+    async getExpenses(subdomain, options = {}) {
         const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
         const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-        return client.expense.findMany({
-            orderBy: { expenseDate: 'desc' }
-        });
+        const { skip, take, page, limit } = (0, pagination_dto_1.parsePagination)(options.page, options.limit, 20);
+        const where = {};
+        if (options.category)
+            where.category = options.category;
+        if (options.search) {
+            where.OR = [
+                { description: { contains: options.search, mode: 'insensitive' } },
+                { category: { contains: options.search, mode: 'insensitive' } },
+            ];
+        }
+        if (options.startDate || options.endDate) {
+            where.expenseDate = {};
+            if (options.startDate)
+                where.expenseDate.gte = new Date(options.startDate);
+            if (options.endDate)
+                where.expenseDate.lte = new Date(options.endDate);
+        }
+        const [expenses, total] = await Promise.all([
+            client.expense.findMany({
+                where,
+                orderBy: { expenseDate: 'desc' },
+                skip,
+                take,
+            }),
+            client.expense.count({ where }),
+        ]);
+        if (!options.page && !options.limit)
+            return expenses;
+        return (0, pagination_dto_1.buildPaginatedResponse)(expenses, total, page, limit);
     }
 };
 exports.ExpenseService = ExpenseService;

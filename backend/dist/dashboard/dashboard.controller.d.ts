@@ -3,6 +3,7 @@ export declare class DashboardController {
     private dashboardService;
     constructor(dashboardService: DashboardService);
     getOverview(subdomain: string, startDate?: string, endDate?: string): Promise<{
+        storeName: string;
         revenue: number;
         orders: number;
         lowStock: number;

@@ -22,8 +22,15 @@ let ExpenseController = class ExpenseController {
     async create(subdomain, body) {
         return this.expenseService.createExpense(subdomain, body);
     }
-    async findAll(subdomain) {
-        return this.expenseService.getExpenses(subdomain);
+    async findAll(subdomain, page, limit, search, category, startDate, endDate) {
+        return this.expenseService.getExpenses(subdomain, {
+            page: page ? parseInt(page) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            search,
+            category,
+            startDate,
+            endDate,
+        });
     }
 };
 exports.ExpenseController = ExpenseController;
@@ -38,8 +45,14 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Headers)('x-tenant')),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('search')),
+    __param(4, (0, common_1.Query)('category')),
+    __param(5, (0, common_1.Query)('startDate')),
+    __param(6, (0, common_1.Query)('endDate')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], ExpenseController.prototype, "findAll", null);
 exports.ExpenseController = ExpenseController = __decorate([

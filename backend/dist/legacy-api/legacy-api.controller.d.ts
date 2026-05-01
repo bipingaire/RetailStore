@@ -20,19 +20,19 @@ export declare class LegacyApiController {
         processed: any[];
     }>;
     addProduct(body: any, req: any): Promise<{
-        sku: string;
         category: string | null;
-        description: string | null;
-        imageUrl: string | null;
-        name: string;
         id: string;
-        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        sku: string;
+        description: string | null;
         price: import("src/generated/tenant-client/runtime/library").Decimal;
         costPrice: import("src/generated/tenant-client/runtime/library").Decimal;
         stock: number;
         reorderLevel: number;
+        imageUrl: string | null;
         barcode: string | null;
         isSellable: boolean;
         parentId: string | null;

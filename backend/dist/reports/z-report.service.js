@@ -36,16 +36,13 @@ Extract the following from the document and return ONLY a JSON object with no ma
   "totalTax": number (0 if not shown),
   "transactionCount": number (0 if not shown),
   "items": [
-    {
-      "description": "product/item name visible on the report",
-      "category": "short category",
-      "quantitySold": number,
-      "unitPrice": number,
-      "totalAmount": number
-    }
+    // Array of precise items expressed as flat arrays strictly in this exact order:
+    // [description (string), category (string), quantitySold (number), unitPrice (number), totalAmount (number)]
+    ["item 1 name", "category", QTY, PRICE, TOTAL],
+    ["item 2 name", "category", QTY, PRICE, TOTAL]
   ]
 }
-CRITICAL: Extract EVERY line item. Do not skip any items.`;
+CRITICAL: Extract EVERY line item. Do not skip any items. To save token length, "items" MUST be an array of arrays (tuples) of exactly 5 elements each.`;
         if (ext === '.pdf') {
             const pdfParse = require('pdf-parse');
             let pdfData;
@@ -90,9 +87,9 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
             ];
         }
         const completion = await this.openai.chat.completions.create({
-            model: 'gpt-4o',
+            model: 'gpt-5.4',
             messages: [{ role: 'user', content: promptContent }],
-            max_tokens: 4096,
+            max_completion_tokens: 100000,
             temperature: 0.1,
             response_format: { type: 'json_object' },
         });
@@ -111,8 +108,12 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
             data = JSON.parse(cleaned);
         }
         catch (parseErr) {
-            console.error('❌ Z-Report JSON parse failed. Raw response was:', raw);
-            throw new common_1.BadRequestException(`Failed to parse OCR response as JSON. Raw AI response: ${raw.substring(0, 300)}`);
+            const finishReason = completion.choices[0]?.finish_reason;
+            console.error('❌ Z-Report JSON parse failed. Length:', raw.length, parseErr.message, 'Finish Reason:', finishReason);
+            if (finishReason === 'length') {
+                throw new common_1.BadRequestException('The Z-Report is too large and was cut off by the AI. Please split the report or use a shorter receipt.');
+            }
+            throw new common_1.BadRequestException(`JSON parse error: ${parseErr.message}. Total response length: ${raw.length} chars. Preview: ${raw.substring(0, 300)}`);
         }
         return {
             reportDate: data.reportDate || new Date().toISOString().split('T')[0],
@@ -120,13 +121,24 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
             totalSales: Number(data.totalSales) || 0,
             totalTax: Number(data.totalTax) || 0,
             transactionCount: Number(data.transactionCount) || 0,
-            items: (data.items || []).map((item) => ({
-                description: item.description || 'Unknown Item',
-                category: item.category || 'General',
-                quantitySold: Number(item.quantitySold) || 0,
-                unitPrice: Number(item.unitPrice) || 0,
-                totalAmount: Number(item.totalAmount) || 0,
-            })),
+            items: (data.items || []).map((item) => {
+                if (Array.isArray(item)) {
+                    return {
+                        description: String(item[0] || 'Unknown Item'),
+                        category: String(item[1] || 'General'),
+                        quantitySold: Number(item[2]) || 0,
+                        unitPrice: Number(item[3]) || 0,
+                        totalAmount: Number(item[4]) || 0,
+                    };
+                }
+                return {
+                    description: item.description || 'Unknown Item',
+                    category: item.category || 'General',
+                    quantitySold: Number(item.quantitySold) || 0,
+                    unitPrice: Number(item.unitPrice) || 0,
+                    totalAmount: Number(item.totalAmount) || 0,
+                };
+            }),
         };
     }
     async commitZReport(subdomain, reportData) {
@@ -158,9 +170,13 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
                     },
                 });
                 if (product) {
+                    const updateData = { stock: { decrement: item.quantitySold } };
+                    if (item.unitPrice && item.unitPrice > 0) {
+                        updateData.price = Number(item.unitPrice);
+                    }
                     await tx.product.update({
                         where: { id: product.id },
-                        data: { stock: { decrement: item.quantitySold } },
+                        data: updateData,
                     });
                     await tx.stockMovement.create({
                         data: {
@@ -179,8 +195,8 @@ CRITICAL: Extract EVERY line item. Do not skip any items.`;
                             sku: `ZRPT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                             category: item.category || 'General',
                             description: `Auto-created from Z-Report: ${reportNumber}`,
-                            price: item.unitPrice ? Number(item.unitPrice) : undefined,
-                            costPrice: item.unitPrice ? Number(item.unitPrice) : undefined,
+                            price: Number(item.unitPrice) || 0,
+                            costPrice: Number(item.unitPrice) || 0,
                             stock: -item.quantitySold,
                             reorderLevel: 0,
                             isActive: true,
