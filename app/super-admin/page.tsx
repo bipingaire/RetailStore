@@ -363,7 +363,7 @@ export default function SuperAdminPage() {
       {/* Top Navigation */}
       <header className="flex items-center justify-between p-6 max-w-[1400px] mx-auto">
         <div className="border border-gray-400/30 bg-white/40 rounded-full px-6 py-2.5 backdrop-blur-md flex items-center gap-2 shadow-sm">
-           <span className="font-light text-lg tracking-wide text-gray-900">Crextio</span>
+           <span className="font-semibold text-base tracking-tight text-gray-900">RetailOS<span className="text-[#2a2d32]">.cloud</span></span>
         </div>
 
         <nav className="hidden lg:flex items-center gap-1 bg-white/40 backdrop-blur-md rounded-full border border-gray-400/30 p-1 shadow-sm">
@@ -659,112 +659,103 @@ export default function SuperAdminPage() {
 
         {/* 4. REVENUE ANALYTICS */}
         {activeTab === 'revenue' && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Revenue Analytics</h2>
-              <p className="text-gray-500 text-sm mt-1">Track subscriptions, earnings, and billing transactions</p>
+          <div className="space-y-5">
+
+            {/* Summary Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Tenants', value: tenants.length, sub: 'Registered stores' },
+                { label: 'MRR', value: `$${revenueData.totalEarnings.toFixed(2)}`, sub: 'Monthly recurring revenue' },
+                { label: 'Paid Plans', value: revenueData.subscriptionTiers.pro + revenueData.subscriptionTiers.enterprise, sub: 'Pro + Enterprise' },
+                { label: 'Transactions', value: revenueData.receipts.length, sub: 'This period' },
+              ].map(s => (
+                <div key={s.label} className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl px-5 py-4 shadow-sm">
+                  <p className="text-xs text-gray-500 font-medium mb-1">{s.label}</p>
+                  <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+                </div>
+              ))}
             </div>
 
             {/* Subscription Breakdown */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUp size={20} className="text-blue-500" />
-                Subscription Breakdown
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                  { tier: 'free', label: 'Free', color: 'gray', price: '$0', count: revenueData.subscriptionTiers.free },
-                  { tier: 'beta', label: 'Beta', color: 'purple', price: '$0', count: revenueData.subscriptionTiers.beta },
-                  { tier: 'pro', label: 'Pro', color: 'blue', price: '$49.99', count: revenueData.subscriptionTiers.pro },
-                  { tier: 'enterprise', label: 'Enterprise', color: 'green', price: '$199.99', count: revenueData.subscriptionTiers.enterprise }
-                ].map((item) => (
-                  <div key={item.tier} className="bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2.5rem] p-6 shadow-sm hover:shadow-md transition">
-                    <div className={`text-${item.color}-600 text-xs font-bold uppercase tracking-wider mb-3`}>{item.label}</div>
-                    <div className="text-3xl font-bold text-gray-900 mb-1">{item.count}</div>
-                    <div className="text-sm text-gray-500">Tenants · {item.price}/mo</div>
-                  </div>
-                ))}
+            <div className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-700">Subscription Plans</h3>
               </div>
-            </div>
-
-            {/* Total Earnings */}
-            <div className="bg-[#2a2d32] rounded-[2.5rem] shadow-xl p-8 text-white relative overflow-hidden">
-              {/* Decorative background elements */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4"></div>
-              
-              <div className="flex items-center justify-between relative z-10">
-                <div>
-                  <div className="text-sm font-medium text-blue-100 mb-2 flex items-center gap-2">
-                    <DollarSign size={18} />
-                    Monthly Recurring Revenue
-                  </div>
-                  <div className="text-5xl font-bold mb-2">
-                    ${revenueData.totalEarnings.toFixed(2)}
-                  </div>
-                  <div className="text-sm text-blue-100">
-                    From {revenueData.subscriptionTiers.pro + revenueData.subscriptionTiers.enterprise} active paid subscriptions
-                  </div>
-                </div>
-                <div className="bg-white/20 p-6 rounded-full backdrop-blur-sm border border-white/10">
-                  <Receipt size={48} className="text-white" />
-                </div>
-              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 uppercase border-b border-gray-100">
+                    <th className="px-5 py-3 text-left font-medium">Plan</th>
+                    <th className="px-5 py-3 text-left font-medium">Price / mo</th>
+                    <th className="px-5 py-3 text-left font-medium">Active Tenants</th>
+                    <th className="px-5 py-3 text-left font-medium">MRR</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {[
+                    { label: 'Free', price: 0, count: revenueData.subscriptionTiers.free },
+                    { label: 'Beta', price: 0, count: revenueData.subscriptionTiers.beta },
+                    { label: 'Pro', price: 49.99, count: revenueData.subscriptionTiers.pro },
+                    { label: 'Enterprise', price: 199.99, count: revenueData.subscriptionTiers.enterprise },
+                  ].map(p => (
+                    <tr key={p.label} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold border ${
+                          p.label === 'Enterprise' ? 'bg-green-50 text-green-700 border-green-200' :
+                          p.label === 'Pro' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                          p.label === 'Beta' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                          'bg-gray-100 text-gray-600 border-gray-200'
+                        }`}>{p.label}</span>
+                      </td>
+                      <td className="px-5 py-3.5 text-gray-600">{p.price === 0 ? 'Free' : `$${p.price.toFixed(2)}`}</td>
+                      <td className="px-5 py-3.5 font-medium text-gray-900">{p.count}</td>
+                      <td className="px-5 py-3.5 text-gray-600">${(p.count * p.price).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Recent Transactions */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Receipt size={20} className="text-green-500" />
-                Recent Transactions
-              </h3>
-              <div className="bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2.5rem] overflow-hidden shadow-sm">
-                <table className="w-full text-left text-sm text-gray-600">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs font-semibold">
-                    <tr>
-                      <th className="p-4">Date</th>
-                      <th className="p-4">Tenant</th>
-                      <th className="p-4">Description</th>
-                      <th className="p-4">Amount</th>
-                      <th className="p-4">Method</th>
-                      <th className="p-4 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {revenueData.receipts.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="p-8 text-center text-gray-500">
-                          No transactions yet
-                        </td>
-                      </tr>
-                    ) : (
-                      revenueData.receipts.map((receipt: any) => (
-                        <tr key={receipt['transaction-id']} className="hover:bg-gray-50 transition">
-                          <td className="p-4 text-gray-500">
-                            {new Date(receipt['transaction-date']).toLocaleDateString()}
-                          </td>
-                          <td className="p-4">
-                            <div className="font-medium text-gray-900">
-                              {receipt['retail-store-tenant']?.['store-name'] || 'Unknown'}
-                            </div>
-                          </td>
-                          <td className="p-4 text-gray-500">{receipt.description}</td>
-                          <td className="p-4 font-bold text-gray-900">
-                            ${parseFloat(receipt.amount).toFixed(2)}
-                          </td>
-                          <td className="p-4 text-gray-500 capitalize">{receipt['payment-method'] || 'N/A'}</td>
-                          <td className="p-4 text-right">
-                            <span className="px-2.5 py-1 rounded-md text-xs font-medium border bg-green-50 text-green-700 border-green-200">
-                              {receipt.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+            <div className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-700">Recent Transactions</h3>
+                <span className="text-xs text-gray-400">{revenueData.receipts.length} records</span>
               </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 uppercase border-b border-gray-100">
+                    <th className="px-5 py-3 text-left font-medium">Date</th>
+                    <th className="px-5 py-3 text-left font-medium">Store</th>
+                    <th className="px-5 py-3 text-left font-medium">Description</th>
+                    <th className="px-5 py-3 text-left font-medium">Amount</th>
+                    <th className="px-5 py-3 text-left font-medium">Method</th>
+                    <th className="px-5 py-3 text-right font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {revenueData.receipts.length === 0 ? (
+                    <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-400 text-sm">No transactions recorded yet.</td></tr>
+                  ) : revenueData.receipts.map((receipt: any) => (
+                    <tr key={receipt['transaction-id']} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-5 py-3.5 text-gray-500">{new Date(receipt['transaction-date']).toLocaleDateString()}</td>
+                      <td className="px-5 py-3.5 font-medium text-gray-900">{receipt['retail-store-tenant']?.['store-name'] || 'Unknown'}</td>
+                      <td className="px-5 py-3.5 text-gray-500">{receipt.description}</td>
+                      <td className="px-5 py-3.5 font-semibold text-gray-900">${parseFloat(receipt.amount).toFixed(2)}</td>
+                      <td className="px-5 py-3.5 text-gray-500 capitalize">{receipt['payment-method'] || '—'}</td>
+                      <td className="px-5 py-3.5 text-right">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${
+                          receipt.status?.toLowerCase() === 'paid' ? 'bg-green-50 text-green-700 border-green-200' :
+                          receipt.status?.toLowerCase() === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                          'bg-gray-50 text-gray-600 border-gray-200'
+                        }`}>{receipt.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+
           </div>
         )}
 
