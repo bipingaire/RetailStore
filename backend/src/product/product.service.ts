@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
@@ -14,13 +14,30 @@ function standardizeCategory(cat: string | null | undefined): string {
 }
 
 @Injectable()
-export class ProductService {
+export class ProductService implements OnModuleInit {
   constructor(
     private tenantService: TenantService,
     private tenantPrisma: TenantPrismaService,
     private masterPrisma: MasterPrismaService,
     private masterCatalogService: MasterCatalogService,
   ) { }
+
+  onModuleInit() {
+    // Run automatic sync every 10 minutes (600,000 ms)
+    setInterval(async () => {
+      try {
+        const tenants = await this.tenantService.findAll();
+        for (const t of tenants) {
+          console.log(`[Auto-Sync] Starting periodic sync for tenant: ${t.subdomain}`);
+          await this.syncAll(t.subdomain).catch(err => 
+            console.error(`[Auto-Sync] Failed for tenant ${t.subdomain}:`, err)
+          );
+        }
+      } catch (err) {
+        console.error('[Auto-Sync] Global sync iteration failed:', err);
+      }
+    }, 10 * 60 * 1000);
+  }
 
   async enrichProduct(subdomain: string, id: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
