@@ -989,57 +989,55 @@ export default function SuperAdminPage() {
               </div>
 
               <div>
-                <div className="flex justify-between items-end mb-2">
+                <div className="flex justify-between items-center mb-3">
                   <label className="block text-sm font-semibold text-gray-700">Product Image</label>
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleAiEnrich(editedProduct);
-                    }}
+                    onClick={(e) => { e.preventDefault(); handleAiEnrich(editedProduct); }}
                     disabled={enriching === editedProduct.id}
-                    className="text-xs font-medium flex items-center gap-1.5 text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-md transition"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                      enriching === editedProduct.id
+                        ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
+                        : 'bg-white text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-300'
+                    }`}
                   >
-                    {enriching === editedProduct.id ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
-                    {enriching === editedProduct.id ? 'Fetching...' : 'AI Enrich Data'}
+                    {enriching === editedProduct.id ? <Loader2 className="animate-spin" size={12} /> : <Sparkles size={12} />}
+                    {enriching === editedProduct.id ? 'Fetching...' : 'Enrich with AI'}
                   </button>
                 </div>
-                
-                <div className="flex gap-5 items-start">
-                  <div className="w-28 h-28 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden shrink-0 relative group shadow-sm">
-                    {editedProduct.image_url ? (
-                      <img src={editedProduct.image_url} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                        <ImageIcon size={28} className="mb-2" />
-                        <span className="text-xs font-medium">No Image</span>
-                      </div>
-                    )}
-                    
-                    {/* Hover Upload Overlay */}
-                    <label className="absolute inset-0 bg-gray-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[1px]">
-                      <UploadCloud size={24} className="text-white mb-2" />
-                      <span className="text-white text-sm font-medium">Upload</span>
-                      <input 
-                        type="file" 
-                        className="hidden" 
+
+                <div className="flex gap-4 items-start">
+                  {/* Image preview + upload button */}
+                  <div className="shrink-0 flex flex-col items-center gap-2">
+                    <div className="w-24 h-24 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                      {editedProduct.image_url ? (
+                        <img src={editedProduct.image_url} className="w-full h-full object-cover" alt="Product" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-1">
+                          <ImageIcon size={24} />
+                          <span className="text-[10px] font-medium">No image</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Upload button */}
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer shadow-sm">
+                      <UploadCloud size={13} /> Upload
+                      <input
+                        type="file"
+                        className="hidden"
                         accept="image/*"
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-
                           const toastId = toast.loading("Uploading image...");
                           try {
                             const formData = new FormData();
                             formData.append('file', file);
-                            
                             const res = await apiClient.post(`/super-admin/products/${editedProduct.id}/image`, formData, {
                               headers: { 'Content-Type': 'multipart/form-data' }
                             });
-                            
                             setEditedProduct({ ...editedProduct, image_url: res.imageUrl });
                             toast.success("Image uploaded successfully", { id: toastId });
                           } catch (err: any) {
-                            console.error(err);
                             toast.error("Upload failed: " + (err.message || 'Unknown error'), { id: toastId });
                           }
                         }}
@@ -1047,16 +1045,18 @@ export default function SuperAdminPage() {
                     </label>
                   </div>
 
+                  {/* URL input */}
                   <div className="flex-1 space-y-2">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Or paste image URL</label>
                     <input
                       type="text"
                       value={editedProduct.image_url || ''}
                       onChange={(e) => setEditedProduct({ ...editedProduct, image_url: e.target.value })}
-                      className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm shadow-sm"
-                      placeholder="Or paste an image URL..."
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-xs shadow-sm"
+                      placeholder="https://example.com/image.jpg"
                     />
-                    <p className="text-sm text-gray-500 leading-relaxed">
-                      Click the image preview to upload a file directly from your computer, click AI Enrich to fetch one from the web automatically, or paste a URL.
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      Upload a file using the button, or paste a direct image URL. Use <span className="text-violet-500 font-medium">Enrich with AI</span> to auto-fetch product data.
                     </p>
                   </div>
                 </div>
