@@ -356,6 +356,8 @@ export default function SuperAdminPage() {
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#e4e7eb] via-[#fdf9e3] to-[#fceb9c] text-gray-900 font-sans overflow-auto">
       {/* Top Navigation */}
@@ -387,14 +389,43 @@ export default function SuperAdminPage() {
         </nav>
 
         <div className="flex items-center gap-3">
-           <button onClick={handleLogout} className="hidden md:flex items-center gap-2 border border-gray-400/30 bg-white/40 rounded-full px-5 py-2 backdrop-blur-md hover:bg-white/60 transition-all text-sm font-medium text-gray-700 shadow-sm">
-              <Settings size={16} /> Setting
-           </button>
            <button className="w-10 h-10 rounded-full bg-white/40 border border-gray-400/30 backdrop-blur-md flex items-center justify-center hover:bg-white/60 transition-all text-gray-700 shadow-sm">
               <Bell size={18} />
            </button>
-           <div className="w-10 h-10 rounded-full bg-white overflow-hidden shadow-sm flex items-center justify-center border border-gray-400/30">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Avatar" className="w-full h-full object-cover" />
+           {/* User Avatar with Dropdown */}
+           <div className="relative">
+             <button
+               onClick={() => setShowUserMenu(prev => !prev)}
+               className="w-10 h-10 rounded-full bg-white overflow-hidden shadow-sm flex items-center justify-center border border-gray-400/30 hover:ring-2 hover:ring-[#2a2d32]/30 transition-all"
+             >
+               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Avatar" className="w-full h-full object-cover" />
+             </button>
+             {showUserMenu && (
+               <>
+                 {/* Backdrop */}
+                 <div className="fixed inset-0 z-10" onClick={() => setShowUserMenu(false)} />
+                 {/* Dropdown */}
+                 <div className="absolute right-0 mt-2 w-52 bg-white/90 backdrop-blur-xl border border-gray-200/60 rounded-2xl shadow-xl z-20 overflow-hidden py-1">
+                   <div className="px-4 py-3 border-b border-gray-100">
+                     <p className="text-sm font-bold text-gray-900">Super Admin</p>
+                     <p className="text-xs text-gray-500">admin@retailstore.com</p>
+                   </div>
+                   <button
+                     onClick={() => { setShowUserMenu(false); setActiveTab('website'); }}
+                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                   >
+                     <Settings size={16} className="text-gray-400" /> Settings
+                   </button>
+                   <div className="border-t border-gray-100 mt-1" />
+                   <button
+                     onClick={() => { setShowUserMenu(false); handleLogout(); }}
+                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                   >
+                     <Lock size={16} className="text-red-400" /> Logout
+                   </button>
+                 </div>
+               </>
+             )}
            </div>
         </div>
       </header>
