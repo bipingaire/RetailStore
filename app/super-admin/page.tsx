@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Database, Store, Truck, Sparkles, Search,
-  CheckCircle, AlertCircle, RefreshCw, Globe, UploadCloud, FileSpreadsheet, X, Image as ImageIcon, FileText, Activity, ExternalLink, Box, Layers, Link as LinkIcon, ArrowUp, ArrowRight, ChevronRight, Loader2, FileWarning, Tag, MessageSquare, ThumbsUp, ThumbsDown, Lock, DollarSign, Receipt, TrendingUp
+  CheckCircle, AlertCircle, RefreshCw, Globe, UploadCloud, FileSpreadsheet, X, Image as ImageIcon, FileText, Activity, ExternalLink, Box, Layers, Link as LinkIcon, ArrowUp, ArrowRight, ChevronRight, Loader2, FileWarning, Tag, MessageSquare, ThumbsUp, ThumbsDown, Lock, DollarSign, Receipt, TrendingUp, Bell, Plus
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
@@ -275,11 +275,11 @@ export default function SuperAdminPage() {
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="h-screen bg-gray-50 text-gray-900 font-sans flex overflow-hidden">
+    <div className="h-screen bg-white text-gray-900 font-sans flex overflow-hidden">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all z-20 shadow-sm">
-        <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-          <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
+      <aside className="w-64 bg-white flex flex-col shrink-0 transition-all z-20">
+        <div className="p-8 pb-4 flex items-center gap-3">
+          <div className="bg-[#155d3a] p-2 rounded-xl shadow-sm">
             <Database className="text-white" size={20} />
           </div>
           <div>
@@ -301,15 +301,15 @@ export default function SuperAdminPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`
-                w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-between group
-                ${activeTab === tab.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}
+                w-full px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center justify-between group
+                ${activeTab === tab.id ? 'bg-[#eefcf2] text-[#155d3a]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
               `}
             >
               <div className="flex items-center gap-3">
-                <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'} />
+                <tab.icon size={20} className={activeTab === tab.id ? 'text-[#155d3a]' : 'text-gray-400 group-hover:text-gray-600'} />
                 {tab.label}
               </div>
-              {tab.count ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === tab.id ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>{tab.count}</span> : null}
+              {tab.count ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === tab.id ? 'bg-[#155d3a] text-white' : 'bg-red-100 text-red-600'}`}>{tab.count}</span> : null}
             </button>
           ))}
           
@@ -331,23 +331,35 @@ export default function SuperAdminPage() {
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-gray-50 h-screen overflow-hidden">
+      {/* Main Content Area Wrapper */}
+      <div className="flex-1 p-2 md:p-4 bg-white overflow-hidden flex flex-col">
+        {/* Main Content Container */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[#f4f7f5] rounded-[2rem] overflow-hidden shadow-sm border border-gray-100">
         
         {/* Top Header */}
-        <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10 sticky top-0">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-500 capitalize">
-             <span>Super Admin Dashboard</span>
-             <ChevronRight size={14} className="text-gray-400" />
-             <span className="text-gray-900">{activeTab.replace('-', ' ')}</span>
+        <header className="h-20 bg-transparent px-8 flex items-center justify-between shrink-0 z-10 sticky top-0 mt-2">
+          {/* Search Bar */}
+          <div className="relative">
+             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+             <input type="text" placeholder="Search data" className="bg-white border-none text-sm text-gray-900 rounded-full pl-11 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-[#155d3a] w-72 shadow-sm" />
+             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-medium border border-gray-200 rounded px-1.5 py-0.5">⌘F</span>
           </div>
+          
           <div className="flex items-center gap-4">
-             <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input type="text" placeholder="Jump to..." className="bg-gray-100 border border-transparent text-sm text-gray-900 rounded-md pl-9 pr-4 py-1.5 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 w-48 transition-all hover:border-gray-300" />
-             </div>
-             <div className="h-8 w-8 rounded-full bg-blue-600 shadow-sm flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:bg-blue-700 transition-colors">
-                SA
+             <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-500 hover:text-gray-900 transition">
+                 <MessageSquare size={18} />
+             </button>
+             <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-500 hover:text-gray-900 transition">
+                 <Bell size={18} />
+             </button>
+             <div className="flex items-center gap-3 ml-2 cursor-pointer">
+                 <div className="w-10 h-10 rounded-full bg-[#155d3a] overflow-hidden shadow-sm flex items-center justify-center text-white text-sm font-bold">
+                    SA
+                 </div>
+                 <div className="hidden md:block text-left">
+                     <div className="text-sm font-bold text-gray-900">Super Admin</div>
+                     <div className="text-xs text-gray-500">admin@retailstore.com</div>
+                 </div>
              </div>
           </div>
         </header>
@@ -360,27 +372,33 @@ export default function SuperAdminPage() {
         {/* 1. MASTER CATALOG */}
         {activeTab === 'products' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-end mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Global Product Database</h2>
-                <p className="text-gray-500 text-sm mt-1">The single source of truth for all products across the network.</p>
+                <h2 className="text-4xl font-bold text-gray-900 mb-2">Global Product Database</h2>
+                <p className="text-gray-500 text-base">The single source of truth for all products across the network.</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
-                  <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="Search UPC, Name..." className="bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-900 shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none w-64" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="Search UPC, Name..." className="bg-white border border-gray-200 rounded-full pl-10 pr-4 py-2.5 text-sm text-gray-900 shadow-sm focus:ring-2 focus:ring-[#155d3a] outline-none w-64" />
                 </div>
+                <button className="bg-[#155d3a] hover:bg-[#10482c] text-white px-5 py-2.5 rounded-full text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                   <Plus size={18} /> Add Product
+                </button>
+                <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-full text-sm font-medium transition shadow-sm">
+                   Import Data
+                </button>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="bg-white rounded-[1.5rem] border-none overflow-hidden shadow-sm p-2">
               <table className="w-full text-left text-sm text-gray-600">
-                <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs font-semibold">
+                <thead className="border-b border-gray-100 text-gray-400 text-xs font-medium">
                   <tr>
-                    <th className="p-4">Product</th>
-                    <th className="p-4">Category</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 text-right">Actions</th>
+                    <th className="p-4 font-medium">Product</th>
+                    <th className="p-4 font-medium">Category</th>
+                    <th className="p-4 font-medium">Status</th>
+                    <th className="p-4 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -441,7 +459,7 @@ export default function SuperAdminPage() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="p-4 border-t border-gray-200 flex items-center justify-between bg-white">
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-white mt-2">
                   <div className="text-sm text-gray-500">
                     Showing <span className="font-medium text-gray-900">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> of <span className="font-medium text-gray-900">{filteredProducts.length}</span> products
                   </div>
@@ -726,6 +744,7 @@ export default function SuperAdminPage() {
 
           </div> {/* end max-w-6xl */}
         </main>
+      </div> {/* end inner wrapper */}
 
       {/* Edit Product Modal */}
       {editedProduct && (
