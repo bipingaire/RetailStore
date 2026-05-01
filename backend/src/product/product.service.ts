@@ -6,6 +6,13 @@ import { MasterCatalogService } from '../master-catalog/master-catalog.service';
 import OpenAI from 'openai';
 import { parsePagination, buildPaginatedResponse } from '../common/pagination.dto';
 
+function standardizeCategory(cat: string | null | undefined): string {
+    if (!cat) return 'Uncategorized';
+    return cat.trim().split(/\s+/).map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+}
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -75,7 +82,7 @@ export class ProductService {
       data: {
         name: data.name,
         sku: sku,
-        category: data.category || 'Uncategorized',
+        category: standardizeCategory(data.category),
         description: data.description || '',
         price: Number(data.price) || Number(data.sellingPrice) || 0,
         costPrice: Number(data.costPrice) || 0,
@@ -161,7 +168,23 @@ export class ProductService {
   async delete(subdomain: string, id: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    return client.product.delete({ where: { id } });
+    
+    // Get the product's SKU before deleting so we can update the global catalog
+    const product = await client.product.findUnique({ where: { id }, select: { sku: true, name: true } });
+    
+    // Delete from tenant
+    const deleted = await client.product.delete({ where: { id } });
+
+    // Remove from sharedCatalog (global) — one-way sync: tenant delete removes from global
+    if (product?.sku) {
+      try {
+        await this.masterPrisma.sharedCatalog.deleteMany({ where: { sku: product.sku } });
+      } catch (err) {
+        console.error(`[Catalog Sync] Failed to remove "${product.name}" from global catalog:`, err);
+      }
+    }
+
+    return deleted;
   }
 
   async updateStock(subdomain: string, id: string, quantity: number, type: string) {
