@@ -479,9 +479,6 @@ export default function SuperAdminPage() {
                 <table className="w-full text-sm min-w-[640px]">
                   <thead>
                     <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
-                      <th className="w-10 px-4 py-3 text-left">
-                        <input type="checkbox" className="rounded border-gray-300 text-gray-600" />
-                      </th>
                       <th className="px-4 py-3 text-left font-medium">Product</th>
                       <th className="px-4 py-3 text-left font-medium">SKU / UPC</th>
                       <th className="px-4 py-3 text-left font-medium">Category</th>
@@ -496,10 +493,6 @@ export default function SuperAdminPage() {
                         className="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer group"
                         onClick={() => setSelectedProduct(p)}
                       >
-                        {/* Checkbox */}
-                        <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
-                          <input type="checkbox" className="rounded border-gray-300 text-gray-600" />
-                        </td>
 
                         {/* Product: image + name + category stacked */}
                         <td className="px-4 py-4 max-w-[280px]">
@@ -566,7 +559,7 @@ export default function SuperAdminPage() {
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan={6} className="px-5 py-14 text-center text-gray-400 text-sm">
+                        <td colSpan={5} className="px-5 py-14 text-center text-gray-400 text-sm">
                           No products found matching your search.
                         </td>
                       </tr>
