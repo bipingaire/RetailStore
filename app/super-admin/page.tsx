@@ -58,7 +58,7 @@ type PendingItem = {
 };
 
 export default function SuperAdminPage() {
-  const [activeTab, setActiveTab] = useState<'products' | 'tenants' | 'pending' | 'website' | 'revenue'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'tenants' | 'pending' | 'website' | 'revenue' | 'categories' | 'taxes'>('products');
   const [products, setProducts] = useState<GlobalProduct[]>([]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
@@ -78,9 +78,32 @@ export default function SuperAdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 20;
 
+  // --- Categories State ---
+  interface GlobalCategory { 'category-id': string; 'category-name': string; description: string | null; 'is-active': boolean; }
+  const [catList, setCatList] = useState<GlobalCategory[]>([]);
+  const [catLoading, setCatLoading] = useState(false);
+  const [catSaving, setCatSaving] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatDesc, setNewCatDesc] = useState('');
+
+  // --- Tax State ---
+  interface GlobalTaxRule { 'tax-rule-id': string; state: string; 'target-type': string; 'target-value': string; 'tax-rate': number; 'is-active': boolean; }
+  const [taxRules, setTaxRules] = useState<GlobalTaxRule[]>([]);
+  const [taxCategories, setTaxCategories] = useState<any[]>([]);
+  const [taxLoading, setTaxLoading] = useState(false);
+  const [taxSaving, setTaxSaving] = useState(false);
+  const [newTaxState, setNewTaxState] = useState('');
+  const [newTaxCategory, setNewTaxCategory] = useState('');
+  const [newTaxRate, setNewTaxRate] = useState('');
+
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'categories') loadCategories();
+    if (activeTab === 'taxes') loadTaxData();
+  }, [activeTab]);
 
   async function loadData() {
     setLoading(true);
@@ -185,6 +208,65 @@ export default function SuperAdminPage() {
     }
   }
 
+  // --- CATEGORIES HANDLERS ---
+  async function loadCategories() {
+    setCatLoading(true);
+    try {
+      const data = await apiClient.get('/categories/global');
+      setCatList(data.map((c: any) => ({ 'category-id': c.id, 'category-name': c.name, description: c.description, 'is-active': c.isActive })));
+    } catch (e) { toast.error('Failed to load categories'); }
+    finally { setCatLoading(false); }
+  }
+
+  async function handleAddCategory(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    setCatSaving(true);
+    try {
+      await apiClient.post('/categories/global', { name: newCatName.trim(), description: newCatDesc.trim() || undefined });
+      setNewCatName(''); setNewCatDesc('');
+      await loadCategories();
+      toast.success('Category added!');
+    } catch (err: any) { toast.error('Failed to add category: ' + err.message); }
+    finally { setCatSaving(false); }
+  }
+
+  async function handleDeleteCategory(id: string) {
+    if (!confirm('Delete this category?')) return;
+    try { await apiClient.delete(`/categories/global/${id}`); await loadCategories(); toast.success('Category deleted'); }
+    catch { toast.error('Failed to delete category'); }
+  }
+
+  // --- TAX HANDLERS ---
+  async function loadTaxData() {
+    setTaxLoading(true);
+    try {
+      const [rulesRes, catRes] = await Promise.all([apiClient.get('/tax/rules'), apiClient.get('/categories/global')]);
+      setTaxRules(rulesRes.map((r: any) => ({ 'tax-rule-id': r.id, state: r.state, 'target-type': r.targetType, 'target-value': r.targetValue, 'tax-rate': parseFloat(r.taxRate), 'is-active': r.isActive })));
+      setTaxCategories(catRes.map((c: any) => ({ 'category-id': c.id, 'category-name': c.name })));
+    } catch (e) { toast.error('Failed to load tax data'); }
+    finally { setTaxLoading(false); }
+  }
+
+  async function handleAddTaxRule(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTaxCategory) { toast.error('Please select a category'); return; }
+    setTaxSaving(true);
+    try {
+      await apiClient.post('/tax/rules', { state: newTaxState.trim().toUpperCase(), targetType: 'CATEGORY', targetValue: newTaxCategory, taxRate: parseFloat(newTaxRate) || 0 });
+      setNewTaxRate(''); setNewTaxCategory('');
+      await loadTaxData();
+      toast.success('Tax rule added!');
+    } catch (err: any) { toast.error('Failed to add rule: ' + err.message); }
+    finally { setTaxSaving(false); }
+  }
+
+  async function handleDeleteTaxRule(id: string) {
+    if (!confirm('Delete this tax rule?')) return;
+    try { await apiClient.delete(`/tax/rules/${id}`); await loadTaxData(); toast.success('Tax rule deleted'); }
+    catch { toast.error('Failed to delete tax rule'); }
+  }
+
   // --- APPROVAL WORKFLOW ---
   const handleApproveItem = async (item: PendingItem) => {
     try {
@@ -285,9 +367,11 @@ export default function SuperAdminPage() {
         <nav className="hidden lg:flex items-center gap-1 bg-white/40 backdrop-blur-md rounded-full border border-gray-400/30 p-1 shadow-sm">
           {[
             { id: 'products', label: 'Dashboard' },
-            { id: 'tenants', label: 'People' },
-            { id: 'pending', label: 'Hiring' },
+            { id: 'tenants', label: 'Stores' },
+            { id: 'pending', label: 'Approvals' },
             { id: 'revenue', label: 'Revenue' },
+            { id: 'categories', label: 'Categories' },
+            { id: 'taxes', label: 'Tax Engine' },
             { id: 'website', label: 'Settings' }
           ].map((tab) => (
             <button
@@ -318,10 +402,12 @@ export default function SuperAdminPage() {
       {/* Main Content Area */}
       <main className="max-w-[1400px] mx-auto p-6 space-y-8 pb-10">
         <h1 className="text-[3rem] font-light tracking-tight text-gray-900 mb-8 px-2">
-          {activeTab === 'products' ? 'Welcome in, Nixtio' : 
+          {activeTab === 'products' ? 'Global Catalog' : 
            activeTab === 'pending' ? 'Pending Approvals' :
-           activeTab === 'tenants' ? 'Tenant Network' :
-           activeTab === 'revenue' ? 'Revenue Analytics' : 'System Settings'}
+           activeTab === 'tenants' ? 'Stores' :
+           activeTab === 'revenue' ? 'Revenue Analytics' :
+           activeTab === 'categories' ? 'Categories' :
+           activeTab === 'taxes' ? 'Tax Engine' : 'System Settings'}
         </h1>
         
         <div className="space-y-8">
@@ -696,11 +782,131 @@ export default function SuperAdminPage() {
               </div>
             </div>
           </div>
-        )
-        }
+        )}
 
-          </div> {/* end max-w-6xl */}
-        </main>
+        {/* 6. CATEGORIES */}
+        {activeTab === 'categories' && (
+          <div className="space-y-6">
+            {catLoading ? (
+              <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2rem] p-6 h-fit shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><Tag size={18} className="text-blue-600" /> Add Category</h2>
+                  <form onSubmit={handleAddCategory} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+                      <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="e.g. Dairy" className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                      <input type="text" value={newCatDesc} onChange={e => setNewCatDesc(e.target.value)} placeholder="e.g. Milk, cheese, butter" className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <button type="submit" disabled={catSaving || !newCatName.trim()} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                      {catSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add Category
+                    </button>
+                  </form>
+                </div>
+                <div className="md:col-span-2 bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-white/40 bg-white/20">
+                    <h3 className="font-semibold text-gray-900">Active Global Categories ({catList.length})</h3>
+                    <p className="text-gray-500 text-xs mt-0.5">Pushed to every store tenant and used for AI invoice parsing.</p>
+                  </div>
+                  {catList.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">No global categories defined yet.</div>
+                  ) : (
+                    <ul className="divide-y divide-white/30">
+                      {catList.map(cat => (
+                        <li key={cat['category-id']} className="p-4 hover:bg-white/20 flex items-center justify-between transition-colors">
+                          <div>
+                            <p className="font-bold text-gray-900">{cat['category-name']}</p>
+                            {cat.description && <p className="text-sm text-gray-500 mt-0.5">{cat.description}</p>}
+                          </div>
+                          <button onClick={() => handleDeleteCategory(cat['category-id'])} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete"><X className="w-4 h-4" /></button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 7. TAX ENGINE */}
+        {activeTab === 'taxes' && (
+          <div className="space-y-6">
+            {taxLoading ? (
+              <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2rem] p-6 h-fit shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><Receipt size={18} className="text-indigo-600" /> Add Tax Rule</h2>
+                  <form onSubmit={handleAddTaxRule} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">State / Region</label>
+                      <input type="text" value={newTaxState} onChange={e => setNewTaxState(e.target.value)} placeholder="e.g. NY, CA, ALL" className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase" required />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Target Category</label>
+                      <select value={newTaxCategory} onChange={e => setNewTaxCategory(e.target.value)} className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        <option value="" disabled>Select a category...</option>
+                        {taxCategories.map(c => <option key={c['category-id']} value={c['category-name']}>{c['category-name']}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                      <div className="relative">
+                        <input type="number" step="0.001" value={newTaxRate} onChange={e => setNewTaxRate(e.target.value)} placeholder="e.g. 8.875" className="w-full text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+                        <span className="absolute inset-y-0 right-3 flex items-center text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <button type="submit" disabled={taxSaving} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors mt-2">
+                      {taxSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Create Tax Rule
+                    </button>
+                  </form>
+                </div>
+                <div className="md:col-span-2 bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-white/40 bg-white/20">
+                    <h3 className="font-semibold text-gray-900">Active Tax Rules ({taxRules.length})</h3>
+                    <p className="text-gray-500 text-xs mt-0.5">Enforced automatically across all store tenants.</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="border-b border-white/30 text-xs uppercase text-gray-500">
+                        <tr>
+                          <th className="px-6 py-3 font-medium">State</th>
+                          <th className="px-6 py-3 font-medium">Type</th>
+                          <th className="px-6 py-3 font-medium">Target</th>
+                          <th className="px-6 py-3 font-medium">Rate</th>
+                          <th className="px-6 py-3 text-right font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/30">
+                        {taxRules.length === 0 ? (
+                          <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">No tax rules defined yet.</td></tr>
+                        ) : taxRules.map(rule => (
+                          <tr key={rule['tax-rule-id']} className="hover:bg-white/20">
+                            <td className="px-6 py-4"><span className={`px-2.5 py-1 rounded-md border text-xs font-bold ${rule.state === 'ALL' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800 border-blue-200'}`}>{rule.state}</span></td>
+                            <td className="px-6 py-4 text-gray-600">{rule['target-type']}</td>
+                            <td className="px-6 py-4 font-mono text-gray-700">{rule['target-value']}</td>
+                            <td className="px-6 py-4 font-semibold text-gray-900">{Number(rule['tax-rate']).toFixed(3).replace(/\.?0+$/, '')}%</td>
+                            <td className="px-6 py-4 text-right">
+                              <button onClick={() => handleDeleteTaxRule(rule['tax-rule-id'])} className="text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors inline-flex items-center" title="Delete"><X className="w-4 h-4" /></button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        </div> {/* end space-y-8 */}
+      </main>
 
       {/* Edit Product Modal */}
       {editedProduct && (
