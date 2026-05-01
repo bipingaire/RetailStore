@@ -7,6 +7,8 @@ import { ShoppingBag, UserRound, Package } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+let initialClearDone = false;
+
 export default function ShopLayout({
   children,
   params,
@@ -16,6 +18,22 @@ export default function ShopLayout({
 }) {
   const storeName = params?.slug || "InduMart";
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  if (typeof window !== 'undefined' && !initialClearDone) {
+    initialClearDone = true;
+    const token = localStorage.getItem("retail_token");
+    if (!token) {
+      try {
+        const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+        const isReload = nav ? nav.type === "reload" : performance.navigation.type === 1;
+        const isFirstLoad = !sessionStorage.getItem('shop_visited');
+        if (isReload || isFirstLoad) {
+          localStorage.removeItem('retail_cart');
+        }
+        sessionStorage.setItem('shop_visited', 'true');
+      } catch (e) {}
+    }
+  }
 
   useEffect(() => {
     let syncing = false; // Guard to prevent re-entrant loops
@@ -47,19 +65,6 @@ export default function ShopLayout({
     const check = () => {
       const token = localStorage.getItem("retail_token");
       setIsLoggedIn(!!token);
-
-      // Clear cart on reload for unauthenticated users
-      if (!token) {
-        try {
-          const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
-          const isReload = nav ? nav.type === "reload" : performance.navigation.type === 1;
-          const isFirstLoad = !sessionStorage.getItem('shop_visited');
-          if (isReload || isFirstLoad) {
-            localStorage.removeItem('retail_cart');
-          }
-          sessionStorage.setItem('shop_visited', 'true');
-        } catch (e) {}
-      }
     };
 
     // Run initial check and Google sync ONCE on mount
