@@ -191,9 +191,9 @@ export class CategoryService {
     async renameDynamicCategory(oldName: string, newName: string) {
         const standardNewName = standardizeCategory(newName) || newName;
 
-        // 1. Update all products in Global SharedCatalog
+        // 1. Update all products in Global SharedCatalog (case-insensitive match)
         await this.prisma.sharedCatalog.updateMany({
-            where: { category: oldName },
+            where: { category: { equals: oldName, mode: 'insensitive' } },
             data: { category: standardNewName }
         });
 
@@ -202,13 +202,13 @@ export class CategoryService {
         for (const t of allTenants) {
             try {
                 const tClient = await this.tenantPrisma.getTenantClient(t.databaseUrl);
-                // Update product category strings
+                // Update product category strings (case-insensitive match)
                 await tClient.product.updateMany({
-                    where: { category: oldName },
+                    where: { category: { equals: oldName, mode: 'insensitive' } },
                     data: { category: standardNewName }
                 });
-                // Also update/create the category registry entry
-                const existingCat = await tClient.category.findUnique({ where: { name: oldName } });
+                // Also update category registry (case-insensitive)
+                const existingCat = await tClient.category.findFirst({ where: { name: { equals: oldName, mode: 'insensitive' } } });
                 if (existingCat) {
                     await tClient.category.update({
                         where: { id: existingCat.id },
