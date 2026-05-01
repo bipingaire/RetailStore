@@ -57,10 +57,23 @@ export class SuperAdminService {
         });
 
         const products = productsRaw.sort((a, b) => {
-            if (!a.syncedAt && !b.syncedAt) return 0;
-            if (!a.syncedAt) return 1;
-            if (!b.syncedAt) return -1;
-            return b.syncedAt.getTime() - a.syncedAt.getTime();
+            const aHasImage = !!a.imageUrl && a.imageUrl.trim() !== '';
+            const bHasImage = !!b.imageUrl && b.imageUrl.trim() !== '';
+
+            // Items without images come first
+            if (!aHasImage && bHasImage) return -1;
+            if (aHasImage && !bHasImage) return 1;
+
+            const aTime = a.syncedAt ? a.syncedAt.getTime() : 0;
+            const bTime = b.syncedAt ? b.syncedAt.getTime() : 0;
+
+            if (!aHasImage && !bHasImage) {
+                // Both no image: sort descending (newest items without images on top)
+                return bTime - aTime;
+            } else {
+                // Both have image: sort ascending (oldest image items first, newest at the very bottom)
+                return aTime - bTime;
+            }
         });
 
         const tenants = await this.prisma.tenant.findMany({
@@ -167,6 +180,7 @@ export class SuperAdminService {
                 category: data.category,
                 description: data.description,
                 imageUrl: data.image_url,
+                syncedAt: new Date(),
                 // Assuming schema supports brandName, otherwise this will cause Prisma errors.
                 // Looking at pending-item schema mapping, brandName might differ or be missing, so keeping it safe
                 ...(data.brandName ? { brandName: data.brandName } : {})
@@ -186,7 +200,10 @@ export class SuperAdminService {
     async uploadProductImage(id: string, imageUrl: string) {
         const product = await this.prisma.sharedCatalog.update({
             where: { sku: id },
-            data: { imageUrl }
+            data: { 
+                imageUrl,
+                syncedAt: new Date()
+            }
         });
 
         await this.broadcastUpdateToTenants(id, { imageUrl });
