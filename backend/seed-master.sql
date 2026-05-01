@@ -8,7 +8,7 @@ INSERT INTO "super_admins" ("id", "email", "password", "createdAt", "updatedAt")
 VALUES (
   gen_random_uuid(),
   'superadmin@retailstore.com',
-  '$2b$10$J./QmLXuT6vDl/Me853bxFY0KC0xlS.m',
+  '$2b$10$RW5oPt5qokOFNSeK3iREy.ExiBwhJSkIvR.u1GSkl3Pp11XFJWomG',
   NOW(),
   NOW()
 ) ON CONFLICT (email) DO NOTHING;
