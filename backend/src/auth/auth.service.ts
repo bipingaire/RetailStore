@@ -68,7 +68,7 @@ export class AuthService {
 
     if (!user) {
       console.log(`[AuthService] User not found for email: ${email}`);
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('User does not exist');
     }
 
     console.log(`[AuthService] Password hash starts with:`, user.password.substring(0, 10));
@@ -152,7 +152,16 @@ export class AuthService {
     let user = await client.user.findUnique({ where: { email: data.email } });
     
     if (!user) {
-      throw new UnauthorizedException('User does not exist');
+      const generatedPassword = await bcrypt.hash(data.googleId + Date.now().toString(), 10);
+      user = await client.user.create({
+        data: {
+          email: data.email,
+          password: generatedPassword,
+          name: data.name || data.email.split('@')[0],
+          role: 'CUSTOMER', 
+          ...(tenantId ? { tenantId } : {})
+        },
+      });
     }
 
     return this.login({ ...user, tenantId, subdomain });
