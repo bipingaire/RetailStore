@@ -279,12 +279,9 @@ export default function SuperAdminPage() {
       {/* Sidebar Navigation */}
       <aside className="w-64 bg-white flex flex-col shrink-0 transition-all z-20">
         <div className="p-8 pb-4 flex items-center gap-3">
-          <div className="bg-[#155d3a] p-2 rounded-xl shadow-sm">
-            <Database className="text-white" size={20} />
-          </div>
+          <Database className="text-[#155d3a]" size={28} strokeWidth={2.5} />
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-gray-900 leading-tight">Master Console</h1>
-            <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wider">Super Admin</p>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-tight">Master Console</h1>
           </div>
         </div>
         
@@ -297,52 +294,60 @@ export default function SuperAdminPage() {
             { id: 'revenue', icon: DollarSign, label: 'Revenue' },
             { id: 'website', icon: Globe, label: 'Master Website' }
           ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`
-                w-full px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center justify-between group
-                ${activeTab === tab.id ? 'bg-[#eefcf2] text-[#155d3a]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
-              `}
-            >
-              <div className="flex items-center gap-3">
-                <tab.icon size={20} className={activeTab === tab.id ? 'text-[#155d3a]' : 'text-gray-400 group-hover:text-gray-600'} />
-                {tab.label}
-              </div>
-              {tab.count ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === tab.id ? 'bg-[#155d3a] text-white' : 'bg-red-100 text-red-600'}`}>{tab.count}</span> : null}
-            </button>
+            <div key={tab.id} className="relative px-4">
+              {activeTab === tab.id && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#155d3a] rounded-r-lg"></div>
+              )}
+              <button
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`
+                  w-full px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center justify-between group
+                  ${activeTab === tab.id ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
+                `}
+              >
+                <div className="flex items-center gap-3">
+                  <tab.icon size={20} className={activeTab === tab.id ? 'text-[#155d3a]' : 'text-gray-400 group-hover:text-gray-600'} />
+                  {tab.label}
+                </div>
+                {tab.count ? <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeTab === tab.id ? 'bg-[#155d3a] text-white' : 'bg-gray-100 text-gray-600'}`}>{tab.count}</span> : null}
+              </button>
+            </div>
           ))}
           
           <div className="mt-8 pt-6 border-t border-gray-100">
-            <div className="text-[10px] font-bold text-gray-400 mb-3 px-3 uppercase tracking-wider">Settings</div>
-            <Link href="/super-admin/categories" className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all flex items-center gap-3 group">
-              <Tag size={18} className="text-gray-400 group-hover:text-gray-600" /> Categories
-            </Link>
-            <Link href="/super-admin/taxes" className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all flex items-center gap-3 group mt-1">
-              <Receipt size={18} className="text-gray-400 group-hover:text-gray-600" /> Tax Engine
-            </Link>
+            <div className="text-[10px] font-bold text-gray-400 mb-3 px-3 uppercase tracking-wider">General</div>
+            <div className="px-4">
+              <Link href="/super-admin/categories" className="w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all flex items-center gap-3 group">
+                <Tag size={20} className="text-gray-400 group-hover:text-gray-600" /> Categories
+              </Link>
+              <Link href="/super-admin/taxes" className="w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all flex items-center gap-3 group mt-1">
+                <Receipt size={20} className="text-gray-400 group-hover:text-gray-600" /> Tax Engine
+              </Link>
+            </div>
           </div>
         </nav>
         
-        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-          <button onClick={handleLogout} className="w-full flex items-center gap-2 justify-center bg-white hover:bg-gray-50 text-gray-700 py-2.5 rounded-lg text-sm font-medium border border-gray-200 transition-all shadow-sm group">
-             <Lock size={16} className="text-gray-400 group-hover:text-red-500 transition-colors" /> Logout
-          </button>
+        <div className="p-4 bg-white mt-auto">
+          <div className="px-4">
+            <button onClick={handleLogout} className="w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all flex items-center gap-3 group">
+               <Lock size={20} className="text-gray-400 group-hover:text-gray-600" /> Logout
+            </button>
+          </div>
         </div>
       </aside>
 
       {/* Main Content Area Wrapper */}
       <div className="flex-1 p-2 md:p-4 bg-white overflow-hidden flex flex-col">
         {/* Main Content Container */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#f4f7f5] rounded-[2rem] overflow-hidden shadow-sm border border-gray-100">
+        <div className="flex-1 flex flex-col min-w-0 bg-[#f6f8f7] rounded-[2rem] overflow-hidden">
         
         {/* Top Header */}
-        <header className="h-20 bg-transparent px-8 flex items-center justify-between shrink-0 z-10 sticky top-0 mt-2">
+        <header className="h-20 bg-transparent px-8 flex items-center justify-between shrink-0 z-10 sticky top-0 mt-4">
           {/* Search Bar */}
           <div className="relative">
              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-             <input type="text" placeholder="Search data" className="bg-white border-none text-sm text-gray-900 rounded-full pl-11 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-[#155d3a] w-72 shadow-sm" />
-             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-medium border border-gray-200 rounded px-1.5 py-0.5">⌘F</span>
+             <input type="text" placeholder="Search data" className="bg-white border-none text-sm text-gray-900 rounded-full pl-11 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-[#155d3a] w-80 shadow-sm" />
+             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 bg-gray-100 font-medium rounded px-2 py-1">⌘F</span>
           </div>
           
           <div className="flex items-center gap-4">
@@ -352,11 +357,11 @@ export default function SuperAdminPage() {
              <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-500 hover:text-gray-900 transition">
                  <Bell size={18} />
              </button>
-             <div className="flex items-center gap-3 ml-2 cursor-pointer">
-                 <div className="w-10 h-10 rounded-full bg-[#155d3a] overflow-hidden shadow-sm flex items-center justify-center text-white text-sm font-bold">
-                    SA
+             <div className="flex items-center gap-3 ml-4 cursor-pointer">
+                 <div className="w-10 h-10 rounded-full bg-[#fde1d3] overflow-hidden shadow-sm flex items-center justify-center">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Avatar" className="w-full h-full object-cover" />
                  </div>
-                 <div className="hidden md:block text-left">
+                 <div className="hidden md:block text-left leading-tight">
                      <div className="text-sm font-bold text-gray-900">Super Admin</div>
                      <div className="text-xs text-gray-500">admin@retailstore.com</div>
                  </div>
