@@ -444,118 +444,140 @@ export default function SuperAdminPage() {
 
         {/* 1. MASTER CATALOG */}
         {activeTab === 'products' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-end mb-6">
-              <div>
-                <h2 className="text-4xl font-bold text-gray-900 mb-2">Global Product Database</h2>
-                <p className="text-gray-500 text-base">The single source of truth for all products across the network.</p>
+          <div className="space-y-4">
+            {/* Toolbar */}
+            <div className="flex flex-wrap gap-3 justify-between items-center">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                  placeholder="Search UPC, Name..."
+                  className="bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm text-gray-900 shadow-sm focus:ring-2 focus:ring-gray-300 outline-none w-64"
+                />
               </div>
-              <div className="flex gap-3">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="Search UPC, Name..." className="bg-white/50 backdrop-blur-md border border-white/50 rounded-full pl-10 pr-4 py-2.5 text-sm text-gray-900 shadow-sm focus:ring-2 focus:ring-[#155d3a] outline-none w-64" />
-                </div>
-                <button className="bg-[#2a2d32] hover:bg-black text-white px-6 py-2.5 rounded-full text-sm font-medium transition flex items-center gap-2 shadow-sm">
-                   <Plus size={18} /> Add Product
+              <div className="flex gap-2">
+                <button className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm">
+                  Import Data
                 </button>
-                <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-full text-sm font-medium transition shadow-sm">
-                   Import Data
+                <button className="bg-[#2a2d32] hover:bg-black text-white px-5 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                  <Plus size={16} /> Add Product
                 </button>
               </div>
             </div>
 
-            <div className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm overflow-hidden">
-              {/* Table Header bar */}
-              <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-white/50">
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold text-gray-900">{filteredProducts.length}</span> products
-                </p>
+            {/* Table card */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              {/* Table meta bar */}
+              <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                <span className="text-sm text-gray-500"><strong className="text-gray-800 font-semibold">{filteredProducts.length}</strong> products</span>
               </div>
 
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-gray-400 uppercase border-b border-gray-100 bg-gray-50/50">
-                    <th className="px-5 py-3 text-left font-medium">Product</th>
-                    <th className="px-5 py-3 text-left font-medium">SKU / UPC</th>
-                    <th className="px-5 py-3 text-left font-medium">Category</th>
-                    <th className="px-5 py-3 text-left font-medium">Status</th>
-                    <th className="px-5 py-3 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {paginatedProducts.length > 0 ? paginatedProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/70 transition-colors group" onClick={() => setSelectedProduct(p)}>
-                      {/* Product Name + Image */}
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3 cursor-pointer">
-                          <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 shrink-0">
-                            {p.image_url
-                              ? <img src={p.image_url} className="w-full h-full object-cover" alt={p.name} />
-                              : <ImageIcon size={15} className="text-gray-400" />}
+              {/* Scrollable table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[640px]">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
+                      <th className="w-10 px-4 py-3 text-left">
+                        <input type="checkbox" className="rounded border-gray-300 text-gray-600" />
+                      </th>
+                      <th className="px-4 py-3 text-left font-medium">Product</th>
+                      <th className="px-4 py-3 text-left font-medium">SKU / UPC</th>
+                      <th className="px-4 py-3 text-left font-medium">Category</th>
+                      <th className="px-4 py-3 text-left font-medium">Status</th>
+                      <th className="px-4 py-3 text-right font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedProducts.length > 0 ? paginatedProducts.map((p) => (
+                      <tr
+                        key={p.id}
+                        className="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer group"
+                        onClick={() => setSelectedProduct(p)}
+                      >
+                        {/* Checkbox */}
+                        <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
+                          <input type="checkbox" className="rounded border-gray-300 text-gray-600" />
+                        </td>
+
+                        {/* Product: image + name + category stacked */}
+                        <td className="px-4 py-4 max-w-[280px]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                              {p.image_url
+                                ? <img src={p.image_url} className="w-full h-full object-cover" alt={p.name} />
+                                : <ImageIcon size={16} className="text-gray-300" />}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-gray-900 text-sm leading-snug truncate">{p.name}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">{p.category}</p>
+                            </div>
                           </div>
-                          <span className="font-medium text-gray-900 leading-snug">{p.name}</span>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* SKU */}
-                      <td className="px-5 py-3.5">
-                        <span className="text-xs font-mono text-gray-400">{p.upc_ean || '—'}</span>
-                      </td>
-
-                      {/* Category */}
-                      <td className="px-5 py-3.5">
-                        <span className="text-gray-600 text-sm">{p.category}</span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-5 py-3.5">
-                        {p.ai_enriched_at ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                            <Sparkles size={11} /> Enriched
+                        {/* UPC */}
+                        <td className="px-4 py-4">
+                          <span className="font-mono text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg">
+                            {p.upc_ean || '—'}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                            Standard
-                          </span>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Actions */}
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleAiEnrich(p); }}
-                            disabled={enriching === p.id}
-                            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                              enriching === p.id
-                                ? 'bg-gray-300 text-white cursor-not-allowed'
-                                : 'bg-[#2a2d32] hover:bg-black text-white'
-                            }`}
-                          >
-                            {enriching === p.id
-                              ? <><Loader2 className="animate-spin" size={12} /> Processing</>
-                              : 'Enrich with AI'}
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setEditedProduct({ ...p }); }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-                          >
-                            Edit
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan={5} className="px-5 py-12 text-center text-gray-400 text-sm">No products found matching your search.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                        {/* Category */}
+                        <td className="px-4 py-4">
+                          <span className="text-sm text-gray-600">{p.category}</span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-4">
+                          {p.ai_enriched_at ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                              <Sparkles size={10} /> Enriched
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-50 text-gray-500 border border-gray-100">
+                              Standard
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-4 text-right" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleAiEnrich(p)}
+                              disabled={enriching === p.id}
+                              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                                enriching === p.id
+                                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                  : 'bg-[#2a2d32] hover:bg-black text-white'
+                              }`}
+                            >
+                              {enriching === p.id ? <><Loader2 className="animate-spin" size={11} /> Processing</> : 'Enrich with AI'}
+                            </button>
+                            <button
+                              onClick={() => setEditedProduct({ ...p })}
+                              className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={6} className="px-5 py-14 text-center text-gray-400 text-sm">
+                          No products found matching your search.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between bg-white/50">
+                <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50">
                   <span className="text-xs text-gray-500">
                     Showing <strong className="text-gray-700">{((currentPage - 1) * itemsPerPage) + 1}</strong>–<strong className="text-gray-700">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</strong> of <strong className="text-gray-700">{filteredProducts.length}</strong>
                   </span>
