@@ -15,15 +15,22 @@ function LoginContent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const redirectTo = searchParams?.get('redirect') || '/shop';
+    const redirectTo = searchParams?.get('redirect') || '/shop/account';
 
     // Check if already logged in via localStorage token (no network call needed)
     useEffect(() => {
+        const urlError = searchParams?.get('error');
+        if (urlError === 'user_does_not_exist') {
+            setError('User does not exist. Please register first.');
+        } else if (urlError) {
+            setError('Authentication failed. Please try again.');
+        }
+
         const token = localStorage.getItem('retail_token');
-        if (token) {
+        if (token && !urlError) {
             router.replace(redirectTo);
         }
-    }, []);
+    }, [searchParams, redirectTo, router]);
 
     async function handleLogin() {
         setLoading(true);

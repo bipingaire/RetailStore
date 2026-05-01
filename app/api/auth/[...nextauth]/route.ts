@@ -32,6 +32,43 @@ const authOptions = {
         signIn: '/shop/login',
     },
     callbacks: {
+        async signIn({ user, account, profile }: any) {
+            if (account?.provider === 'google' && user?.email) {
+                try {
+                    const baseUrl = process.env.BACKEND_INTERNAL_URL
+                        ? process.env.BACKEND_INTERNAL_URL.replace(/\/api\/?$/, '') + '/api'
+                        : 'http://backend:3001/api';
+
+                    const authUrl = process.env.NEXTAUTH_URL || '';
+                    const tenantMatch = authUrl.match(/^https?:\/\/([^.]+)\./);
+                    const tenant = (tenantMatch && tenantMatch[1] !== 'www') 
+                        ? tenantMatch[1] 
+                        : (process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN || 'demo');
+
+                    // Pre-flight check: attempt login to see if user exists
+                    const res = await fetch(`${baseUrl}/auth/google-login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-tenant': tenant,
+                        },
+                        body: JSON.stringify({
+                            email: user.email,
+                            name: user.name,
+                            googleId: profile?.sub,
+                        }),
+                    });
+
+                    if (!res.ok) {
+                        return `/shop/login?error=user_does_not_exist`;
+                    }
+                } catch (err) {
+                    console.error('[NextAuth] signIn error:', err);
+                    return false;
+                }
+            }
+            return true;
+        },
         async jwt({ token, user, account, profile }: any) {
             if (account) {
                 token.provider = account.provider;

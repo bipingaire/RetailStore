@@ -152,16 +152,7 @@ export class AuthService {
     let user = await client.user.findUnique({ where: { email: data.email } });
     
     if (!user) {
-      const generatedPassword = await bcrypt.hash(data.googleId + Date.now().toString(), 10);
-      user = await client.user.create({
-        data: {
-          email: data.email,
-          password: generatedPassword,
-          name: data.name || data.email.split('@')[0],
-          role: 'CUSTOMER', 
-          ...(tenantId ? { tenantId } : {})
-        },
-      });
+      throw new UnauthorizedException('User does not exist');
     }
 
     return this.login({ ...user, tenantId, subdomain });

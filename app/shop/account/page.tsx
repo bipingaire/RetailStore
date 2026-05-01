@@ -26,12 +26,29 @@ export default function AccountPage() {
 
   async function loadUserData() {
     try {
-      const storedUser = localStorage.getItem('retail_user');
-      const token = localStorage.getItem('retail_token');
+      let storedUser = localStorage.getItem('retail_user');
+      let token = localStorage.getItem('retail_token');
 
       if (!storedUser || !token) {
-        router.push('/shop/login?redirect=/shop/account');
-        return;
+        // Fallback: check if NextAuth session exists (handles race condition on redirect)
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const session = await res.json();
+          if (session?.backendToken) {
+            localStorage.setItem("retail_token", session.backendToken);
+            localStorage.setItem("accessToken", session.backendToken);
+            if (session.backendUser) {
+              localStorage.setItem("retail_user", JSON.stringify(session.backendUser));
+            }
+            storedUser = JSON.stringify(session.backendUser);
+            token = session.backendToken;
+          }
+        }
+
+        if (!storedUser || !token) {
+          router.push('/shop/login?redirect=/shop/account');
+          return;
+        }
       }
 
       const parsedUser = JSON.parse(storedUser);
