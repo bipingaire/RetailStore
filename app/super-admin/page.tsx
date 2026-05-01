@@ -644,36 +644,84 @@ export default function SuperAdminPage() {
 
         {/* 3. TENANT NETWORK */}
         {activeTab === 'tenants' && (
-          <div className="bg-white/60 backdrop-blur-xl border border-white/50 rounded-[2.5rem] overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-gray-400/20 flex justify-between items-center bg-transparent">
-              <h2 className="font-bold text-gray-900 flex items-center gap-2"><Store size={18} className="text-gray-500" /> Tenant Network</h2>
+          <div className="space-y-5">
+            {/* Summary row */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'Total Stores', value: tenants.length, sub: 'Registered tenants' },
+                { label: 'Active', value: tenants.filter(t => t.is_active).length, sub: 'Currently active' },
+                { label: 'Inactive', value: tenants.filter(t => !t.is_active).length, sub: 'Suspended / inactive' },
+              ].map(s => (
+                <div key={s.label} className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl px-5 py-4 shadow-sm">
+                  <p className="text-xs text-gray-500 font-medium mb-1">{s.label}</p>
+                  <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+                </div>
+              ))}
             </div>
-            <table className="w-full text-left text-sm text-gray-600">
-              <thead className="border-b border-gray-400/20 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
-                <tr><th className="p-4">Tenant Name</th><th className="p-4">Type</th><th className="p-4">Joined Date</th><th className="p-4 text-right">Status</th></tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {tenants.map((t) => (
-                  <tr key={t.id} className="hover:bg-gray-50 transition">
-                    <td className="p-4">
-                      <div className="font-medium text-gray-900">{t.name}</div>
-                      {t.subdomain && <div className="text-xs text-gray-500 font-mono mt-0.5">{t.subdomain}</div>}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2 text-gray-700 capitalize">
-                        <Store size={16} className="text-blue-500" /> {t.subscription_tier || 'Standard'}
-                      </div>
-                    </td>
-                    <td className="p-4 text-gray-500">{new Date(t.created_at).toLocaleDateString()}</td>
-                    <td className="p-4 text-right flex items-center justify-end gap-2">
-                      <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${t.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                        {t.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
+
+            {/* Table */}
+            <div className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-white/50">
+                <h3 className="text-sm font-semibold text-gray-700">Store Network</h3>
+                <span className="text-xs text-gray-400">{tenants.length} stores</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 uppercase border-b border-gray-100 bg-gray-50/50">
+                    <th className="px-5 py-3 text-left font-medium">Store</th>
+                    <th className="px-5 py-3 text-left font-medium">Subdomain</th>
+                    <th className="px-5 py-3 text-left font-medium">Plan</th>
+                    <th className="px-5 py-3 text-left font-medium">Joined</th>
+                    <th className="px-5 py-3 text-right font-medium">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {tenants.length === 0 ? (
+                    <tr><td colSpan={5} className="px-5 py-12 text-center text-gray-400 text-sm">No stores registered yet.</td></tr>
+                  ) : tenants.map((t) => (
+                    <tr key={t.id} className="hover:bg-gray-50/70 transition-colors">
+                      {/* Store name + avatar */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">
+                            {t.name?.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="font-medium text-gray-900">{t.name}</span>
+                        </div>
+                      </td>
+                      {/* Subdomain */}
+                      <td className="px-5 py-3.5">
+                        <span className="text-xs font-mono text-gray-400">{t.subdomain || '—'}</span>
+                      </td>
+                      {/* Plan */}
+                      <td className="px-5 py-3.5">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold border ${
+                          t.subscription_tier === 'enterprise' ? 'bg-green-50 text-green-700 border-green-200' :
+                          t.subscription_tier === 'pro' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                          t.subscription_tier === 'beta' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                          'bg-gray-100 text-gray-600 border-gray-200'
+                        }`}>
+                          {t.subscription_tier ? t.subscription_tier.charAt(0).toUpperCase() + t.subscription_tier.slice(1) : 'Free'}
+                        </span>
+                      </td>
+                      {/* Joined date */}
+                      <td className="px-5 py-3.5 text-gray-500 text-sm">
+                        {new Date(t.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </td>
+                      {/* Status */}
+                      <td className="px-5 py-3.5 text-right">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${
+                          t.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                        }`}>
+                          {t.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
