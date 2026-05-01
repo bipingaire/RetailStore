@@ -370,7 +370,6 @@ export default function SuperAdminPage() {
           {[
             { id: 'products', label: 'Dashboard' },
             { id: 'tenants', label: 'Stores' },
-            { id: 'pending', label: 'Approvals' },
             { id: 'revenue', label: 'Revenue' },
             { id: 'categories', label: 'Categories' },
             { id: 'taxes', label: 'Tax Engine' },
@@ -663,7 +662,7 @@ export default function SuperAdminPage() {
             {/* Table */}
             <div className="bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-white/50">
-                <h3 className="text-sm font-semibold text-gray-700">Store Network</h3>
+                <h3 className="text-sm font-semibold text-gray-700">Available Stores</h3>
                 <span className="text-xs text-gray-400">{tenants.length} stores</span>
               </div>
               <table className="w-full text-sm">
