@@ -80,10 +80,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
         <div className="mt-auto pt-4">
           <Button
-            className="w-full rounded-full bg-blue-600 font-bold text-white hover:bg-blue-700"
+            className="w-full rounded-full bg-green-600 font-bold text-white hover:bg-green-700"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add to cart
+            Add
           </Button>
         </div>
       </div>
