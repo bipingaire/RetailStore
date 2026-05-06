@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 
 import { User, Gift, Clock, ChevronRight, LogOut, QrCode, Star, ShoppingBag } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 
 // Mock User for MVP (In real app, use supabase.auth.user())
 const MOCK_USER = {
@@ -59,6 +60,13 @@ export default function ProfilePage() {
     }
     fetchOrders();
   }, []);
+
+  async function handleLogout() {
+    localStorage.removeItem('retail_token');
+    localStorage.removeItem('retail_user');
+    document.cookie = 'retail_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    await signOut({ callbackUrl: '/shop' });
+  }
 
   const qrValue = `CUST:${MOCK_USER.phone}`; // Simple format for POS scanner
 
@@ -145,7 +153,7 @@ export default function ProfilePage() {
             <ChevronRight size={16} className="text-gray-400" />
           </div>
 
-          <div className="p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
+          <div onClick={handleLogout} className="p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-red-50 text-red-600 rounded-lg">
                 <LogOut size={20} />

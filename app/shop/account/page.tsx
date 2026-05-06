@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, Edit2, Save, X, Package, Trash2, LogOut, ShoppingBag, Calendar, ChevronRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import ShopFooter from '../components/shop-footer';
+import { signOut } from 'next-auth/react';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -101,7 +102,7 @@ export default function AccountPage() {
     localStorage.removeItem('retail_token');
     localStorage.removeItem('retail_user');
     document.cookie = 'retail_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    router.push('/shop');
+    await signOut({ callbackUrl: '/shop' });
   }
 
   if (loading) {
