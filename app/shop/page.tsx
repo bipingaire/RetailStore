@@ -47,6 +47,89 @@ const DEFAULT_BANNERS: Banner[] = [
   { id: '3', type: 'side', title: 'Daily Hygiene', subtitle: 'Soaps & Sanitizers', cta: '15% OFF', bgColor: '#eef5ff', imageUrl: 'https://cdn-icons-png.flaticon.com/512/2954/2954888.png', link: '' },
 ];
 
+function InlineProductCard({ prod, qty, updateQty, promo, className }: { prod: any, qty: number, updateQty: (id: string, delta: number) => void, promo: any, className?: string }) {
+  const rating = 4.5;
+  const reviews = Math.floor(Math.random() * 500) + 50;
+  const brand = prod.name.split(' ').slice(0, 2).join(' ');
+  const cleanName = prod.name.replace(/\(pos import\)/gi, '').replace(/\s+/g, ' ').trim();
+
+  return (
+    <div className={`group relative flex flex-col overflow-hidden bg-white p-3 transition-all hover:shadow-md border border-transparent hover:border-gray-100 rounded-xl ${className || ''}`}>
+      {/* Heart Icon Top Right */}
+      <div className="absolute right-3 top-3 z-10 cursor-pointer">
+        <Heart className="h-5 w-5 text-gray-400 hover:text-red-500 transition-colors" strokeWidth={1.5} />
+      </div>
+
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
+        {promo && (
+          <div className="absolute top-1 left-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
+            {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
+          </div>
+        )}
+        <img
+          src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
+          alt={prod.name}
+          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
+
+      {/* Add Button */}
+      <div className="-mt-4 mb-2 relative z-10 self-start ml-1">
+        {qty === 0 ? (
+          <button
+            onClick={() => updateQty(prod.id, 1)}
+            className="rounded-full bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700 shadow-[0_2px_8px_rgba(0,0,0,0.15)] text-[13px] flex items-center"
+          >
+            <Plus className="mr-1 h-4 w-4 stroke-[2.5]" />
+            Add
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 bg-green-600 rounded-full px-2 py-1 shadow-[0_2px_8px_rgba(0,0,0,0.15)] text-white">
+            <button onClick={() => updateQty(prod.id, -1)} className="p-1 hover:bg-green-700 rounded-full"><Minus size={14} /></button>
+            <span className="text-sm font-bold w-4 text-center">{qty}</span>
+            <button onClick={() => updateQty(prod.id, 1)} className="p-1 hover:bg-green-700 rounded-full"><Plus size={14} /></button>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1 px-1">
+        <div className="text-[11px] text-gray-500">Sponsored</div>
+        
+        <div className="flex items-end gap-1.5 mt-0.5">
+          <span className="text-[18px] font-bold leading-none tracking-tight text-black">
+            ${Number(prod.price).toFixed(2)}
+          </span>
+          <span className="text-[11px] text-gray-500 leading-snug">$3.26/100g</span>
+        </div>
+
+        <h3 className="font-bold text-black mt-1 text-[13px] leading-tight">
+          {brand}
+        </h3>
+
+        <p className="line-clamp-3 text-[13px] text-gray-800 leading-snug">
+          {cleanName}
+        </p>
+
+        <div className="mt-auto pt-2 flex items-center gap-1 text-[11px] text-gray-500">
+          <div className="flex text-black">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-3 w-3 ${
+                  i < Math.floor(rating)
+                    ? "fill-current stroke-current"
+                    : "fill-transparent stroke-gray-300 stroke-2"
+                }`}
+              />
+            ))}
+          </div>
+          <span className="ml-1 cursor-pointer hover:underline">{reviews}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ShopHome() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -463,32 +546,7 @@ export default function ShopHome() {
                     {campaignProducts.map((prod: any) => {
                       const qty = cart[prod.id] || 0;
                       return (
-                        <div key={prod.id} className="min-w-[140px] md:min-w-[180px] max-w-[140px] md:max-w-[180px] bg-gray-50 rounded-2xl p-3 md:p-4 border border-gray-100 hover:shadow-lg hover:border-green-200 transition-all flex-shrink-0 flex flex-col justify-between">
-                          <div>
-                            <div className="aspect-square bg-white rounded-xl mb-3 overflow-hidden flex items-center justify-center">
-                            <img
-                              src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23f3f4f6'/%3E%3C/svg%3E"}
-                              className="w-full h-full object-cover"
-                              alt={prod.name}
-                            />
-                          </div>
-                          <div className="text-[10px] text-gray-400 uppercase font-bold mb-1 line-clamp-1">{prod.category || 'Product'}</div>
-                          <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 mb-2 min-h-[2.5em]">{cleanName(prod.name)}</h4>
-                          <div className="text-sm md:text-base font-black text-green-700 mb-3">${Number(prod.price).toFixed(2)}</div>
-                          {qty === 0 ? (
-                            <button
-                              onClick={() => updateQty(prod.id, 1)}
-                              className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors"
-                            >Add to Cart</button>
-                          ) : (
-                            <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
-                              <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
-                              <span className="text-xs font-bold w-4 text-center">{qty}</span>
-                              <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
-                            </div>
-                           )}
-                          </div>
-                        </div>
+                        <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={null} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
                       );
                     })}
                   </div>
@@ -570,32 +628,7 @@ export default function ShopHome() {
               const qty = cart[prod.id] || 0;
               const promo = getPromoForProduct(prod.id);
               return (
-                <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all flex flex-col flex-shrink-0 overflow-hidden">
-                  <div className="relative aspect-square bg-gray-50 flex items-center justify-center p-2">
-                    {promo && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-                        {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
-                      </div>
-                    )}
-                    <img src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"} className="w-full h-full object-contain" alt={prod.name} />
-                  </div>
-                  <div className="p-3 flex flex-col flex-1">
-                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                    <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 flex-1 mb-2">{cleanName(prod.name)}</h4>
-                    <div className="text-base font-black text-green-700 mb-3">${prod.price.toFixed(2)}</div>
-                    {qty === 0 ? (
-                      <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
-                        Add to Cart
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
-                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
-                        <span className="text-xs font-bold w-4 text-center">{qty}</span>
-                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
               );
             })}
           </div>
@@ -626,32 +659,7 @@ export default function ShopHome() {
               const qty = cart[prod.id] || 0;
               const promo = getPromoForProduct(prod.id);
               return (
-                <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all flex flex-col flex-shrink-0 overflow-hidden">
-                  <div className="relative aspect-square bg-gray-50">
-                    {promo && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-                        {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
-                      </div>
-                    )}
-                    <img src={prod.imageUrl!} className="w-full h-full object-cover" alt={prod.name} />
-                  </div>
-                  <div className="p-3 flex flex-col flex-1">
-                    <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                    <h4 className="text-xs md:text-sm font-bold text-gray-900 line-clamp-2 flex-1 mb-2">{cleanName(prod.name)}</h4>
-                    <div className="text-base font-black text-green-700 mb-3">${prod.price.toFixed(2)}</div>
-                    {qty === 0 ? (
-                      <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-lg text-xs hover:bg-green-700 transition-colors">
-                        Add to Cart
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm justify-center">
-                        <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={10} /></button>
-                        <span className="text-xs font-bold w-4 text-center">{qty}</span>
-                        <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={10} /></button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
               );
             })}
           </div>
@@ -696,39 +704,7 @@ export default function ShopHome() {
                 const qty = cart[prod.id] || 0;
                 const promo = getPromoForProduct(prod.id);
                 return (
-                  <div key={prod.id} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all flex flex-col flex-shrink-0 overflow-hidden group">
-                    <div className="relative bg-gray-50" style={{paddingBottom:'100%'}}>
-                      <div className="absolute inset-0 flex items-center justify-center p-2">
-                        {promo && (
-                          <div className="absolute top-2 left-2 bg-yellow-400 text-gray-900 text-[9px] font-black px-1.5 py-0.5 rounded-sm z-10 uppercase tracking-wide">
-                            {promo.discount_type === 'percentage' ? `Save ${Math.round(promo.discount_value)}%` : `Save $${promo.discount_value.toFixed(0)}`}
-                          </div>
-                        )}
-                        <img
-                          src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                          alt={prod.name}
-                        />
-                      </div>
-                    </div>
-                    <div className="p-3 flex flex-col flex-1 border-t border-gray-100">
-                      <h4 className="text-xs text-gray-800 line-clamp-2 flex-1 mb-2 leading-snug">{cleanName(prod.name)}</h4>
-                      <div className="mb-2">
-                        <span className="text-base font-black text-gray-900">${prod.price.toFixed(2)}</span>
-                      </div>
-                      {qty === 0 ? (
-                        <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-1.5 rounded-full text-[11px] hover:bg-green-700 transition-colors shadow-sm">
-                          Add to cart
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 rounded-full px-2 py-1 justify-center">
-                          <button onClick={() => updateQty(prod.id, -1)} className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Minus size={10} /></button>
-                          <span className="text-xs font-bold w-5 text-center text-green-800">{qty}</span>
-                          <button onClick={() => updateQty(prod.id, 1)} className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"><Plus size={10} /></button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
                 );
               })}
               {/* See All Card at end of row */}
@@ -814,37 +790,7 @@ export default function ShopHome() {
                   const qty = cart[prod.id] || 0;
                   const promo = getPromoForProduct(prod.id);
                   return (
-                    <div key={prod.id} className="bg-white rounded-2xl p-3 md:p-4 border border-gray-100 hover:border-green-100 hover:shadow-lg transition-all flex flex-col justify-between">
-                      <div className="flex-1 flex flex-col">
-                        <div className="aspect-square bg-gray-50 rounded-xl mb-3 flex items-center justify-center overflow-hidden relative">
-                          {promo && (
-                            <div className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-                              {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
-                            </div>
-                          )}
-                          <img
-                            src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                            className="w-full h-full object-cover" alt={prod.name}
-                          />
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase font-bold mb-1">{prod.category || 'Product'}</div>
-                        <h4 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5em] mb-2">{cleanName(prod.name)}</h4>
-                        <div className="text-lg font-black text-green-700 mb-4">${prod.price.toFixed(2)}</div>
-                      </div>
-                      <div className="mt-auto">
-                        {qty === 0 ? (
-                          <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
-                            Add to Cart
-                          </button>
-                        ) : (
-                          <div className="flex items-center gap-2 bg-white border border-green-200 rounded-full px-2 py-1 shadow-sm">
-                            <button onClick={() => updateQty(prod.id, -1)} className="p-1 text-gray-500 hover:text-red-500"><Minus size={12} /></button>
-                            <span className="text-xs font-bold w-5 text-center">{qty}</span>
-                            <button onClick={() => updateQty(prod.id, 1)} className="p-1 text-gray-500 hover:text-green-600"><Plus size={12} /></button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="w-full" />
                   );
                 })}
               </div>
