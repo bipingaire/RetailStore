@@ -61,6 +61,17 @@ function CategoriesInner() {
   const [hasMore, setHasMore] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
 
+  const handleCategorySelect = (cat: string | null) => {
+    setActiveTab(cat);
+    const params = new URLSearchParams(searchParams.toString());
+    if (cat) {
+      params.set('category', cat);
+    } else {
+      params.delete('category');
+    }
+    router.replace(`/shop/categories?${params.toString()}`, { scroll: false });
+  };
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem('retail_cart');
@@ -252,13 +263,13 @@ function CategoriesInner() {
         <div className="flex flex-1 overflow-hidden">
           {/* Mobile Left Sidebar */}
           <div className="w-[100px] bg-gray-50 flex-shrink-0 overflow-y-auto hide-scrollbar border-r border-gray-100">
-            <button onClick={() => setActiveTab(null)} className={`w-full py-4 flex flex-col items-center gap-1 transition-colors relative ${activeTab === null ? 'bg-white font-bold' : 'text-gray-500'}`}>
+            <button onClick={() => handleCategorySelect(null)} className={`w-full py-4 flex flex-col items-center gap-1 transition-colors relative ${activeTab === null ? 'bg-white font-bold' : 'text-gray-500'}`}>
               {activeTab === null && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-600" />}
               <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-[#FFE5D0]">🛒</div>
               <span className="text-[10px] text-center w-full px-1">All Products</span>
             </button>
             {categories.map((cat, i) => (
-              <button key={cat.name} onClick={() => setActiveTab(cat.name)} className={`w-full py-4 flex flex-col items-center gap-1 transition-colors relative ${activeTab === cat.name ? 'bg-white font-bold' : 'text-gray-500'}`}>
+              <button key={cat.name} onClick={() => handleCategorySelect(cat.name)} className={`w-full py-4 flex flex-col items-center gap-1 transition-colors relative ${activeTab === cat.name ? 'bg-white font-bold' : 'text-gray-500'}`}>
                 {activeTab === cat.name && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-600" />}
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl overflow-hidden" style={{ backgroundColor: activeTab === cat.name || cat.imageUrl ? 'transparent' : catBgColors[i % catBgColors.length] }}>
                   {cat.imageUrl ? (
@@ -372,7 +383,7 @@ function CategoriesInner() {
               <div className="overflow-y-auto max-h-[calc(100vh-180px)] py-2">
                 {/* All */}
                 <button
-                  onClick={() => setActiveTab(null)}
+                  onClick={() => handleCategorySelect(null)}
                   className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-all hover:bg-gray-50 ${activeTab === null ? 'bg-green-50 border-r-4 border-green-600' : ''}`}
                 >
                   <span className="text-xl flex-shrink-0">🛒</span>
@@ -386,7 +397,7 @@ function CategoriesInner() {
                   return (
                     <button
                       key={cat.name}
-                      onClick={() => setActiveTab(cat.name)}
+                      onClick={() => handleCategorySelect(cat.name)}
                       className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-all hover:bg-gray-50 ${activeTab === cat.name ? 'bg-green-50 border-r-4 border-green-600' : ''}`}
                     >
                       {cat.imageUrl ? (
@@ -464,7 +475,7 @@ function CategoriesInner() {
                       </div>
                     ) : getCategoryEmoji(activeTab)} 
                     {activeTab}
-                    <button onClick={() => setActiveTab(null)} className="ml-1 hover:text-green-600"><X size={12} /></button>
+                    <button onClick={() => handleCategorySelect(null)} className="ml-1 hover:text-green-600"><X size={12} /></button>
                   </span>
                 </div>
               )}
@@ -480,7 +491,7 @@ function CategoriesInner() {
                 <p className="text-5xl mb-4">🔍</p>
                 <h3 className="text-xl font-bold text-gray-700 mb-2">No products found</h3>
                 <p className="text-gray-400 text-sm mb-6">Try a different category or search term</p>
-                <button onClick={() => { setActiveTab(null); setSearchInput(''); }} className="bg-green-600 text-white font-bold px-6 py-2.5 rounded-full hover:bg-green-700 transition-colors text-sm">
+                <button onClick={() => { handleCategorySelect(null); setSearchInput(''); }} className="bg-green-600 text-white font-bold px-6 py-2.5 rounded-full hover:bg-green-700 transition-colors text-sm">
                   View All Products
                 </button>
               </div>
