@@ -93,8 +93,6 @@ function InlineProductCard({ prod, qty, updateQty, promo, className }: { prod: a
       </div>
 
       <div className="flex flex-1 flex-col gap-1 px-1">
-        <div className="text-[11px] text-gray-500">Sponsored</div>
-        
         <div className="flex items-end gap-1.5 mt-0.5">
           <span className="text-[18px] font-bold leading-none tracking-tight text-black">
             ${Number(prod.price).toFixed(2)}

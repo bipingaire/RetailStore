@@ -64,8 +64,6 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col gap-1 px-1">
-        <div className="text-[13px] text-gray-500">Sponsored</div>
-        
         <div className="flex items-end gap-1.5 mt-0.5">
           <span className="text-[22px] font-bold leading-none tracking-tight text-black">
             {product.price}
