@@ -74,37 +74,37 @@ function InlineProductCard({ prod, qty, updateQty, promo, className }: { prod: a
       </div>
 
       {/* Add Button */}
-      <div className="-mt-4 mb-2 relative z-10 self-start ml-1">
+      <div className="-mt-5 mb-3 relative z-10 self-start ml-1">
         {qty === 0 ? (
           <button
             onClick={() => updateQty(prod.id, 1)}
-            className="rounded-full bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700 shadow-[0_2px_8px_rgba(0,0,0,0.15)] text-[13px] flex items-center"
+            className="rounded-full bg-green-600 px-5 py-2.5 font-bold text-white hover:bg-green-700 shadow-[0_2px_8px_rgba(0,0,0,0.15)] text-sm flex items-center"
           >
             <Plus className="mr-1 h-4 w-4 stroke-[2.5]" />
             Add
           </button>
         ) : (
-          <div className="flex items-center gap-2 bg-green-600 rounded-full px-2 py-1 shadow-[0_2px_8px_rgba(0,0,0,0.15)] text-white">
-            <button onClick={() => updateQty(prod.id, -1)} className="p-1 hover:bg-green-700 rounded-full"><Minus size={14} /></button>
-            <span className="text-sm font-bold w-4 text-center">{qty}</span>
-            <button onClick={() => updateQty(prod.id, 1)} className="p-1 hover:bg-green-700 rounded-full"><Plus size={14} /></button>
+          <div className="flex items-center gap-2 bg-green-600 rounded-full px-2 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.15)] text-white">
+            <button onClick={() => updateQty(prod.id, -1)} className="p-1.5 hover:bg-green-700 rounded-full"><Minus size={16} /></button>
+            <span className="text-base font-bold w-5 text-center">{qty}</span>
+            <button onClick={() => updateQty(prod.id, 1)} className="p-1.5 hover:bg-green-700 rounded-full"><Plus size={16} /></button>
           </div>
         )}
       </div>
 
       <div className="flex flex-1 flex-col gap-1 px-1">
-        <div className="flex items-end gap-1.5 mt-0.5">
-          <span className="text-[18px] font-bold leading-none tracking-tight text-black">
+        <div className="flex items-end gap-1.5 mt-1">
+          <span className="text-[22px] font-bold leading-none tracking-tight text-black">
             ${Number(prod.price).toFixed(2)}
           </span>
-          <span className="text-[11px] text-gray-500 leading-snug">$3.26/100g</span>
+          <span className="text-xs text-gray-500 leading-snug">$3.26/100g</span>
         </div>
 
-        <h3 className="font-bold text-black mt-1 text-[13px] leading-tight">
+        <h3 className="font-bold text-black mt-1.5 text-sm leading-tight">
           {brand}
         </h3>
 
-        <p className="line-clamp-3 text-[13px] text-gray-800 leading-snug">
+        <p className="line-clamp-3 text-sm text-gray-800 leading-snug">
           {cleanName}
         </p>
 
@@ -544,7 +544,7 @@ export default function ShopHome() {
                     {campaignProducts.map((prod: any) => {
                       const qty = cart[prod.id] || 0;
                       return (
-                        <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={null} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
+                        <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={null} className="min-w-[200px] max-w-[200px] md:min-w-[240px] md:max-w-[240px] flex-shrink-0" />
                       );
                     })}
                   </div>
@@ -626,7 +626,7 @@ export default function ShopHome() {
               const qty = cart[prod.id] || 0;
               const promo = getPromoForProduct(prod.id);
               return (
-                <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
+                <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[200px] max-w-[200px] md:min-w-[240px] md:max-w-[240px] flex-shrink-0" />
               );
             })}
           </div>
@@ -657,7 +657,7 @@ export default function ShopHome() {
               const qty = cart[prod.id] || 0;
               const promo = getPromoForProduct(prod.id);
               return (
-                <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
+                <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[200px] max-w-[200px] md:min-w-[240px] md:max-w-[240px] flex-shrink-0" />
               );
             })}
           </div>
@@ -702,7 +702,7 @@ export default function ShopHome() {
                 const qty = cart[prod.id] || 0;
                 const promo = getPromoForProduct(prod.id);
                 return (
-                  <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[160px] max-w-[160px] md:min-w-[190px] md:max-w-[190px] flex-shrink-0" />
+                  <InlineProductCard key={prod.id} prod={prod} qty={qty} updateQty={updateQty} promo={promo} className="min-w-[200px] max-w-[200px] md:min-w-[240px] md:max-w-[240px] flex-shrink-0" />
                 );
               })}
               {/* See All Card at end of row */}
@@ -783,7 +783,7 @@ export default function ShopHome() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
                 {filteredProducts.slice(0, visibleCount).map((prod) => {
                   const qty = cart[prod.id] || 0;
                   const promo = getPromoForProduct(prod.id);
