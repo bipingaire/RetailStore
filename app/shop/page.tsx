@@ -52,6 +52,7 @@ function InlineProductCard({ prod, qty, updateQty, promo, className }: { prod: a
   const reviews = Math.floor(Math.random() * 500) + 50;
   const brand = prod.name.split(' ').slice(0, 2).join(' ');
   const cleanName = prod.name.replace(/\(pos import\)/gi, '').replace(/\s+/g, ' ').trim();
+  const inStock = (prod.stock ?? prod.current_stock_quantity ?? 1) > 0;
 
   return (
     <div className={`group relative flex flex-col overflow-hidden bg-white p-3 transition-all hover:shadow-md border border-transparent hover:border-gray-100 rounded-xl ${className || ''}`}>
@@ -67,17 +68,26 @@ function InlineProductCard({ prod, qty, updateQty, promo, className }: { prod: a
               {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
             </div>
           )}
+          {!inStock && (
+            <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+              <span className="bg-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide">Out of Stock</span>
+            </div>
+          )}
           <img
             src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
             alt={prod.name}
-            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-contain p-2 transition-transform duration-300 ${inStock ? 'group-hover:scale-105' : 'opacity-60'}`}
           />
         </div>
       </Link>
 
       {/* Add Button */}
       <div className="-mt-5 mb-3 relative z-10 self-start ml-1">
-        {qty === 0 ? (
+        {!inStock ? (
+          <span className="rounded-full bg-gray-200 text-gray-500 px-4 py-2 font-bold text-sm cursor-not-allowed">
+            Out of Stock
+          </span>
+        ) : qty === 0 ? (
           <button
             onClick={() => updateQty(prod.id, 1)}
             className="rounded-full bg-green-600 px-5 py-2.5 font-bold text-white hover:bg-green-700 shadow-[0_2px_8px_rgba(0,0,0,0.15)] text-sm flex items-center"

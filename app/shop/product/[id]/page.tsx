@@ -255,15 +255,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               </div>
             </div>
 
-            {/* ─── DESCRIPTION ─── */}
-            {product.description && (
-              <div className="mb-6">
-                <h2 className="text-base font-bold text-gray-900 mb-2">About this product</h2>
-                <p className="text-gray-600 leading-relaxed text-sm">
-                  {product.description}
-                </p>
-              </div>
-            )}
+            {/* ─── ABOUT THIS PRODUCT ─── */}
+            <div className="mb-6">
+              <h2 className="text-base font-bold text-gray-900 mb-2">About this product</h2>
+              <p className="text-gray-600 leading-relaxed text-sm">
+                {product.description || `${displayName} — a quality product in the ${product.category} category. Available at our store for your everyday needs.`}
+              </p>
+            </div>
 
             {/* ─── PRODUCT DETAILS TABLE ─── */}
             <div className="mb-6 bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -275,12 +273,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   <span className="text-sm text-gray-500 w-28 flex-shrink-0">Category</span>
                   <span className="text-sm font-semibold text-gray-900">{product.category}</span>
                 </div>
-                {product.sku && (
-                  <div className="flex items-center px-4 py-3 gap-4">
-                    <span className="text-sm text-gray-500 w-28 flex-shrink-0">SKU</span>
-                    <span className="text-sm font-semibold text-gray-900 font-mono">{product.sku}</span>
-                  </div>
-                )}
                 {product.barcode && (
                   <div className="flex items-center px-4 py-3 gap-4">
                     <span className="text-sm text-gray-500 w-28 flex-shrink-0">Barcode</span>
@@ -290,7 +282,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 <div className="flex items-center px-4 py-3 gap-4">
                   <span className="text-sm text-gray-500 w-28 flex-shrink-0">Availability</span>
                   <span className={`text-sm font-semibold ${inStock ? 'text-green-600' : 'text-red-600'}`}>
-                    {inStock ? `${product.stock} units` : 'Out of stock'}
+                    {inStock ? `${product.stock} units in stock` : 'Out of stock'}
                   </span>
                 </div>
               </div>
