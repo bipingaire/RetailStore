@@ -185,18 +185,22 @@ function CategoriesInner() {
     if (size === 'md') {
       return (
         <div key={prod.id} className="flex flex-col bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all overflow-hidden group">
-          <div className="relative bg-gray-50" style={{paddingBottom:'100%'}}>
-            <div className="absolute inset-0 flex items-center justify-center p-3">
-              <img
-                src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-                alt={prod.name}
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-              />
+          <Link href={`/shop/product/${prod.id}`} className="block">
+            <div className="relative bg-gray-50" style={{paddingBottom:'100%'}}>
+              <div className="absolute inset-0 flex items-center justify-center p-3">
+                <img
+                  src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
+                  alt={prod.name}
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
             </div>
-          </div>
+          </Link>
           <div className="p-3 flex flex-col flex-1 border-t border-gray-100">
             <p className="text-[11px] text-gray-400 uppercase font-semibold mb-1">{prod.category}</p>
-            <h3 className="text-sm text-gray-800 line-clamp-2 flex-1 mb-3 leading-snug">{prod.name}</h3>
+            <Link href={`/shop/product/${prod.id}`}>
+              <h3 className="text-sm text-gray-800 line-clamp-2 flex-1 mb-3 leading-snug hover:text-green-700 cursor-pointer">{prod.name}</h3>
+            </Link>
             <p className="text-lg font-black text-gray-900 mb-3">${prod.price.toFixed(2)}</p>
             {qty === 0 ? (
               <button onClick={() => updateQty(prod.id, 1)} className="w-full bg-green-600 text-white font-bold py-2 rounded-full text-sm hover:bg-green-700 transition-colors">
@@ -216,10 +220,14 @@ function CategoriesInner() {
     // Mobile small card
     return (
       <div key={prod.id} className="flex flex-col bg-gray-50 rounded-xl overflow-hidden shadow-sm p-2">
-        <div className="aspect-square bg-white rounded-lg mb-2 overflow-hidden flex items-center justify-center">
-          <img src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3C/svg%3E"} alt={prod.name} className="w-full h-full object-cover" />
-        </div>
-        <h3 className="text-[11px] font-semibold text-gray-800 line-clamp-2 leading-tight mb-1 flex-1">{prod.name}</h3>
+        <Link href={`/shop/product/${prod.id}`} className="block">
+          <div className="aspect-square bg-white rounded-lg mb-2 overflow-hidden flex items-center justify-center">
+            <img src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3C/svg%3E"} alt={prod.name} className="w-full h-full object-cover" />
+          </div>
+        </Link>
+        <Link href={`/shop/product/${prod.id}`}>
+          <h3 className="text-[11px] font-semibold text-gray-800 line-clamp-2 leading-tight mb-1 flex-1 hover:text-green-700">{prod.name}</h3>
+        </Link>
         <span className="text-green-700 font-black text-sm mb-2">${prod.price.toFixed(2)}</span>
         <div className="mt-auto">
           {qty === 0 ? (

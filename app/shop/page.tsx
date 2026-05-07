@@ -60,18 +60,20 @@ function InlineProductCard({ prod, qty, updateQty, promo, className }: { prod: a
         <Heart className="h-5 w-5 text-gray-400 hover:text-red-500 transition-colors" strokeWidth={1.5} />
       </div>
 
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
-        {promo && (
-          <div className="absolute top-1 left-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-            {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
-          </div>
-        )}
-        <img
-          src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
-          alt={prod.name}
-          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-        />
-      </div>
+      <Link href={`/shop/product/${prod.id}`} className="block">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
+          {promo && (
+            <div className="absolute top-1 left-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
+              {promo.discount_type === 'percentage' ? `SAVE ${Math.round(promo.discount_value)}%` : `SAVE $${promo.discount_value.toFixed(0)}`}
+            </div>
+          )}
+          <img
+            src={prod.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E"}
+            alt={prod.name}
+            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      </Link>
 
       {/* Add Button */}
       <div className="-mt-5 mb-3 relative z-10 self-start ml-1">
