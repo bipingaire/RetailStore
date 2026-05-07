@@ -376,9 +376,39 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
               </div>
             ) : (
-              <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 text-center">
-                <p className="text-red-700 font-bold">Currently Out of Stock</p>
-                <p className="text-red-500 text-sm mt-1">Check back soon for availability</p>
+              <div className="space-y-3 mb-6">
+                {/* Out of Stock notice */}
+                <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
+                  <p className="text-red-700 font-bold">Currently Out of Stock</p>
+                  <p className="text-red-500 text-sm mt-1">Check back soon for availability</p>
+                </div>
+                {/* Wishlist + Share always visible */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsWishlisted(!isWishlisted)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm border-2 transition-all ${
+                      isWishlisted
+                        ? 'border-red-500 text-red-500 bg-red-50'
+                        : 'border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-500'
+                    }`}
+                  >
+                    <Heart size={18} className={isWishlisted ? 'fill-red-500' : ''} />
+                    {isWishlisted ? 'Wishlisted' : 'Wishlist'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: displayName, url: window.location.href });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                      }
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm border-2 border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600 transition-all"
+                  >
+                    <Share2 size={18} />
+                    Share
+                  </button>
+                </div>
               </div>
             )}
 
