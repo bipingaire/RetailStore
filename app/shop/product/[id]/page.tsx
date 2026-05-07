@@ -437,13 +437,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
 
-        {/* ─── DESCRIPTION SECTION (full width) ─── */}
-        {product.description && (
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 mb-12">
-            <h2 className="text-xl font-black text-gray-900 mb-4">Product Description</h2>
-            <p className="text-gray-600 leading-relaxed whitespace-pre-line">{product.description}</p>
-          </div>
-        )}
+
+
 
         {/* ─── RELATED PRODUCTS ─── */}
         {relatedProducts.length > 0 && (
