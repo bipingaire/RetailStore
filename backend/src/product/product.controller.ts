@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Headers, UseGuards, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Headers, UseGuards, Query, Req, BadRequestException } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -71,7 +71,7 @@ export class ProductController {
     try {
       return await this.productService.addReview(subdomain, id, req.user.id, dto);
     } catch (e: any) {
-      throw new require('@nestjs/common').BadRequestException(e.message);
+      throw new BadRequestException(e.message);
     }
   }
 
