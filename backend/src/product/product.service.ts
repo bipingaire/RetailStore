@@ -146,7 +146,16 @@ export class ProductService implements OnModuleInit {
   async findOne(subdomain: string, id: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    const product = await client.product.findUnique({ where: { id }, include: { Batches: true } });
+    const product = await client.product.findUnique({ 
+      where: { id }, 
+      include: { 
+        Batches: true,
+        ProductReviews: {
+          include: { user: { select: { name: true, email: true } } },
+          orderBy: { createdAt: 'desc' }
+        }
+      } 
+    });
     
     if (product && !product.imageUrl && product.sku) {
         const globalRef = await this.masterPrisma.sharedCatalog.findUnique({ where: { sku: product.sku } });
@@ -207,6 +216,50 @@ export class ProductService implements OnModuleInit {
   async updateStock(subdomain: string, id: string, quantity: number, type: string) {
     // Stub
     return { success: true };
+  }
+
+  async addReview(subdomain: string, productId: string, userId: string, data: { rating: number, comment?: string }) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    // 1. Verify user purchased the product
+    const purchase = await client.saleItem.findFirst({
+      where: {
+        productId,
+        sale: {
+          userId,
+          status: 'COMPLETED'
+        }
+      }
+    });
+
+    if (!purchase) {
+      throw new Error('You must purchase this product before reviewing it.');
+    }
+
+    // 2. Verify not already reviewed
+    const existing = await client.productReview.findFirst({
+      where: { productId, userId }
+    });
+
+    if (existing) {
+      throw new Error('You have already reviewed this product.');
+    }
+
+    // 3. Create review
+    const review = await client.productReview.create({
+      data: {
+        productId,
+        userId,
+        rating: data.rating,
+        comment: data.comment
+      },
+      include: {
+        user: { select: { name: true, email: true } }
+      }
+    });
+
+    return review;
   }
 
   async findAll(subdomain: string, options: {

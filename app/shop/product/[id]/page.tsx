@@ -19,6 +19,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [addedToCart, setAddedToCart] = useState(false);
   const [cartQty, setCartQty] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [ratingInput, setRatingInput] = useState(5);
+  const [commentInput, setCommentInput] = useState('');
+  const [reviewError, setReviewError] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   useEffect(() => {
     loadProduct();
@@ -26,6 +32,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     try {
       const cart = JSON.parse(localStorage.getItem('retail_cart') || '{}');
       setCartQty(cart[id] || 0);
+      const storedUser = localStorage.getItem('retail_user');
+      if (storedUser) setUser(JSON.parse(storedUser));
     } catch {}
   }, [id]);
 
@@ -45,6 +53,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           sku: data.sku || null,
           barcode: data.barcode || null,
         });
+        setReviews(data.ProductReviews || []);
         loadRelatedProducts(data.category, data.id);
       }
     } catch (e) {
@@ -95,8 +104,28 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const cleanName = (name: string) =>
     name?.replace(/\(pos import\)/gi, '').replace(/\s+/g, ' ').trim() || '';
 
-  const rating = 4.5;
-  const reviewCount = 128;
+  const submitReview = async () => {
+    if (!user) return router.push('/shop/login');
+    setIsSubmittingReview(true);
+    setReviewError('');
+    try {
+      const res = await apiClient.post(`/products/${id}/reviews`, {
+        rating: ratingInput,
+        comment: commentInput
+      });
+      if (res) {
+        setReviews([res, ...reviews]);
+        setCommentInput('');
+        setRatingInput(5);
+      }
+    } catch (e: any) {
+      setReviewError(e.response?.data?.message || e.message || 'Failed to submit review');
+    }
+    setIsSubmittingReview(false);
+  };
+
+  const rating = reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '0.0';
+  const reviewCount = reviews.length;
 
   if (loading) {
     return (
@@ -479,6 +508,100 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
         )}
 
+        {/* ─── REVIEWS SECTION ─── */}
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-black text-gray-900">Customer Reviews</h2>
+          </div>
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+            {/* Add Review Form */}
+            <div className="mb-8 pb-8 border-b border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Write a Review</h3>
+              {user ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setRatingInput(star)}
+                          className="focus:outline-none"
+                        >
+                          <Star
+                            size={24}
+                            className={star <= ratingInput ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200 fill-gray-200'}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Comment</label>
+                    <textarea
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                      rows={3}
+                      placeholder="Share your thoughts about this product..."
+                    />
+                  </div>
+                  {reviewError && <p className="text-red-500 text-sm font-semibold">{reviewError}</p>}
+                  <button
+                    onClick={submitReview}
+                    disabled={isSubmittingReview}
+                    className="bg-green-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-xl p-6 text-center">
+                  <p className="text-gray-600 mb-4">You must be logged in to leave a review.</p>
+                  <Link
+                    href="/shop/login"
+                    className="inline-block bg-green-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-700 transition"
+                  >
+                    Log In
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Review List */}
+            {reviews.length > 0 ? (
+              <div className="space-y-6">
+                {reviews.map((rev) => (
+                  <div key={rev.id} className="border border-gray-50 rounded-xl p-4 bg-gray-50/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold uppercase">
+                          {rev.user?.name?.charAt(0) || rev.user?.email?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{rev.user?.name || rev.user?.email?.split('@')[0] || 'User'}</p>
+                          <p className="text-xs text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={14}
+                            className={star <= rev.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200 fill-gray-200'}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {rev.comment && <p className="text-gray-600 mt-3 text-sm">{rev.comment}</p>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review this product!</p>
+            )}
+          </div>
+        </div>
       </main>
 
       {/* Mobile sticky bottom bar */}

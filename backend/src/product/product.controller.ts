@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Headers, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Headers, UseGuards, Query, Req } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -58,6 +58,21 @@ export class ProductController {
   @UseGuards(JwtAuthGuard)
   update(@Headers('x-tenant') subdomain: string, @Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productService.update(subdomain, id, dto);
+  }
+
+  @Post(':id/reviews')
+  @UseGuards(JwtAuthGuard)
+  async addReview(
+    @Headers('x-tenant') subdomain: string,
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body() dto: { rating: number, comment?: string }
+  ) {
+    try {
+      return await this.productService.addReview(subdomain, id, req.user.id, dto);
+    } catch (e: any) {
+      throw new require('@nestjs/common').BadRequestException(e.message);
+    }
   }
 
   @Delete(':id')
