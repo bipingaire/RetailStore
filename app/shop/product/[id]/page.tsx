@@ -20,12 +20,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [cartQty, setCartQty] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // Reviews State
-  const [reviewsData, setReviewsData] = useState<{ reviews: any[], averageRating: number, totalReviews: number }>({ reviews: [], averageRating: 0, totalReviews: 0 });
-  const [canReview, setCanReview] = useState(false);
-  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
-  const [submittingReview, setSubmittingReview] = useState(false);
-
   useEffect(() => {
     loadProduct();
     // Load existing cart qty
@@ -53,37 +47,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         });
         loadRelatedProducts(data.category, data.id);
       }
-      
-      try {
-        const rData = await apiClient.get(`/products/${id}/reviews`);
-        if (rData) setReviewsData(rData);
-
-        const reviewCheck = await apiClient.get(`/products/${id}/can-review`);
-        if (reviewCheck) setCanReview(reviewCheck.canReview);
-      } catch (err) {
-        console.error('Failed to load review data', err);
-      }
-
     } catch (e) {
       console.error(e);
     }
     setLoading(false);
-  }
-
-  async function submitReview(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmittingReview(true);
-    try {
-      await apiClient.post(`/products/${id}/reviews`, reviewForm);
-      // Reload reviews
-      const rData = await apiClient.get(`/products/${id}/reviews`);
-      if (rData) setReviewsData(rData);
-      setCanReview(false); // Hide form after submitting
-    } catch (err) {
-      console.error('Failed to submit review', err);
-      alert('Failed to submit review. Please ensure you are logged in and have purchased this item.');
-    }
-    setSubmittingReview(false);
   }
 
   async function loadRelatedProducts(category: string, currentId: string) {
@@ -128,8 +95,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const cleanName = (name: string) =>
     name?.replace(/\(pos import\)/gi, '').replace(/\s+/g, ' ').trim() || '';
 
-  const rating = reviewsData.totalReviews > 0 ? reviewsData.averageRating : 4.5;
-  const reviewCount = reviewsData.totalReviews > 0 ? reviewsData.totalReviews : 128;
+  const rating = 4.5;
+  const reviewCount = 128;
 
   if (loading) {
     return (
@@ -511,89 +478,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
           </div>
         )}
-
-        {/* ─── REVIEWS SECTION ─── */}
-        <div className="mt-12 bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-10 mb-12">
-          <h2 className="text-2xl font-black text-gray-900 mb-6">Customer Reviews</h2>
-          
-          {canReview && (
-            <div className="mb-10 bg-gray-50 rounded-2xl p-6 border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Write a Review</h3>
-              <form onSubmit={submitReview} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setReviewForm({ ...reviewForm, rating: star })}
-                        className="focus:outline-none transition-transform hover:scale-110"
-                      >
-                        <Star size={28} className={star <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Comment (Optional)</label>
-                  <textarea
-                    value={reviewForm.comment}
-                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                    rows={3}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-700 resize-none"
-                    placeholder="What did you like or dislike?"
-                  ></textarea>
-                </div>
-                <button
-                  type="submit"
-                  disabled={submittingReview}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-sm"
-                >
-                  {submittingReview ? 'Submitting...' : 'Submit Review'}
-                </button>
-              </form>
-            </div>
-          )}
-
-          {reviewsData.reviews.length === 0 ? (
-            <div className="text-center py-10">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                <Star className="text-gray-400" size={32} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900">No reviews yet</h3>
-              <p className="text-gray-500 mt-1">Be the first to review this product after purchase!</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {reviewsData.reviews.map((rev) => (
-                <div key={rev.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                      {rev.user?.name?.charAt(0).toUpperCase() || 'A'}
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900 text-sm">{rev.user?.name || 'Anonymous'}</p>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star key={star} size={12} className={star <= rev.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'} />
-                          ))}
-                        </div>
-                        <span className="text-xs text-gray-400 font-medium">
-                          {new Date(rev.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  {rev.comment && (
-                    <p className="text-gray-700 text-sm mt-3 ml-13 pl-13 leading-relaxed">{rev.comment}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
       </main>
 

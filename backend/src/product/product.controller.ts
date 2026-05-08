@@ -84,30 +84,4 @@ export class ProductController {
   ) {
     return this.productService.enrichProduct(subdomain, id);
   }
-
-  @Get(':id/reviews')
-  getReviews(@Headers('x-tenant') subdomain: string, @Param('id') id: string) {
-    return this.productService.getReviews(subdomain, id);
-  }
-
-  @Post(':id/reviews')
-  @UseGuards(JwtAuthGuard)
-  addReview(
-    @Headers('x-tenant') subdomain: string,
-    @Param('id') id: string,
-    @Body() dto: { rating: number; comment?: string },
-    @Request() req: any
-  ) {
-    return this.productService.addReview(subdomain, id, req.user.id, dto);
-  }
-
-  @Get(':id/can-review')
-  @UseGuards(JwtAuthGuard)
-  canReview(
-    @Headers('x-tenant') subdomain: string,
-    @Param('id') id: string,
-    @Request() req: any
-  ) {
-    return this.productService.canReview(subdomain, id, req.user.id);
-  }
 }

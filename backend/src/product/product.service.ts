@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { TenantService } from '../tenant/tenant.service';
 import { TenantPrismaService } from '../prisma/tenant-prisma.service';
 import { MasterPrismaService } from '../prisma/master-prisma.service';
@@ -514,87 +514,5 @@ export class ProductService implements OnModuleInit {
       }
     }
     return { success: true, processed: results.length, details: results };
-  }
-
-  // --- Reviews ---
-
-  async getReviews(subdomain: string, productId: string) {
-    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
-    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-    
-    const reviews = await client.productReview.findMany({
-      where: { productId },
-      include: {
-        user: {
-          select: { name: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    // Calculate aggregate
-    const totalReviews = reviews.length;
-    const averageRating = totalReviews > 0 
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews 
-      : 0;
-
-    return {
-      reviews,
-      averageRating: parseFloat(averageRating.toFixed(1)),
-      totalReviews
-    };
-  }
-
-  async canReview(subdomain: string, productId: string, userId: string) {
-    if (!userId) return { canReview: false };
-    
-    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
-    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-
-    // Check if user has purchased the product
-    const purchase = await client.saleItem.findFirst({
-      where: {
-        productId,
-        sale: {
-          userId,
-          status: 'COMPLETED'
-        }
-      }
-    });
-
-    return { canReview: !!purchase };
-  }
-
-  async addReview(subdomain: string, productId: string, userId: string, dto: { rating: number; comment?: string }) {
-    const { canReview } = await this.canReview(subdomain, productId, userId);
-    if (!canReview) {
-      throw new BadRequestException('You can only review products you have purchased.');
-    }
-
-    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
-    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
-
-    // Upsert review
-    const review = await client.productReview.upsert({
-      where: {
-        productId_userId: {
-          productId,
-          userId
-        }
-      },
-      update: {
-        rating: dto.rating,
-        comment: dto.comment,
-        updatedAt: new Date()
-      },
-      create: {
-        productId,
-        userId,
-        rating: dto.rating,
-        comment: dto.comment
-      }
-    });
-
-    return review;
   }
 }
