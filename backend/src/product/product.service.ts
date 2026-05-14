@@ -281,15 +281,24 @@ export class ProductService implements OnModuleInit {
     const where: any = {};
     if (options.sellableOnly) where.isSellable = true;
     if (options.category) where.category = { equals: options.category, mode: 'insensitive' };
+    
+    // For admin inventory (no sellableOnly flag), we want to paginate roots
+    if (!options.sellableOnly) {
+      where.parentId = null;
+    }
+
     if (options.search) {
       where.OR = [
         { name: { contains: options.search, mode: 'insensitive' } },
         { sku: { contains: options.search, mode: 'insensitive' } },
         { category: { contains: options.search, mode: 'insensitive' } },
+        { children: { some: { name: { contains: options.search, mode: 'insensitive' } } } },
+        { children: { some: { sku: { contains: options.search, mode: 'insensitive' } } } }
       ];
     }
 
-    const [products, total] = await Promise.all([
+    // 1. Fetch paginated root products (or sellable products for shop)
+    const [baseProducts, total] = await Promise.all([
       client.product.findMany({
         where,
         include: { Batches: true },
@@ -298,6 +307,21 @@ export class ProductService implements OnModuleInit {
       }),
       client.product.count({ where }),
     ]);
+
+    // 2. If we are fetching roots for admin, we MUST fetch their children too!
+    let allProducts = [...baseProducts];
+    if (!options.sellableOnly && baseProducts.length > 0) {
+      const rootIds = baseProducts.map(p => p.id);
+      const children = await client.product.findMany({
+        where: { parentId: { in: rootIds } },
+        include: { Batches: true },
+        orderBy: { name: 'asc' },
+      });
+      allProducts = [...baseProducts, ...children];
+    }
+
+    // Use allProducts for mapping instead of just baseProducts
+    const products = allProducts;
 
     // Fetch master catalog images for fallback
     const skus = products.map(p => p.sku).filter(Boolean);
