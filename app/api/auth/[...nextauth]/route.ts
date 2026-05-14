@@ -46,10 +46,19 @@ const authOptions = {
 
                     // Parse tenant from NEXTAUTH_URL (set dynamically per-request)
                     const authUrl = process.env.NEXTAUTH_URL || '';
-                    const tenantMatch = authUrl.match(/^https?:\/\/([^.]+)\./);
-                    const tenant = (tenantMatch && tenantMatch[1] !== 'www') 
-                        ? tenantMatch[1] 
-                        : (process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN || 'demo');
+                    const hostname = authUrl.replace(/^https?:\/\//, '').split('/')[0];
+                    const parts = hostname.split('.');
+                    let tenant = process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN || 'demo';
+                    
+                    // Only take subdomain if it has at least 3 parts (e.g. greensboro.indumart.us)
+                    if (parts.length >= 3 && parts[0] !== 'www') {
+                        tenant = parts[0];
+                    } else if (parts.length === 2 && parts[0] !== 'www') {
+                        // For localhost like anuj.localhost
+                        if (parts[1].includes('localhost')) {
+                            tenant = parts[0];
+                        }
+                    }
 
                     console.log(`[NextAuth] jwt: syncing Google user ${user.email} → tenant "${tenant}" → ${baseUrl}`);
 
