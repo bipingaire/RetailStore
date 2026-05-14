@@ -60,6 +60,7 @@ export default function SaleAdmin() {
   const [posterUrl, setPosterUrl] = useState<string>('');
   const [generatingPoster, setGeneratingPoster] = useState(false);
   const [publishingPoster, setPublishingPoster] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
 
   useEffect(() => {
     async function loadData() {
@@ -572,6 +573,13 @@ export default function SaleAdmin() {
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
                         <Sparkles size={14} /> Selected Products ({selectedItems.size})
                       </h4>
+                      <input
+                        type="text"
+                        placeholder="Search products..."
+                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-64 bg-white"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                      />
                     </div>
 
                     <div className="border border-gray-200 rounded-xl overflow-hidden max-h-80 overflow-y-auto bg-gray-50/30">
@@ -579,7 +587,11 @@ export default function SaleAdmin() {
                         <div className="p-8 text-center text-gray-400 text-sm">No inventory loaded.</div>
                       ) : (
                         <div className="divide-y divide-gray-100">
-                          {inventory.map((item) => {
+                          {inventory.filter(item => 
+                            item.global_products.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+                            (item.global_products.category || '').toLowerCase().includes(productSearch.toLowerCase()) ||
+                            (item.global_products.manufacturer || '').toLowerCase().includes(productSearch.toLowerCase())
+                          ).map((item) => {
                             const checked = selectedItems.has(item.id);
                             return (
                               <div
