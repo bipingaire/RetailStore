@@ -209,6 +209,14 @@ export default function InvoicesPage() {
         );
 
         return !isDuplicate;
+      }).map((item: any) => {
+        // Auto-fill selling price from Z-Report/Inventory database if product exists
+        const desc = item.description?.toLowerCase().trim() || '';
+        const existingProduct = products.find(p => p.name.toLowerCase() === desc);
+        if (existingProduct && existingProduct.price) {
+          item.sellingPrice = Number(existingProduct.price);
+        }
+        return item;
       });
 
       // Update parsed data with filtered items
