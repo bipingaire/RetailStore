@@ -28,6 +28,12 @@ export default function MasterInventoryPage() {
   const [globalItems, setGlobalItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 20;
 
   // Track existing inventory SKUs for 'In Store' check (SKU-based, not UUID-based)
   const [existingSkus, setExistingSkus] = useState<Set<string>>(new Set());
@@ -39,8 +45,16 @@ export default function MasterInventoryPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    setPage(1); // Reset page when tab changes
+    setSearchTerm('');
   }, [activeTab]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchData();
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [activeTab, page, searchTerm]);
 
   async function loadInventorySkus() {
     try {
@@ -57,10 +71,23 @@ export default function MasterInventoryPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      if (activeTab === 'my-inventory') {
-        const data = await apiClient.get('/products');
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      if (searchTerm) queryParams.append('search', searchTerm);
 
-        const processed: InventoryItem[] = (data || []).map((item: any) => {
+      if (activeTab === 'my-inventory') {
+        const res = await apiClient.get(`/products?${queryParams.toString()}`);
+        
+        let items = res;
+        if (res.data && res.meta) {
+          items = res.data;
+          setTotalPages(res.meta.lastPage);
+          setTotalItems(res.meta.total);
+        }
+
+        const processed: InventoryItem[] = (items || []).map((item: any) => {
           return {
             inventory_id: item.id,
             product_id: item.id, // Treating local ID as master ID for now
@@ -82,9 +109,16 @@ export default function MasterInventoryPage() {
 
       } else {
         // Fetch real Global Catalog data
-        const data = await apiClient.get('/master-catalog');
+        const res = await apiClient.get(`/master-catalog?${queryParams.toString()}`);
+        
+        let items = res;
+        if (res.data && res.meta) {
+          items = res.data;
+          setTotalPages(res.meta.lastPage);
+          setTotalItems(res.meta.total);
+        }
 
-        const processed: InventoryItem[] = (data || []).map((item: any) => ({
+        const processed: InventoryItem[] = (items || []).map((item: any) => ({
           inventory_id: item.sku, // Use SKU as ID for catalog items
           product_id: item.sku,
           name: item.productName,
@@ -202,8 +236,8 @@ export default function MasterInventoryPage() {
   };
 
   const displayedItems = activeTab === 'my-inventory'
-    ? inventoryItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm))
-    : globalItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.sku.includes(searchTerm));
+    ? inventoryItems
+    : globalItems;
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 font-sans">
@@ -250,7 +284,7 @@ export default function MasterInventoryPage() {
               placeholder="Search name or SKU..."
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             />
           </div>
         </div>
@@ -351,6 +385,32 @@ export default function MasterInventoryPage() {
               ))}
             </tbody>
           </table>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="text-sm text-gray-500">
+                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, totalItems)}</span> of <span className="font-medium">{totalItems}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

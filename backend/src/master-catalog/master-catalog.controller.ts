@@ -9,7 +9,14 @@ export class MasterCatalogController {
   getSharedCatalog(
     @Query('category') category?: string,
     @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.masterCatalog.getSharedCatalog({ category, search });
+    return this.masterCatalog.getSharedCatalog({ 
+      category, 
+      search,
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+    });
   }
 }

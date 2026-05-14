@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { parsePagination, buildPaginatedResponse } from '../common/pagination.dto';
 
 @Injectable()
 export class MasterCatalogService {
@@ -54,7 +55,7 @@ export class MasterCatalogService {
     }
   }
 
-  async getSharedCatalog(filters?: { category?: string; search?: string }) {
+  async getSharedCatalog(filters?: { category?: string; search?: string; page?: number; limit?: number }) {
     const where: any = {};
 
     if (filters?.category) {
@@ -64,13 +65,25 @@ export class MasterCatalogService {
     if (filters?.search) {
       where.OR = [
         { productName: { contains: filters.search, mode: 'insensitive' } },
-        { sku: { contains: filters.search } },
+        { sku: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 
-    return this.prisma.sharedCatalog.findMany({
-      where,
-      orderBy: { productName: 'asc' },
-    });
+    const isPaginated = filters?.page || filters?.limit;
+    const { skip, take, page, limit } = isPaginated 
+      ? parsePagination(filters.page, filters.limit, 20)
+      : { skip: undefined, take: undefined, page: 1, limit: 0 };
+
+    const [data, total] = await Promise.all([
+      this.prisma.sharedCatalog.findMany({
+        where,
+        orderBy: { productName: 'asc' },
+        ...(isPaginated ? { skip, take } : {}),
+      }),
+      this.prisma.sharedCatalog.count({ where }),
+    ]);
+
+    if (!isPaginated) return data;
+    return buildPaginatedResponse(data, total, page, limit);
   }
 }
