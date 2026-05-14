@@ -397,7 +397,17 @@ export default function SalesSyncPage() {
                         />
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-gray-700">
-                        ${Number(item.unitPrice || 0).toFixed(2)}
+                        <div className="flex items-center justify-end">
+                          <span className="mr-1">$</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.unitPrice || 0}
+                            onChange={e => updateItem(idx, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            className="w-20 text-right font-bold text-gray-900 bg-transparent border-b border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:outline-none transition-colors"
+                          />
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-gray-900">
                         ${Number(item.totalAmount || 0).toFixed(2)}
