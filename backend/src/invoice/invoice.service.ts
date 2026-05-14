@@ -712,6 +712,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
   - costPerUnit: casePrice divided by unitsPerCase (e.g. 2.50)
   - unitPrice: Same as costPerUnit (for compatibility)
   - totalPrice: Total price for this line item (quantity x casePrice)
+  - sellingPrice: Selling price PER RETAIL UNIT. Usually found if the uploaded document includes a Z-report or retail price column. Extract it as a number if present, otherwise set to null.
   - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 Return ONLY the JSON object.`
                             },
@@ -766,6 +767,7 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
   - costPerUnit: casePrice divided by unitsPerCase
   - unitPrice: Same as costPerUnit (for compatibility)
   - totalPrice: Total price for this line item (quantity x casePrice)
+  - sellingPrice: Selling price PER RETAIL UNIT. Usually found if the uploaded document includes a Z-report or retail price column. Extract it as a number if present, otherwise set to null.
   - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 
 Return ONLY the JSON object, no markdown formatting.
