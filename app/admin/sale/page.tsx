@@ -646,6 +646,7 @@ export default function SaleAdmin() {
                             )
                           })}
                         </div>
+                      )}
                     </div>
                     
                     {/* Pagination Controls */}
