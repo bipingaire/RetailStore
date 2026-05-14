@@ -68,6 +68,7 @@ export default function SaleAdmin() {
   const [productTotalItems, setProductTotalItems] = useState(0);
   const productLimit = 10;
 
+  useEffect(() => {
     async function loadCampaigns() {
       setLoading(true);
       try {
