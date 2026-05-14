@@ -154,6 +154,64 @@ export default function InventoryDashboard() {
     }
   };
 
+  const handlePriceUpdate = async (id: string, newPrice: number) => {
+    try {
+      await apiClient.put(`/products/${id}`, { price: newPrice });
+      toast.success('Price updated');
+      
+      // Update local state without refetching
+      setTopLevel(prev => {
+        const updateTree = (nodes: ProductRow[]): ProductRow[] => {
+          return nodes.map(n => {
+            if (n.id === id) return { ...n, price: newPrice };
+            if (n.children) return { ...n, children: updateTree(n.children) };
+            return n;
+          });
+        };
+        return updateTree(prev);
+      });
+    } catch (e) {
+      toast.error('Failed to update price');
+    }
+  };
+
+  const EditablePrice = ({ product }: { product: ProductRow }) => {
+    const [editing, setEditing] = useState(false);
+    const [val, setVal] = useState(product.price);
+
+    if (!editing) {
+      return (
+        <span 
+          className="cursor-pointer hover:text-blue-600 border-b border-dashed border-gray-400 hover:border-blue-600 transition-colors"
+          onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+          title="Click to edit price"
+        >
+          ${product.price.toFixed(2)}
+        </span>
+      );
+    }
+
+    return (
+      <input
+        autoFocus
+        type="number"
+        step="0.01"
+        className="w-20 border-2 border-blue-500 rounded px-1.5 py-0.5 text-sm font-bold text-gray-900 outline-none"
+        value={val}
+        onClick={e => e.stopPropagation()}
+        onChange={e => setVal(parseFloat(e.target.value) || 0)}
+        onBlur={() => {
+          setEditing(false);
+          if (val !== product.price) handlePriceUpdate(product.id, val);
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+          if (e.key === 'Escape') { setVal(product.price); setEditing(false); }
+        }}
+      />
+    );
+  };
+
   const filteredTopLevel = topLevel; // Search is handled by backend
 
   // Renders a single product row (works for both parent & child)
@@ -234,8 +292,8 @@ export default function InventoryDashboard() {
             )}
           </td>
 
-          <td className="px-6 py-4 text-gray-900 font-medium">
-            {product.is_sellable ? `$${product.price.toFixed(2)}` : <span className="text-gray-400 text-xs">—</span>}
+          <td className="px-6 py-4 text-gray-900 font-medium" onClick={e => e.stopPropagation()}>
+            {product.is_sellable ? <EditablePrice product={product} /> : <span className="text-gray-400 text-xs">—</span>}
           </td>
           <td className="px-6 py-4">
             {worstBatch ? (

@@ -163,6 +163,56 @@ export default function MasterInventoryPage() {
     }
   };
 
+  const handlePriceUpdate = async (id: string, newPrice: number) => {
+    try {
+      await apiClient.put(`/products/${id}`, { price: newPrice });
+      toast.success('Price updated');
+      
+      setInventoryItems(prev => prev.map(i =>
+        (i.inventory_id === id || i.product_id === id) ? { ...i, sales_price: newPrice } : i
+      ));
+    } catch (e) {
+      toast.error('Failed to update price');
+    }
+  };
+
+  const EditablePrice = ({ product }: { product: InventoryItem }) => {
+    const [editing, setEditing] = useState(false);
+    const [val, setVal] = useState(product.sales_price);
+
+    if (!editing) {
+      return (
+        <span 
+          className="cursor-pointer hover:text-blue-600 border-b border-dashed border-gray-400 hover:border-blue-600 transition-colors"
+          onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+          title="Click to edit price"
+        >
+          ${Number(product.sales_price).toFixed(2)}
+        </span>
+      );
+    }
+
+    return (
+      <input
+        autoFocus
+        type="number"
+        step="0.01"
+        className="w-20 border-2 border-blue-500 rounded px-1.5 py-0.5 text-sm font-bold text-gray-900 outline-none"
+        value={val}
+        onClick={e => e.stopPropagation()}
+        onChange={e => setVal(parseFloat(e.target.value) || 0)}
+        onBlur={() => {
+          setEditing(false);
+          if (val !== product.sales_price) handlePriceUpdate(product.product_id, val);
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+          if (e.key === 'Escape') { setVal(product.sales_price); setEditing(false); }
+        }}
+      />
+    );
+  };
+
   const [editingProduct, setEditingProduct] = useState<InventoryItem | null>(null);
 
   const handleDelete = async (item: InventoryItem) => {
@@ -344,7 +394,9 @@ export default function MasterInventoryPage() {
 
                   {activeTab === 'my-inventory' ? (
                     <>
-                      <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm">${Number(item.sales_price).toFixed(2)}</td>
+                      <td className="px-6 py-3 text-right font-bold text-gray-900 text-sm" onClick={e => e.stopPropagation()}>
+                        <EditablePrice product={item} />
+                      </td>
                       <td className="px-6 py-3 text-center font-bold text-gray-900">{item.total_qty}</td>
                       <td className="px-6 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
