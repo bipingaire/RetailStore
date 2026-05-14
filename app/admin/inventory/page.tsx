@@ -84,7 +84,7 @@ export default function InventoryDashboard() {
         let items = res;
         if (res.data && res.meta) {
           items = res.data;
-          setTotalPages(res.meta.lastPage);
+          setTotalPages(res.meta.totalPages);
           setTotalItems(res.meta.total);
         }
 
