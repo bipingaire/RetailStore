@@ -38,6 +38,10 @@ export default function InventoryDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 20;
 
   // State to manage the Promotion Pop-up
   const [promoTarget, setPromoTarget] = useState<{ product: ProductRow, batch?: Batch } | null>(null);
@@ -67,10 +71,24 @@ export default function InventoryDashboard() {
   // 2. Fetch Data & Build Hierarchy
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       try {
-        const data = await apiClient.get('/products');
+        const queryParams = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        if (searchQuery) queryParams.append('search', searchQuery);
 
-        const processed: ProductRow[] = (data || []).map((item: any) => {
+        const res = await apiClient.get(`/products?${queryParams.toString()}`);
+        
+        let items = res;
+        if (res.data && res.meta) {
+          items = res.data;
+          setTotalPages(res.meta.lastPage);
+          setTotalItems(res.meta.total);
+        }
+
+        const processed: ProductRow[] = (items || []).map((item: any) => {
           const batches = (item.batches || []).map((b: any) => {
             const expiryDate = new Date(b.expiry);
             const today = new Date();
@@ -122,8 +140,11 @@ export default function InventoryDashboard() {
         setLoading(false);
       }
     }
-    fetchData();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      fetchData();
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [page, searchQuery]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,12 +154,7 @@ export default function InventoryDashboard() {
     }
   };
 
-  const filteredTopLevel = topLevel.filter(p =>
-    !searchQuery ||
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.children || []).some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredTopLevel = topLevel; // Search is handled by backend
 
   // Renders a single product row (works for both parent & child)
   const renderProductRow = (product: ProductRow, isChild = false) => {
@@ -339,7 +355,7 @@ export default function InventoryDashboard() {
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
                 className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm w-64 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
               />
             </div>
@@ -390,6 +406,32 @@ export default function InventoryDashboard() {
                 {filteredTopLevel.map(product => renderProductRow(product, false))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="text-sm text-gray-500">
+                  Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, totalItems)}</span> of <span className="font-medium">{totalItems}</span> results
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
