@@ -61,17 +61,18 @@ export default function SaleAdmin() {
   const [generatingPoster, setGeneratingPoster] = useState(false);
   const [publishingPoster, setPublishingPoster] = useState(false);
   const [productSearch, setProductSearch] = useState('');
+  
+  // Product Pagination State
+  const [productPage, setProductPage] = useState(1);
+  const [productTotalPages, setProductTotalPages] = useState(1);
+  const [productTotalItems, setProductTotalItems] = useState(0);
+  const productLimit = 10;
 
-  useEffect(() => {
-    async function loadData() {
+    async function loadCampaigns() {
       setLoading(true);
       try {
-        // Fetch campaigns and products from backend
-        const [campaigns, products] = await Promise.all([
-          apiClient.get('/campaigns'),
-          apiClient.get('/products?sellableOnly=true')
-        ]);
-
+        const campaigns = await apiClient.get('/campaigns');
+        
         // Map backend campaigns to frontend Segment type
         const normalizedSegments = campaigns.map((camp: any) => ({
           id: camp.id,
@@ -92,20 +93,7 @@ export default function SaleAdmin() {
           segment_products: []
         }));
 
-        // Map backend products to inventory format
-        const normalizedInventory = products.map((prod: any) => ({
-          id: prod.id,
-          price: Number(prod.price ?? 0),
-          global_products: {
-            name: prod.name || 'Unknown Product',
-            image_url: prod.imageUrl || '',
-            category: prod.category || 'General',
-            manufacturer: prod.manufacturer || 'Generic'
-          }
-        }));
-
         setSegments(normalizedSegments);
-        setInventory(normalizedInventory);
 
         // Auto select first segment
         const first = normalizedSegments[0];
@@ -128,13 +116,57 @@ export default function SaleAdmin() {
         console.error('Error loading campaigns:', error);
         toast.error('Failed to load campaigns');
         setSegments([]);
-        setInventory([]);
       }
       setLoading(false);
     }
 
-    loadData();
+    loadCampaigns();
   }, []);
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const queryParams = new URLSearchParams({
+          sellableOnly: 'true',
+          page: productPage.toString(),
+          limit: productLimit.toString(),
+        });
+        if (productSearch) queryParams.append('search', productSearch);
+
+        const res = await apiClient.get(`/products?${queryParams.toString()}`);
+        
+        let items = res;
+        if (res.data && res.meta) {
+          items = res.data;
+          setProductTotalPages(res.meta.totalPages);
+          setProductTotalItems(res.meta.total);
+        }
+
+        // Map backend products to inventory format
+        const normalizedInventory = (items || []).map((prod: any) => ({
+          id: prod.id,
+          price: Number(prod.price ?? 0),
+          global_products: {
+            name: prod.name || 'Unknown Product',
+            image_url: prod.imageUrl || '',
+            category: prod.category || 'General',
+            manufacturer: prod.manufacturer || 'Generic'
+          }
+        }));
+
+        setInventory(normalizedInventory);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      }
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      loadProducts();
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [productPage, productSearch]);
+
+
 
   const selectedSegment = useMemo(
     () => segments.find((s) => s.id === selectedSegmentId) || null,
@@ -578,7 +610,7 @@ export default function SaleAdmin() {
                         placeholder="Search products..."
                         className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-64 bg-white"
                         value={productSearch}
-                        onChange={(e) => setProductSearch(e.target.value)}
+                        onChange={(e) => { setProductSearch(e.target.value); setProductPage(1); }}
                       />
                     </div>
 
@@ -587,11 +619,7 @@ export default function SaleAdmin() {
                         <div className="p-8 text-center text-gray-400 text-sm">No inventory loaded.</div>
                       ) : (
                         <div className="divide-y divide-gray-100">
-                          {inventory.filter(item => 
-                            item.global_products.name.toLowerCase().includes(productSearch.toLowerCase()) || 
-                            (item.global_products.category || '').toLowerCase().includes(productSearch.toLowerCase()) ||
-                            (item.global_products.manufacturer || '').toLowerCase().includes(productSearch.toLowerCase())
-                          ).map((item) => {
+                          {inventory.map((item) => {
                             const checked = selectedItems.has(item.id);
                             return (
                               <div
@@ -617,8 +645,33 @@ export default function SaleAdmin() {
                             )
                           })}
                         </div>
-                      )}
                     </div>
+                    
+                    {/* Pagination Controls */}
+                    {productTotalPages > 1 && (
+                      <div className="flex items-center justify-between px-2 py-2">
+                        <div className="text-xs text-gray-500">
+                          Showing <span className="font-medium">{(productPage - 1) * productLimit + 1}</span> to <span className="font-medium">{Math.min(productPage * productLimit, productTotalItems)}</span> of <span className="font-medium">{productTotalItems}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setProductPage(p => Math.max(1, p - 1))}
+                            disabled={productPage === 1}
+                            className="px-2 py-1 border border-gray-200 bg-white text-gray-600 rounded text-xs disabled:opacity-50 hover:bg-gray-50"
+                          >
+                            Previous
+                          </button>
+                          <span className="text-xs text-gray-600 mx-1">Page {productPage} / {productTotalPages}</span>
+                          <button
+                            onClick={() => setProductPage(p => Math.min(productTotalPages, p + 1))}
+                            disabled={productPage === productTotalPages}
+                            className="px-2 py-1 border border-gray-200 bg-white text-gray-600 rounded text-xs disabled:opacity-50 hover:bg-gray-50"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Section 3: AI Poster */}
