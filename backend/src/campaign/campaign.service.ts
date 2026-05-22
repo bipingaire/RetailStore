@@ -182,7 +182,7 @@ export class CampaignService {
         const productNames = data.products.map((p) => p.name || 'product').slice(0, 5).join(', ');
         const campaignTitle = data.campaignTitle || 'Flash Sale';
         const campaignType = (data.campaignType || 'FLASH_SALE').replace(/_/g, ' ');
-        const captionPost = `🎉 ${campaignType} Alert! 🚀\n\nCheck out amazing deals on ${productNames}!\n\nGet the best prices this week only. Don't miss out! #Sale #Deals #${campaignTitle.replace(/\s+/g, '')}`;
+        let captionPost = `🎉 ${campaignType} Alert! 🚀\n\nCheck out amazing deals on ${productNames}!\n\nGet the best prices this week only. Don't miss out! #Sale #Deals #${campaignTitle.replace(/\s+/g, '')}`;
 
         if (!openaiKey) {
             return {
@@ -195,7 +195,44 @@ export class CampaignService {
             const OpenAI = require('openai').default || require('openai');
             const client = new OpenAI({ apiKey: openaiKey });
 
-            const prompt = `A vibrant, professional retail promotional poster for a "${campaignTitle}" campaign. Products featured: ${productNames}. Campaign type: ${campaignType}. Style: modern, colorful, eye-catching store advertisement with bold text areas, product showcase layout, bright background with sale badges. High quality commercial marketing photography style. No people, no text overlay.`;
+            // 1. Generate Advanced Copywriting Caption
+            try {
+                const chatResponse = await client.chat.completions.create({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `You are an elite conversion copywriting expert specializing in high-performing retail social media advertisements. 
+Your goal is to write a highly compelling, emotionally resonant, and action-oriented social media caption for a retail campaign.
+Structure the caption with:
+1. **A Killer Hook**: Scroll-stopping first line using bold claims, a relatable question, or immediate value.
+2. **The Offer/Urgency**: Clarify the specific campaign (e.g. FLASH SALE, HOLIDAY MARKDOWN) and build strong FOMO.
+3. **Product Highlights**: Emphasize benefits, value propositions, and sensory appeal of the featured products.
+4. **Friction-Free Call To Action**: Tell the customer exactly how to claim the offer immediately.
+5. **Formatting**: Use emojis strategically, keep line spacing clean, and include relevant high-reach hashtags. Keep total length under 180 words.`
+                        },
+                        {
+                            role: 'user',
+                            content: `Create an advanced promotional caption for the following retail campaign:
+- Campaign Title: "${campaignTitle}"
+- Campaign Type: "${campaignType}"
+- Featured Products: ${productNames}
+
+Emphasize immediate value, premium appeal, and strong urgency to buy right now.`
+                        }
+                    ],
+                    temperature: 0.82,
+                    max_tokens: 350
+                });
+                if (chatResponse.choices?.[0]?.message?.content) {
+                    captionPost = chatResponse.choices[0].message.content.trim();
+                }
+            } catch (copyErr: any) {
+                console.warn('Failed to generate advanced copy, falling back to default template:', copyErr?.message);
+            }
+
+            // 2. Generate Advanced Studio Backdrop Prompt for DALL-E 3
+            const prompt = `A ultra-premium, commercial studio advertising poster backdrop for a retail "${campaignTitle}" campaign. Showcase products: ${productNames}. Staged elegantly on a floating sleek minimalist marble pedestal, surrounded by abstract high-end 3D geometric shapes, translucent glassmorphic panels, and warm volumetric studio lighting. The aesthetic is clean, luxurious, and highly photorealistic, with a sophisticated professional color palette (deep slate, rose gold accents, matte obsidian, and soft amber glow). Cinematic depth of field, sharp highlights, and realistic soft shadows. Strictly clean and polished background with perfect empty space for text overlay. Clean composition, absolutely NO people, NO distorted text or AI gibberish.`;
 
             const response = await client.images.generate({
                 model: 'dall-e-3',
