@@ -615,79 +615,71 @@ export class InvoiceService {
             }
 
             const ext = path.extname(filePath).toLowerCase();
-            let promptContent: any[] = [];
-
             console.log('📖 Reading file...');
             const buffer = fs.readFileSync(filePath);
             console.log(`  - File read, size: ${buffer.length} bytes`);
 
+            console.log('🤖 Initializing OpenAI client...');
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+            let combinedData: {
+                vendorName?: string;
+                invoiceNumber?: string;
+                invoiceDate?: string;
+                totalAmount?: number;
+                items: any[];
+            } = { items: [] };
+
             if (ext === '.pdf') {
-                console.log('📄 PDF detected. Extracting text...');
-                const pdfParse = require('pdf-parse');
-                console.log('pdfParse type:', typeof pdfParse);
-                console.log('pdfParse keys:', Object.keys(pdfParse));
+                console.log('📄 PDF detected. Loading document...');
+                const { createCanvas } = require('canvas');
+                const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 
-                let pdfData;
-                if (typeof pdfParse === 'function') {
-                    pdfData = await pdfParse(buffer);
-                } else if (pdfParse.default && typeof pdfParse.default === 'function') {
-                    console.log('Using pdfParse.default');
-                    pdfData = await pdfParse.default(buffer);
-                } else {
-                    throw new Error(`pdf-parse export is not a function: ${JSON.stringify(pdfParse)}`);
-                }
+                const uint8Array = new Uint8Array(buffer);
+                const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+                const pdfDocument = await loadingTask.promise;
+                const numPages = pdfDocument.numPages;
+                console.log(`  - PDF loaded successfully with ${numPages} pages`);
 
-                const pdfText = pdfData.text;
-                console.log(`  - Extracted ${pdfText.length} characters of text`);
+                // We will process pages in a parallel concurrency pool
+                const processPage = async (p: number) => {
+                    console.log(`⏳ OCR processing page ${p}/${numPages}...`);
+                    const page = await pdfDocument.getPage(p);
 
-                // Check if PDF is scanned (insufficient text)
-                if (!pdfText || pdfText.trim().length < 50) {
-                    console.warn('⚠️ PDF contains insufficient text. Attempting to convert to image for OCR using native Canvas...');
-
+                    // Try to extract text content
+                    let pageText = '';
                     try {
-                        // Use native canvas + pdfjs-dist (via pdf-parse) to avoid external dependency issues
-                        // We need to require these safely
-                        const { createCanvas } = require('canvas');
-                        const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+                        const textContent = await page.getTextContent();
+                        pageText = textContent.items.map((item: any) => item.str).join(' ');
+                    } catch (err) {
+                        console.warn(`⚠️ Failed to extract text from page ${p}:`, err);
+                    }
 
-                        // Disable worker for Node.js environment
-                        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+                    const isScanned = !pageText || pageText.trim().length < 50;
+                    let pagePromptContent: any[] = [];
 
-                        // Load the PDF document
-                        // pdfjs-dist expects Uint8Array
-                        const uint8Array = new Uint8Array(buffer);
-                        const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
-                        const pdfDocument = await loadingTask.promise;
-
-                        // Get the first page
-                        const page = await pdfDocument.getPage(1);
-
-                        // Set scale for high resolution (2.0 = 200% size, good for OCR)
-                        const viewport = page.getViewport({ scale: 2.0 });
-
-                        // Create canvas
+                    if (isScanned) {
+                        console.log(`📸 Page ${p} is scanned. Rendering to high-res canvas...`);
+                        const scale = 2.0; // scale for clear OCR
+                        const viewport = page.getViewport({ scale });
                         const canvas = createCanvas(viewport.width, viewport.height);
                         const context = canvas.getContext('2d');
-
-                        // Render PDF page to canvas
                         const renderContext = {
                             canvasContext: context,
                             viewport: viewport
                         };
                         await page.render(renderContext).promise;
 
-                        console.log('  - Successfully rendered PDF page 1 to Canvas');
-
-                        // Convert canvas to PNG buffer
                         const base64Image = canvas.toBuffer('image/png').toString('base64');
                         const mimeType = 'image/png';
                         const dataUrl = `data:${mimeType};base64,${base64Image}`;
 
-                        promptContent = [
+                        pagePromptContent = [
                             {
                                 type: "text",
-                                text: `Analyze this invoice image (converted from PDF) and extract the following fields in JSON format.
-CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
+                                text: `Analyze page ${p} of ${numPages} of this invoice image and extract the following fields in JSON format.
+CRITICAL: You must extract EVERY SINGLE LINE ITEM present on this page. Do not summarize, do not skip items, and do not truncate the list.
 
 IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
 
@@ -698,66 +690,11 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
 - "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
 - "5 x 24x300gm" → quantity=5 cases, unitsPerCase=24, unitSize="300gm"
 
-- vendorName: The vendor/supplier name
-- invoiceNumber: The invoice number
-- invoiceDate: Invoice date in YYYY-MM-DD format
-- totalAmount: Total amount (number)
-- items: Array of items, each with:
-  - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
-  ${categoryPromptText}
-  - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
-  - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
-  - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
-  - casePrice: Price PER CASE (the invoice price, e.g. 60.00)
-  - costPerUnit: casePrice divided by unitsPerCase (e.g. 2.50)
-  - unitPrice: Same as costPerUnit (for compatibility)
-  - totalPrice: Total price for this line item (quantity x casePrice)
-  - sellingPrice: Selling price PER RETAIL UNIT. Usually found if the uploaded document includes a Z-report or retail price column. Extract it as a number if present, otherwise set to null.
-  - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
-Return ONLY the JSON object.`
-                            },
-                            {
-                                type: "image_url",
-                                image_url: {
-                                    url: dataUrl
-                                }
-                            }
-                        ];
-
-                    } catch (conversionError) {
-                        console.error('❌ PDF-to-Image native conversion failed:', conversionError);
-                        throw new Error(`PDF contains insufficient text and could not be converted to image (Error: ${conversionError.message}). Please upload a clear image (JPG/PNG) instead.`);
-                    }
-                } else {
-                    // Text-based PDF handling (existing logic)
-                    // [...]
-                    // Truncate text to avoid OpenAI Token Limits (429 Errors)
-                    // 50,000 chars is roughly 10k-12k tokens, well within limits
-                    const truncatedText = pdfText.slice(0, 50000);
-                    if (pdfText.length > 50000) {
-                        console.log(`  - Text truncated from ${pdfText.length} to 50000 characters`);
-                    }
-
-                    promptContent = [
-                        {
-                            type: "text",
-                            text: `Analyze this invoice TEXT and extract the following fields in JSON format.
-CRITICAL: You must extract EVERY SINGLE LINE ITEM from the invoice. Do not summarize, do not skip items, and do not truncate the list. If there are 50 items, return 50 items.
-
-IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
-
-PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
-- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A=cases ordered, B=units per case. So quantity=2, unitsPerCase=10, retailUnits=20 (auto). description="ASHOKA BHINDI MASALA 283gs", unitSize="283gs"
-- "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
-- "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
-- "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
-- "5 x 24x300gm" → quantity=5 cases, unitsPerCase=24, unitSize="300gm"
-
-- vendorName: The vendor/supplier name
-- invoiceNumber: The invoice number
-- invoiceDate: Invoice date in YYYY-MM-DD format
-- totalAmount: Total amount (number)
-- items: Array of items, each with:
+- vendorName: The vendor/supplier name (only if explicitly shown on this page, otherwise null/empty)
+- invoiceNumber: The invoice number (only if explicitly shown on this page, otherwise null/empty)
+- invoiceDate: Invoice date in YYYY-MM-DD format (only if explicitly shown on this page, otherwise null/empty)
+- totalAmount: Total amount of the entire invoice (only if explicitly shown on this page, otherwise null/empty)
+- items: Array of items on this page, each with:
   - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
   ${categoryPromptText}
   - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
@@ -767,24 +704,147 @@ PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices)
   - costPerUnit: casePrice divided by unitsPerCase
   - unitPrice: Same as costPerUnit (for compatibility)
   - totalPrice: Total price for this line item (quantity x casePrice)
-  - sellingPrice: Selling price PER RETAIL UNIT. Usually found if the uploaded document includes a Z-report or retail price column. Extract it as a number if present, otherwise set to null.
   - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
 
-Return ONLY the JSON object, no markdown formatting.
+Return ONLY a JSON object:
+{
+  "vendorName": "string or null",
+  "invoiceNumber": "string or null",
+  "invoiceDate": "string or null",
+  "totalAmount": number or null,
+  "items": [...]
+}`
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: dataUrl
+                                }
+                            }
+                        ];
+                    } else {
+                        console.log(`📄 Page ${p} has text. Processing directly from extracted text...`);
+                        pagePromptContent = [
+                            {
+                                type: "text",
+                                text: `Analyze page ${p} of ${numPages} of this invoice TEXT and extract the following fields in JSON format.
+CRITICAL: You must extract EVERY SINGLE LINE ITEM present on this page. Do not summarize, do not skip items, and do not truncate the list.
 
-INVOICE TEXT:
-${truncatedText}`
-                        }
-                    ];
+IMPORTANT - BULK PACK LOGIC: Invoices use BULK/WHOLESALE quantities. You MUST separate the number of CASES ordered from the number of retail UNITS per case.
+
+PRODUCT NAME FORMAT GUIDE (very common on South Asian / Indian grocery invoices):
+- "ASHOKA BHINDI MASALA 2 X 10 X 283gs" → 'A X B X size' means A=cases ordered, B=units per case. So quantity=2, unitsPerCase=10, retailUnits=20 (auto). description="ASHOKA BHINDI MASALA 283gs", unitSize="283gs"
+- "ASHOKA PARATHA 24 X 400GM" → 24 units per case. description="ASHOKA PARATHA 400GM", unitsPerCase=24, unitSize="400GM"
+- "COCA COLA 12 X 330ML" → 12 cans per case. description="COCA COLA 330ML", unitsPerCase=12, unitSize="330ML"
+- "PLAIN FLOUR 10KG" → single unit, no case breakdown. description="PLAIN FLOUR", unitsPerCase=1, unitSize="10KG"
+- "5 x 24x300gm" → quantity=5 cases, unitsPerCase=24, unitSize="300gm"
+
+- vendorName: The vendor/supplier name (only if explicitly shown on this page, otherwise null/empty)
+- invoiceNumber: The invoice number (only if explicitly shown on this page, otherwise null/empty)
+- invoiceDate: Invoice date in YYYY-MM-DD format (only if explicitly shown on this page, otherwise null/empty)
+- totalAmount: Total amount of the entire invoice (only if explicitly shown on this page, otherwise null/empty)
+- items: Array of items on this page, each with:
+  - description: Clean retail product name WITHOUT the pack multiplier (e.g. "ASHOKA BHINDI MASALA 283gs")
+  ${categoryPromptText}
+  - quantity: Number of CASES ordered (the leftmost quantity on the invoice line, e.g. 12)
+  - unitsPerCase: Retail units inside each case derived from the product name pattern (e.g. 20 for '2 X 10', 24 for '24 X 400GM'). Set to 1 only if there is genuinely no pack multiplier.
+  - unitSize: Retail unit size/volume (e.g. "283gs", "400GM", "330ML"). Empty string if not applicable.
+  - casePrice: Price PER CASE (the invoice price)
+  - costPerUnit: casePrice divided by unitsPerCase
+  - unitPrice: Same as costPerUnit (for compatibility)
+  - totalPrice: Total price for this line item (quantity x casePrice)
+  - expiryDate: Best-before date in YYYY-MM-DD. For perishables 7-30 days, packaged goods 6-12 months, non-perishables 1-2 years.
+
+PAGE TEXT:
+${pageText}
+
+Return ONLY a JSON object:
+{
+  "vendorName": "string or null",
+  "invoiceNumber": "string or null",
+  "invoiceDate": "string or null",
+  "totalAmount": number or null,
+  "items": [...]
+}`
+                            }
+                        ];
+                    }
+
+                    const response = await openai.chat.completions.create({
+                        model: "gpt-4o",
+                        messages: [
+                            {
+                                role: "user",
+                                content: pagePromptContent,
+                            },
+                        ],
+                        response_format: { type: "json_object" },
+                    });
+
+                    const content = response.choices[0].message.content;
+                    if (!content) throw new Error(`No content returned from OpenAI for page ${p}`);
+
+                    const pageData = JSON.parse(content);
+                    console.log(`✅ Page ${p}/${numPages} successfully parsed.`);
+                    return pageData;
+                };
+
+                const pagesToProcess = Array.from({ length: numPages }, (_, i) => i + 1);
+                const pageResults: any[] = [];
+                const executing: Promise<any>[] = [];
+                const concurrencyLimit = 3; // Keep concurrency safe but fast
+
+                for (const p of pagesToProcess) {
+                    const promise = processPage(p).then(res => {
+                        pageResults.push(res);
+                        executing.splice(executing.indexOf(promise), 1);
+                    }).catch(err => {
+                        console.error(`❌ Error parsing page ${p}:`, err);
+                        // Return empty items template on error so the rest of the document succeeds
+                        pageResults.push({ vendorName: null, invoiceNumber: null, invoiceDate: null, totalAmount: null, items: [] });
+                        executing.splice(executing.indexOf(promise), 1);
+                    });
+                    executing.push(promise);
+                    if (executing.length >= concurrencyLimit) {
+                        await Promise.race(executing);
+                    }
                 }
+                await Promise.all(executing);
+
+                // Merge page results
+                let vendorName = '';
+                let invoiceNumber = '';
+                let invoiceDateStr = '';
+                let totalAmount = 0;
+                let allItems: any[] = [];
+
+                // Sort results by page number to keep item ordering natural
+                for (const res of pageResults) {
+                    if (res.vendorName && !vendorName) vendorName = res.vendorName;
+                    if (res.invoiceNumber && !invoiceNumber) invoiceNumber = res.invoiceNumber;
+                    if (res.invoiceDate && !invoiceDateStr) invoiceDateStr = res.invoiceDate;
+                    if (Number(res.totalAmount) > totalAmount) totalAmount = Number(res.totalAmount);
+                    if (Array.isArray(res.items)) {
+                        allItems.push(...res.items);
+                    }
+                }
+
+                combinedData = {
+                    vendorName,
+                    invoiceNumber,
+                    invoiceDate: invoiceDateStr,
+                    totalAmount,
+                    items: allItems
+                };
+
             } else {
-                // Image handling
+                // Image handling (original logic)
                 const base64Image = buffer.toString('base64');
                 const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
                 const dataUrl = `data:${mimeType};base64,${base64Image}`;
                 console.log('  - Converted to base64');
 
-                promptContent = [
+                const imagePromptContent: any[] = [
                     {
                         type: "text",
                         text: `Analyze this invoice image and extract the following fields in JSON format.
@@ -824,40 +884,92 @@ Return ONLY the JSON object, no markdown formatting.`
                         },
                     },
                 ];
+
+                console.log('🚀 Sending single image request to OpenAI API...');
+                const response = await openai.chat.completions.create({
+                    model: "gpt-4o",
+                    messages: [
+                        {
+                            role: "user",
+                            content: imagePromptContent,
+                        },
+                    ],
+                    response_format: { type: "json_object" },
+                });
+
+                const content = response.choices[0].message.content;
+                if (!content) throw new Error('No content returned from OpenAI');
+                combinedData = JSON.parse(content);
             }
 
-            console.log('🤖 Initializing OpenAI client...');
-            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            console.log('✅ OpenAI processing complete. Performing DB matching and category auto-fill...');
 
-            console.log('🚀 Sending request to OpenAI API...');
-            const response = await openai.chat.completions.create({
-                model: "gpt-4o",
-                messages: [
-                    {
-                        role: "user",
-                        content: promptContent,
-                    },
-                ],
-                response_format: { type: "json_object" },
+            // Fetch existing products from the database for category auto-fill
+            const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+            const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+            // Fetch all products from the database to map categories and prices
+            const dbProducts = await client.product.findMany({
+                where: { isActive: true },
+                select: { name: true, category: true, price: true }
             });
 
-            const content = response.choices[0].message.content;
-            if (!content) throw new Error('No content returned from OpenAI');
-
-            const data = JSON.parse(content);
-            console.log('✅ OpenAI Response received');
+            // Create a lookup map of lowercased name -> product
+            const productMap = new Map<string, { category: string | null, price: number }>();
+            for (const p of dbProducts) {
+                productMap.set(p.name.toLowerCase().trim(), {
+                    category: p.category,
+                    price: Number(p.price)
+                });
+            }
 
             // Normalize data types — compute retail totals from bulk pack info
-            const items = Array.isArray(data.items) ? data.items.map((item: any) => {
+            const items = Array.isArray(combinedData.items) ? combinedData.items.map((item: any) => {
                 const cases = Number(item.quantity) || 1;
                 const unitsPerCase = Number(item.unitsPerCase) || 1;
                 const casePrice = Number(item.casePrice) || Number(item.unitPrice) || 0;
                 const costPerUnit = unitsPerCase > 1 ? (casePrice / unitsPerCase) : casePrice;
                 const retailUnits = cases * unitsPerCase;
 
+                // Match against existing products in DB
+                const desc = item.description || 'Item';
+                const cleanDesc = desc.toLowerCase().trim();
+                let matchedCategory = item.category || 'General';
+                let matchedSellingPrice: number | null = null;
+
+                // 1. Try exact match
+                let matched = productMap.get(cleanDesc);
+
+                // 2. Try partial/substring match if exact match fails
+                if (!matched) {
+                    for (const [dbName, dbProd] of productMap.entries()) {
+                        if (cleanDesc.includes(dbName) || dbName.includes(cleanDesc)) {
+                            matched = dbProd;
+                            break;
+                        }
+                    }
+                }
+
+                if (matched) {
+                    if (matched.category) {
+                        matchedCategory = matched.category;
+                    }
+                    matchedSellingPrice = matched.price;
+                }
+
+                // Strictly validate matchedCategory against combined categories in DB
+                const hasCategory = catData.combined.some(c => c.toLowerCase() === matchedCategory.toLowerCase());
+                if (hasCategory) {
+                    // Normalize casing to match the DB
+                    const exactCat = catData.combined.find(c => c.toLowerCase() === matchedCategory.toLowerCase());
+                    if (exactCat) matchedCategory = exactCat;
+                } else {
+                    matchedCategory = 'Uncategorized';
+                }
+
                 return {
-                    description: item.description || 'Item',
-                    category: item.category || 'General',
+                    description: desc,
+                    category: matchedCategory,
                     quantity: cases,                    // Bulk cases ordered
                     unitsPerCase,                       // Retail units per case
                     unitSize: item.unitSize || '',      // e.g. '300gm'
@@ -866,22 +978,22 @@ Return ONLY the JSON object, no markdown formatting.`
                     unitPrice: costPerUnit,             // backward-compat alias
                     retailUnits,                        // cases × unitsPerCase (for display)
                     totalPrice: Number(item.totalPrice) || (cases * casePrice),
-                    sellingPrice: null,                 // Will come from existing product / Z-report
+                    sellingPrice: matchedSellingPrice,  // Auto-filled selling price from existing product
                     expiryDate: item.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 };
             }) : [];
 
             // Calculate total amount from items if it's missing or 0
-            let totalAmount = Number(data.totalAmount) || 0;
+            let totalAmount = Number(combinedData.totalAmount) || 0;
             if (totalAmount === 0 && items.length > 0) {
                 totalAmount = items.reduce((sum: number, item: any) => sum + item.totalPrice, 0);
                 console.log(`⚠️ Total amount missing/zero. Calculated from items: ${totalAmount}`);
             }
 
             return {
-                vendorName: data.vendorName || 'Unknown Vendor',
-                invoiceNumber: data.invoiceNumber || `INV-${Date.now()}`,
-                invoiceDate: data.invoiceDate ? new Date(data.invoiceDate) : new Date(),
+                vendorName: combinedData.vendorName || 'Unknown Vendor',
+                invoiceNumber: combinedData.invoiceNumber || `INV-${Date.now()}`,
+                invoiceDate: combinedData.invoiceDate ? new Date(combinedData.invoiceDate) : new Date(),
                 totalAmount: totalAmount,
                 items: items,
             };

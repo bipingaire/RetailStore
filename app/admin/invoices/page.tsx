@@ -210,11 +210,31 @@ export default function InvoicesPage() {
 
         return !isDuplicate;
       }).map((item: any) => {
-        // Auto-fill selling price from Z-Report/Inventory database if product exists
+        // Auto-fill selling price and category from Z-Report/Inventory database if product exists
         const desc = item.description?.toLowerCase().trim() || '';
-        const existingProduct = products.find(p => p.name.toLowerCase() === desc);
-        if (existingProduct && existingProduct.price) {
-          item.sellingPrice = Number(existingProduct.price);
+        
+        // 1. Try exact match
+        let existingProduct = products.find(p => p.name.toLowerCase() === desc);
+        
+        // 2. Try partial/substring match if exact match fails
+        if (!existingProduct) {
+          existingProduct = products.find(p => {
+            const pName = p.name.toLowerCase();
+            return desc.includes(pName) || pName.includes(desc);
+          });
+        }
+
+        if (existingProduct) {
+          if (existingProduct.price) {
+            item.sellingPrice = Number(existingProduct.price);
+          }
+          if (existingProduct.category) {
+            // Strictly normalize casing to match combined categories in DB if possible
+            const exactCat = categories.combined.find(
+              c => c.toLowerCase() === existingProduct.category.toLowerCase()
+            );
+            item.category = exactCat || existingProduct.category;
+          }
         }
         return item;
       });
