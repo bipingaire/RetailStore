@@ -228,12 +228,25 @@ export default function InvoicesPage() {
           if (existingProduct.price) {
             item.sellingPrice = Number(existingProduct.price);
           }
-          if (existingProduct.category) {
+          const dbCategory = existingProduct.category;
+          const isDbCategoryValid = dbCategory && dbCategory.toLowerCase().trim() !== 'uncategorized';
+          
+          if (isDbCategoryValid) {
             // Strictly normalize casing to match combined categories in DB if possible
             const exactCat = categories.combined.find(
-              c => c.toLowerCase() === existingProduct.category.toLowerCase()
+              c => c.toLowerCase() === dbCategory.toLowerCase().trim()
             );
-            item.category = exactCat || existingProduct.category;
+            item.category = exactCat || dbCategory;
+          } else {
+            // Fall back to AI's predicted category
+            if (item.category) {
+              const exactCat = categories.combined.find(
+                c => c.toLowerCase() === item.category.toLowerCase().trim()
+              );
+              item.category = exactCat || item.category;
+            } else {
+              item.category = 'Uncategorized';
+            }
           }
         }
         return item;

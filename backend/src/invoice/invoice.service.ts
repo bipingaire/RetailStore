@@ -596,7 +596,7 @@ export class InvoiceService {
         // Fetch strict categories
         const catData = await this.categoryService.getCategories(subdomain);
         const authorizedCategories = catData.combined.length > 0 ? catData.combined.map(c => `"${c}"`).join(', ') : '"Uncategorized"';
-        const categoryPromptText = `- category: Product category. You MUST categorize the item using EXACTLY one of the following authorized categories: [${authorizedCategories}]. If it doesn't fit any, use "Uncategorized". Under NO CIRCUMSTANCES should you invent a new category.`;
+        const categoryPromptText = `- category: Product category. You MUST categorize the item using EXACTLY one of the following authorized categories: [${authorizedCategories}]. Please analyze the product name carefully and try your absolute best to assign it to one of these categories (e.g. if the item is a bread or pastry, map to "Bakery"; if it is a drink or soda, map to "Beverages" or "Drinks"). Only map to "Uncategorized" if the product has absolutely no relation to any of the authorized categories. Under NO CIRCUMSTANCES should you invent a new category.`;
 
         try {
             console.log('📂 Resolving file path...');
@@ -951,8 +951,10 @@ Return ONLY the JSON object, no markdown formatting.`
                 }
 
                 if (matched) {
-                    if (matched.category) {
+                    if (matched.category && matched.category.toLowerCase().trim() !== 'uncategorized') {
                         matchedCategory = matched.category;
+                    } else {
+                        matchedCategory = item.category || 'Uncategorized';
                     }
                     matchedSellingPrice = matched.price;
                 }
