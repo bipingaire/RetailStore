@@ -773,7 +773,7 @@ Return ONLY a JSON object:
                     }
 
                     const response = await openai.chat.completions.create({
-                        model: "gpt-4o",
+                        model: "gpt-4o-mini",
                         messages: [
                             {
                                 role: "user",
@@ -889,7 +889,7 @@ Return ONLY the JSON object, no markdown formatting.`
 
                 console.log('🚀 Sending single image request to OpenAI API...');
                 const response = await openai.chat.completions.create({
-                    model: "gpt-4o",
+                    model: "gpt-4o-mini",
                     messages: [
                         {
                             role: "user",
