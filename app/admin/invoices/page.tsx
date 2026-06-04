@@ -232,23 +232,28 @@ export default function InvoicesPage() {
           const isDbCategoryValid = dbCategory && dbCategory.toLowerCase().trim() !== 'uncategorized';
           
           if (isDbCategoryValid) {
-            // Strictly normalize casing to match combined categories in DB if possible
+            // Use DB product's category, normalize casing if possible
             const exactCat = categories.combined.find(
               c => c.toLowerCase() === dbCategory.toLowerCase().trim()
             );
             item.category = exactCat || dbCategory;
-          } else {
-            // Fall back to AI's predicted category
-            if (item.category) {
-              const exactCat = categories.combined.find(
-                c => c.toLowerCase() === item.category.toLowerCase().trim()
-              );
-              item.category = exactCat || item.category;
-            } else {
-              item.category = 'Uncategorized';
-            }
           }
+          // If DB category is absent/uncategorized, keep AI's predicted category as-is
         }
+
+        // Normalize AI category casing against DB if it matches, otherwise keep AI's category
+        if (item.category) {
+          const exactCat = categories.combined.find(
+            c => c.toLowerCase() === item.category.toLowerCase().trim()
+          );
+          if (exactCat) {
+            item.category = exactCat;
+          }
+          // If AI category is new (not in DB), keep it as-is — backend auto-creates it
+        } else {
+          item.category = 'Uncategorized';
+        }
+
         return item;
       });
 

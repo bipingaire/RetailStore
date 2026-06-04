@@ -593,10 +593,12 @@ export class InvoiceService {
 
         console.log(`🔑 Using OpenAI Key: ${process.env.OPENAI_API_KEY?.substring(0, 10)}... (Length: ${process.env.OPENAI_API_KEY?.length})`);
 
-        // Fetch strict categories
+        // Fetch existing categories as suggestions (AI is free to create new ones)
         const catData = await this.categoryService.getCategories(subdomain);
-        const authorizedCategories = catData.combined.length > 0 ? catData.combined.map(c => `"${c}"`).join(', ') : '"Uncategorized"';
-        const categoryPromptText = `- category: Product category. You MUST categorize the item using EXACTLY one of the following authorized categories: [${authorizedCategories}]. Please analyze the product name carefully and try your absolute best to assign it to one of these categories (e.g. if the item is a bread or pastry, map to "Bakery"; if it is a drink or soda, map to "Beverages" or "Drinks"). Only map to "Uncategorized" if the product has absolutely no relation to any of the authorized categories. Under NO CIRCUMSTANCES should you invent a new category.`;
+        const existingCategories = catData.combined.length > 0 ? catData.combined.map(c => `"${c}"`).join(', ') : '';
+        const categoryPromptText = existingCategories 
+            ? `- category: Product category. Here are the EXISTING categories in the store database for reference: [${existingCategories}]. PREFER using one of these existing categories when a product clearly fits (e.g. bread/pastry → "Bakery", soda/juice → "Beverages"). However, if a product does NOT fit any existing category well, you SHOULD create a new appropriate category name (e.g. "Spices", "Frozen Foods", "Snacks", "Personal Care", "Cleaning Supplies"). Use Title Case for category names. NEVER use "Uncategorized" — always assign a meaningful category.`
+            : `- category: Product category. Analyze the product name and assign a meaningful, descriptive category (e.g. "Bakery", "Beverages", "Frozen Foods", "Dairy", "Snacks", "Spices", "Personal Care", "Cleaning Supplies"). Use Title Case. NEVER use "Uncategorized" — always assign a meaningful category.`;
 
         try {
             console.log('📂 Resolving file path...');
@@ -924,7 +926,7 @@ Return ONLY the JSON object, no markdown formatting.`
             }
 
             // Normalize data types — compute retail totals from bulk pack info
-            const items = Array.isArray(combinedData.items) ? combinedData.items.map((item: any) => {
+            const items = Array.isArray(combinedData.items) ? await Promise.all(combinedData.items.map(async (item: any) => {
                 const cases = Number(item.quantity) || 1;
                 const unitsPerCase = Number(item.unitsPerCase) || 1;
                 const casePrice = Number(item.casePrice) || Number(item.unitPrice) || 0;
@@ -959,13 +961,26 @@ Return ONLY the JSON object, no markdown formatting.`
                     matchedSellingPrice = matched.price;
                 }
 
-                // Strictly validate matchedCategory against combined categories in DB
-                const hasCategory = catData.combined.some(c => c.toLowerCase() === matchedCategory.toLowerCase());
-                if (hasCategory) {
-                    // Normalize casing to match the DB
-                    const exactCat = catData.combined.find(c => c.toLowerCase() === matchedCategory.toLowerCase());
-                    if (exactCat) matchedCategory = exactCat;
+                // Normalize category casing: if it matches an existing DB category, use DB casing.
+                // If AI created a new category, keep it as-is (Title Case).
+                const exactCat = catData.combined.find(c => c.toLowerCase() === matchedCategory.toLowerCase());
+                if (exactCat) {
+                    matchedCategory = exactCat;
+                } else if (matchedCategory && matchedCategory.toLowerCase() !== 'uncategorized') {
+                    // AI created a new category — standardize to Title Case and auto-create in DB
+                    matchedCategory = matchedCategory.trim().split(/\s+/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                    try {
+                        await this.categoryService.addCategory(subdomain, matchedCategory);
+                        catData.combined.push(matchedCategory); // Add to in-memory list to avoid duplicates
+                        console.log(`🏷️ Auto-created new category: "${matchedCategory}"`);
+                    } catch (catErr: any) {
+                        // Category might already exist (race condition with parallel pages), that's fine
+                        if (!catErr?.message?.includes('Unique constraint')) {
+                            console.warn(`⚠️ Failed to auto-create category "${matchedCategory}":`, catErr?.message);
+                        }
+                    }
                 } else {
+                    // AI said "Uncategorized" — keep it but this should be rare with the new prompt
                     matchedCategory = 'Uncategorized';
                 }
 
@@ -983,7 +998,7 @@ Return ONLY the JSON object, no markdown formatting.`
                     sellingPrice: matchedSellingPrice,  // Auto-filled selling price from existing product
                     expiryDate: item.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 };
-            }) : [];
+            })) : [];
 
             // Calculate total amount from items if it's missing or 0
             let totalAmount = Number(combinedData.totalAmount) || 0;
