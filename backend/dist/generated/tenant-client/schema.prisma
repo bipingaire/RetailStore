@@ -18,7 +18,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Sales Sale[]
+  Sales          Sale[]
+  ProductReviews ProductReview[]
 
   @@map("users")
 }
@@ -56,6 +57,7 @@ model Product {
   InventoryAdjustments InventoryAdjustment[]
   Promotions           Promotion[]
   Campaigns            CampaignProduct[]
+  ProductReviews       ProductReview[]
 
   @@map("products")
 }
@@ -80,9 +82,6 @@ model Sale {
 
   items   SaleItem[]
   Invoice Invoice?
-
-  zReportId String?
-  zReport   ZReport? @relation(fields: [zReportId], references: [id])
 
   @@map("sales")
 }
@@ -424,8 +423,6 @@ model ZReport {
   processedAt  DateTime?
   createdAt    DateTime  @default(now())
 
-  Sales Sale[]
-
   @@map("z_reports")
 }
 
@@ -448,4 +445,19 @@ model LocalTaxRule {
   updatedAt DateTime @updatedAt
 
   @@map("local_tax_rules")
+}
+
+model ProductReview {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@map("product_reviews")
 }
