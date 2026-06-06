@@ -165,8 +165,7 @@ exports.Prisma.SaleScalarFieldEnum = {
   paymentStatus: 'paymentStatus',
   createdAt: 'createdAt',
   userId: 'userId',
-  customerId: 'customerId',
-  zReportId: 'zReportId'
+  customerId: 'customerId'
 };
 
 exports.Prisma.SaleItemScalarFieldEnum = {
@@ -416,6 +415,16 @@ exports.Prisma.LocalTaxRuleScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ProductReviewScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  userId: 'userId',
+  rating: 'rating',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -471,7 +480,8 @@ exports.Prisma.ModelName = {
   Expense: 'Expense',
   ZReport: 'ZReport',
   Category: 'Category',
-  LocalTaxRule: 'LocalTaxRule'
+  LocalTaxRule: 'LocalTaxRule',
+  ProductReview: 'ProductReview'
 };
 
 /**
