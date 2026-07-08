@@ -43,7 +43,4 @@ backend/.env*
 *.tsbuildinfo
 
 # generated prisma clients
-/backend/src/generated
-branch_structure.json
-temp_auto_push.bat
-temp_interactive_push.bat
+
