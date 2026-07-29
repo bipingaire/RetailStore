@@ -3,11 +3,18 @@ import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import * as dotenv from 'dotenv';
 import path from 'path';
+import { NextRequest, NextResponse } from 'next/server';
 
-// Explicitly load credentials from .env.production
+// Explicitly load credentials from .env.local and .env.production
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 dotenv.config({ path: path.resolve(process.cwd(), '.env.production') });
 
-import { NextRequest } from 'next/server';
+const getBackendBaseUrl = () => {
+    if (process.env.BACKEND_INTERNAL_URL) {
+        return process.env.BACKEND_INTERNAL_URL.replace(/\/api\/?$/, '') + '/api';
+    }
+    return process.env.NODE_ENV === 'production' ? 'http://backend:3001/api' : 'http://localhost:3001/api';
+};
 
 const authOptions = {
     providers: [
@@ -40,9 +47,7 @@ const authOptions = {
             // On first Google sign-in (account is populated), sync with backend
             if (account?.provider === 'google' && user?.email) {
                 try {
-                    const baseUrl = process.env.BACKEND_INTERNAL_URL
-                        ? process.env.BACKEND_INTERNAL_URL.replace(/\/api\/?$/, '') + '/api'
-                        : 'http://backend:3001/api';
+                    const baseUrl = getBackendBaseUrl();
 
                     // Parse tenant from NEXTAUTH_URL (set dynamically per-request)
                     const authUrl = process.env.NEXTAUTH_URL || '';
@@ -62,7 +67,7 @@ const authOptions = {
 
                     console.log(`[NextAuth] jwt: syncing Google user ${user.email} → tenant "${tenant}" → ${baseUrl}`);
 
-                    const res = await fetch(`${baseUrl}/auth/google-login`, {
+                    let res = await fetch(`${baseUrl}/auth/google-login`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -74,6 +79,25 @@ const authOptions = {
                             googleId: profile?.sub,
                         }),
                     });
+
+                    // Local dev fallback if docker service name fails
+                    if (!res.ok && baseUrl.includes('http://backend:3001')) {
+                        try {
+                            const fallbackUrl = 'http://localhost:3001/api';
+                            res = await fetch(`${fallbackUrl}/auth/google-login`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'x-tenant': tenant,
+                                },
+                                body: JSON.stringify({
+                                    email: user.email,
+                                    name: user.name,
+                                    googleId: profile?.sub,
+                                }),
+                            });
+                        } catch (e) {}
+                    }
 
                     if (res.ok) {
                         const data = await res.json();
@@ -102,6 +126,8 @@ const authOptions = {
     secret: process.env.NEXTAUTH_SECRET || 'retailstore-secret-key-change-in-production',
 };
 
+const NEXTAUTH_ACTIONS = ['signin', 'callback', 'session', 'csrf', 'providers', 'signout', '_log'];
+
 const handler = async (req: NextRequest, ctx: { params: any }) => {
     // Dynamically set NEXTAUTH_URL for multi-tenant support through Nginx
     const host = req.headers.get("host") || req.headers.get("x-forwarded-host");
@@ -109,9 +135,61 @@ const handler = async (req: NextRequest, ctx: { params: any }) => {
     if (host) {
         process.env.NEXTAUTH_URL = `${proto}://${host}`;
     }
+
+    const nextauthParams = ctx?.params?.nextauth;
+    const action = Array.isArray(nextauthParams) ? nextauthParams[0] : nextauthParams;
+
+    // If the request path is NOT a standard NextAuth action (e.g. /api/auth/login, /api/auth/register, etc.),
+    // proxy it directly to the NestJS backend API instead of letting NextAuth handle it!
+    if (action && !NEXTAUTH_ACTIONS.includes(action)) {
+        const backendBase = getBackendBaseUrl();
+        const url = new URL(req.url);
+        const subPath = url.pathname.replace(/^\/api\/auth/, '');
+        const targetUrl = `${backendBase}/auth${subPath}${url.search}`;
+
+        const reqHeaders = new Headers(req.headers);
+        reqHeaders.set('host', new URL(backendBase).host);
+
+        try {
+            const body = (req.method === 'GET' || req.method === 'HEAD') ? undefined : await req.arrayBuffer();
+            let backendRes = await fetch(targetUrl, {
+                method: req.method,
+                headers: reqHeaders,
+                body: body,
+                redirect: 'manual',
+            });
+
+            // Local fallback if docker backend hostname fails
+            if (!backendRes.ok && backendRes.status === 502 && backendBase.includes('http://backend:3001')) {
+                try {
+                    const fallbackTarget = `http://localhost:3001/api/auth${subPath}${url.search}`;
+                    backendRes = await fetch(fallbackTarget, {
+                        method: req.method,
+                        headers: reqHeaders,
+                        body: body,
+                        redirect: 'manual',
+                    });
+                } catch (e) {}
+            }
+
+            return new Response(backendRes.body, {
+                status: backendRes.status,
+                statusText: backendRes.statusText,
+                headers: backendRes.headers,
+            });
+        } catch (proxyErr: any) {
+            console.error(`[NextAuth Proxy] Error proxying ${req.method} ${url.pathname} to ${targetUrl}:`, proxyErr);
+            return new Response(JSON.stringify({ message: 'Backend service unavailable', details: proxyErr.message }), {
+                status: 502,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+    }
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return NextAuth(authOptions)(req, ctx);
 };
 
 export { handler as GET, handler as POST };
+

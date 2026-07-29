@@ -22,6 +22,44 @@ const nextConfig = {
     // In local dev: defaults to localhost:3001
     const backendUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:3001';
     return {
+      beforeFiles: [
+        {
+          source: '/api/auth/login',
+          destination: `${backendUrl}/api/auth/login`,
+        },
+        {
+          source: '/api/auth/register',
+          destination: `${backendUrl}/api/auth/register`,
+        },
+        {
+          source: '/api/auth/google-login',
+          destination: `${backendUrl}/api/auth/google-login`,
+        },
+        {
+          source: '/api/auth/super-admin/login',
+          destination: `${backendUrl}/api/auth/super-admin/login`,
+        },
+        {
+          source: '/api/auth/login-owner',
+          destination: `${backendUrl}/api/auth/login-owner`,
+        },
+        {
+          source: '/api/auth/register-owner',
+          destination: `${backendUrl}/api/auth/register-owner`,
+        },
+        {
+          source: '/api/auth/forgot-password',
+          destination: `${backendUrl}/api/auth/forgot-password`,
+        },
+        {
+          source: '/api/auth/reset-password',
+          destination: `${backendUrl}/api/auth/reset-password`,
+        },
+        {
+          source: '/api/auth/profile',
+          destination: `${backendUrl}/api/auth/profile`,
+        },
+      ],
       fallback: [
         {
           source: '/api/:path*',

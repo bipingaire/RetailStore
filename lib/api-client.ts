@@ -52,12 +52,17 @@ export const apiClient = {
                 const text = Array.isArray(msg) ? msg.join(', ') : msg;
                 throw new Error(text);
             } catch (e: any) {
-                if (e.message && e.message !== response.statusText) throw e;
-                throw new Error(response.statusText);
+                if (e.message && e.message !== response.statusText && !e.message.includes('not valid JSON') && !e.message.includes('Unexpected token')) throw e;
+                throw new Error(`Server returned ${response.status}: ${response.statusText || 'Error'}`);
             }
         }
 
-        return response.json();
+        try {
+            return await response.json();
+        } catch (e: any) {
+            console.error('[apiClient] Failed to parse JSON response from:', endpoint, e);
+            throw new Error(`Invalid server response from ${endpoint}`);
+        }
     },
 
     get(endpoint: string) {

@@ -17,7 +17,7 @@ function LoginContent() {
 
     const redirectTo = searchParams?.get('redirect') || '/shop/account';
 
-    // Check if already logged in via localStorage token (no network call needed)
+    // Check if already logged in via localStorage token or active Google session
     useEffect(() => {
         const urlError = searchParams?.get('error');
         if (urlError === 'user_does_not_exist') {
@@ -29,6 +29,29 @@ function LoginContent() {
         const token = localStorage.getItem('retail_token');
         if (token && !urlError) {
             router.replace(redirectTo);
+            return;
+        }
+
+        // Sync Google session if returning from Google login redirect
+        const syncSession = async () => {
+            try {
+                const res = await fetch('/api/auth/session');
+                if (res.ok) {
+                    const session = await res.json();
+                    if (session?.backendToken) {
+                        localStorage.setItem('retail_token', session.backendToken);
+                        localStorage.setItem('accessToken', session.backendToken);
+                        if (session.backendUser) {
+                            localStorage.setItem('retail_user', JSON.stringify(session.backendUser));
+                        }
+                        router.replace(redirectTo);
+                    }
+                }
+            } catch (e) {}
+        };
+
+        if (!urlError) {
+            syncSession();
         }
     }, [searchParams, redirectTo, router]);
 
