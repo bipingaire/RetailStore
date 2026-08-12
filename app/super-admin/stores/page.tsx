@@ -6,10 +6,9 @@ import { Store, Plus, Edit, Trash2, Check, X, MapPin, Mail, Phone, Globe } from 
 import { toast } from 'sonner';
 import { isSubdomainAvailable } from '@/lib/subdomain';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface StoreData {
     'tenant-id': string;

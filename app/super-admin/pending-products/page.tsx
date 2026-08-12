@@ -6,10 +6,9 @@ import { Clock, Check, X, Link as LinkIcon, Plus, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { approvePendingProduct, rejectPendingProduct } from '@/lib/ai/auto-sync';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function PendingProductsPage() {
     const [pendingProducts, setPendingProducts] = useState<any[]>([]);

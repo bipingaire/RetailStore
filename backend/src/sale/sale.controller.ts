@@ -59,6 +59,14 @@ export class SaleController {
     );
   }
 
+  @Get('analytics')
+  getAnalytics(
+    @Headers('x-tenant') subdomain: string,
+    @Query('days') days?: string,
+  ) {
+    return this.saleService.getSalesAnalytics(subdomain, days ? parseInt(days) : 30);
+  }
+
   @Get(':id')
   findOne(@Headers('x-tenant') subdomain: string, @Param('id') id: string) {
     return this.saleService.findOne(subdomain, id);

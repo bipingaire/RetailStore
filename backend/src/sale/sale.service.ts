@@ -180,6 +180,142 @@ export class SaleService {
     return { totalSales: 0, totalRevenue: 0 };
   }
 
+  async getSalesAnalytics(subdomain: string, days: number = 30) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    since.setHours(0, 0, 0, 0);
+
+    // ── 1. All sale items in range ─────────────────────────────────────────
+    const saleItems = await client.saleItem.findMany({
+      where: { sale: { createdAt: { gte: since } } },
+      include: { product: { select: { id: true, name: true, sku: true, category: true } }, sale: { select: { createdAt: true, paymentMethod: true, status: true } } },
+    });
+
+    // ── 2. All sales in range ──────────────────────────────────────────────
+    const sales = await client.sale.findMany({
+      where: { createdAt: { gte: since } },
+      select: {
+        id: true, total: true, subtotal: true, tax: true, discount: true,
+        paymentMethod: true, paymentStatus: true, status: true,
+        createdAt: true, customerId: true,
+        customer: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // ── 3. Top products by quantity sold ──────────────────────────────────
+    const productMap = new Map<string, { id: string; name: string; sku: string; category: string | null; unitsSold: number; revenue: number; salesCount: number }>();
+    for (const item of saleItems) {
+      const key = item.productId;
+      const existing = productMap.get(key) || {
+        id: item.product.id, name: item.product.name, sku: item.product.sku,
+        category: item.product.category, unitsSold: 0, revenue: 0, salesCount: 0,
+      };
+      existing.unitsSold += item.quantity;
+      existing.revenue += Number(item.subtotal);
+      existing.salesCount += 1;
+      productMap.set(key, existing);
+    }
+    const allProducts = Array.from(productMap.values());
+    const topByUnits = [...allProducts].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 10);
+    const topByRevenue = [...allProducts].sort((a, b) => b.revenue - a.revenue).slice(0, 10);
+
+    // ── 4. Daily revenue trend ─────────────────────────────────────────────
+    const dailyMap = new Map<string, { date: string; revenue: number; orders: number; avgOrder: number }>();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      dailyMap.set(key, { date: key, revenue: 0, orders: 0, avgOrder: 0 });
+    }
+    for (const sale of sales) {
+      const key = sale.createdAt.toISOString().split('T')[0];
+      if (dailyMap.has(key)) {
+        const day = dailyMap.get(key)!;
+        day.revenue += Number(sale.total);
+        day.orders += 1;
+        dailyMap.set(key, day);
+      }
+    }
+    const dailyTrend = Array.from(dailyMap.values()).map(d => ({
+      ...d,
+      avgOrder: d.orders > 0 ? d.revenue / d.orders : 0,
+    }));
+
+    // ── 5. Payment method breakdown ────────────────────────────────────────
+    const paymentMap = new Map<string, { method: string; count: number; revenue: number }>();
+    for (const sale of sales) {
+      const method = sale.paymentMethod || 'UNKNOWN';
+      const existing = paymentMap.get(method) || { method, count: 0, revenue: 0 };
+      existing.count += 1;
+      existing.revenue += Number(sale.total);
+      paymentMap.set(method, existing);
+    }
+    const paymentBreakdown = Array.from(paymentMap.values()).sort((a, b) => b.revenue - a.revenue);
+
+    // ── 6. Sale status distribution ────────────────────────────────────────
+    const statusMap = new Map<string, number>();
+    for (const sale of sales) {
+      statusMap.set(sale.status, (statusMap.get(sale.status) || 0) + 1);
+    }
+    const statusBreakdown = Array.from(statusMap.entries()).map(([status, count]) => ({ status, count }));
+
+    // ── 7. Category revenue breakdown ──────────────────────────────────────
+    const categoryMap = new Map<string, { category: string; unitsSold: number; revenue: number }>();
+    for (const item of saleItems) {
+      const cat = item.product.category || 'Uncategorized';
+      const existing = categoryMap.get(cat) || { category: cat, unitsSold: 0, revenue: 0 };
+      existing.unitsSold += item.quantity;
+      existing.revenue += Number(item.subtotal);
+      categoryMap.set(cat, existing);
+    }
+    const categoryBreakdown = Array.from(categoryMap.values()).sort((a, b) => b.revenue - a.revenue);
+
+    // ── 8. Hourly sales heatmap (0–23) ─────────────────────────────────────
+    const hourly: number[] = new Array(24).fill(0);
+    for (const sale of sales) {
+      const h = new Date(sale.createdAt).getHours();
+      hourly[h] += Number(sale.total);
+    }
+
+    // ── 9. Top customers ───────────────────────────────────────────────────
+    const customerMap = new Map<string, { name: string; orders: number; spent: number }>();
+    for (const sale of sales) {
+      if (!sale.customerId) continue;
+      const key = sale.customerId;
+      const existing = customerMap.get(key) || { name: sale.customer?.name || 'Unknown', orders: 0, spent: 0 };
+      existing.orders += 1;
+      existing.spent += Number(sale.total);
+      customerMap.set(key, existing);
+    }
+    const topCustomers = Array.from(customerMap.values()).sort((a, b) => b.spent - a.spent).slice(0, 10);
+
+    // ── 10. Summary KPIs ───────────────────────────────────────────────────
+    const totalRevenue = sales.reduce((s, sale) => s + Number(sale.total), 0);
+    const totalOrders = sales.length;
+    const totalUnits = saleItems.reduce((s, i) => s + i.quantity, 0);
+    const totalDiscount = sales.reduce((s, sale) => s + Number(sale.discount), 0);
+    const totalTax = sales.reduce((s, sale) => s + Number(sale.tax), 0);
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const uniqueCustomers = new Set(sales.filter(s => s.customerId).map(s => s.customerId)).size;
+
+    return {
+      period: { days, since },
+      summary: { totalRevenue, totalOrders, totalUnits, avgOrderValue, totalDiscount, totalTax, uniqueCustomers },
+      topProductsByUnits: topByUnits,
+      topProductsByRevenue: topByRevenue,
+      dailyTrend,
+      paymentBreakdown,
+      statusBreakdown,
+      categoryBreakdown,
+      hourlySalesHeatmap: hourly,
+      topCustomers,
+    };
+  }
+
   async cancelSale(subdomain: string, id: string, userId: string) {
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
