@@ -7,7 +7,7 @@ describe('Sales Analytics Data Processing', () => {
 
   const sampleSaleItems = [
     { productId: 'p1', quantity: 2, subtotal: 40, product: { name: 'Item A', category: 'Dairy' } },
-    { productId: 'p2', quantity: 5, subtotal: 50, product: { name: 'Item B', category: 'Bakery' } },
+    { productId: 'p2', quantity: 8, subtotal: 50, product: { name: 'Item B', category: 'Bakery' } },
     { productId: 'p1', quantity: 3, subtotal: 60, product: { name: 'Item A', category: 'Dairy' } },
   ];
 
@@ -35,10 +35,11 @@ describe('Sales Analytics Data Processing', () => {
     const sortedByUnits = Array.from(productMap.values()).sort((a, b) => b.unitsSold - a.unitsSold);
 
     expect(sortedByUnits[0].name).toBe('Item B');
-    expect(sortedByUnits[0].unitsSold).toBe(5);
+    expect(sortedByUnits[0].unitsSold).toBe(8);
     expect(sortedByUnits[1].name).toBe('Item A');
     expect(sortedByUnits[1].unitsSold).toBe(5);
   });
+
 
   test('aggregates top products by revenue correctly', () => {
     const productMap = new Map<string, { name: string; unitsSold: number; revenue: number }>();
