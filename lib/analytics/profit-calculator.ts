@@ -31,7 +31,7 @@ export async function calculateProfitMetrics(
         .gte('order_date_time', startDate)
         .lte('order_date_time', endDate);
 
-    const revenue = orders?.reduce((sum, order) => sum + (order.final_amount || 0), 0) || 0;
+    const revenue = orders?.reduce((sum: number, order: any) => sum + (order.final_amount || 0), 0) || 0;
 
     // Calculate COGS from order line items
     const { data: lineItems } = await supabase
@@ -44,9 +44,9 @@ export async function calculateProfitMetrics(
         cost_price_amount
       )
     `)
-        .in('order_id', orders?.map(o => o.order_id) || []);
+        .in('order_id', orders?.map((o: any) => o.order_id) || []);
 
-    const cogs = lineItems?.reduce((sum, item: any) => {
+    const cogs = lineItems?.reduce((sum: number, item: any) => {
         const cost = item.store_inventory?.cost_price_amount || 0;
         return sum + (cost * item.quantity_ordered);
     }, 0) || 0;
@@ -58,7 +58,8 @@ export async function calculateProfitMetrics(
         .gte('expense_date', startDate)
         .lte('expense_date', endDate);
 
-    const totalExpenses = expenses?.reduce((sum, exp) => sum + (exp.amount || 0), 0) || 0;
+    const totalExpenses = expenses?.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0) || 0;
+
 
     const grossProfit = revenue - cogs;
     const grossMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;

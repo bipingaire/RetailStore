@@ -36,6 +36,19 @@ import { TaxModule } from './tax/tax.module';
     LegacyApiModule,
     VendorModule,
     InvoiceModule,
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    AuthModule,
+    TenantModule,
+    ProductModule,
+    SaleModule,
+    CustomerModule,
+    LegacyApiModule,
+    VendorModule,
+    InvoiceModule,
     AuditModule,
     PurchaseOrderModule,
     CampaignModule,
@@ -44,14 +57,8 @@ import { TaxModule } from './tax/tax.module';
     DashboardModule,
     PosMappingModule,
     ReportsModule,
-    PosMappingModule,
-    ReportsModule,
     SocialModule,
     ExpenseModule,
     CategoryModule,
-    TaxModule,
-  ],
-  controllers: [],
-  providers: [TenantPrismaService],
 })
 export class AppModule { }
