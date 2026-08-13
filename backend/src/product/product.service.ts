@@ -143,7 +143,27 @@ export class ProductService implements OnModuleInit {
     return this.createProduct(subdomain, data);
   }
 
+  async findByBarcode(subdomain: string, code: string) {
+    const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
+    const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
+
+    const product = await client.product.findFirst({
+      where: {
+        OR: [
+          { barcode: { equals: code, mode: 'insensitive' } },
+          { sku: { equals: code, mode: 'insensitive' } },
+          { id: { equals: code } },
+        ],
+      },
+      include: { Batches: true },
+    });
+
+    if (!product) throw new NotFoundException(`Product with barcode/SKU "${code}" not found`);
+    return product;
+  }
+
   async findOne(subdomain: string, id: string) {
+
     const tenant = await this.tenantService.getTenantBySubdomain(subdomain);
     const client = await this.tenantPrisma.getTenantClient(tenant.databaseUrl);
     const product = await client.product.findUnique({ 

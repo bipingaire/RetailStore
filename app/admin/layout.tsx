@@ -20,7 +20,9 @@ import {
   Megaphone,
   Image,
   Loader2,
+  CreditCard,
 } from 'lucide-react';
+
 import { toast } from 'sonner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +36,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: Home, desc: 'Overview' },
+    { name: 'POS Counter', href: '/admin/pos', icon: CreditCard, desc: 'Live Register', badge: 'Terminal' },
     { name: 'Scan Invoices', href: '/admin/invoices', icon: FileInput, desc: 'Receive Goods' },
+
     { name: 'Daily Sales Sync', href: '/admin/sales', icon: FileBarChart, desc: 'Upload POS Report' },
     { name: 'Sale Campaigns', href: '/admin/sale', icon: Sparkles, desc: 'Flash / Ending / Festive', badge: 'New' },
     { name: 'Daily Shelf Audit', href: '/admin/audit', icon: ClipboardCheck, desc: 'Physical Count & QC' },

@@ -47,7 +47,13 @@ export class ProductController {
     return this.productService.getCategories(subdomain);
   }
 
+  @Get('barcode/:code')
+  findByBarcode(@Headers('x-tenant') subdomain: string, @Param('code') code: string) {
+    return this.productService.findByBarcode(subdomain, code);
+  }
+
   @Get(':id')
+
   findOne(@Headers('x-tenant') subdomain: string, @Param('id') id: string) {
     return this.productService.findOne(subdomain, id);
   }
