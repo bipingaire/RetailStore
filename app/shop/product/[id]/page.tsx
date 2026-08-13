@@ -124,8 +124,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     setIsSubmittingReview(false);
   };
 
-  const rating = reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '0.0';
+  const ratingNum = reviews.length > 0 ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length : 0;
+  const rating = ratingNum.toFixed(1);
   const reviewCount = reviews.length;
+
 
   if (loading) {
     return (
@@ -249,7 +251,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   <Star
                     key={i}
                     size={16}
-                    className={i <= Math.floor(rating) ? 'fill-yellow-400 text-yellow-400' : i - 0.5 <= rating ? 'fill-yellow-200 text-yellow-400' : 'text-gray-200 fill-gray-200'}
+                    className={i <= Math.floor(ratingNum) ? 'fill-yellow-400 text-yellow-400' : i - 0.5 <= ratingNum ? 'fill-yellow-200 text-yellow-400' : 'text-gray-200 fill-gray-200'}
+
                   />
                 ))}
               </div>

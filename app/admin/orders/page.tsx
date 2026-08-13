@@ -43,8 +43,8 @@ export default function OrderManager() {
       if (Array.isArray(sales)) {
         const mapped = sales.map((sale: any) => ({
           id: sale.id,
-          id: sale.id,
           customerName: sale.customer?.name || sale.guestName || 'Guest Customer',
+
           customerEmail: sale.customer?.email || sale.guestEmail || '',
           customerPhone: sale.customer?.phone || sale.guestPhone || '—',
           total: Number(sale.total),
