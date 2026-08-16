@@ -21,6 +21,7 @@ import {
   Image,
   Loader2,
   CreditCard,
+  TrendingUp,
 } from 'lucide-react';
 
 import { toast } from 'sonner';
