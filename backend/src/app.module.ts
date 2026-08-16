@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
@@ -15,7 +14,6 @@ import { PurchaseOrderModule } from './purchase-order/purchase-order.module';
 import { CampaignModule } from './campaign/campaign.module';
 import { SettingsModule } from './settings/settings.module';
 import { ReportsModule } from './reports/reports.module';
-import { TenantPrismaService } from './prisma/tenant-prisma.service';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PosMappingModule } from './pos-mapping/pos-mapping.module';
@@ -23,19 +21,6 @@ import { SocialModule } from './social/social.module';
 import { ExpenseModule } from './expense/expense.module';
 import { CategoryModule } from './category/category.module';
 import { TaxModule } from './tax/tax.module';
-
-@Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    PrismaModule,
-    AuthModule,
-    TenantModule,
-    ProductModule,
-    SaleModule,
-    CustomerModule,
-    LegacyApiModule,
-    VendorModule,
-    InvoiceModule,
 
 @Module({
   imports: [
@@ -60,5 +45,7 @@ import { TaxModule } from './tax/tax.module';
     SocialModule,
     ExpenseModule,
     CategoryModule,
+    TaxModule,
+  ],
 })
-export class AppModule { }
+export class AppModule {}
