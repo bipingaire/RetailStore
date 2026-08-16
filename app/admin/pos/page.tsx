@@ -39,15 +39,38 @@ export default function POSTerminalPage() {
     customer?: CustomerData | null;
   } | null>(null);
 
-  // Load products & categories
-  const loadCatalog = useCallback(async () => {
+  // Pagination & Filter state
+  const [page, setPage] = useState(1);
+  const [limit] = useState(30);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Load products & categories with backend pagination
+  const loadCatalog = useCallback(async (pPage = page, pSearch = search, pCat = selectedCategory) => {
     setLoading(true);
     try {
+      let url = `/products?sellableOnly=true&page=${pPage}&limit=${limit}`;
+      if (pSearch) url += `&search=${encodeURIComponent(pSearch)}`;
+      if (pCat) url += `&category=${encodeURIComponent(pCat)}`;
+
       const [prodsData, catsData] = await Promise.all([
-        apiClient.get('/products?sellableOnly=true'),
+        apiClient.get(url),
         apiClient.get('/products/categories'),
       ]);
-      setProducts(Array.isArray(prodsData) ? prodsData : prodsData.data || []);
+
+      if (prodsData && prodsData.meta) {
+        setProducts(prodsData.data || []);
+        setTotalProducts(prodsData.meta.total || 0);
+        setTotalPages(prodsData.meta.totalPages || 1);
+      } else {
+        const arr = Array.isArray(prodsData) ? prodsData : prodsData.data || [];
+        setProducts(arr);
+        setTotalProducts(arr.length);
+        setTotalPages(Math.max(1, Math.ceil(arr.length / limit)));
+      }
+
       setCategories(catsData || []);
     } catch (err: any) {
       console.error('Failed to load catalog for POS', err);
@@ -55,11 +78,25 @@ export default function POSTerminalPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [limit]);
 
   useEffect(() => {
-    loadCatalog();
-  }, [loadCatalog]);
+    loadCatalog(page, search, selectedCategory);
+  }, [page, search, selectedCategory, loadCatalog]);
+
+  const handleSearchChange = (newSearch: string) => {
+    setSearch(newSearch);
+    setPage(1);
+  };
+
+  const handleCategoryChange = (newCategory: string | null) => {
+    setSelectedCategory(newCategory);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   // Audio feedback helper for barcode scanning
   const playBeep = () => {
@@ -252,6 +289,15 @@ export default function POSTerminalPage() {
           onAddToCart={handleAddToCart}
           onBarcodeSearch={handleBarcodeLookup}
           loading={loading}
+          page={page}
+          totalPages={totalPages}
+          totalProducts={totalProducts}
+          limit={limit}
+          onPageChange={handlePageChange}
+          search={search}
+          onSearchChange={handleSearchChange}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
         />
       </div>
 
