@@ -7,6 +7,14 @@ import CartPanel, { CartLineItem, CustomerData } from '@/components/admin-ui/pos
 import CustomerModal from '@/components/admin-ui/pos/customer-modal';
 import PaymentModal from '@/components/admin-ui/pos/payment-modal';
 import ReceiptModal from '@/components/admin-ui/pos/receipt-modal';
+import HardwareModal from '@/components/admin-ui/pos/hardware-modal';
+import {
+  HardwareDeviceStatus,
+  DEFAULT_HARDWARE_CONFIG,
+  kickCashDrawer,
+  broadcastToCustomerDisplay
+} from '@/lib/hardware/pos-hardware-manager';
+import { Cpu, Printer, Volume2, CreditCard, Scale, Monitor } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function POSTerminalPage() {
@@ -24,6 +32,29 @@ export default function POSTerminalPage() {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [isHardwareModalOpen, setIsHardwareModalOpen] = useState(false);
+
+  // Hardware integration state
+  const [hardwareStatus, setHardwareStatus] = useState<HardwareDeviceStatus>(DEFAULT_HARDWARE_CONFIG);
+
+  // Broadcast cart updates to Customer Facing Display screen whenever cart or total changes
+  useEffect(() => {
+    const subtotal = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
+    const discountAmount = (subtotal * discountPct) / 100;
+    const taxableAmount = Math.max(0, subtotal - discountAmount);
+    const taxAmount = (taxableAmount * taxPct) / 100;
+    const total = Math.max(0, taxableAmount + taxAmount);
+
+    broadcastToCustomerDisplay({
+      type: 'CART_UPDATE',
+      items: cartItems.map(i => ({ name: i.name, price: i.price, quantity: i.quantity, subtotal: i.subtotal })),
+      subtotal,
+      tax: taxAmount,
+      discount: discountAmount,
+      total,
+      customerName: customer?.name
+    });
+  }, [cartItems, discountPct, taxPct, customer]);
 
   // Completed sale result for receipt
   const [lastSale, setLastSale] = useState<{
@@ -266,6 +297,19 @@ export default function POSTerminalPage() {
       setIsPaymentModalOpen(false);
       setIsReceiptModalOpen(true);
 
+      // Auto-kick cash drawer on CASH sales if auto-kick is enabled
+      if (paymentMethod === 'CASH' && hardwareStatus.autoKickDrawer) {
+        kickCashDrawer();
+      }
+
+      // Broadcast sale completion to Customer Display Screen
+      broadcastToCustomerDisplay({
+        type: 'SALE_COMPLETE',
+        total,
+        amountTendered,
+        customerName: customer?.name
+      });
+
       // Refresh product stock
       loadCatalog();
     } catch (err: any) {
@@ -280,7 +324,23 @@ export default function POSTerminalPage() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans relative">
+      {/* POS Hardware Status Quick Manager Bar */}
+      <button
+        onClick={() => setIsHardwareModalOpen(true)}
+        className="absolute top-3 right-[42%] z-30 bg-slate-900/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-md shadow-md border border-slate-700 hover:bg-slate-800 transition-all flex items-center gap-2"
+        title="Click to configure POS Hardware (Printers, Scanners, Drawers, Scales & Customer Displays)"
+      >
+        <Cpu size={14} className="text-indigo-400 animate-pulse" />
+        <span className="font-bold">Hardware</span>
+        <div className="flex items-center gap-1 border-l border-slate-700 pl-2">
+          <span title="Scanner Ready"><Volume2 size={12} className="text-emerald-400" /></span>
+          <span title="Printer Ready"><Printer size={12} className="text-emerald-400" /></span>
+          <span title="Drawer Auto-Kick Active"><CreditCard size={12} className="text-emerald-400" /></span>
+          {hardwareStatus.scaleConnected && <span title="Weighing Scale Connected"><Scale size={12} className="text-amber-400" /></span>}
+          {hardwareStatus.customerDisplayActive && <span title="Customer Pole Display Active"><Monitor size={12} className="text-indigo-400" /></span>}
+        </div>
+      </button>
       {/* Left Column: Product Catalog Grid (60% width) */}
       <div className="w-[60%] h-full flex flex-col">
         <ProductGrid
@@ -360,6 +420,13 @@ export default function POSTerminalPage() {
           customer={lastSale.customer}
         />
       )}
+
+      <HardwareModal
+        isOpen={isHardwareModalOpen}
+        onClose={() => setIsHardwareModalOpen(false)}
+        status={hardwareStatus}
+        onUpdateStatus={(patch) => setHardwareStatus((prev) => ({ ...prev, ...patch }))}
+      />
     </div>
   );
 }
