@@ -1,6 +1,6 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { Search, Tag, Package, AlertTriangle, Plus, Barcode } from 'lucide-react';
+import { Search, Tag, Package, Plus, Barcode, ChevronDown, LayoutGrid } from 'lucide-react';
 
 export interface ProductItem {
   id: string;
@@ -32,6 +32,7 @@ export default function ProductGrid({
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [barcodeInput, setBarcodeInput] = useState('');
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -55,13 +56,17 @@ export default function ProductGrid({
     setBarcodeInput('');
   };
 
+  // Display top 10 categories by default when collapsed, or all when expanded
+  const visibleCategories = showAllCategories ? categories : categories.slice(0, 10);
+
   return (
     <div className="flex flex-col h-full bg-slate-50 border-r border-slate-200">
-      {/* Search & Barcode Header */}
-      <div className="p-4 bg-white border-b border-slate-200 space-y-3">
-        <div className="flex gap-2">
+      {/* Search & Category Controls Header */}
+      <div className="p-4 bg-white border-b border-slate-200 space-y-3 shadow-sm">
+        {/* Row 1: Search, Barcode & Category Selector Dropdown */}
+        <div className="flex flex-wrap items-center gap-2">
           {/* Text Search */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
             <input
               type="text"
@@ -72,8 +77,26 @@ export default function ProductGrid({
             />
           </div>
 
+          {/* Standard Form Category Select Dropdown */}
+          <div className="relative min-w-[160px] max-w-[220px]">
+            <Tag className="absolute left-3 top-2.5 text-indigo-500 pointer-events-none" size={18} />
+            <select
+              value={selectedCategory || ''}
+              onChange={(e) => setSelectedCategory(e.target.value || null)}
+              className="w-full pl-9 pr-8 py-2 bg-indigo-50/60 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-950 outline-none focus:border-indigo-600 focus:bg-white transition-all cursor-pointer truncate appearance-none"
+            >
+              <option value="">All Categories ({products.length})</option>
+              {categories.map((cat) => (
+                <option key={cat.name} value={cat.name}>
+                  {cat.name} ({cat.count})
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-3 text-indigo-400 pointer-events-none" size={14} />
+          </div>
+
           {/* Barcode Quick Lookup */}
-          <form onSubmit={handleBarcodeSubmit} className="relative w-48">
+          <form onSubmit={handleBarcodeSubmit} className="relative w-44">
             <Barcode className="absolute left-3 top-2.5 text-slate-400" size={18} />
             <input
               type="text"
@@ -81,32 +104,32 @@ export default function ProductGrid({
               placeholder="Scan Barcode..."
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-indigo-50/50 border border-indigo-200 rounded-xl text-sm font-mono text-indigo-900 outline-none focus:border-indigo-600 focus:bg-white transition-all placeholder:text-indigo-300"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-900 outline-none focus:border-indigo-600 focus:bg-white transition-all placeholder:text-slate-400"
             />
           </form>
         </div>
 
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+        {/* Row 2: Standard Multi-Line Wrapped Category Pills (No horizontal scrolling slider) */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
               selectedCategory === null
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600/20'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             All Items ({products.length})
           </button>
-          {categories.map((cat) => {
+          {visibleCategories.map((cat) => {
             const isSelected = selectedCategory?.toLowerCase() === cat.name.toLowerCase();
             return (
               <button
                 key={cat.name}
                 onClick={() => setSelectedCategory(isSelected ? null : cat.name)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-sm'
+                    ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600/20'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -114,6 +137,14 @@ export default function ProductGrid({
               </button>
             );
           })}
+          {categories.length > 10 && (
+            <button
+              onClick={() => setShowAllCategories(!showAllCategories)}
+              className="px-2.5 py-1 rounded-lg text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors border border-indigo-100"
+            >
+              {showAllCategories ? 'Show Less' : `+${categories.length - 10} More`}
+            </button>
+          )}
         </div>
       </div>
 
@@ -122,7 +153,7 @@ export default function ProductGrid({
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 gap-2 text-slate-400">
             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-            <p className="text-sm">Loading Product Catalog...</p>
+            <p className="text-sm font-medium">Loading Product Catalog...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 gap-2 text-slate-400">
@@ -130,7 +161,7 @@ export default function ProductGrid({
             <p className="text-sm font-medium">No products match your search</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filteredProducts.map((product) => {
               const stock = product.stock ?? product.total_qty ?? 0;
               const isOut = stock <= 0;
