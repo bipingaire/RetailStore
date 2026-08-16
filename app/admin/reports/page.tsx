@@ -9,6 +9,7 @@ import {
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import SalesAnalytics from '@/components/admin-ui/sales-analytics';
 
 
 
@@ -319,6 +320,11 @@ export default function FinancialReportsPage() {
                             No sales data available yet
                         </div>
                     )}
+                </div>
+
+                {/* Full Interactive Sales Analytics Charts & Heatmap */}
+                <div className="mt-12 pt-8 border-t border-gray-200">
+                    <SalesAnalytics />
                 </div>
 
             </div>

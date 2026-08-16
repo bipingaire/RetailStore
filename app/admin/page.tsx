@@ -6,6 +6,7 @@ import {
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
+import SalesAnalytics from '@/components/admin-ui/sales-analytics';
 
 export default function AdminDashboard() {
   // Supabase removed - refactor needed
@@ -223,6 +224,10 @@ export default function AdminDashboard() {
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-4">Quick Links</h3>
               <div className="space-y-2">
+                <Link href="/admin/reports" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors">
+                  <span className="flex items-center gap-2"><TrendingUp size={16} className="text-indigo-600" /> Sales Analytics</span>
+                  <ArrowRight size={14} className="text-gray-400" />
+                </Link>
                 <Link href="/admin/inventory" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors">
                   <span className="flex items-center gap-2"><Package size={16} /> Inventory</span>
                   <ArrowRight size={14} className="text-gray-400" />
@@ -236,6 +241,11 @@ export default function AdminDashboard() {
 
           </div>
 
+        </div>
+
+        {/* 4. FULL SALES ANALYTICS SECTION */}
+        <div className="pt-6 border-t border-gray-200">
+          <SalesAnalytics />
         </div>
 
       </div>
